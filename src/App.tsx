@@ -64,10 +64,12 @@ import {
   Columns,
 } from "lucide-react";
 import { cloneMultiCharacterConfig } from "./data/multiTemplate";
+import { handlePromptWeightAdjustment } from "./lib/promptUtils";
 import { ComfyClient } from "./lib/comfyClient";
 import { enabledCanvasCharacters, moveMaskRect, resizeMaskRect } from "./lib/multiCanvas";
 import { ImageGalleryItem } from "./components/ImageGalleryItem";
 import { PromptEditorDialog } from "./components/PromptEditorDialog";
+import { PromptTagBlocks } from "./components/PromptTagBlocks";
 import { RichTextEditor } from "./components/RichTextEditor";
 import type { MaskHandle } from "./lib/multiCanvas";
 import { addCharacter, duplicateCharacter, removeCharacter } from "./lib/multiCharacters";
@@ -3497,11 +3499,45 @@ function SelectField({ label, value, options, onChange }: { label: string; value
 }
 
 function TextAreaField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  const isPrompt = label.toLowerCase().includes("prompt") || label.includes("提示词");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleAdjust = (delta: number) => {
+    if (!textareaRef.current) return;
+    const target = textareaRef.current;
+    const e = {
+      ctrlKey: true,
+      key: delta > 0 ? "ArrowUp" : "ArrowDown",
+      preventDefault: () => {},
+      target: target
+    } as unknown as React.KeyboardEvent<HTMLTextAreaElement>;
+    
+    handlePromptWeightAdjustment(e, value, onChange);
+    target.focus();
+  };
+
   return (
-    <label className="field text-field">
-      <span>{label}</span>
-      <textarea value={value} onChange={(event) => onChange(event.target.value)} />
-    </label>
+    <div className="field text-field">
+      <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {label}
+        {isPrompt && (
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 'normal', marginRight: '4px' }}>权重:</span>
+            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleAdjust(0.1); }} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>+0.1</button>
+            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleAdjust(-0.1); }} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>-0.1</button>
+          </div>
+        )}
+      </span>
+      <textarea 
+        ref={textareaRef}
+        value={value} 
+        onChange={(event) => onChange(event.target.value)} 
+        onKeyDown={(e) => isPrompt && handlePromptWeightAdjustment(e, value, onChange)}
+      />
+      {isPrompt && value.trim() && (
+        <PromptTagBlocks value={value} onChange={onChange} />
+      )}
+    </div>
   );
 }
 

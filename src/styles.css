@@ -30,6 +30,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #f6f7fb;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 button,
@@ -37,6 +39,12 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+input,
+textarea {
+  user-select: auto;
+  -webkit-user-select: auto;
 }
 
 button {
@@ -3362,6 +3370,11 @@ textarea {
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+}
+
+.xyz-result-head strong {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .xyz-result-head span {

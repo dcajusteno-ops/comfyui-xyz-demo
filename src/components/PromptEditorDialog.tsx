@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy } from "lucide-react";
+import { handlePromptWeightAdjustment } from "../lib/promptUtils";
+import { PromptTagBlocks } from "./PromptTagBlocks";
 
 export type PromptEntry = {
   id: string;
@@ -54,6 +56,24 @@ export function PromptEditorDialog({
   const [positiveParts, setPositiveParts] = useState<EditorPart[]>([]);
   const [negativeParts, setNegativeParts] = useState<EditorPart[]>([]);
   const [quickInput, setQuickInput] = useState("");
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleAdjust = (delta: number) => {
+    if (!textareaRef.current) return;
+    const target = textareaRef.current;
+    const e = {
+      ctrlKey: true,
+      key: delta > 0 ? "ArrowUp" : "ArrowDown",
+      preventDefault: () => {},
+      target: target
+    } as unknown as React.KeyboardEvent<HTMLTextAreaElement>;
+    
+    const val = activeEditor === "positive" ? positiveBase : negativeBase;
+    const setter = activeEditor === "positive" ? setPositiveBase : setNegativeBase;
+    handlePromptWeightAdjustment(e, val, setter);
+    target.focus();
+  };
 
   useEffect(() => {
     if (open && entries.length === 0) {
@@ -311,16 +331,33 @@ export function PromptEditorDialog({
             <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
               
               <div>
-                <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between" }}>
+                <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>基础 Prompt</span>
+                  <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto', marginRight: '10px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 'normal', marginRight: '4px' }}>权重:</span>
+                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleAdjust(0.1)} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>+0.1</button>
+                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleAdjust(-0.1)} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>-0.1</button>
+                  </div>
                   <button onClick={() => activeEditor === "positive" ? setPositiveBase("") : setNegativeBase("")} style={{ background: "none", border: "none", color: "var(--danger)", fontSize: "0.8rem", cursor: "pointer", padding: 0 }}>清空</button>
                 </div>
                 <textarea 
+                  ref={textareaRef}
                   value={activeEditor === "positive" ? positiveBase : negativeBase}
                   onChange={e => activeEditor === "positive" ? setPositiveBase(e.target.value) : setNegativeBase(e.target.value)}
+                  onKeyDown={e => {
+                    const val = activeEditor === "positive" ? positiveBase : negativeBase;
+                    const setter = activeEditor === "positive" ? setPositiveBase : setNegativeBase;
+                    handlePromptWeightAdjustment(e, val, setter);
+                  }}
                   placeholder="可直接粘贴当前项目的 Prompt..."
                   style={{ width: "100%", height: "100px", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.9rem", resize: "none", fontFamily: "monospace" }}
                 />
+                <div style={{ marginTop: '8px' }}>
+                  <PromptTagBlocks 
+                    value={activeEditor === "positive" ? positiveBase : negativeBase}
+                    onChange={e => activeEditor === "positive" ? setPositiveBase(e) : setNegativeBase(e)}
+                  />
+                </div>
               </div>
 
               <div>
