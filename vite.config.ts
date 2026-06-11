@@ -1,11 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { xyzExampleImagesPlugin } from "./server/exampleImages";
+import { xyzNotesPlugin } from "./server/notes";
 
 const comfyTarget = process.env.COMFYUI_URL ?? "http://127.0.0.1:8188";
 
 export default defineConfig({
-  plugins: [xyzExampleImagesPlugin(comfyTarget), react()],
+  plugins: [xyzNotesPlugin(), xyzExampleImagesPlugin(comfyTarget), react()],
   server: {
     port: 9999,
     open: true,

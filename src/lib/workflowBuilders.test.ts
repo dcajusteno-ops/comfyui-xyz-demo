@@ -39,8 +39,10 @@ describe("workflow builders", () => {
 
   it("expands ComfyUI-style date prefixes before SaveImage receives them", () => {
     const date = new Date("2026-06-09T15:06:00");
-    expect(outputPrefix("%date:yyyy-MM-dd%/ComfyUI", "fallback", date)).toBe("2026-06-09/ComfyUI");
-    expect(outputPrefix("bad:name/%date%", "fallback", date)).toBe("bad_name/20260609150600");
+    expect(outputPrefix("%date:yyyy-MM-dd%/ComfyUI", "fallback", undefined, date)).toBe("2026-06-09/ComfyUI");
+    expect(outputPrefix("bad:name/%date%", "fallback", undefined, date)).toBe("bad_name/20260609150600");
+    expect(outputPrefix("base", "fallback", "apple")).toBe("base_apple");
+    expect(outputPrefix("base", "fallback", "apple<>*")).toBe("base_apple___");
   });
 
   it("keeps multi structure and clears old prompt content", () => {

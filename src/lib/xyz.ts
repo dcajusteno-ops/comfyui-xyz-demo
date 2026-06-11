@@ -93,7 +93,7 @@ export function applyXyzPatch<T extends BaseGenerationParams>(params: T, patch: 
 
 function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenerationParams> {
   if (field === "positiveAppend") {
-    return { positivePrompt: String(value) };
+    return { positivePrompt: String(value), filenameSuffix: String(value) };
   }
   if (field === "firstLoraStrength") {
     return { loras: [{ name: "__FIRST_LORA_STRENGTH__", strength: Number(value), clipStrength: Number(value), active: true }] };

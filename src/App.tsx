@@ -6,11 +6,13 @@ import {
   Boxes,
   Brain,
   ChevronLeft,
-  ChevronRight,
+  Bold,
   CheckCircle2,
   CircleHelp,
+  Clock,
   Copy,
   Download,
+  Eraser,
   Eye,
   EyeOff,
   FileText,
@@ -21,18 +23,26 @@ import {
   GalleryHorizontalEnd,
   Globe2,
   Grid3X3,
-  Heart,
+  Heading1,
+  Heading2,
+  Highlighter,
   Image as ImageIcon,
   ImageUp,
   Info,
+  Italic,
   Keyboard,
   Layers,
+  List,
   ListFilter,
+  ListOrdered,
+  Maximize,
   Maximize2,
+  Minimize,
   MoreHorizontal,
   PlayCircle,
   Plus,
   PauseCircle,
+  Redo,
   RefreshCw,
   ScanSearch,
   Search,
@@ -41,8 +51,13 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
+  Strikethrough,
   Tags,
   Trash2,
+  Type,
+  Underline,
+  Undo,
+  Upload,
   UserRound,
   Wand2,
   X,
@@ -53,6 +68,7 @@ import { ComfyClient } from "./lib/comfyClient";
 import { enabledCanvasCharacters, moveMaskRect, resizeMaskRect } from "./lib/multiCanvas";
 import { ImageGalleryItem } from "./components/ImageGalleryItem";
 import { PromptEditorDialog } from "./components/PromptEditorDialog";
+import { RichTextEditor } from "./components/RichTextEditor";
 import type { MaskHandle } from "./lib/multiCanvas";
 import { addCharacter, duplicateCharacter, removeCharacter } from "./lib/multiCharacters";
 import { findPathPreset, findResolutionPreset, pathPresets, resolutionPresets } from "./lib/presets";
@@ -62,7 +78,7 @@ import {
   buildMultiPrompt,
   buildWd14Prompt,
 } from "./lib/workflowBuilders";
-import { applySpecialXyzPatch, buildXyzCombinations, fieldLabel } from "./lib/xyz";
+import { applySpecialXyzPatch, buildXyzCombinations, fieldLabel, parseAxisValues } from "./lib/xyz";
 import type {
   BaseGenerationParams,
   DetailerParams,
@@ -93,9 +109,10 @@ import type {
   XyzAxis,
   XyzField,
   OutputImage,
+  NoteItem,
 } from "./types";
 
-type TabId = "default" | "wd14" | "multi" | "highres" | "xyz" | "loras";
+type TabId = "default" | "wd14" | "multi" | "highres" | "xyz" | "loras" | "notes";
 
 type OptionsState = {
   checkpoints: string[];
@@ -143,6 +160,7 @@ const tabs: Array<{ id: TabId; label: string; icon: typeof Wand2 }> = [
   { id: "highres", label: "高清修复", icon: ImageUp },
   { id: "xyz", label: "XYZ 控制器", icon: SlidersHorizontal },
   { id: "loras", label: "LoRA 管理", icon: Boxes },
+  { id: "notes", label: "记事本", icon: FileText },
 ];
 
 const xyzFields: XyzField[] = [
@@ -318,11 +336,85 @@ function App() {
   const [selectedLoraPaths, setSelectedLoraPaths] = useState<string[]>([]);
   const [loraOperation, setLoraOperation] = useState<LoraOperation | null>(null);
   const [loraSettings, setLoraSettings] = useState<LoraManagerSettings>(defaultLoraManagerSettings);
+
+  const [notes, setNotes] = useState<NoteItem[]>([]);
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [notesSaving, setNotesSaving] = useState(false);
+
+  useEffect(() => {
+    if (tab === "notes") {
+      fetch("/api/notes")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data && data.data.notes) {
+            setNotes(data.data.notes);
+            if (data.data.notes.length > 0 && !activeNoteId) {
+              setActiveNoteId(data.data.notes[0].id);
+            }
+          }
+        })
+        .catch((err) => pushToast("error", "加载笔记失败", String(err)));
+    }
+  }, [tab]);
+
+  async function saveNotes(currentNotes: NoteItem[]) {
+    setNotesSaving(true);
+    try {
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: currentNotes }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      pushToast("success", "笔记已保存");
+    } catch (err) {
+      pushToast("error", "保存笔记失败", String(err));
+    } finally {
+      setNotesSaving(false);
+    }
+  }
+
+  function handleAddNote() {
+    const newNote: NoteItem = {
+      id: Math.random().toString(36).slice(2),
+      title: "未命名笔记",
+      content: "",
+      updatedAt: Date.now(),
+    };
+    const nextNotes = [newNote, ...notes];
+    setNotes(nextNotes);
+    setActiveNoteId(newNote.id);
+    saveNotes(nextNotes);
+  }
+
+  function handleDeleteNote(id: string) {
+    setConfirmDialog({
+      title: "删除笔记",
+      message: "确定要删除这条笔记吗？删除后将无法恢复。",
+      onConfirm: () => {
+        const nextNotes = notes.filter((n) => n.id !== id);
+        setNotes(nextNotes);
+        if (activeNoteId === id) {
+          setActiveNoteId(nextNotes.length > 0 ? nextNotes[0].id : null);
+        }
+        saveNotes(nextNotes);
+      }
+    });
+  }
+
+  function updateActiveNote(partial: Partial<NoteItem>) {
+    if (!activeNoteId) return;
+    setNotes((prev) =>
+      prev.map((n) => (n.id === activeNoteId ? { ...n, ...partial, updatedAt: Date.now() } : n))
+    );
+  }
   const [loraExampleFilesByHash, setLoraExampleFilesByHash] = useState<Record<string, LoraExampleMedia[]>>({});
   const [exampleStatus, setExampleStatus] = useState<ExampleImagesStatus | null>(null);
   const [examplePending, setExamplePending] = useState<ExampleImagesPendingResult | null>(null);
   const [pullingExampleHashes, setPullingExampleHashes] = useState<string[]>([]);
   const [featureModal, setFeatureModal] = useState<{ title: string; body: string } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   const [triggerWords, setTriggerWords] = useState<Record<string, string[]>>({});
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [notificationLog, setNotificationLog] = useState<Toast[]>([]);
@@ -827,6 +919,79 @@ function App() {
     pushToast("success", "XYZ 结果已导出", "已生成 JSON manifest");
   }
 
+  async function exportXyzGrid() {
+    const successfulItems = xyzResults.filter((item) => item.status === "success" && item.result?.images[0]);
+    if (successfulItems.length === 0) {
+      pushToast("info", "没有可导出的结果", "网格中没有成功的生成图像");
+      return;
+    }
+    pushToast("info", "正在生成网格", "请稍候...");
+
+    const activeAxes = xyzAxes.filter((axis) => axis.enabled && axis.values.trim());
+    let cols = 1;
+    if (activeAxes.length > 0) {
+      const lastAxisValues = parseAxisValues(activeAxes[activeAxes.length - 1].values, activeAxes[activeAxes.length - 1].field);
+      cols = lastAxisValues.length > 0 ? lastAxisValues.length : 1;
+    }
+    const rows = Math.ceil(successfulItems.length / cols);
+
+    try {
+      const loadedImages = await Promise.all(
+        successfulItems.map((item) => {
+          return new Promise<{ img: HTMLImageElement; label: string }>((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => resolve({ img, label: item.label });
+            img.onerror = () => reject(new Error(`加载图像失败: ${item.label}`));
+            img.src = item.result!.images[0].url;
+          });
+        }),
+      );
+
+      const maxWidth = Math.max(...loadedImages.map((l) => l.img.width));
+      const maxHeight = Math.max(...loadedImages.map((l) => l.img.height));
+      const labelHeight = 40;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = cols * maxWidth;
+      canvas.height = rows * (maxHeight + labelHeight);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("无法创建 canvas 绘图上下文");
+
+      ctx.fillStyle = "#1e1e1e";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      loadedImages.forEach((item, index) => {
+        const c = index % cols;
+        const r = Math.floor(index / cols);
+        const x = c * maxWidth;
+        const y = r * (maxHeight + labelHeight);
+
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(x, y, maxWidth, labelHeight);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(item.label, x + maxWidth / 2, y + labelHeight / 2);
+
+        const imgX = x + (maxWidth - item.img.width) / 2;
+        const imgY = y + labelHeight + (maxHeight - item.img.height) / 2;
+        ctx.drawImage(item.img, imgX, imgY);
+      });
+
+      const dataUrl = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `xyz-grid-${Date.now()}.png`;
+      a.click();
+      pushToast("success", "网格导出成功");
+    } catch (e) {
+      pushToast("error", "网格导出失败", e instanceof Error ? e.message : String(e));
+    }
+  }
+
   function addLora(item: LoraItem, strength = 1, target = loraTarget) {
     const selection: LoraSelection = {
       name: loraSyntaxName(item),
@@ -1209,6 +1374,7 @@ function App() {
                 <button type="button" className="icon-button danger" disabled={!progress.running} onClick={stopXyzQueue}><PauseCircle size={16} /> 中断队列</button>
                 <button type="button" className="icon-button" disabled={!xyzResults.some((item) => item.status === "failed")} onClick={retryFailedXyz}><RefreshCw size={16} /> 重试失败</button>
                 <button type="button" className="icon-button" disabled={xyzResults.length === 0} onClick={exportXyzResults}><FileText size={16} /> 导出结果</button>
+                <button type="button" className="icon-button" disabled={xyzResults.length === 0} onClick={exportXyzGrid}><Grid3X3 size={16} /> 导出网格</button>
               </div>
               <div className="xyz-grid">
                 {xyzResults.map((item) => (
@@ -1217,9 +1383,15 @@ function App() {
                       <strong>{item.label}</strong>
                       <span>{xyzStatusLabel(item.status)}</span>
                     </div>
-                    {item.result?.images[0] && <img src={item.result.images[0].url} alt={item.label} />}
+                    {item.result?.images[0] ? (
+                      <img src={item.result.images[0].url} alt={item.label} />
+                    ) : (
+                      <div className="xyz-image-placeholder" />
+                    )}
                     {item.error && <p>{item.error}</p>}
-                    <button type="button" className="lm-text-btn" onClick={() => rerunXyzItem(item)}><RefreshCw size={13} /> 重跑</button>
+                    {item.status !== "running" && item.status !== "queued" && (
+                      <button type="button" className="lm-text-btn" onClick={() => rerunXyzItem(item)}><RefreshCw size={13} /> 重跑</button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1254,6 +1426,115 @@ function App() {
                 apiBase={apiBase}
                 settings={loraSettings}
               />
+            </section>
+          )}
+
+          {tab === "notes" && (
+            <section className="panel notes-panel" style={{ padding: 0, display: "flex", flexDirection: "row", overflow: "hidden" }}>
+              {/* Sidebar */}
+              <div style={{ width: "240px", borderRight: "1px solid #263244", display: "flex", flexDirection: "column", background: "#0c111a" }}>
+                <div style={{ padding: "16px", borderBottom: "1px solid #263244", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "bold" }}>
+                    <FileText size={18} /> 记事本
+                  </div>
+                  <button type="button" className="lm-text-btn" onClick={handleAddNote} title="新建笔记">
+                    <Plus size={18} />
+                  </button>
+                </div>
+                <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
+                  {notes.length === 0 && <div className="empty-state" style={{ padding: "20px 0" }}>暂无笔记</div>}
+                  {notes.map((note) => (
+                    <div
+                      key={note.id}
+                      onClick={() => setActiveNoteId(note.id)}
+                      style={{
+                        padding: "10px 12px",
+                        marginBottom: "6px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        background: activeNoteId === note.id ? "rgba(59, 130, 246, 0.15)" : "transparent",
+                        border: activeNoteId === note.id ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid transparent",
+                        boxShadow: activeNoteId === note.id ? "0 0 15px rgba(59, 130, 246, 0.1) inset" : "none",
+                        color: activeNoteId === note.id ? "#93c5fd" : "#94a3b8",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        transition: "all 0.2s ease-in-out",
+                      }}
+                    >
+                      <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {note.title || "未命名"}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteNote(note.id);
+                        }}
+                        style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: 0 }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Editor */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "20px", background: "#080b12" }}>
+                {activeNoteId && notes.find((n) => n.id === activeNoteId) ? (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                      <input
+                        type="text"
+                        value={notes.find((n) => n.id === activeNoteId)?.title || ""}
+                        onChange={(e) => updateActiveNote({ title: e.target.value })}
+                        placeholder="笔记标题"
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          fontSize: "20px",
+                          fontWeight: "bold",
+                          color: "#e7edf7",
+                          width: "60%",
+                          outline: "none",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="primary-action"
+                        onClick={() => saveNotes(notes)}
+                        disabled={notesSaving}
+                        style={{ minWidth: "80px" }}
+                      >
+                        {notesSaving ? "保存中..." : "保存记录"}
+                      </button>
+                    </div>
+                    
+                    <RichTextEditor
+                      value={notes.find((n) => n.id === activeNoteId)?.content || ""}
+                      onChange={(content) => updateActiveNote({ content })}
+                      onSave={() => saveNotes(notes)}
+                      title={notes.find((n) => n.id === activeNoteId)?.title || "note"}
+                      onClear={() => {
+                        setConfirmDialog({
+                          title: "清空内容",
+                          message: "确定要清空当前笔记的所有内容吗？此操作无法撤销。",
+                          onConfirm: () => {
+                            updateActiveNote({ content: "" });
+                          }
+                        });
+                      }}
+                    />
+                      
+
+                  </>
+                ) : (
+                  <div className="empty-state" style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    请在左侧选择或新建笔记
+                  </div>
+                )}
+              </div>
             </section>
           )}
         </main>
@@ -1353,6 +1634,36 @@ function App() {
       {compareLightbox && (
         <ImageComparerModal imageA={compareLightbox[0]} imageB={compareLightbox[1]} onClose={() => setCompareLightbox(null)} />
       )}
+      {confirmDialog && (
+        <ModalFrame title={confirmDialog.title} onClose={() => setConfirmDialog(null)}>
+          <div style={{ padding: "24px" }}>
+            <p style={{ color: "var(--text)", fontSize: "15px", margin: 0, lineHeight: 1.5 }}>
+              {confirmDialog.message}
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+              <button
+                type="button"
+                className="lm-text-btn"
+                onClick={() => setConfirmDialog(null)}
+                style={{ padding: "8px 16px" }}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="primary-action"
+                style={{ background: "#ef4444", border: "1px solid #dc2626", padding: "8px 16px" }}
+                onClick={() => {
+                  confirmDialog.onConfirm();
+                  setConfirmDialog(null);
+                }}
+              >
+                确定删除
+              </button>
+            </div>
+          </div>
+        </ModalFrame>
+      )}
 
     </div>
   );
@@ -1362,16 +1673,25 @@ function App() {
   }
 }
 
+const ToastIcon = ({ type }: { type: Toast["type"] }) => {
+  if (type === "success") return <CheckCircle2 size={20} color="#10b981" style={{ flexShrink: 0, marginTop: "2px" }} />;
+  if (type === "error") return <X size={20} color="#ef4444" style={{ flexShrink: 0, marginTop: "2px" }} />;
+  return <Info size={20} color="#3b82f6" style={{ flexShrink: 0, marginTop: "2px" }} />;
+};
+
 function ToastViewport({ toasts, onClose }: { toasts: Toast[]; onClose: (id: string) => void }) {
   return (
     <div className="toast-viewport">
       {toasts.map((toast) => (
         <div className={`toast ${toast.type}`} key={toast.id}>
-          <div>
+          <ToastIcon type={toast.type} />
+          <div className="toast-content" style={{ flex: 1, minWidth: 0 }}>
             <strong>{toast.title}</strong>
             {toast.message && <p>{toast.message}</p>}
           </div>
-          <button type="button" onClick={() => onClose(toast.id)}><X size={14} /></button>
+          <button type="button" className="toast-close" onClick={() => onClose(toast.id)} style={{ flexShrink: 0 }}>
+            <X size={14} />
+          </button>
         </div>
       ))}
     </div>

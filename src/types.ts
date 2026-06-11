@@ -276,6 +276,7 @@ export type BaseGenerationParams = {
   scheduler: string;
   denoise: number;
   filenamePrefix: string;
+  filenameSuffix?: string;
   loras: LoraSelection[];
 };
 
@@ -446,4 +447,11 @@ export type ResolutionPreset = {
 export type PathPreset = {
   label: string;
   value: string;
+};
+
+export type NoteItem = {
+  id: string;
+  title: string;
+  content: string;
+  updatedAt: number;
 };

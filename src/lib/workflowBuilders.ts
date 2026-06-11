@@ -29,15 +29,23 @@ function formatStrength(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
-export function outputPrefix(prefix: string, fallback: string, date = new Date()) {
+export function outputPrefix(prefix: string, fallback: string, suffix?: string, date = new Date()) {
   const raw = prefix.trim() || fallback;
   const expanded = raw.replace(/%date(?::([^%]+))?%/g, (_match, format: string | undefined) =>
     formatDate(date, format || "yyyyMMddhhmmss"),
   );
-  return expanded
+  let base = expanded
     .split(/[\\/]/)
     .map((segment) => segment.replace(/[<>:"|?*]/g, "_"))
     .join("/");
+    
+  if (suffix) {
+    const safeSuffix = suffix.replace(/[<>:"/\\|?*\n\r\t]/g, "_").slice(0, 50).trim();
+    if (safeSuffix) {
+      base = `${base}_${safeSuffix}`;
+    }
+  }
+  return base;
 }
 
 function joinPrompt(...parts: Array<string | undefined>) {
@@ -122,7 +130,7 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
       class_type: "SaveImage",
       inputs: {
         images: ["7", 0],
-        filename_prefix: outputPrefix(params.filenamePrefix, "%date:yyyy-MM-dd%/ComfyUI"),
+        filename_prefix: outputPrefix(params.filenamePrefix, "%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
       },
       _meta: { title: "Save Image" },
     },
@@ -250,7 +258,7 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
       class_type: "SaveImage",
       inputs: {
         images: ["9", 0],
-        filename_prefix: outputPrefix(params.filenamePrefix, "多人/%date:yyyy-MM-dd%/ComfyUI"),
+        filename_prefix: outputPrefix(params.filenamePrefix, "多人/%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
       },
       _meta: { title: "Save Image" },
     },
@@ -414,7 +422,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
     class_type: "SaveImage",
     inputs: {
       images: currentImage,
-      filename_prefix: outputPrefix(params.filenamePrefix, "高清修复/%date:yyyy-MM-dd%/ComfyUI"),
+      filename_prefix: outputPrefix(params.filenamePrefix, "高清修复/%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
     },
     _meta: { title: "Save Image" },
   };
