@@ -1,0 +1,56 @@
+{
+  "created_at": "2026-04-17T14:04:37.457016+00:00",
+  "source_file": "D:\\AiImg\\ComfyUI-aki-v3\\ComfyUI\\output\\comfy-manager\\提示词\\downloaded_prompt_data\\all_prompts_merged.json",
+  "output_file": "D:\\AiImg\\ComfyUI-aki-v3\\ComfyUI\\output\\comfy-manager\\data\\prompt-library\\all_prompts_merged.cleaned.json",
+  "encoding": "utf-8",
+  "record_count_before": 17253,
+  "record_count_after": 17222,
+  "duplicates_removed": 31,
+  "trimmed_fields": {
+    "text_zh": 41,
+    "text_en": 173
+  },
+  "null_fields_filled": {
+    "subcategory": 146
+  },
+  "sources": {
+    "gwliang": 3703,
+    "newzone": 4934,
+    "qpipi": 1383,
+    "aitag": 2485,
+    "local_sd_prompt_editor": 4717
+  },
+  "scopes": {
+    "normal": 3363,
+    "r18": 502,
+    "default": 13327,
+    "negative_default": 30
+  },
+  "top_categories": {
+    "服饰": 2317,
+    "NSFW": 1432,
+    "人物": 1254,
+    "动作": 711,
+    "goods": 699,
+    "表情动作": 664,
+    "魔导师分享": 611,
+    "物品": 580,
+    "环境": 437,
+    "style": 399,
+    "action": 392,
+    "画面": 361,
+    "饰品": 360,
+    "Emoji😊": 359,
+    "clothes": 339,
+    "face": 334,
+    "素材": 323,
+    "hair": 297,
+    "色彩氛围": 228,
+    "env": 217
+  },
+  "notes": [
+    "Runtime should read the cleaned copy in data/prompt-library.",
+    "Do not read the original merged file from the source prompt folder at runtime.",
+    "Chinese text is preserved in UTF-8."
+  ]
+}
