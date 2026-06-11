@@ -37,6 +37,29 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 ---
 
+## 🚀 快速开始 (Quick Start)
+
+如果您是首次从 GitHub 拉取或下载本项目的代码，由于庞大的第三方依赖库 (`node_modules`) 已被 Git 忽略，**请务必手动安装依赖**后才能正常启动项目。
+
+1. **克隆项目并进入目录**：
+   ```bash
+   git clone https://github.com/dcajusteno-ops/comfyui-xyz-demo.git
+   cd comfyui-xyz-demo
+   ```
+
+2. **安装依赖 (必做)**：
+   ```bash
+   npm install
+   ```
+
+3. **启动开发服务器**：
+   ```bash
+   npm run dev
+   ```
+   *(注：在 Windows 环境下也可以直接双击 `run.bat`，它会自动处理端口冲突并自动在浏览器中打开页面)*
+
+---
+
 ## 🛠️ 运维与启动层优化 (DevOps)
 
 为了彻底解决国内 Windows 环境的疑难杂症，项目拥有一个极度硬核的底层启动机制：
