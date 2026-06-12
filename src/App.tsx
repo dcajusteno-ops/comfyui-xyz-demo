@@ -72,6 +72,8 @@ import { PromptEditorDialog } from "./components/PromptEditorDialog";
 import { PromptTagBlocks } from "./components/PromptTagBlocks";
 import { RichTextEditor } from "./components/RichTextEditor";
 import { WelcomeModal } from "./components/WelcomeModal";
+import { translateText, defaultTranslationSettings } from "./lib/translation";
+import type { TranslationSettings, TranslationProvider } from "./lib/translation";
 import type { MaskHandle } from "./lib/multiCanvas";
 import { addCharacter, duplicateCharacter, removeCharacter } from "./lib/multiCharacters";
 import { findPathPreset, findResolutionPreset, pathPresets, resolutionPresets } from "./lib/presets";
@@ -352,6 +354,7 @@ function App() {
   const [selectedLoraPaths, setSelectedLoraPaths] = useState<string[]>([]);
   const [loraOperation, setLoraOperation] = useState<LoraOperation | null>(null);
   const [loraSettings, setLoraSettings] = useState<LoraManagerSettings>(defaultLoraManagerSettings);
+  const [translationSettings, setTranslationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
 
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
@@ -1173,10 +1176,6 @@ function App() {
           })}
         </nav>
         <div className="top-actions">
-          <label className="base-url">
-            <span>API</span>
-            <input value={apiBase} onChange={(event) => setApiBase(event.target.value)} />
-          </label>
           <button type="button" className="icon-button" onClick={() => setShowPromptEditor(true)}>
             <Sparkles size={18} />
             提示词编辑器
@@ -1635,6 +1634,9 @@ function App() {
           onClose={() => setLoraOperation(null)}
           onToast={pushToast}
           onSettingsSaved={(settings) => setLoraSettings(normalizeLoraManagerSettings(settings))}
+          onApiBaseSaved={setApiBase}
+          translationSettings={translationSettings}
+          onTranslationSettingsSaved={setTranslationSettings}
           onMutated={async (message) => {
             setSelectedLoraPaths([]);
             setLoraDetail(null);
@@ -2083,6 +2085,10 @@ function LoraOperationModal({
   onShowWelcome,
   onToast,
   onSettingsSaved,
+  translationSettings,
+  onTranslationSettingsSaved,
+  settingsApiBase,
+  onApiBaseSaved,
   onMutated,
 }: {
   modelType: ManagedModelType;
@@ -2095,6 +2101,9 @@ function LoraOperationModal({
   onShowWelcome?: () => void;
   onToast: (type: Toast["type"], title: string, message?: string) => void;
   onSettingsSaved: (settings: LoraManagerSettings) => void;
+  onApiBaseSaved: (base: string) => void;
+  translationSettings: TranslationSettings;
+  onTranslationSettingsSaved: (settings: TranslationSettings) => void;
   onMutated: (message?: string) => void | Promise<void>;
 }) {
   const operationItems = "items" in operation ? operation.items : operation.type === "download" && operation.item ? [operation.item] : selectedItems;
@@ -2110,6 +2119,9 @@ function LoraOperationModal({
   const [updateRecords, setUpdateRecords] = useState<LoraUpdateRecord[]>([]);
   const [diagnostics, setDiagnostics] = useState<DoctorDiagnostic[]>([]);
   const [settings, setSettings] = useState<LoraManagerSettings>({});
+  const [localTranslationSettings, setLocalTranslationSettings] = useState<TranslationSettings>(translationSettings);
+  const [localApiBase, setLocalApiBase] = useState(settingsApiBase);
+  const [activeTab, setActiveTab] = useState<"general" | "translation">("general");
   const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
   const [rawData, setRawData] = useState<unknown>(null);
 
@@ -2266,6 +2278,8 @@ function LoraOperationModal({
       const nextSettings = normalizeLoraManagerSettings(result.settings ?? payload);
       setSettings(nextSettings);
       onSettingsSaved(nextSettings);
+      onApiBaseSaved(localApiBase);
+      onTranslationSettingsSaved(localTranslationSettings);
       onToast("success", "设置已保存");
       onClose();
     } catch (error) {
@@ -2347,33 +2361,114 @@ function LoraOperationModal({
           <DoctorPane diagnostics={diagnostics} rawData={rawData} onAction={doctorAction} />
         )}
         {operation.type === "settings" && (
-          <>
-            <TextInput label="示例图目录" value={textValue} onChange={setTextValue} placeholder="F:\\AI_lora\\img" />
-            <TextInput label="LoRA 语法格式" value={secondaryValue} onChange={setSecondaryValue} placeholder="legacy / full" />
-            <div className="form-grid two compact">
-              <label className="field checkbox-field">
-                <input
-                  type="checkbox"
-                  checked={settings.blur_mature_content !== false}
-                  onChange={(event) => setSettings((prev) => ({ ...prev, blur_mature_content: event.target.checked }))}
-                />
-                模糊限制级内容
-              </label>
-              <label className="field">
-                <span>限制级模糊阈值</span>
-                <select
-                  value={normalizeMatureBlurLevel(settings.mature_blur_level)}
-                  onChange={(event) => setSettings((prev) => ({ ...prev, mature_blur_level: event.target.value }))}
+          <div style={{ display: "flex", gap: "1.5rem", height: "65vh", minHeight: "450px", overflow: "hidden" }}>
+            {/* Sidebar */}
+            <div style={{ width: "200px", display: "flex", flexDirection: "column", borderRight: "1px solid var(--border)", paddingRight: "1rem", height: "100%" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: "auto" }}>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveTab("general")} 
+                  style={{ 
+                    textAlign: "left", padding: "0.75rem 1rem", borderRadius: "8px", border: "none", cursor: "pointer", 
+                    backgroundColor: activeTab === "general" ? "var(--surface-alt)" : "transparent",
+                    color: activeTab === "general" ? "var(--text)" : "var(--muted)",
+                    fontWeight: activeTab === "general" ? 600 : 400
+                  }}
                 >
-                  {validMatureBlurLevels.map((level) => <option key={level} value={level}>{level}</option>)}
-                </select>
-              </label>
+                  ⚙️ 基本设置
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveTab("translation")} 
+                  style={{ 
+                    textAlign: "left", padding: "0.75rem 1rem", borderRadius: "8px", border: "none", cursor: "pointer", 
+                    backgroundColor: activeTab === "translation" ? "var(--surface-alt)" : "transparent",
+                    color: activeTab === "translation" ? "var(--text)" : "var(--muted)",
+                    fontWeight: activeTab === "translation" ? 600 : 400
+                  }}
+                >
+                  🌐 翻译设置
+                </button>
+              </div>
+              <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid var(--border)" }}>
+                <button type="button" className="primary-action" onClick={saveSettings} style={{ width: "100%", justifyContent: "center" }}>
+                  <Settings size={16} /> 保存设置
+                </button>
+              </div>
             </div>
-            <pre className="json-preview">{JSON.stringify(settings, null, 2)}</pre>
-            <div className="operation-actions">
-              <button type="button" className="primary-action" onClick={saveSettings}><Settings size={16} /> 保存设置</button>
+
+            {/* Content Area */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "1rem", overflowY: "auto", paddingRight: "0.5rem" }}>
+              {activeTab === "general" && (
+                <>
+                  <h3 style={{ margin: "0 0 1rem", fontSize: "1.1rem", fontWeight: 600 }}>基本设置</h3>
+                  <TextInput label="API Base URL" value={localApiBase} onChange={setLocalApiBase} placeholder="/comfy" />
+                  <TextInput label="示例图目录" value={textValue} onChange={setTextValue} placeholder="F:\\AI_lora\\img" />
+                  <TextInput label="LoRA 语法格式" value={secondaryValue} onChange={setSecondaryValue} placeholder="legacy / full" />
+                  <div className="form-grid two compact">
+                    <label className="field checkbox-field">
+                      <input
+                        type="checkbox"
+                        checked={settings.blur_mature_content !== false}
+                        onChange={(event) => setSettings((prev) => ({ ...prev, blur_mature_content: event.target.checked }))}
+                      />
+                      模糊限制级内容
+                    </label>
+                    <label className="field">
+                      <span>限制级模糊阈值</span>
+                      <select
+                        value={normalizeMatureBlurLevel(settings.mature_blur_level)}
+                        onChange={(event) => setSettings((prev) => ({ ...prev, mature_blur_level: event.target.value }))}
+                      >
+                        {validMatureBlurLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  <pre className="json-preview">{JSON.stringify(settings, null, 2)}</pre>
+                </>
+              )}
+
+              {activeTab === "translation" && (
+                <>
+                  <h3 style={{ margin: "0 0 1rem", fontSize: "1.1rem", fontWeight: 600 }}>翻译设置</h3>
+                  <div className="form-grid two compact">
+                    <label className="field">
+                      <span>翻译服务商</span>
+                      <select 
+                        value={localTranslationSettings.provider} 
+                        onChange={(e) => setLocalTranslationSettings({ ...localTranslationSettings, provider: e.target.value as TranslationProvider })}
+                      >
+                        <option value="mymemory">MyMemory (免费)</option>
+                        <option value="baidu">百度翻译 (Baidu)</option>
+                        <option value="aliyun">阿里云翻译 (Alibaba)</option>
+
+                      </select>
+                    </label>
+                  </div>
+                  {localTranslationSettings.provider === "baidu" && (
+                    <div className="form-grid two compact">
+                      <TextInput label="App ID" value={localTranslationSettings.baiduAppId || ""} onChange={(v) => setLocalTranslationSettings({ ...localTranslationSettings, baiduAppId: v })} placeholder="百度翻译 App ID" />
+                      <label className="field text-field">
+                        <span>Secret Key</span>
+                        <input type="password" value={localTranslationSettings.baiduSecret || ""} onChange={(e) => setLocalTranslationSettings({ ...localTranslationSettings, baiduSecret: e.target.value })} placeholder="百度翻译 Secret Key" />
+                      </label>
+                    </div>
+                  )}
+                  {localTranslationSettings.provider === "aliyun" && (
+                    <div className="form-grid two compact">
+                      <TextInput label="AccessKey ID" value={localTranslationSettings.aliyunAccessKeyId || ""} onChange={(v) => setLocalTranslationSettings({ ...localTranslationSettings, aliyunAccessKeyId: v })} placeholder="阿里云 AccessKey ID" />
+                      <label className="field text-field">
+                        <span>AccessKey Secret</span>
+                        <input type="password" value={localTranslationSettings.aliyunAccessKeySecret || ""} onChange={(e) => setLocalTranslationSettings({ ...localTranslationSettings, aliyunAccessKeySecret: e.target.value })} placeholder="阿里云 AccessKey Secret" />
+                      </label>
+                    </div>
+                  )}
+
+                </>
+              )}
+
             </div>
-          </>
+          </div>
         )}
         {operation.type === "notifications" && (
           <div className="notification-log">
@@ -3536,19 +3631,22 @@ function SelectField({ label, value, options, onChange }: { label: string; value
 function TextAreaField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
   const isPrompt = label.toLowerCase().includes("prompt") || label.includes("提示词");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
+  const [isTranslating, setIsTranslating] = useState(false);
 
-  const handleAdjust = (delta: number) => {
-    if (!textareaRef.current) return;
-    const target = textareaRef.current;
-    const e = {
-      ctrlKey: true,
-      key: delta > 0 ? "ArrowUp" : "ArrowDown",
-      preventDefault: () => {},
-      target: target
-    } as unknown as React.KeyboardEvent<HTMLTextAreaElement>;
-    
-    handlePromptWeightAdjustment(e, value, onChange);
-    target.focus();
+
+
+  const handleTranslate = async () => {
+    if (!value.trim() || isTranslating) return;
+    setIsTranslating(true);
+    try {
+      const translated = await translateText(value, translationSettings);
+      onChange(translated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
   return (
@@ -3557,9 +3655,10 @@ function TextAreaField({ label, value, onChange }: { label: string; value: strin
         {label}
         {isPrompt && (
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 'normal', marginRight: '4px' }}>权重:</span>
-            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleAdjust(0.1); }} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>+0.1</button>
-            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleAdjust(-0.1); }} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>-0.1</button>
+            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleTranslate(); }} style={{ padding: '0 8px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--accent)', background: 'var(--accent-soft)', cursor: isTranslating ? 'wait' : 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '8px' }}>
+              <Globe2 size={12} />
+              {isTranslating ? "翻译中..." : "翻译为英文"}
+            </button>
           </div>
         )}
       </span>

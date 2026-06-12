@@ -1,7 +1,7 @@
 {
   "name": "comfyui-xyz-demo",
   "private": true,
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -10,7 +10,9 @@
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@vitejs/plugin-react": "^5.1.1",
+    "crypto-js": "^4.2.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -19,6 +21,7 @@
   "devDependencies": {
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@volcengine/openapi": "^1.36.2",
     "jsdom": "^27.3.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.15"

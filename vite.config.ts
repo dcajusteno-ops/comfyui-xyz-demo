@@ -17,6 +17,12 @@ export default defineConfig({
         ws: true,
         rewrite: (path) => path.replace(/^\/comfy/, ""),
       },
+
+      "/proxy/aliyun": {
+        target: "https://mt.cn-hangzhou.aliyuncs.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy\/aliyun/, ""),
+      },
     },
   },
   preview: {

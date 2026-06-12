@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
-import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy } from "lucide-react";
+import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy, Globe2 } from "lucide-react";
 import { handlePromptWeightAdjustment } from "../lib/promptUtils";
 import { PromptTagBlocks } from "./PromptTagBlocks";
+import { translateText, defaultTranslationSettings } from "../lib/translation";
+import type { TranslationSettings } from "../lib/translation";
 
 export type PromptEntry = {
   id: string;
@@ -56,8 +58,26 @@ export function PromptEditorDialog({
   const [positiveParts, setPositiveParts] = useState<EditorPart[]>([]);
   const [negativeParts, setNegativeParts] = useState<EditorPart[]>([]);
   const [quickInput, setQuickInput] = useState("");
+  const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleTranslate = async () => {
+    const val = activeEditor === "positive" ? positiveBase : negativeBase;
+    const setter = activeEditor === "positive" ? setPositiveBase : setNegativeBase;
+    
+    if (!val.trim() || isTranslating) return;
+    setIsTranslating(true);
+    try {
+      const translated = await translateText(val, translationSettings);
+      setter(translated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   const handleAdjust = (delta: number) => {
     if (!textareaRef.current) return;
@@ -334,6 +354,10 @@ export function PromptEditorDialog({
                 <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>基础 Prompt</span>
                   <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto', marginRight: '10px', alignItems: 'center' }}>
+                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleTranslate(); }} style={{ padding: '0 8px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--accent)', background: 'var(--accent-soft)', cursor: isTranslating ? 'wait' : 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '8px' }}>
+                      <Globe2 size={12} />
+                      {isTranslating ? "翻译中..." : "翻译为英文"}
+                    </button>
                     <span style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 'normal', marginRight: '4px' }}>权重:</span>
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleAdjust(0.1)} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>+0.1</button>
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleAdjust(-0.1)} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>-0.1</button>
