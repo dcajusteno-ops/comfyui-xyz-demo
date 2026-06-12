@@ -71,6 +71,7 @@ import { ImageGalleryItem } from "./components/ImageGalleryItem";
 import { PromptEditorDialog } from "./components/PromptEditorDialog";
 import { PromptTagBlocks } from "./components/PromptTagBlocks";
 import { RichTextEditor } from "./components/RichTextEditor";
+import { WelcomeModal } from "./components/WelcomeModal";
 import type { MaskHandle } from "./lib/multiCanvas";
 import { addCharacter, duplicateCharacter, removeCharacter } from "./lib/multiCharacters";
 import { findPathPreset, findResolutionPreset, pathPresets, resolutionPresets } from "./lib/presets";
@@ -304,6 +305,19 @@ function makeHighresParams(checkpoint = fallbackOptions.checkpoints[0]): Highres
 }
 
 function App() {
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("xyz_welcome_seen")) {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  const handleCloseWelcome = useCallback(() => {
+    localStorage.setItem("xyz_welcome_seen", "true");
+    setShowWelcome(false);
+  }, []);
+
   const [tab, setTab] = useLocalStorageState<TabId>("comfyui_active_tab", "default");
   const [apiBase, setApiBase] = useState("/comfy");
   const client = useMemo(() => new ComfyClient(apiBase), [apiBase]);
@@ -1136,6 +1150,7 @@ function App() {
 
   return (
     <div className="app-shell">
+      {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">
@@ -1613,6 +1628,10 @@ function App() {
           settingsApiBase={apiBase}
           selectedItems={selectedLoraItems}
           notifications={notificationLog}
+          onShowWelcome={() => {
+            setLoraOperation(null);
+            setShowWelcome(true);
+          }}
           onClose={() => setLoraOperation(null)}
           onToast={pushToast}
           onSettingsSaved={(settings) => setLoraSettings(normalizeLoraManagerSettings(settings))}
@@ -1970,36 +1989,38 @@ function LoraDetailModal({
         <div className={examples.length > 0 || loading ? "lm-modal-body" : "lm-modal-body examples-empty"}>
           <section className="lm-info-section">
             <div className="lm-info-grid">
-              <InfoItem label="Version" value={versionName} />
-              <InfoItem label="File Name" value={item.file_name || "N/A"} />
-              <InfoItem label="Location" value={item.file_path?.replace(/[^/]+$/, "") || item.folder || "N/A"} wide />
-              <div className="lm-info-item lm-base-size">
-                <div>
-                  <label>Base Model</label>
-                  <span>{metadata?.baseModel || item.base_model || "Unknown"}</span>
-                </div>
-                <div>
-                  <label>Size</label>
-                  <span>{formatBytes(item.file_size)}</span>
-                </div>
-              </div>
-              <InfoItem label="SHA256" value={item.sha256 || "无"} wide />
-              <div className="lm-info-item lm-usage" style={{ gridColumn: "1 / -1" }}>
-                <label>Usage Prompt</label>
-                <div className="lm-usage-row">
-                  <code>{usageSyntax}</code>
-                  <NumberField label="强度" value={strength} min={-10} max={10} step={0.05} onChange={setStrength} />
-                  <button type="button" className="icon-button" onClick={() => {
-                    navigator.clipboard?.writeText(usageSyntax);
-                    onToast("success", "LoRA 语法已复制", usageSyntax);
-                  }}><Copy size={16} /> 复制</button>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginLeft: "auto" }}>
+              <div className="lm-info-item lm-usage" style={{ gridColumn: "1 / -1", marginBottom: "8px" }}>
+                <label>使用语法</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div className="lm-usage-row">
+                    <code>{usageSyntax}</code>
+                    <NumberField label="强度" value={strength} min={-10} max={10} step={0.05} onChange={setStrength} />
+                    <button type="button" className="icon-button" onClick={() => {
+                      navigator.clipboard?.writeText(usageSyntax);
+                      onToast("success", "LoRA 语法已复制", usageSyntax);
+                    }}><Copy size={16} /> 复制</button>
+                  </div>
+                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                     <button type="button" className="primary-action" onClick={() => onInsert("default", strength)}><BadgePlus size={16} /> 默认</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("multi", strength)}><BadgePlus size={16} /> 多人</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("highres", strength)}><BadgePlus size={16} /> 高修</button>
                   </div>
                 </div>
               </div>
+              <InfoItem label="版本" value={versionName} />
+              <InfoItem label="文件名" value={item.file_name || "N/A"} />
+              <InfoItem label="本地路径" value={item.file_path?.replace(/[^/]+$/, "") || item.folder || "N/A"} wide />
+              <div className="lm-info-item lm-base-size">
+                <div>
+                  <label>基础模型</label>
+                  <span>{metadata?.baseModel || item.base_model || "未知"}</span>
+                </div>
+                <div>
+                  <label>文件大小</label>
+                  <span>{formatBytes(item.file_size)}</span>
+                </div>
+              </div>
+
               <TriggerWordsPanel
                 words={trainedWords}
                 onRead={onTriggerWords}
@@ -2009,14 +2030,14 @@ function LoraDetailModal({
                   onToast("success", "触发词已复制", text);
                 }}
               />
-              <InfoItem label="Additional Notes" value={item.notes || "Add your notes here..."} wide />
-              <InfoItem label="About this version" value={description || "N/A"} wide />
+
+              <InfoItem label="版本说明" value={description || "无"} wide />
             </div>
           </section>
 
           <section className="lm-showcase-section">
             <div className="lm-showcase-head">
-              <strong className="lm-showcase-title">Examples {examples.length ? `(${examples.length})` : ""}</strong>
+              <strong className="lm-showcase-title">示例媒体 {examples.length ? `(${examples.length})` : ""}</strong>
             </div>
             <ExampleImagesProgressBar status={exampleStatus} pullingCount={pullingExamples ? 1 : 0} />
             <div className="lm-showcase-list">
@@ -2059,6 +2080,7 @@ function LoraOperationModal({
   selectedItems,
   notifications,
   onClose,
+  onShowWelcome,
   onToast,
   onSettingsSaved,
   onMutated,
@@ -2070,6 +2092,7 @@ function LoraOperationModal({
   selectedItems: LoraItem[];
   notifications: Toast[];
   onClose: () => void;
+  onShowWelcome?: () => void;
   onToast: (type: Toast["type"], title: string, message?: string) => void;
   onSettingsSaved: (settings: LoraManagerSettings) => void;
   onMutated: (message?: string) => void | Promise<void>;
@@ -2354,7 +2377,19 @@ function LoraOperationModal({
         )}
         {operation.type === "notifications" && (
           <div className="notification-log">
-            {notifications.length === 0 && <div className="empty-strip">暂无通知</div>}
+            {onShowWelcome && (
+              <div 
+                className="toast info" 
+                style={{ cursor: "pointer", border: "1px solid var(--accent)" }}
+                onClick={onShowWelcome}
+              >
+                <div>
+                  <strong>系统环境与模型依赖说明 (点击查看)</strong>
+                  <p>查看运行本项目所需的 6 大核心插件与全部底层生图模型的下载地址。</p>
+                </div>
+              </div>
+            )}
+            {notifications.length === 0 && <div className="empty-strip">暂无其他通知</div>}
             {notifications.map((toast) => (
               <div className={`toast ${toast.type}`} key={toast.id}>
                 <div>
@@ -2557,7 +2592,7 @@ function TriggerWordsPanel({
   return (
     <div className={editing ? "lm-info-item lm-trigger-words editing" : "lm-info-item lm-trigger-words"}>
       <div className="lm-section-head">
-        <label>Trigger Words</label>
+        <label>触发词</label>
         <div className="lm-trigger-actions">
           {!editing && <button type="button" className="lm-text-btn" onClick={onRead}><Brain size={14} /> 读取</button>}
           {!editing && <button type="button" className="lm-text-btn" onClick={startEditing}><Plus size={14} /> 编辑</button>}
