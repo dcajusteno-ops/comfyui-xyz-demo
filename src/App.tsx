@@ -3772,7 +3772,7 @@ function buildLoraExamples(
   metadata: LoraMetadata | null,
   localFiles: LoraExampleMedia[],
 ) {
-  const remoteImages = [...(metadata?.images ?? []), ...(metadata?.customImages ?? [])];
+  const remoteImages = [...(metadata?.images ?? []), ...(metadata?.customImages ?? [])].filter(Boolean);
   if (remoteImages.length > 0) {
     return remoteImages.map((remote, index) => {
       const local = findMatchingLocalExample(remote, index, localFiles);
