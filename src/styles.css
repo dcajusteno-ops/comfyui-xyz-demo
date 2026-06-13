@@ -3260,8 +3260,7 @@ textarea {
   padding: 0;
 }
 
-.lm-info-item .html-content pre,
-.lm-info-item .html-content code {
+.lm-info-item .html-content pre {
   cursor: pointer;
   position: relative;
   transition: opacity 0.2s;
@@ -3276,22 +3275,29 @@ textarea {
   white-space: pre-wrap;
 }
 
-.lm-info-item .html-content p code,
-.lm-info-item .html-content li code,
-.lm-info-item .html-content a code {
+.lm-info-item .html-content pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
   display: inline;
-  padding: 3px 6px;
-  margin: 0 2px;
-  border-radius: 4px;
+  font-family: inherit;
+  color: inherit;
+  margin: 0;
 }
 
-.lm-info-item .html-content pre:hover,
-.lm-info-item .html-content code:hover {
+.lm-info-item .html-content code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+.lm-info-item .html-content pre:hover {
   opacity: 0.85;
 }
 
-.lm-info-item .html-content pre::after,
-.lm-info-item .html-content code::after {
+.lm-info-item .html-content pre::after {
   content: "点击复制";
   position: absolute;
   right: 8px;
@@ -3306,8 +3312,7 @@ textarea {
   transition: opacity 0.2s;
 }
 
-.lm-info-item .html-content pre:hover::after,
-.lm-info-item .html-content code:hover::after {
+.lm-info-item .html-content pre:hover::after {
   opacity: 1;
 }
 
