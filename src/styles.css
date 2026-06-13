@@ -3220,6 +3220,40 @@ textarea {
   color: var(--text);
 }
 
+.lm-info-item .html-content {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.lm-info-item .html-content p {
+  margin: 0 0 10px;
+}
+
+.lm-info-item .html-content p:last-child {
+  margin: 0;
+}
+
+.lm-info-item .html-content a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.lm-info-item .html-content a:hover {
+  text-decoration: underline;
+}
+
+.lm-info-item .html-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.lm-info-item .html-content ul, 
+.lm-info-item .html-content ol {
+  margin: 0 0 10px 20px;
+  padding: 0;
+}
+
 .lm-base-size {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

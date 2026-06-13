@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent, ReactNode, UIEvent } from "react";
 import {
@@ -1879,7 +1880,7 @@ function LoraDetailModal({
   ]), [triggerWords, metadata, itemCivitai]);
   const tags = uniqueStrings([...(item.tags ?? []), ...(item.auto_tags ?? []), ...(metadata?.model?.tags ?? [])]);
   const versionName = metadata?.name ?? itemCivitai?.name ?? "N/A";
-  const description = stripHtml(String(metadata?.description ?? metadata?.model?.description ?? item.notes ?? ""));
+  const descriptionHtml = String(metadata?.description ?? metadata?.model?.description ?? item.notes ?? "");
   const usageSyntax = `<lora:${loraSyntaxName(item)}:${formatStrength(strength)}>`;
   const civitaiUrl = useMemo(() => buildLoraCivitaiUrl(item, metadata), [item, metadata]);
 
@@ -2033,7 +2034,7 @@ function LoraDetailModal({
                 }}
               />
 
-              <InfoItem label="版本说明" value={description || "无"} wide />
+              <InfoItem label="版本说明" value={descriptionHtml} wide isHtml />
             </div>
           </section>
 
@@ -2607,11 +2608,16 @@ function DoctorPane({ diagnostics, rawData, onAction }: { diagnostics: DoctorDia
   );
 }
 
-function InfoItem({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) {
+function InfoItem({ label, value, wide = false, isHtml = false }: { label: string; value: string; wide?: boolean; isHtml?: boolean }) {
+  if (!value) return null;
   return (
     <div className="lm-info-item" style={wide ? { gridColumn: "1 / -1" } : undefined}>
       <label>{label}</label>
-      <span>{value}</span>
+      {isHtml ? (
+        <div className="html-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }} />
+      ) : (
+        <span>{value}</span>
+      )}
     </div>
   );
 }
