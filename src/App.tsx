@@ -2034,7 +2034,16 @@ function LoraDetailModal({
                 }}
               />
 
-              <InfoItem label="版本说明" value={descriptionHtml} wide isHtml />
+              <InfoItem 
+                label="版本说明" 
+                value={descriptionHtml} 
+                wide 
+                isHtml 
+                onHtmlCopy={(text) => {
+                  navigator.clipboard?.writeText(text);
+                  onToast("success", "已复制该段内容", text);
+                }} 
+              />
             </div>
           </section>
 
@@ -2608,13 +2617,23 @@ function DoctorPane({ diagnostics, rawData, onAction }: { diagnostics: DoctorDia
   );
 }
 
-function InfoItem({ label, value, wide = false, isHtml = false }: { label: string; value: string; wide?: boolean; isHtml?: boolean }) {
+function InfoItem({ label, value, wide = false, isHtml = false, onHtmlCopy }: { label: string; value: string; wide?: boolean; isHtml?: boolean; onHtmlCopy?: (text: string) => void }) {
   if (!value) return null;
   return (
     <div className="lm-info-item" style={wide ? { gridColumn: "1 / -1" } : undefined}>
       <label>{label}</label>
       {isHtml ? (
-        <div className="html-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }} />
+        <div 
+          className="html-content" 
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }} 
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            const block = target.closest('pre, code');
+            if (block && onHtmlCopy) {
+              onHtmlCopy(block.textContent || "");
+            }
+          }}
+        />
       ) : (
         <span>{value}</span>
       )}

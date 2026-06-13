@@ -3260,6 +3260,57 @@ textarea {
   padding: 0;
 }
 
+.lm-info-item .html-content pre,
+.lm-info-item .html-content code {
+  cursor: pointer;
+  position: relative;
+  transition: opacity 0.2s;
+  background: #0d1219;
+  padding: 10px 14px;
+  border-radius: 6px;
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  margin: 10px 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.lm-info-item .html-content p code,
+.lm-info-item .html-content li code,
+.lm-info-item .html-content a code {
+  display: inline;
+  padding: 3px 6px;
+  margin: 0 2px;
+  border-radius: 4px;
+}
+
+.lm-info-item .html-content pre:hover,
+.lm-info-item .html-content code:hover {
+  opacity: 0.85;
+}
+
+.lm-info-item .html-content pre::after,
+.lm-info-item .html-content code::after {
+  content: "点击复制";
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.lm-info-item .html-content pre:hover::after,
+.lm-info-item .html-content code:hover::after {
+  opacity: 1;
+}
+
 .lm-base-size {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
