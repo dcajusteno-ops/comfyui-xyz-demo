@@ -1,6 +1,6 @@
 # ComfyUI XYZ 控制台 — 项目交接文档
 
-更新时间：2026-06-11  
+更新时间：2026-06-13  
 项目目录：`F:\demo\comfyui-xyz-demo`
 
 ---
@@ -291,3 +291,5 @@ http://127.0.0.1:8188/system_stats
 | 示例图不显示 | 确认 `server/exampleImages.ts` 路径配置正确，`example_images_path` 指向正确目录 |
 | 对比弹窗一点就关 | 已修复：现在只有点击背景本身（不是图片区域）才会关闭 |
 | 输出显示多张图 | 已修复：通过 `subfolder` + `nodeTitle` 过滤副产物，只展示最终图 |
+| 拉取 LoRA 后黑屏死机 | 已修复 (v0.0.5.1)：Civitai 元数据中的 `images` 可能包含 `null`，导致前端数组访问报错。已添加空值过滤。 |
+| 正反向提示词不在同行 | 已修复 (v0.0.5.1)：为 `prompt-grid` 添加 `align-items: start` 避免网格默认拉伸导致文本框高度错位。 |
