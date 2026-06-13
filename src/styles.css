@@ -3230,6 +3230,8 @@ textarea {
   word-break: break-word;
   color: var(--text);
   line-height: 1.5;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .lm-info-item .html-content p {
@@ -3273,6 +3275,8 @@ textarea {
   border: 1px solid rgba(255, 255, 255, 0.05);
   font-size: 13px;
   white-space: pre-wrap;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .lm-info-item .html-content pre code {
