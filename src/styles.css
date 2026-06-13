@@ -3189,6 +3189,11 @@ textarea {
   grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
 }
 
+.lm-info-section,
+.lm-showcase-section {
+  min-width: 0;
+}
+
 .lm-modal-body.examples-empty .lm-showcase-section {
   align-self: start;
 }
@@ -3222,6 +3227,7 @@ textarea {
 
 .lm-info-item .html-content {
   overflow-wrap: anywhere;
+  word-break: break-word;
   color: var(--text);
   line-height: 1.5;
 }
