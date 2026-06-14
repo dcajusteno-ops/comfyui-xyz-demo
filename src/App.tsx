@@ -355,6 +355,7 @@ function App() {
   const [selectedLoraPaths, setSelectedLoraPaths] = useState<string[]>([]);
   const [loraOperation, setLoraOperation] = useState<LoraOperation | null>(null);
   const [loraSettings, setLoraSettings] = useState<LoraManagerSettings>(defaultLoraManagerSettings);
+  const [simpleLoraTarget, setSimpleLoraTarget] = useState<TemplateKind | null>(null);
   const [translationSettings, setTranslationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
 
   const [notes, setNotes] = useState<NoteItem[]>([]);
@@ -1032,6 +1033,19 @@ function App() {
     pushToast("success", "LoRA 已插入", `${selection.name} -> ${templateLabels[target]}`);
   }
 
+  function addTriggerWords(words: string[], target = loraTarget) {
+    if (!words || words.length === 0) return;
+    const text = words.join(", ");
+    if (target === "multi") {
+      setMultiParams((prev) => ({ ...prev, globalPrompt: prev.globalPrompt + (prev.globalPrompt ? ", " : "") + text }));
+    } else if (target === "highres") {
+      setHighresParams((prev) => ({ ...prev, positivePrompt: prev.positivePrompt + (prev.positivePrompt ? ", " : "") + text }));
+    } else {
+      setDefaultParams((prev) => ({ ...prev, positivePrompt: prev.positivePrompt + (prev.positivePrompt ? ", " : "") + text }));
+    }
+    pushToast("success", "触发词已应用", `已追加到 ${templateLabels[target]} 正向提示词`);
+  }
+
   async function loadTriggerWords(item: LoraItem) {
     if (managedModelType !== "loras") return;
     const key = item.model_name || item.file_name;
@@ -1220,10 +1234,66 @@ function App() {
               <div className="panel-body">
                 <BaseControls params={defaultParams} options={options} setParams={setDefaultParams} onLoraDetail={(lora) => setLoraDetail({ file_path: lora.filePath || lora.name, file_name: lora.name.split("/").pop() || lora.name, file_size: 0, sha256: lora.sha256 } as LoraItem)} />
               </div>
-              <div className="panel-footer">
-                <button className="primary-action" type="button" onClick={() => runPrompt("默认生图", () => buildDefaultPrompt(defaultParams))}>
+              <div className="panel-footer" style={{ display: "flex", gap: "8px" }}>
+                <button className="primary-action" style={{ flex: 1 }} type="button" onClick={() => runPrompt("默认生图", () => buildDefaultPrompt(defaultParams))}>
                   <Wand2 size={18} />
                   开始生成
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setSimpleLoraTarget("default")}
+                  title="添加 LoRA"
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    gap: "6px", 
+                    padding: "0 16px",
+                    backgroundColor: "var(--bg-panel, #2a2a2a)",
+                    color: "var(--text-primary, #eaeaea)",
+                    border: "1px solid var(--border-color, #444)",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#333";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
+                  }}
+                >
+                  <Plus size={16} /> 添加 LoRA
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setHighresParams(prev => ({
+                      ...prev,
+                      positivePrompt: defaultParams.positivePrompt,
+                      negativePrompt: defaultParams.negativePrompt,
+                      loras: [...defaultParams.loras]
+                    }));
+                    setTab("highres");
+                  }}
+                  title="将当前提示词和 Lora 快捷发送到高清修复并跳转"
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    gap: "6px", 
+                    padding: "0 16px",
+                    backgroundColor: "var(--bg-panel, #2a2a2a)",
+                    color: "var(--text-primary, #eaeaea)",
+                    border: "1px solid var(--border-color, #444)",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "13px"
+                  }}
+                >
+                  <Send size={16} />
+                  送到高修
                 </button>
               </div>
             </section>
@@ -1236,10 +1306,58 @@ function App() {
               </div>
               <div className="panel-body">
                 <div className="form-grid two">
-                  <label className="field">
+                  <div className="field">
                     <span>图片</span>
-                    <input type="file" accept="image/*" onChange={(event) => setWdFile(event.target.files?.[0] ?? null)} />
-                  </label>
+                    <label 
+                      onDragOver={(e) => { 
+                        e.preventDefault(); 
+                        e.currentTarget.style.borderColor = "#007bff";
+                        e.currentTarget.style.backgroundColor = "rgba(0, 123, 255, 0.1)"; 
+                      }}
+                      onDragLeave={(e) => { 
+                        e.preventDefault(); 
+                        e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
+                        e.currentTarget.style.backgroundColor = "transparent"; 
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
+                        e.currentTarget.style.backgroundColor = "transparent"; 
+                        const file = e.dataTransfer.files?.[0];
+                        if (file && file.type.startsWith("image/")) {
+                          setWdFile(file);
+                        }
+                      }}
+                      style={{ 
+                        border: "2px dashed var(--border-color, #444)", 
+                        padding: "16px", 
+                        borderRadius: "4px", 
+                        cursor: "pointer", 
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "center",
+                        flexDirection: "column",
+                        transition: "all 0.2s",
+                        background: "var(--bg-panel, #2a2a2a)"
+                      }}
+                    >
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(event) => setWdFile(event.target.files?.[0] ?? null)} 
+                        style={{ display: "none" }} 
+                      />
+                      {wdFile ? (
+                        <div style={{ color: "var(--text-primary, #fff)", fontSize: "13px", textAlign: "center", wordBreak: "break-all" }}>
+                          {wdFile.name}
+                        </div>
+                      ) : (
+                        <div style={{ color: "var(--text-secondary, #aaa)", fontSize: "13px" }}>
+                          点击或拖拽图片到此处
+                        </div>
+                      )}
+                    </label>
+                  </div>
                   <SelectField label="模型" value={wd14.model} options={options.wdModels} onChange={(value) => setWd14((prev) => ({ ...prev, model: value }))} />
                   <NumberField label="阈值" value={wd14.threshold} step={0.05} min={0} max={1} onChange={(value) => setWd14((prev) => ({ ...prev, threshold: value }))} />
                   <NumberField label="角色阈值" value={wd14.characterThreshold} step={0.05} min={0} max={1} onChange={(value) => setWd14((prev) => ({ ...prev, characterThreshold: value }))} />
@@ -1289,10 +1407,39 @@ function App() {
                   <CharacterEditor characters={multiParams.characters} onChange={(characters) => setMultiParams((prev) => ({ ...prev, characters }))} />
                 </div>
               </div>
-              <div className="panel-footer">
-                <button className="primary-action" type="button" onClick={() => runPrompt("多人工作流", () => buildMultiPrompt(multiParams))}>
+              <div className="panel-footer" style={{ display: "flex", gap: "8px" }}>
+                <button className="primary-action" style={{ flex: 1 }} type="button" onClick={() => runPrompt("多人工作流", () => buildMultiPrompt(multiParams))}>
                   <UserRound size={18} />
                   运行多人工作流
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setSimpleLoraTarget("multi")}
+                  title="添加 LoRA"
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    gap: "6px", 
+                    padding: "0 16px",
+                    backgroundColor: "var(--bg-panel, #2a2a2a)",
+                    color: "var(--text-secondary, #a0a0a0)",
+                    border: "1px solid var(--border-color, #333)",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#333";
+                    e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
+                    e.currentTarget.style.color = "var(--text-secondary, #a0a0a0)";
+                  }}
+                >
+                  <Plus size={16} /> 添加 LoRA
                 </button>
               </div>
             </section>
@@ -1339,10 +1486,39 @@ function App() {
                   <DetailerControls title="脸部修复参数" detector={highresParams.faceDetector} detectors={options.detectors} params={highresParams.faceDetailer} onDetector={(value) => setHighresParams((prev) => ({ ...prev, faceDetector: value }))} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, faceDetailer: detailer }))} />
                 </div>
               </div>
-              <div className="panel-footer">
-                <button className="primary-action" type="button" onClick={() => runPrompt("高清修复", () => buildHighresPrompt(highresParams))}>
+              <div className="panel-footer" style={{ display: "flex", gap: "8px" }}>
+                <button className="primary-action" style={{ flex: 1 }} type="button" onClick={() => runPrompt("高清修复", () => buildHighresPrompt(highresParams))}>
                   <ImageUp size={18} />
                   开始修复
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setSimpleLoraTarget("highres")}
+                  title="添加 LoRA"
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    gap: "6px", 
+                    padding: "0 16px",
+                    backgroundColor: "var(--bg-panel, #2a2a2a)",
+                    color: "var(--text-secondary, #a0a0a0)",
+                    border: "1px solid var(--border-color, #333)",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#333";
+                    e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
+                    e.currentTarget.style.color = "var(--text-secondary, #a0a0a0)";
+                  }}
+                >
+                  <Plus size={16} /> 添加 LoRA
                 </button>
               </div>
             </section>
@@ -1611,6 +1787,7 @@ function App() {
           settings={loraSettings}
           onClose={() => setLoraDetail(null)}
           onInsert={(target, strength) => addLora(loraDetail, strength, target)}
+          onInsertWords={(target, words) => addTriggerWords(words, target)}
           onTriggerWords={() => loadTriggerWords(loraDetail)}
           onSaveTriggerWords={(words) => saveLoraTriggerWords(loraDetail, words)}
           onToast={pushToast}
@@ -1658,6 +1835,51 @@ function App() {
       {compareLightbox && (
         <ImageComparerModal imageA={compareLightbox[0]} imageB={compareLightbox[1]} onClose={() => setCompareLightbox(null)} />
       )}
+
+      {simpleLoraTarget && (
+        <ModalFrame 
+          title="简易 LoRA 管理器" 
+          onClose={() => setSimpleLoraTarget(null)}
+          style={{ width: "90vw", maxWidth: "1400px", height: "85vh", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+        >
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", margin: "-16px", marginTop: "0" }}>
+            <LoraManagerPanel
+              modelType={managedModelType}
+              onModelTypeChange={changeManagedModelType}
+              result={loraResult}
+              query={loraQuery}
+              setQuery={setLoraQuery}
+              loading={loraLoading}
+              hasMore={loraResult.page < loraResult.totalPages}
+              folders={loraFolders}
+              baseModels={loraBaseModels}
+              tags={loraTags}
+              density={loraDensity}
+              setDensity={setLoraDensity}
+              triggerWords={triggerWords}
+              onRefresh={refreshLoras}
+              onLoadMore={loadMoreManagedModels}
+              onDetail={(item) => {
+                setLoraDetail(item);
+                setSimpleLoraTarget(null);
+              }}
+              onInsert={(item) => {
+                addLora(item, 1, simpleLoraTarget);
+                pushToast("success", "已添加 LoRA", `成功添加 ${item.model_name || item.file_name}`);
+              }}
+              exampleStatus={exampleStatus}
+              examplePending={examplePending}
+              pullingExampleHashes={pullingExampleHashes}
+              localExampleFilesByHash={loraExampleFilesByHash}
+              onPullAllExamples={pullAllLoraExamples}
+              apiBase={apiBase}
+              settings={loraSettings}
+              isSimple
+            />
+          </div>
+        </ModalFrame>
+      )}
+
       {confirmDialog && (
         <ModalFrame title={confirmDialog.title} onClose={() => setConfirmDialog(null)}>
           <div style={{ padding: "24px" }}>
@@ -1722,10 +1944,10 @@ function ToastViewport({ toasts, onClose }: { toasts: Toast[]; onClose: (id: str
   );
 }
 
-function ModalFrame({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+function ModalFrame({ title, children, onClose, className, style }: { title: string; children: ReactNode; onClose: () => void; className?: string; style?: React.CSSProperties }) {
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(event) => event.stopPropagation()}>
+      <div className={`modal ${className || ""}`} style={style} role="dialog" aria-modal="true" aria-label={title} onMouseDown={(event) => event.stopPropagation()}>
         <div className="modal-head">
           <h2>{title}</h2>
           <button type="button" className="icon-button" onClick={onClose}><X size={16} /> 关闭</button>
@@ -1841,6 +2063,7 @@ function LoraDetailModal({
   settings,
   onClose,
   onInsert,
+  onInsertWords,
   onTriggerWords,
   onSaveTriggerWords,
   onToast,
@@ -1856,6 +2079,7 @@ function LoraDetailModal({
   settings: LoraManagerSettings;
   onClose: () => void;
   onInsert: (target: TemplateKind, strength: number) => void;
+  onInsertWords: (target: TemplateKind, words: string[]) => void;
   onTriggerWords: () => void;
   onSaveTriggerWords: (words: string[]) => Promise<string[]>;
   onToast: (type: Toast["type"], title: string, message?: string) => void;
@@ -2032,6 +2256,7 @@ function LoraDetailModal({
                   navigator.clipboard?.writeText(text);
                   onToast("success", "触发词已复制", text);
                 }}
+                onInsertWords={onInsertWords}
               />
 
               <InfoItem 
@@ -2655,11 +2880,13 @@ function TriggerWordsPanel({
   onRead,
   onSave,
   onCopy,
+  onInsertWords,
 }: {
   words: string[];
   onRead: () => void;
   onSave: (words: string[]) => Promise<string[]>;
   onCopy: (text: string) => void;
+  onInsertWords?: (target: TemplateKind, words: string[]) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draftWords, setDraftWords] = useState<string[]>(words);
@@ -2714,6 +2941,13 @@ function TriggerWordsPanel({
       <div className="lm-section-head">
         <label>触发词</label>
         <div className="lm-trigger-actions">
+          {!editing && visibleWords.length > 0 && onInsertWords && (
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginRight: '8px', paddingRight: '8px', borderRight: '1px solid var(--border-color)' }}>
+              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('default', visibleWords)} title="追加到默认生图正向提示词"><BadgePlus size={14} /> 默认</button>
+              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('multi', visibleWords)} title="追加到多人工作流正向提示词"><BadgePlus size={14} /> 多人</button>
+              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('highres', visibleWords)} title="追加到高清修复正向提示词"><BadgePlus size={14} /> 高修</button>
+            </div>
+          )}
           {!editing && <button type="button" className="lm-text-btn" onClick={onRead}><Brain size={14} /> 读取</button>}
           {!editing && <button type="button" className="lm-text-btn" onClick={startEditing}><Plus size={14} /> 编辑</button>}
           {editing && <button type="button" className="lm-text-btn" disabled={saving} onClick={saveDraftWords}><CheckCircle2 size={14} /> 保存</button>}
@@ -3339,6 +3573,7 @@ function LoraManagerPanel({
   onPullAllExamples,
   apiBase,
   settings,
+  isSimple,
 }: {
   modelType: ManagedModelType;
   onModelTypeChange: (modelType: ManagedModelType) => void;
@@ -3364,6 +3599,7 @@ function LoraManagerPanel({
   onPullAllExamples: () => void | Promise<void>;
   apiBase: string;
   settings: LoraManagerSettings;
+  isSimple?: boolean;
 }) {
   const isLora = modelType === "loras";
   const modelLabel = managedModelLabel(modelType);
@@ -3401,11 +3637,13 @@ function LoraManagerPanel({
 
   return (
     <div className={isLora ? "lora-manager lm-plugin-shell" : "lora-manager lm-plugin-shell embedding-mode"}>
-      <div className="lm-manager-head">
-        <div className="lm-manager-title">
-          <Boxes size={20} />
-          <span>LoRA 管理器</span>
-        </div>
+      <div className="lm-manager-head" style={isSimple ? { borderBottom: "none", paddingBottom: 0, marginBottom: -10 } : undefined}>
+        {!isSimple && (
+          <div className="lm-manager-title">
+            <Boxes size={20} />
+            <span>LoRA 管理器</span>
+          </div>
+        )}
         <div className="lm-plugin-nav lm-model-type-nav" role="navigation" aria-label="Model type">
           {[
             ["loras", "LoRA"],
@@ -3599,7 +3837,11 @@ function FolderNodeButton({
 
 function LoraChips({ loras, onChange, onDetail }: { loras: LoraSelection[]; onChange: (loras: LoraSelection[]) => void; onDetail?: (lora: LoraSelection) => void }) {
   if (!loras.length) {
-    return <div className="empty-strip">未选择 LoRA</div>;
+    return (
+      <div className="empty-strip">
+        未选择 LoRA
+      </div>
+    );
   }
   return (
     <div className="lora-compact-list">
