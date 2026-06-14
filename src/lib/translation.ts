@@ -15,17 +15,58 @@ export const defaultTranslationSettings: TranslationSettings = {
   provider: "mymemory",
 };
 
-export async function translateText(text: string, settings: TranslationSettings): Promise<string> {
+let localDictionary: any[] | null = null;
+let dictionaryPromise: Promise<any[]> | null = null;
+
+async function getLocalDictionary() {
+  if (localDictionary) return localDictionary;
+  if (dictionaryPromise) return dictionaryPromise;
+
+  dictionaryPromise = fetch("/data/prompt-library/all_prompts_merged.cleaned.json")
+    .then(res => res.json())
+    .then(data => {
+      localDictionary = data;
+      return data;
+    })
+    .catch(err => {
+      console.error("Failed to load local dictionary for translation", err);
+      return [];
+    });
+  
+  return dictionaryPromise;
+}
+
+export async function translateText(text: string, settings: TranslationSettings, direction: "zh2en" | "en2zh" = "zh2en"): Promise<string> {
   if (!text || !text.trim()) return text;
+
+  try {
+    const dict = await getLocalDictionary();
+    if (dict && dict.length > 0) {
+      const lowerText = text.trim().toLowerCase();
+      if (direction === "en2zh") {
+        const entry = dict.find(e => e.text_en && e.text_en.toLowerCase() === lowerText);
+        if (entry && entry.text_zh) {
+          return entry.text_zh;
+        }
+      } else if (direction === "zh2en") {
+        const entry = dict.find(e => e.text_zh && e.text_zh.toLowerCase() === lowerText);
+        if (entry && entry.text_en) {
+          return entry.text_en;
+        }
+      }
+    }
+  } catch (err) {
+    // Ignore local dictionary errors and fall back to API
+  }
 
   try {
     switch (settings.provider) {
       case "mymemory":
-        return await translateMyMemory(text);
+        return await translateMyMemory(text, direction);
       case "baidu":
-        return await translateBaidu(text, settings.baiduAppId, settings.baiduSecret);
+        return await translateBaidu(text, settings.baiduAppId, settings.baiduSecret, direction);
       case "aliyun":
-        return await translateAliyun(text, settings.aliyunAccessKeyId, settings.aliyunAccessKeySecret);
+        return await translateAliyun(text, settings.aliyunAccessKeyId, settings.aliyunAccessKeySecret, direction);
 
       default:
         return text;
@@ -36,8 +77,9 @@ export async function translateText(text: string, settings: TranslationSettings)
   }
 }
 
-async function translateMyMemory(text: string): Promise<string> {
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`;
+async function translateMyMemory(text: string, direction: "zh2en" | "en2zh"): Promise<string> {
+  const langpair = direction === "zh2en" ? "zh|en" : "en|zh";
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langpair}`;
   const response = await fetch(url);
   const data = await response.json();
   if (data && data.responseData && data.responseData.translatedText) {
@@ -46,7 +88,7 @@ async function translateMyMemory(text: string): Promise<string> {
   throw new Error("MyMemory API 返回格式错误或翻译失败");
 }
 
-async function translateBaidu(text: string, appId?: string, secret?: string): Promise<string> {
+async function translateBaidu(text: string, appId?: string, secret?: string, direction: "zh2en" | "en2zh" = "zh2en"): Promise<string> {
   if (!appId || !secret) {
     throw new Error("请在设置中配置百度翻译的 App ID 和 Secret");
   }
@@ -56,8 +98,8 @@ async function translateBaidu(text: string, appId?: string, secret?: string): Pr
 
   const url = new URL("https://api.fanyi.baidu.com/api/trans/vip/translate");
   url.searchParams.append("q", text);
-  url.searchParams.append("from", "zh");
-  url.searchParams.append("to", "en");
+  url.searchParams.append("from", direction === "zh2en" ? "zh" : "en");
+  url.searchParams.append("to", direction === "zh2en" ? "en" : "zh");
   url.searchParams.append("appid", appId);
   url.searchParams.append("salt", salt);
   url.searchParams.append("sign", sign);
@@ -106,7 +148,7 @@ async function translateBaidu(text: string, appId?: string, secret?: string): Pr
   });
 }
 
-async function translateAliyun(text: string, accessKeyId?: string, accessKeySecret?: string): Promise<string> {
+async function translateAliyun(text: string, accessKeyId?: string, accessKeySecret?: string, direction: "zh2en" | "en2zh" = "zh2en"): Promise<string> {
   if (!accessKeyId || !accessKeySecret) {
     throw new Error("请在设置中配置阿里云的 AccessKey ID 和 Secret");
   }
@@ -123,8 +165,8 @@ async function translateAliyun(text: string, accessKeyId?: string, accessKeySecr
     SignatureVersion: "1.0",
     AccessKeyId: accessKeyId,
     Timestamp: timestamp,
-    SourceLanguage: "zh",
-    TargetLanguage: "en",
+    SourceLanguage: direction === "zh2en" ? "zh" : "en",
+    TargetLanguage: direction === "zh2en" ? "en" : "zh",
     FormatType: "text",
     SourceText: text,
   };

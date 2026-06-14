@@ -63,14 +63,14 @@ export function PromptEditorDialog({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleTranslate = async () => {
+  const handleTranslate = async (direction: "zh2en" | "en2zh" = "zh2en") => {
     const val = activeEditor === "positive" ? positiveBase : negativeBase;
     const setter = activeEditor === "positive" ? setPositiveBase : setNegativeBase;
     
     if (!val.trim() || isTranslating) return;
     setIsTranslating(true);
     try {
-      const translated = await translateText(val, translationSettings);
+      const translated = await translateText(val, translationSettings, direction);
       setter(translated);
     } catch (err) {
       alert(err instanceof Error ? err.message : String(err));
@@ -354,9 +354,13 @@ export function PromptEditorDialog({
                 <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>基础 Prompt</span>
                   <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto', marginRight: '10px', alignItems: 'center' }}>
-                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleTranslate(); }} style={{ padding: '0 8px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--accent)', background: 'var(--accent-soft)', cursor: isTranslating ? 'wait' : 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '8px' }}>
+                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleTranslate("zh2en"); }} style={{ padding: '0 8px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--accent)', background: 'var(--accent-soft)', cursor: isTranslating ? 'wait' : 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                       <Globe2 size={12} />
                       {isTranslating ? "翻译中..." : "翻译为英文"}
+                    </button>
+                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleTranslate("en2zh"); }} style={{ padding: '0 8px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--accent)', background: 'var(--accent-soft)', cursor: isTranslating ? 'wait' : 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      <Globe2 size={12} />
+                      {isTranslating ? "翻译中..." : "翻译为中文"}
                     </button>
                     <span style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 'normal', marginRight: '4px' }}>权重:</span>
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleAdjust(0.1)} style={{ padding: '0 6px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--surface-alt)', cursor: 'pointer', color: 'var(--text)' }}>+0.1</button>
