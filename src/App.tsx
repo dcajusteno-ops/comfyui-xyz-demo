@@ -84,6 +84,9 @@ import {
   buildHighresPrompt,
   buildMultiPrompt,
   buildWd14Prompt,
+  buildClBatchPrompt,
+  buildWdBatchPrompt,
+  buildClSinglePrompt,
 } from "./lib/workflowBuilders";
 import { applySpecialXyzPatch, buildXyzCombinations, fieldLabel, parseAxisValues } from "./lib/xyz";
 import type {
@@ -117,6 +120,9 @@ import type {
   XyzField,
   OutputImage,
   NoteItem,
+  ClBatchParams,
+  ClSingleParams,
+  WdBatchParams,
 } from "./types";
 
 type TabId = "default" | "wd14" | "multi" | "highres" | "xyz" | "loras" | "notes";
@@ -126,6 +132,8 @@ type OptionsState = {
   samplers: string[];
   schedulers: string[];
   wdModels: string[];
+  wdDevices: string[];
+  clModels: string[];
   detectors: string[];
   upscaleMethods: string[];
 };
@@ -156,6 +164,8 @@ const fallbackOptions: OptionsState = {
   samplers: ["euler_ancestral", "euler", "dpmpp_2m"],
   schedulers: ["simple", "karras", "normal"],
   wdModels: ["wd-v1-4-moat-tagger-v2"],
+  wdDevices: ["GPU", "CPU"],
+  clModels: ["cl_tagger/cl_tagger_1_02.onnx"],
   detectors: ["bbox/hand_yolov8s.pt", "bbox/face_yolov8m.pt"],
   upscaleMethods: ["nearest-exact", "bilinear", "bicubic"],
 };
@@ -340,9 +350,47 @@ function App() {
     replaceUnderscore: true,
     trailingComma: true,
     excludeTags: "",
+    device: "GPU",
   });
   const [wdFile, setWdFile] = useState<File | null>(null);
   const [wdTags, setWdTags] = useLocalStorageState("comfyui_wd_tags", "");
+  const [wd14Tab, setWd14Tab] = useLocalStorageState<"single" | "cl_single" | "cl_batch" | "wd_batch">("comfyui_wd14_tab", "single");
+  const [clFile, setClFile] = useState<File | null>(null);
+  const [clSingleParams, setClSingleParams] = useLocalStorageState<ClSingleParams>("comfyui_cl_single_params", {
+    imageName: "",
+    modelName: "cl_tagger/cl_tagger_1_02.onnx",
+    general: 0.55,
+    character: 0.6,
+    replaceSpace: true,
+    categories: "rating,artist,general,character,copyright,meta,model,quality",
+    excludeTags: "",
+    sessionMethod: "GPU",
+  });
+  const [clBatchParams, setClBatchParams] = useLocalStorageState<ClBatchParams>("comfyui_cl_batch_params", {
+    imageFolder: "F:\\AI_lora\\lora-data-img\\tag-cs",
+    outputFolder: "./ComfyUI-tag/cs",
+    prependText: "cs",
+    runCount: 20,
+    modelName: "cl_tagger/cl_tagger_1_02.onnx",
+    general: 0.55,
+    character: 0.6,
+    replaceSpace: true,
+    categories: "rating,artist,general,character,copyright,meta,model,quality",
+    excludeTags: "",
+    sessionMethod: "GPU",
+  });
+  const [wdBatchParams, setWdBatchParams] = useLocalStorageState<WdBatchParams>("comfyui_wd_batch_params", {
+    imageFolder: "F:\\AI_lora\\lora-data-img\\tag-cs",
+    outputFolder: "./ComfyUI-tag/cs",
+    prependText: "cs",
+    runCount: 20,
+    model: "wd-v1-4-moat-tagger-v2",
+    threshold: 0.35,
+    characterThreshold: 0.85,
+    replaceUnderscore: false,
+    trailingComma: false,
+    excludeTags: "",
+  });
   const [managedModelType, setManagedModelType] = useState<ManagedModelType>("loras");
   const [loraResult, setLoraResult] = useState<LoraListResult>(emptyLoraResult);
   const [loraQuery, setLoraQuery] = useState<LoraQueryState>(defaultLoraQuery);
@@ -479,13 +527,14 @@ function App() {
     let canceled = false;
     async function load() {
       try {
-        const [stats, checkpointInfo, ksamplerInfo, wdInfo, detectorInfo, upscaleInfo, managerSettings] = await Promise.all([
+        const [stats, checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, managerSettings] = await Promise.all([
           client.getSystemStats(),
           client.getObjectInfo("CheckpointLoaderSimple"),
           client.getObjectInfo("KSampler"),
-          client.getObjectInfo("WD14Tagger|pysssss"),
-          client.getObjectInfo("UltralyticsDetectorProvider"),
-          client.getObjectInfo("LatentUpscaleBy"),
+          client.getObjectInfo("WD14Tagger|pysssss").catch(() => null),
+          client.getObjectInfo("cl_tagger_mira").catch(() => null),
+          client.getObjectInfo("UltralyticsDetectorProvider").catch(() => null),
+          client.getObjectInfo("LatentUpscaleBy").catch(() => null),
           client.getLoraManagerSettings().catch(() => defaultLoraManagerSettings),
         ]);
         if (canceled) return;
@@ -493,9 +542,11 @@ function App() {
           checkpoints: readCombo(checkpointInfo, "CheckpointLoaderSimple", "ckpt_name", fallbackOptions.checkpoints),
           samplers: readCombo(ksamplerInfo, "KSampler", "sampler_name", fallbackOptions.samplers),
           schedulers: readCombo(ksamplerInfo, "KSampler", "scheduler", fallbackOptions.schedulers),
-          wdModels: readCombo(wdInfo, "WD14Tagger|pysssss", "model", fallbackOptions.wdModels),
-          detectors: readCombo(detectorInfo, "UltralyticsDetectorProvider", "model_name", fallbackOptions.detectors),
-          upscaleMethods: readCombo(upscaleInfo, "LatentUpscaleBy", "upscale_method", fallbackOptions.upscaleMethods),
+          wdModels: wdInfo ? readCombo(wdInfo, "WD14Tagger|pysssss", "model", fallbackOptions.wdModels) : fallbackOptions.wdModels,
+          wdDevices: wdInfo ? readCombo(wdInfo, "WD14Tagger|pysssss", "device", fallbackOptions.wdDevices) : fallbackOptions.wdDevices,
+          clModels: clInfo ? readCombo(clInfo, "cl_tagger_mira", "model_name", fallbackOptions.clModels) : fallbackOptions.clModels,
+          detectors: detectorInfo ? readCombo(detectorInfo, "UltralyticsDetectorProvider", "model_name", fallbackOptions.detectors) : fallbackOptions.detectors,
+          upscaleMethods: upscaleInfo ? readCombo(upscaleInfo, "LatentUpscaleBy", "upscale_method", fallbackOptions.upscaleMethods) : fallbackOptions.upscaleMethods,
         };
         setOptions(nextOptions);
         const managerSettingsResult = managerSettings as LoraManagerSettings & { settings?: LoraManagerSettings };
@@ -512,6 +563,8 @@ function App() {
           faceDetector: nextOptions.detectors.includes(prev.faceDetector) ? prev.faceDetector : (nextOptions.detectors.find((item) => item.includes("face")) ?? ""),
         }));
         setWd14((prev) => ({ ...prev, model: nextOptions.wdModels.includes(prev.model) ? prev.model : (nextOptions.wdModels[0] ?? "") }));
+        setWdBatchParams((prev) => ({ ...prev, model: nextOptions.wdModels.includes(prev.model) ? prev.model : (nextOptions.wdModels[0] ?? "") }));
+        setClBatchParams((prev) => ({ ...prev, modelName: nextOptions.clModels.includes(prev.modelName) ? prev.modelName : (nextOptions.clModels[0] ?? "") }));
       } catch (loadError) {
         if (canceled) return;
         setConnection("离线");
@@ -816,6 +869,29 @@ function App() {
     }
   }
 
+  async function runBatchTagger(type: "cl" | "wd") {
+    setError("");
+    const params = type === "cl" ? clBatchParams : wdBatchParams;
+    try {
+      pushToast("info", "批量打标已启动", `计划处理 ${params.runCount} 张`);
+      let successCount = 0;
+      for (let i = 0; i < params.runCount; i++) {
+        if (xyzCancelRef.current) break;
+        const prompt = type === "cl" 
+          ? buildClBatchPrompt(clBatchParams, i)
+          : buildWdBatchPrompt(wdBatchParams, i);
+        
+        await client.runPrompt(prompt, setProgress);
+        successCount++;
+      }
+      pushToast("success", "批量打标完成", `成功处理 ${successCount} 张`);
+    } catch (runError) {
+      const message = runError instanceof Error ? runError.message : String(runError);
+      setError(message);
+      pushToast("error", "批量打标失败", message);
+    }
+  }
+
   async function runWd14() {
     setError("");
     try {
@@ -836,6 +912,29 @@ function App() {
       const message = runError instanceof Error ? runError.message : String(runError);
       setError(message);
       pushToast("error", "WD1.4 识别失败", message);
+    }
+  }
+
+  async function runClSingle() {
+    setError("");
+    try {
+      if (!clFile && !clSingleParams.imageName) {
+        throw new Error("请先选择一张图片");
+      }
+      let imageName = clSingleParams.imageName;
+      if (clFile) {
+        const uploaded = await client.uploadImage(clFile);
+        imageName = uploaded.name;
+        setClSingleParams((prev) => ({ ...prev, imageName }));
+      }
+      const result = await client.runPrompt(buildClSinglePrompt({ ...clSingleParams, imageName }), setProgress);
+      setResults((prev) => [result, ...prev].slice(0, 24));
+      setWdTags(result.texts.join("\n"));
+      pushToast("success", "CL 单图识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
+    } catch (runError) {
+      const message = runError instanceof Error ? runError.message : String(runError);
+      setError(message);
+      pushToast("error", "CL 单图识别失败", message);
     }
   }
 
@@ -1302,83 +1401,260 @@ function App() {
 
           {tab === "wd14" && (
             <section className="panel">
-              <div className="panel-header">
-                <PanelTitle icon={ScanSearch} title="WD1.4 图片识别" />
-              </div>
-              <div className="panel-body">
-                <div className="form-grid two">
-                  <div className="field">
-                    <span>图片</span>
-                    <label 
-                      onDragOver={(e) => { 
-                        e.preventDefault(); 
-                        e.currentTarget.style.borderColor = "#007bff";
-                        e.currentTarget.style.backgroundColor = "rgba(0, 123, 255, 0.1)"; 
-                      }}
-                      onDragLeave={(e) => { 
-                        e.preventDefault(); 
-                        e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
-                        e.currentTarget.style.backgroundColor = "transparent"; 
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
-                        e.currentTarget.style.backgroundColor = "transparent"; 
-                        const file = e.dataTransfer.files?.[0];
-                        if (file && file.type.startsWith("image/")) {
-                          setWdFile(file);
-                        }
-                      }}
-                      style={{ 
-                        border: "2px dashed var(--border-color, #444)", 
-                        padding: "16px", 
-                        borderRadius: "4px", 
-                        cursor: "pointer", 
-                        display: "flex", 
-                        alignItems: "center", 
-                        justifyContent: "center",
-                        flexDirection: "column",
-                        transition: "all 0.2s",
-                        background: "var(--bg-panel, #2a2a2a)"
-                      }}
-                    >
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={(event) => setWdFile(event.target.files?.[0] ?? null)} 
-                        style={{ display: "none" }} 
-                      />
-                      {wdFile ? (
-                        <div style={{ color: "var(--text-primary, #fff)", fontSize: "13px", textAlign: "center", wordBreak: "break-all" }}>
-                          {wdFile.name}
-                        </div>
-                      ) : (
-                        <div style={{ color: "var(--text-secondary, #aaa)", fontSize: "13px" }}>
-                          点击或拖拽图片到此处
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                  <SelectField label="模型" value={wd14.model} options={options.wdModels} onChange={(value) => setWd14((prev) => ({ ...prev, model: value }))} />
-                  <NumberField label="阈值" value={wd14.threshold} step={0.05} min={0} max={1} onChange={(value) => setWd14((prev) => ({ ...prev, threshold: value }))} />
-                  <NumberField label="角色阈值" value={wd14.characterThreshold} step={0.05} min={0} max={1} onChange={(value) => setWd14((prev) => ({ ...prev, characterThreshold: value }))} />
-                  <label className="field">
-                    <span>排除 tags</span>
-                    <input value={wd14.excludeTags} onChange={(event) => setWd14((prev) => ({ ...prev, excludeTags: event.target.value }))} />
-                  </label>
-                  <div className="toggle-row">
-                    <label><input type="checkbox" checked={wd14.replaceUnderscore} onChange={(event) => setWd14((prev) => ({ ...prev, replaceUnderscore: event.target.checked }))} /> 替换下划线</label>
-                    <label><input type="checkbox" checked={wd14.trailingComma} onChange={(event) => setWd14((prev) => ({ ...prev, trailingComma: event.target.checked }))} /> 末尾逗号</label>
-                  </div>
+              <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <PanelTitle icon={ScanSearch} title="图片识别" />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setWd14Tab("single")} style={{ padding: "4px 12px", background: wd14Tab === "single" ? "var(--primary, #007bff)" : "var(--bg-panel, #2a2a2a)", color: "var(--text-primary, #fff)", border: "1px solid var(--border-color, #444)", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>WD 单图</button>
+                  <button onClick={() => setWd14Tab("cl_single")} style={{ padding: "4px 12px", background: wd14Tab === "cl_single" ? "var(--primary, #007bff)" : "var(--bg-panel, #2a2a2a)", color: "var(--text-primary, #fff)", border: "1px solid var(--border-color, #444)", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>CL 单图</button>
+                  <button onClick={() => setWd14Tab("cl_batch")} style={{ padding: "4px 12px", background: wd14Tab === "cl_batch" ? "var(--primary, #007bff)" : "var(--bg-panel, #2a2a2a)", color: "var(--text-primary, #fff)", border: "1px solid var(--border-color, #444)", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>CL 批量</button>
+                  <button onClick={() => setWd14Tab("wd_batch")} style={{ padding: "4px 12px", background: wd14Tab === "wd_batch" ? "var(--primary, #007bff)" : "var(--bg-panel, #2a2a2a)", color: "var(--text-primary, #fff)", border: "1px solid var(--border-color, #444)", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>WD 批量</button>
                 </div>
-                <textarea className="output-text" value={wdTags} readOnly />
               </div>
-              <div className="panel-footer">
-                <button className="primary-action" type="button" onClick={runWd14}>
-                  <ScanSearch size={18} />
-                  开始识别
-                </button>
-              </div>
+              {wd14Tab === "single" && (
+                <>
+                  <div className="panel-body">
+                    <div className="form-grid two">
+                      <div className="field">
+                        <span>图片</span>
+                        <label 
+                          onDragOver={(e) => { 
+                            e.preventDefault(); 
+                            e.currentTarget.style.borderColor = "#007bff";
+                            e.currentTarget.style.backgroundColor = "rgba(0, 123, 255, 0.1)"; 
+                          }}
+                          onDragLeave={(e) => { 
+                            e.preventDefault(); 
+                            e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
+                            e.currentTarget.style.backgroundColor = "transparent"; 
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
+                            e.currentTarget.style.backgroundColor = "transparent"; 
+                            const file = e.dataTransfer.files?.[0];
+                            if (file && file.type.startsWith("image/")) {
+                              setWdFile(file);
+                            }
+                          }}
+                          style={{ 
+                            border: "2px dashed var(--border-color, #444)", 
+                            padding: "16px", 
+                            borderRadius: "4px", 
+                            cursor: "pointer", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            flexDirection: "column",
+                            transition: "all 0.2s",
+                            background: "var(--bg-panel, #2a2a2a)"
+                          }}
+                        >
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(event) => setWdFile(event.target.files?.[0] ?? null)} 
+                            style={{ display: "none" }} 
+                          />
+                          {wdFile ? (
+                            <div style={{ color: "var(--text-primary, #fff)", fontSize: "13px", textAlign: "center", wordBreak: "break-all" }}>
+                              {wdFile.name}
+                            </div>
+                          ) : (
+                            <div style={{ color: "var(--text-secondary, #aaa)", fontSize: "13px" }}>
+                              点击或拖拽图片到此处
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                      <SelectField label="模型" value={wd14.model} options={options.wdModels} onChange={(value) => setWd14((prev) => ({ ...prev, model: value }))} />
+                      <SelectField label="设备" value={wd14.device} options={options.wdDevices} onChange={(value) => setWd14((prev) => ({ ...prev, device: value }))} />
+                      <NumberField label="阈值" value={wd14.threshold} step={0.05} min={0} max={1} onChange={(value) => setWd14((prev) => ({ ...prev, threshold: value }))} />
+                      <NumberField label="角色阈值" value={wd14.characterThreshold} step={0.05} min={0} max={1} onChange={(value) => setWd14((prev) => ({ ...prev, characterThreshold: value }))} />
+                      <label className="field">
+                        <span>排除 tags</span>
+                        <input value={wd14.excludeTags} onChange={(event) => setWd14((prev) => ({ ...prev, excludeTags: event.target.value }))} />
+                      </label>
+                      <div className="toggle-row">
+                        <label><input type="checkbox" checked={wd14.replaceUnderscore} onChange={(event) => setWd14((prev) => ({ ...prev, replaceUnderscore: event.target.checked }))} /> 替换下划线</label>
+                        <label><input type="checkbox" checked={wd14.trailingComma} onChange={(event) => setWd14((prev) => ({ ...prev, trailingComma: event.target.checked }))} /> 末尾逗号</label>
+                      </div>
+                    </div>
+                    <CopyableTextarea className="output-text" value={wdTags} />
+                  </div>
+                  <div className="panel-footer">
+                    <button className="primary-action" type="button" onClick={runWd14}>
+                      <ScanSearch size={18} />
+                      开始单图识别
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {wd14Tab === "cl_single" && (
+                <>
+                  <div className="panel-body">
+                    <div className="form-grid two">
+                      <div className="field">
+                        <span>图片</span>
+                        <label 
+                          onDragOver={(e) => { 
+                            e.preventDefault(); 
+                            e.currentTarget.style.borderColor = "#007bff";
+                            e.currentTarget.style.backgroundColor = "rgba(0, 123, 255, 0.1)"; 
+                          }}
+                          onDragLeave={(e) => { 
+                            e.preventDefault(); 
+                            e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
+                            e.currentTarget.style.backgroundColor = "transparent"; 
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.style.borderColor = "var(--border-color, #444)"; 
+                            e.currentTarget.style.backgroundColor = "transparent"; 
+                            const file = e.dataTransfer.files?.[0];
+                            if (file && file.type.startsWith("image/")) {
+                              setClFile(file);
+                            }
+                          }}
+                          style={{ 
+                            border: "2px dashed var(--border-color, #444)", 
+                            padding: "16px", 
+                            borderRadius: "4px", 
+                            cursor: "pointer", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            flexDirection: "column",
+                            transition: "all 0.2s",
+                            background: "var(--bg-panel, #2a2a2a)"
+                          }}
+                        >
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(event) => setClFile(event.target.files?.[0] ?? null)} 
+                            style={{ display: "none" }} 
+                          />
+                          {clFile ? (
+                            <div style={{ color: "var(--text-primary, #fff)", fontSize: "13px", textAlign: "center", wordBreak: "break-all" }}>
+                              {clFile.name}
+                            </div>
+                          ) : (
+                            <div style={{ color: "var(--text-secondary, #aaa)", fontSize: "13px" }}>
+                              点击或拖拽图片到此处
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                      <SelectField label="CL 模型" value={clSingleParams.modelName} options={options.clModels} onChange={(value) => setClSingleParams((prev) => ({ ...prev, modelName: value }))} />
+                      <SelectField label="设备" value={clSingleParams.sessionMethod} options={options.wdDevices} onChange={(value) => setClSingleParams((prev) => ({ ...prev, sessionMethod: value }))} />
+                      <NumberField label="General 阈值" value={clSingleParams.general} step={0.05} min={0} max={1} onChange={(value) => setClSingleParams((prev) => ({ ...prev, general: value }))} />
+                      <NumberField label="Character 阈值" value={clSingleParams.character} step={0.05} min={0} max={1} onChange={(value) => setClSingleParams((prev) => ({ ...prev, character: value }))} />
+                      <label className="field">
+                        <span>Categories</span>
+                        <input value={clSingleParams.categories} onChange={(event) => setClSingleParams((prev) => ({ ...prev, categories: event.target.value }))} />
+                      </label>
+                      <label className="field">
+                        <span>排除 tags</span>
+                        <input value={clSingleParams.excludeTags} onChange={(event) => setClSingleParams((prev) => ({ ...prev, excludeTags: event.target.value }))} />
+                      </label>
+                      <div className="toggle-row">
+                        <label><input type="checkbox" checked={clSingleParams.replaceSpace} onChange={(event) => setClSingleParams((prev) => ({ ...prev, replaceSpace: event.target.checked }))} /> 替换空格为下划线</label>
+                      </div>
+                    </div>
+                    <CopyableTextarea className="output-text" value={wdTags} />
+                  </div>
+                  <div className="panel-footer">
+                    <button className="primary-action" type="button" onClick={runClSingle}>
+                      <ScanSearch size={18} />
+                      开始 CL 单图识别
+                    </button>
+                  </div>
+                </>
+              )}
+              {wd14Tab === "cl_batch" && (
+                <>
+                  <div className="panel-body">
+                    <div className="form-grid two">
+                      <label className="field">
+                        <span>图片目录</span>
+                        <input value={clBatchParams.imageFolder} onChange={(e) => setClBatchParams(prev => ({ ...prev, imageFolder: e.target.value }))} placeholder="例如: F:\AI_lora\lora-data-img" />
+                      </label>
+                      <label className="field">
+                        <span>输出目录</span>
+                        <input value={clBatchParams.outputFolder} onChange={(e) => setClBatchParams(prev => ({ ...prev, outputFolder: e.target.value }))} placeholder="例如: ./ComfyUI-tag/cs" />
+                      </label>
+                      <label className="field">
+                        <span>前置提示词</span>
+                        <input value={clBatchParams.prependText} onChange={(e) => setClBatchParams(prev => ({ ...prev, prependText: e.target.value }))} placeholder="打标文本前置追加" />
+                      </label>
+                      <NumberField label="处理数量" value={clBatchParams.runCount} step={1} min={1} onChange={(value) => setClBatchParams((prev) => ({ ...prev, runCount: value }))} />
+                      
+                      <SelectField label="CL 模型" value={clBatchParams.modelName} options={options.clModels} onChange={(value) => setClBatchParams((prev) => ({ ...prev, modelName: value }))} />
+                      <SelectField label="设备" value={clBatchParams.sessionMethod} options={options.wdDevices} onChange={(value) => setClBatchParams((prev) => ({ ...prev, sessionMethod: value }))} />
+                      <NumberField label="General 阈值" value={clBatchParams.general} step={0.05} min={0} max={1} onChange={(value) => setClBatchParams((prev) => ({ ...prev, general: value }))} />
+                      <NumberField label="Character 阈值" value={clBatchParams.character} step={0.05} min={0} max={1} onChange={(value) => setClBatchParams((prev) => ({ ...prev, character: value }))} />
+                      <label className="field">
+                        <span>Categories</span>
+                        <input value={clBatchParams.categories} onChange={(e) => setClBatchParams(prev => ({ ...prev, categories: e.target.value }))} />
+                      </label>
+                      <label className="field">
+                        <span>排除 tags</span>
+                        <input value={clBatchParams.excludeTags} onChange={(e) => setClBatchParams(prev => ({ ...prev, excludeTags: e.target.value }))} />
+                      </label>
+                      <div className="toggle-row">
+                        <label><input type="checkbox" checked={clBatchParams.replaceSpace} onChange={(event) => setClBatchParams((prev) => ({ ...prev, replaceSpace: event.target.checked }))} /> 替换空格为下划线</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="panel-footer">
+                    <button className="primary-action" type="button" onClick={() => runBatchTagger("cl")}>
+                      <ScanSearch size={18} />
+                      开始 CL 批量打标
+                    </button>
+                  </div>
+                </>
+              )}
+              {wd14Tab === "wd_batch" && (
+                <>
+                  <div className="panel-body">
+                    <div className="form-grid two">
+                      <label className="field">
+                        <span>图片目录</span>
+                        <input value={wdBatchParams.imageFolder} onChange={(e) => setWdBatchParams(prev => ({ ...prev, imageFolder: e.target.value }))} placeholder="例如: F:\AI_lora\lora-data-img" />
+                      </label>
+                      <label className="field">
+                        <span>输出目录</span>
+                        <input value={wdBatchParams.outputFolder} onChange={(e) => setWdBatchParams(prev => ({ ...prev, outputFolder: e.target.value }))} placeholder="例如: ./ComfyUI-tag/cs" />
+                      </label>
+                      <label className="field">
+                        <span>前置提示词</span>
+                        <input value={wdBatchParams.prependText} onChange={(e) => setWdBatchParams(prev => ({ ...prev, prependText: e.target.value }))} placeholder="打标文本前置追加" />
+                      </label>
+                      <NumberField label="处理数量" value={wdBatchParams.runCount} step={1} min={1} onChange={(value) => setWdBatchParams((prev) => ({ ...prev, runCount: value }))} />
+                      
+                      <SelectField label="WD 模型" value={wdBatchParams.model} options={options.wdModels} onChange={(value) => setWdBatchParams((prev) => ({ ...prev, model: value }))} />
+                      <SelectField label="设备" value={wdBatchParams.device} options={options.wdDevices} onChange={(value) => setWdBatchParams((prev) => ({ ...prev, device: value }))} />
+                      <NumberField label="阈值" value={wdBatchParams.threshold} step={0.05} min={0} max={1} onChange={(value) => setWdBatchParams((prev) => ({ ...prev, threshold: value }))} />
+                      <NumberField label="角色阈值" value={wdBatchParams.characterThreshold} step={0.05} min={0} max={1} onChange={(value) => setWdBatchParams((prev) => ({ ...prev, characterThreshold: value }))} />
+                      <label className="field">
+                        <span>排除 tags</span>
+                        <input value={wdBatchParams.excludeTags} onChange={(e) => setWdBatchParams(prev => ({ ...prev, excludeTags: e.target.value }))} />
+                      </label>
+                      <div className="toggle-row">
+                        <label><input type="checkbox" checked={wdBatchParams.replaceUnderscore} onChange={(event) => setWdBatchParams((prev) => ({ ...prev, replaceUnderscore: event.target.checked }))} /> 替换下划线</label>
+                        <label><input type="checkbox" checked={wdBatchParams.trailingComma} onChange={(event) => setWdBatchParams((prev) => ({ ...prev, trailingComma: event.target.checked }))} /> 末尾逗号</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="panel-footer">
+                    <button className="primary-action" type="button" onClick={() => runBatchTagger("wd")}>
+                      <ScanSearch size={18} />
+                      开始 WD 批量打标
+                    </button>
+                  </div>
+                </>
+              )}
             </section>
           )}
 
@@ -3912,6 +4188,36 @@ function SelectField({ label, value, options, onChange }: { label: string; value
     </label>
   );
 }
+function CopyableTextarea({ value, className }: { value: string; className?: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column" }}>
+      <textarea className={className} style={{ flex: 1, width: "100%", resize: "none" }} value={value} readOnly />
+      {value && (
+        <button 
+          type="button"
+          onClick={handleCopy} 
+          title="复制"
+          style={{ 
+            position: "absolute", top: "8px", right: "16px", 
+            background: "rgba(42, 42, 42, 0.9)", border: "1px solid var(--border-color, #444)", 
+            color: "var(--text-secondary, #aaa)", borderRadius: "4px", padding: "4px 8px", 
+            cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px",
+            backdropFilter: "blur(4px)"
+          }}>
+          {copied ? <CheckCircle2 size={14} color="#4caf50" /> : <Copy size={14} />}
+          {copied ? "已复制" : "复制"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 
 function TextAreaField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
   const isPrompt = label.toLowerCase().includes("prompt") || label.includes("提示词");

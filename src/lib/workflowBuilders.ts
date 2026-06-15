@@ -7,6 +7,8 @@ import type {
   LoraSelection,
   MultiGenerationParams,
   Wd14Params,
+  ClBatchParams,
+  WdBatchParams,
 } from "../types";
 
 const MAX_SEED = 2 ** 53 - 1;
@@ -156,8 +158,167 @@ export function buildWd14Prompt(params: Wd14Params): ComfyPrompt {
         replace_underscore: params.replaceUnderscore,
         trailing_comma: params.trailingComma,
         exclude_tags: params.excludeTags,
+        device: params.device,
       },
       _meta: { title: "WD14 Tagger" },
+    },
+  };
+}
+
+export function buildClSinglePrompt(params: ClSingleParams): ComfyPrompt {
+  return {
+    "1": {
+      class_type: "LoadImage",
+      inputs: {
+        image: params.imageName,
+      },
+      _meta: { title: "Load Image" },
+    },
+    "2": {
+      class_type: "cl_tagger_mira",
+      inputs: {
+        image: ["1", 0],
+        model_name: params.modelName,
+        general: params.general,
+        character: params.character,
+        replace_space: params.replaceSpace,
+        categories: params.categories,
+        exclude_tags: params.excludeTags,
+        session_method: params.sessionMethod,
+      },
+      _meta: { title: "CL Tagger" },
+    },
+  };
+}
+
+export function buildClBatchPrompt(params: ClBatchParams, index: number): ComfyPrompt {
+  return {
+    "15": {
+      class_type: "> Load Image From Folder",
+      inputs: {
+        index,
+        image_folder: params.imageFolder,
+      },
+      _meta: { title: "> Load Image From Folder" },
+    },
+    "1": {
+      class_type: "cl_tagger_mira",
+      inputs: {
+        image: ["15", 0],
+        model_name: params.modelName,
+        general: params.general,
+        character: params.character,
+        replace_space: params.replaceSpace,
+        categories: params.categories,
+        exclude_tags: params.excludeTags,
+        session_method: params.sessionMethod,
+      },
+      _meta: { title: "CL Tagger" },
+    },
+    "19": {
+      class_type: "> Text",
+      inputs: { text: params.prependText },
+      _meta: { title: "Prepend Text" },
+    },
+    "16": {
+      class_type: "Text Concatenate",
+      inputs: {
+        text_a: ["19", 0],
+        text_b: ["1", 0],
+        delimiter: ", ",
+        clean_whitespace: "false",
+      },
+      _meta: { title: "Text Concatenate" },
+    },
+    "14": {
+      class_type: "> Save Text",
+      inputs: {
+        text: ["16", 0],
+        filename_opt: ["15", 1],
+        filename_prefix: "_",
+        folder: params.outputFolder,
+      },
+      _meta: { title: "> Save Text" },
+    },
+    "13": {
+      class_type: "> Save Image",
+      inputs: {
+        images: ["15", 0],
+        filename_opt: ["15", 1],
+        filename_prefix: "_",
+        folder: params.outputFolder,
+        overwrite_warning: false,
+        include_metadata: true,
+        extension: "png",
+        quality: 95,
+      },
+      _meta: { title: "> Save Image" },
+    },
+  };
+}
+
+export function buildWdBatchPrompt(params: WdBatchParams, index: number): ComfyPrompt {
+  return {
+    "15": {
+      class_type: "> Load Image From Folder",
+      inputs: {
+        index,
+        image_folder: params.imageFolder,
+      },
+      _meta: { title: "> Load Image From Folder" },
+    },
+    "37": {
+      class_type: "WD14Tagger|pysssss",
+      inputs: {
+        image: ["15", 0],
+        model: params.model,
+        threshold: params.threshold,
+        character_threshold: params.characterThreshold,
+        replace_underscore: params.replaceUnderscore,
+        trailing_comma: params.trailingComma,
+        exclude_tags: params.excludeTags,
+        device: params.device,
+      },
+      _meta: { title: "WD14 Tagger" },
+    },
+    "19": {
+      class_type: "> Text",
+      inputs: { text: params.prependText },
+      _meta: { title: "Prepend Text" },
+    },
+    "16": {
+      class_type: "Text Concatenate",
+      inputs: {
+        text_a: ["19", 0],
+        text_b: ["37", 0],
+        delimiter: ", ",
+        clean_whitespace: "false",
+      },
+      _meta: { title: "Text Concatenate" },
+    },
+    "14": {
+      class_type: "> Save Text",
+      inputs: {
+        text: ["16", 0],
+        filename_opt: ["15", 1],
+        filename_prefix: "_",
+        folder: params.outputFolder,
+      },
+      _meta: { title: "> Save Text" },
+    },
+    "13": {
+      class_type: "> Save Image",
+      inputs: {
+        images: ["15", 0],
+        filename_opt: ["15", 1],
+        filename_prefix: "_",
+        folder: params.outputFolder,
+        overwrite_warning: false,
+        include_metadata: true,
+        extension: "png",
+        quality: 95,
+      },
+      _meta: { title: "> Save Image" },
     },
   };
 }

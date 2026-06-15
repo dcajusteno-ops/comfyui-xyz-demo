@@ -339,6 +339,45 @@ export type Wd14Params = {
   replaceUnderscore: boolean;
   trailingComma: boolean;
   excludeTags: string;
+  device: string;
+};
+
+export type ClSingleParams = {
+  imageName: string;
+  modelName: string;
+  general: number;
+  character: number;
+  replaceSpace: boolean;
+  categories: string;
+  excludeTags: string;
+  sessionMethod: string;
+};
+
+export type BatchTaggerParams = {
+  imageFolder: string;
+  outputFolder: string;
+  prependText: string;
+  runCount: number;
+};
+
+export type ClBatchParams = BatchTaggerParams & {
+  modelName: string;
+  general: number;
+  character: number;
+  replaceSpace: boolean;
+  categories: string;
+  excludeTags: string;
+  sessionMethod: string;
+};
+
+export type WdBatchParams = BatchTaggerParams & {
+  model: string;
+  threshold: number;
+  characterThreshold: number;
+  replaceUnderscore: boolean;
+  trailingComma: boolean;
+  excludeTags: string;
+  device: string;
 };
 
 export type HighresVariant =
