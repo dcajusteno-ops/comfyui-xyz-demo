@@ -63,6 +63,7 @@ import {
   Wand2,
   X,
   Columns,
+  Loader2,
 } from "lucide-react";
 import { cloneMultiCharacterConfig } from "./data/multiTemplate";
 import { handlePromptWeightAdjustment } from "./lib/promptUtils";
@@ -1733,10 +1734,27 @@ function App() {
         </main>
 
         {tab !== "loras" && (
-          <aside className={results.length > 0 ? "output-panel" : "output-panel is-empty"}>
+          <aside className={results.length > 0 || progress.previewUrl ? "output-panel" : "output-panel is-empty"}>
             <div className="gallery">
               <h2><GalleryHorizontalEnd size={18} /> 输出</h2>
-              {results.length === 0 && <div className="empty-state">暂无输出</div>}
+              {results.length === 0 && !progress.previewUrl && <div className="empty-state">暂无输出</div>}
+              
+              {progress.running && progress.previewUrl && (
+                <div className="gallery-item" key="preview">
+                  <div className="gallery-meta">
+                    <Loader2 size={16} className="spin" />
+                    <span>预览中...</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                    <img 
+                      src={progress.previewUrl} 
+                      alt="Preview" 
+                      style={{ filter: "blur(2px)", transition: "filter 0.3s" }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {results.map((result) => (
                 <div className="gallery-item" key={result.promptId}>
                   <div className="gallery-meta">

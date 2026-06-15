@@ -402,6 +402,7 @@ export type ProgressState = {
   value: number;
   max: number;
   label: string;
+  previewUrl?: string;
   images?: OutputImage[];
   texts?: string[];
 };

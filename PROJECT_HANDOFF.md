@@ -1,6 +1,6 @@
 # ComfyUI XYZ 控制台 — 项目交接文档
 
-更新时间：2026-06-13  
+更新时间：2026-06-15  
 项目目录：`F:\demo\comfyui-xyz-demo`
 
 ---
@@ -89,6 +89,7 @@ npm run test
 - 连接本地 ComfyUI，获取 checkpoint / sampler / scheduler / WD14 模型 / detector / upscale method 选项
 - 提交 prompt，WebSocket + History 读取进度与结果
 - 进度条、Toast 通知、错误提示
+- 实时生图预览：支持解析 ComfyUI 的二进制 WebSocket 消息并在右侧面板展示模糊效果的实时预览图
 - 右侧输出面板：只展示最终图像（副产物不在输出列表中显示）
 
 ### 默认生图

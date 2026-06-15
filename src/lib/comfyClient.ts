@@ -551,20 +551,27 @@ export class ComfyClient {
       throw new Error("ComfyUI 没有返回 prompt_id");
     }
 
-    onProgress({
+    let lastProgress: ProgressState = {
       running: true,
       promptId,
       value: 0,
       max: 1,
       label: "已进入队列",
-    });
+    };
+
+    const updateProgress = (patch: Partial<ProgressState>) => {
+      lastProgress = { ...lastProgress, ...patch };
+      onProgress(lastProgress);
+    };
+
+    updateProgress({});
 
     const finishFromHistory = async () => {
       const history = await this.waitForHistory(promptId);
       completed = true;
       socket.close();
       const extracted = this.extractHistory(promptId, history);
-      onProgress({
+      updateProgress({
         running: false,
         promptId,
         value: 1,
@@ -592,12 +599,24 @@ export class ComfyClient {
       socket.addEventListener("message", async (event) => {
         try {
           if (typeof event.data !== "string") {
+            let blob: Blob;
+            if (event.data instanceof Blob) {
+              blob = event.data.slice(8);
+            } else if (event.data instanceof ArrayBuffer) {
+              blob = new Blob([event.data.slice(8)]);
+            } else {
+              return;
+            }
+            if (lastProgress.previewUrl) {
+              URL.revokeObjectURL(lastProgress.previewUrl);
+            }
+            updateProgress({ previewUrl: URL.createObjectURL(blob) });
             return;
           }
           const message = JSON.parse(event.data);
           const data = message.data ?? {};
           if (message.type === "progress") {
-            onProgress({
+            updateProgress({
               running: true,
               promptId,
               node: data.node ?? null,
@@ -607,14 +626,14 @@ export class ComfyClient {
             });
           }
           if (message.type === "executing" && data.prompt_id === promptId) {
-            onProgress(({
+            updateProgress({
               running: true,
               promptId,
               node: data.node ?? null,
               value: data.node ? 0 : 1,
               max: 1,
               label: data.node ? `执行节点 ${data.node}` : "收尾中",
-            }));
+            });
             if (data.node === null) {
               window.clearInterval(fallbackTimer);
               resolve(await finishFromHistory());
@@ -648,7 +667,7 @@ export class ComfyClient {
               texts.push(...outputs.text);
             }
             if (images.length > 0 || texts.length > 0) {
-              onProgress({
+              updateProgress({
                 running: true,
                 promptId,
                 node: nodeId,
