@@ -103,7 +103,17 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
             name="ComfyUI-Lora-Manager" 
             desc="提供原生的 LoRA 检索及元数据管理服务"
             url="https://github.com/willmiao/ComfyUI-Lora-Manager"
-            />
+          />
+          <PluginLink 
+            name="was-node-suite-comfyui" 
+            desc="提供 Text Concatenate 文本拼接等基础核心节点"
+            url="https://github.com/WASasquatch/was-node-suite-comfyui"
+          />
+          <PluginLink 
+            name="ComfyUI_yanc" 
+            desc="提供目录读取及图片/文本批量存取扩展节点"
+            url="https://github.com/ALatentPlace/ComfyUI_yanc"
+          />
             </div>
           </div>
 
