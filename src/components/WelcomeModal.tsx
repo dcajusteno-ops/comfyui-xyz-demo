@@ -168,7 +168,12 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
               />
               <ModelLink 
                 name="cl_tagger_1_02.onnx" 
-                desc="用于 CL Tagger 的图像反推核心模型。请自行查阅该插件 Github 以获取最新下载地址，放入 models/onnx/cl_tagger/ 目录"
+                desc="用于 CL Tagger 的图像反推核心模型。请放入 models/onnx/cl_tagger/ 目录"
+                url="https://github.com/mirabarukaso/ComfyUI_Mira"
+              />
+              <ModelLink 
+                name="cl_tagger_1_02_tag_mapping.json" 
+                desc="这是 CL Tagger 模型必需的标签映射文件，必须与 onnx 模型同名并放在同一目录下。"
                 url="https://github.com/mirabarukaso/ComfyUI_Mira"
               />
             </div>
