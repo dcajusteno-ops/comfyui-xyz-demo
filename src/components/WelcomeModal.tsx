@@ -85,6 +85,11 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
             url="https://github.com/pythongosssss/ComfyUI-WD14-Tagger"
           />
           <PluginLink 
+            name="ComfyUI_Mira" 
+            desc="提供 CL Tagger 提示词反推能力与附加组件"
+            url="https://github.com/mirabarukaso/ComfyUI_Mira"
+          />
+          <PluginLink 
             name="ComfyUI-Prompt-Control" 
             desc="提供 LoRA 懒加载及提示词权重动态调度"
             url="https://github.com/asagi4/comfyui-prompt-control"
@@ -160,6 +165,11 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
                 name="wd-v1-4-convnextv2-tagger-v2" 
                 desc="用于 WD1.4 反推（ConvNextV2 模型）。通常自动下载，若失败请放入 models/taggers/ 目录"
                 url="https://huggingface.co/SmilingWolf/wd-v1-4-convnextv2-tagger-v2"
+              />
+              <ModelLink 
+                name="cl_tagger_1_02.onnx" 
+                desc="用于 CL Tagger 的图像反推核心模型。请自行查阅该插件 Github 以获取最新下载地址，放入 models/onnx/cl_tagger/ 目录"
+                url="https://github.com/mirabarukaso/ComfyUI_Mira"
               />
             </div>
           </div>
