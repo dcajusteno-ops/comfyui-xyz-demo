@@ -180,18 +180,7 @@ const tabs: Array<{ id: TabId; label: string; icon: typeof Wand2 }> = [
   { id: "notes", label: "记事本", icon: FileText },
 ];
 
-const xyzFields: XyzField[] = [
-  "seed",
-  "steps",
-  "cfg",
-  "width",
-  "height",
-  "samplerName",
-  "scheduler",
-  "denoise",
-  "firstLoraStrength",
-  "positiveAppend",
-];
+
 
 const templateLabels: Record<TemplateKind, string> = {
   default: "默认生图",
@@ -390,6 +379,7 @@ function App() {
     replaceUnderscore: false,
     trailingComma: false,
     excludeTags: "",
+    device: "GPU",
   });
   const [managedModelType, setManagedModelType] = useState<ManagedModelType>("loras");
   const [loraResult, setLoraResult] = useState<LoraListResult>(emptyLoraResult);
@@ -1801,7 +1791,28 @@ function App() {
             </section>
           )}
 
-          {tab === "xyz" && (
+          {tab === "xyz" && (() => {
+            const lorasOfTarget = (() => {
+              switch (xyzTarget) {
+                case "default": return defaultParams.loras;
+                case "multi": return multiParams.loras;
+                case "highres": return highresParams.loras;
+                default: return [];
+              }
+            })();
+            const xyzFields: XyzField[] = [
+              "seed",
+              "steps",
+              "cfg",
+              "width",
+              "height",
+              "samplerName",
+              "scheduler",
+              "denoise",
+              "positiveAppend",
+              ...lorasOfTarget.map((_, i) => `loraStrength_${i}` as const)
+            ];
+            return (
             <section className="panel xyz-panel">
               <PanelTitle icon={SlidersHorizontal} title="XYZ 控制器" />
               <div className="xyz-head">
@@ -1820,7 +1831,7 @@ function App() {
                   <button type="button" className="icon-button" onClick={() => setXyzAxes([{ enabled: true, field: "seed", values: "1,2,3" }, { enabled: false, field: "cfg", values: "5,7" }, { enabled: false, field: "steps", values: "20..30..10" }])}>Seed</button>
                   <button type="button" className="icon-button" onClick={() => setXyzAxes([{ enabled: true, field: "cfg", values: "5,7,9" }, { enabled: false, field: "steps", values: "20..30..10" }, { enabled: false, field: "seed", values: "1,2" }])}>CFG</button>
                   <button type="button" className="icon-button" onClick={() => setXyzAxes([{ enabled: true, field: "width", values: "768,1024" }, { enabled: true, field: "height", values: "1024,1536" }, { enabled: false, field: "seed", values: "1,2" }])}>尺寸</button>
-                  <button type="button" className="icon-button" onClick={() => setXyzAxes([{ enabled: true, field: "firstLoraStrength", values: "0.6,0.8,1" }, { enabled: false, field: "seed", values: "1,2" }, { enabled: false, field: "cfg", values: "5,7" }])}>LoRA 强度</button>
+                  <button type="button" className="icon-button" onClick={() => setXyzAxes([{ enabled: true, field: "loraStrength_0", values: "0.6,0.8,1" }, { enabled: false, field: "seed", values: "1,2" }, { enabled: false, field: "cfg", values: "5,7" }])}>LoRA 强度</button>
                   <button type="button" className="icon-button" onClick={() => setXyzAxes([{ enabled: true, field: "positiveAppend", values: "cinematic lighting\\nsoft light" }, { enabled: false, field: "seed", values: "1,2" }, { enabled: false, field: "cfg", values: "5,7" }])}>提示词追加</button>
                 </div>
               </div>
@@ -1829,7 +1840,7 @@ function App() {
                   <div className="axis-row" key={index}>
                     <label className="axis-toggle"><input type="checkbox" checked={axis.enabled} onChange={(event) => updateAxis(index, { enabled: event.target.checked })} /> {["X", "Y", "Z"][index]}</label>
                     <select value={axis.field} onChange={(event) => updateAxis(index, { field: event.target.value as XyzField })}>
-                      {xyzFields.map((field) => <option key={field} value={field}>{fieldLabel(field)}</option>)}
+                      {xyzFields.map((field) => <option key={field} value={field}>{fieldLabel(field, lorasOfTarget)}</option>)}
                     </select>
                     <input value={axis.values} onChange={(event) => updateAxis(index, { values: event.target.value })} />
                   </div>
@@ -1866,7 +1877,7 @@ function App() {
                 ))}
               </div>
             </section>
-          )}
+          )})()}
 
           {tab === "loras" && (
             <section className="panel lora-panel">
@@ -2258,7 +2269,7 @@ function XyzHelpModal({ onClose }: { onClose: () => void }) {
       <div className="help-body">
         <p>XYZ 会按 X、Y、Z 三个轴组合参数，然后顺序提交到 ComfyUI。X 轴变化最快，适合 seed；Y/Z 适合 CFG、Steps、尺寸或 LoRA 强度。</p>
         <p>取值支持两种写法：逗号或换行枚举，例如 `5,7,9`；数值范围，例如 `20..40..10` 表示 20、30、40。</p>
-        <p>“正向追加”会把轴值追加到正向提示词；多人模板中会追加到全局 prompt。“首个 LoRA 强度”会修改当前模板已选择的第一个 LoRA。</p>
+        <p>“正向追加”会把轴值追加到正向提示词；多人模板中会追加到全局 prompt。“LoRA 强度”可以动态调节当前模板中已选择的对应 LoRA 权重。</p>
       </div>
     </ModalFrame>
   );
@@ -4130,6 +4141,8 @@ function FolderNodeButton({
 }
 
 function LoraChips({ loras, onChange, onDetail }: { loras: LoraSelection[]; onChange: (loras: LoraSelection[]) => void; onDetail?: (lora: LoraSelection) => void }) {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
   if (!loras.length) {
     return (
       <div className="empty-strip">
@@ -4137,10 +4150,40 @@ function LoraChips({ loras, onChange, onDetail }: { loras: LoraSelection[]; onCh
       </div>
     );
   }
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    const newLoras = [...loras];
+    const [dragged] = newLoras.splice(draggedIndex, 1);
+    newLoras.splice(index, 0, dragged);
+    onChange(newLoras);
+    setDraggedIndex(null);
+  };
+
   return (
     <div className="lora-compact-list">
       {loras.map((lora, index) => (
-        <div className={`lora-compact-row ${lora.active ? "" : "disabled"}`} key={lora.name}>
+        <div 
+          className={`lora-compact-row ${lora.active ? "" : "disabled"} ${draggedIndex === index ? "dragging" : ""}`} 
+          key={lora.name + index}
+          draggable
+          onDragStart={(e) => handleDragStart(e, index)}
+          onDragOver={(e) => handleDragOver(e, index)}
+          onDrop={(e) => handleDrop(e, index)}
+          onDragEnd={() => setDraggedIndex(null)}
+          style={{ cursor: "grab" }}
+        >
           <label className="lora-compact-toggle">
             <input type="checkbox" checked={lora.active} onChange={(event) => onChange(loras.map((item, itemIndex) => itemIndex === index ? { ...item, active: event.target.checked } : item))} />
           </label>

@@ -1,21 +1,25 @@
 import type { BaseGenerationParams, XyzAxis, XyzCombination, XyzField } from "../types";
-import { appendPositivePrompt, firstLoraStrengthPatch } from "./workflowBuilders";
+import { appendPositivePrompt, loraStrengthPatch } from "./workflowBuilders";
 
-const numericFields = new Set<XyzField>([
+const numericFields = new Set<string>([
   "seed",
   "steps",
   "cfg",
   "width",
   "height",
   "denoise",
-  "firstLoraStrength",
 ]);
+
+function isNumericField(field: XyzField) {
+  if (field.startsWith("loraStrength_")) return true;
+  return numericFields.has(field as any);
+}
 
 export function parseAxisValues(raw: string, field: XyzField): Array<string | number> {
   const trimmed = raw.trim();
   if (!trimmed) return [];
 
-  if (numericFields.has(field) && trimmed.includes("..")) {
+  if (isNumericField(field) && trimmed.includes("..")) {
     const parts = trimmed.split("..").map((part) => Number(part.trim()));
     const [start, end, step = 1] = parts;
     if ([start, end, step].every(Number.isFinite) && step !== 0) {
@@ -35,7 +39,7 @@ export function parseAxisValues(raw: string, field: XyzField): Array<string | nu
     .map((value) => value.trim())
     .filter(Boolean)
     .map((value) => {
-      if (numericFields.has(field)) {
+      if (isNumericField(field)) {
         const numeric = Number(value);
         return Number.isFinite(numeric) ? numeric : value;
       }
@@ -95,25 +99,34 @@ function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenera
   if (field === "positiveAppend") {
     return { positivePrompt: String(value), filenameSuffix: String(value) };
   }
-  if (field === "firstLoraStrength") {
-    return { loras: [{ name: "__FIRST_LORA_STRENGTH__", strength: Number(value), clipStrength: Number(value), active: true }] };
+  if (field.startsWith("loraStrength_")) {
+    const idx = parseInt(field.split("_")[1]);
+    return { loras: [{ name: `__LORA_STRENGTH_${idx}__`, strength: Number(value), clipStrength: Number(value), active: true }] };
   }
-  return { [field]: numericFields.has(field) ? Number(value) : String(value) } as Partial<BaseGenerationParams>;
+  return { [field]: isNumericField(field) ? Number(value) : String(value) } as Partial<BaseGenerationParams>;
 }
 
 export function applySpecialXyzPatch<T extends BaseGenerationParams>(params: T, combo: XyzCombination): T {
-  const firstLora = combo.patch.loras?.find((lora) => lora.name === "__FIRST_LORA_STRENGTH__");
+  const strengthLoras = combo.patch.loras?.filter((lora) => lora.name.startsWith("__LORA_STRENGTH_"));
   const patch = { ...combo.patch };
   delete patch.loras;
   let next = applyXyzPatch(params, patch);
-  if (firstLora) {
-    next = firstLoraStrengthPatch(next, firstLora.strength);
+  if (strengthLoras) {
+    for (const lora of strengthLoras) {
+      const idx = parseInt(lora.name.split("_")[3]);
+      next = loraStrengthPatch(next, idx, lora.strength);
+    }
   }
   return next;
 }
 
-export function fieldLabel(field: XyzField) {
-  const labels: Record<XyzField, string> = {
+export function fieldLabel(field: XyzField, lorasOfTarget?: { name: string; displayName?: string }[]) {
+  if (field.startsWith("loraStrength_")) {
+    const idx = parseInt(field.split("_")[1]);
+    const lora = lorasOfTarget?.[idx];
+    return lora ? `LoRA ${idx + 1} 强度 (${lora.displayName || lora.name})` : `LoRA ${idx + 1} 强度`;
+  }
+  const labels: Record<string, string> = {
     seed: "Seed",
     steps: "Steps",
     cfg: "CFG",
@@ -122,10 +135,9 @@ export function fieldLabel(field: XyzField) {
     samplerName: "采样器",
     scheduler: "调度器",
     denoise: "重绘",
-    firstLoraStrength: "首个 LoRA 强度",
     positiveAppend: "正向追加",
   };
-  return labels[field];
+  return labels[field] || field;
 }
 
 function roundAxisNumber(value: number) {

@@ -457,7 +457,7 @@ export type XyzField =
   | "samplerName"
   | "scheduler"
   | "denoise"
-  | "firstLoraStrength"
+  | `loraStrength_${number}`
   | "positiveAppend";
 
 export type XyzAxis = {

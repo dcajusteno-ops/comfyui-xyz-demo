@@ -42,7 +42,7 @@ describe("xyz utilities", () => {
   it("applies prompt append and first lora strength patches", () => {
     const combo = buildXyzCombinations([
       { enabled: true, field: "positiveAppend", values: "detail" },
-      { enabled: true, field: "firstLoraStrength", values: "0.4" },
+      { enabled: true, field: "loraStrength_0", values: "0.4" },
     ])[0];
     const patched = applySpecialXyzPatch(params, combo);
     expect(patched.positivePrompt).toBe("base\ndetail");
@@ -51,7 +51,7 @@ describe("xyz utilities", () => {
 
   it("uses Chinese labels for UI previews", () => {
     expect(fieldLabel("width")).toBe("宽");
-    expect(fieldLabel("firstLoraStrength")).toBe("首个 LoRA 强度");
+    expect(fieldLabel("loraStrength_0")).toBe("LoRA 1 强度");
     expect(fieldLabel("positiveAppend")).toBe("正向追加");
   });
 });

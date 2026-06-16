@@ -9,6 +9,7 @@ import type {
   Wd14Params,
   ClBatchParams,
   WdBatchParams,
+  ClSingleParams,
 } from "../types";
 
 const MAX_SEED = 2 ** 53 - 1;
@@ -688,14 +689,13 @@ export function appendPositivePrompt<T extends BaseGenerationParams>(params: T, 
   };
 }
 
-export function firstLoraStrengthPatch<T extends BaseGenerationParams>(params: T, strength: number): T {
-  if (!params.loras.length) {
+export function loraStrengthPatch<T extends BaseGenerationParams>(params: T, index: number, strength: number): T {
+  if (!params.loras.length || index < 0 || index >= params.loras.length) {
     return params;
   }
-  const [first, ...rest] = params.loras;
   return {
     ...params,
-    loras: [{ ...first, strength }, ...rest],
+    loras: params.loras.map((lora, i) => i === index ? { ...lora, strength } : lora),
   };
 }
 
