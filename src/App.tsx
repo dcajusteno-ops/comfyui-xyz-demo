@@ -4576,7 +4576,7 @@ function mergeManagedModelItems(currentItems: LoraItem[], nextItems: LoraItem[])
 }
 
 function parseTriggerWordsInput(value: string) {
-  return uniqueStrings(value.split(/[,\n]+/).map((word) => word.trim()).filter(Boolean));
+  return uniqueStrings(value.split(/[\n]+/).map((word) => word.trim()).filter(Boolean));
 }
 
 function stripHtml(value: string) {
