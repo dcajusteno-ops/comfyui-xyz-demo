@@ -47,7 +47,7 @@ export function parseAxisValues(raw: string, field: XyzField): Array<string | nu
     });
 }
 
-export function buildXyzCombinations(axes: XyzAxis[]): XyzCombination[] {
+export function buildXyzCombinations(axes: XyzAxis[], lorasOfTarget?: { name: string; displayName?: string }[]): XyzCombination[] {
   const activeAxes = axes
     .filter((axis) => axis.enabled)
     .map((axis) => ({
@@ -73,7 +73,7 @@ export function buildXyzCombinations(axes: XyzAxis[]): XyzCombination[] {
       walk(
         index + 1,
         { ...patch, ...fieldPatch(axis.field, value) },
-        [...labels, `${fieldLabel(axis.field)}=${String(value)}`],
+        [...labels, `${fieldLabel(axis.field, lorasOfTarget)}=${String(value)}`],
       );
     }
   };
@@ -124,7 +124,7 @@ export function fieldLabel(field: XyzField, lorasOfTarget?: { name: string; disp
   if (field.startsWith("loraStrength_")) {
     const idx = parseInt(field.split("_")[1]);
     const lora = lorasOfTarget?.[idx];
-    return lora ? `LoRA ${idx + 1} 强度 (${lora.displayName || lora.name})` : `LoRA ${idx + 1} 强度`;
+    return lora ? `${lora.displayName || lora.name} 强度` : `LoRA ${idx + 1} 强度`;
   }
   const labels: Record<string, string> = {
     seed: "Seed",

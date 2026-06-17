@@ -490,6 +490,14 @@ function App() {
   const [results, setResults] = useState<JobResult[]>([]);
   const [error, setError] = useState("");
   const [xyzTarget, setXyzTarget] = useLocalStorageState<TemplateKind>("comfyui_xyz_target", "default");
+  function getXyzLoras() {
+    switch (xyzTarget) {
+      case "default": return defaultParams.loras;
+      case "multi": return multiParams.loras;
+      case "highres": return highresParams.loras;
+      default: return [];
+    }
+  }
   const [xyzAxes, setXyzAxes] = useLocalStorageState<XyzAxis[]>("comfyui_xyz_axes", [
     { enabled: true, field: "seed", values: "1,2" },
     { enabled: false, field: "cfg", values: "5,7" },
@@ -976,7 +984,7 @@ function App() {
   }
 
   async function runXyz() {
-    const combos = buildXyzCombinations(xyzAxes);
+    const combos = buildXyzCombinations(xyzAxes, getXyzLoras());
     if (!combos.length) {
       pushToast("error", "XYZ 无法运行", "至少需要启用一个轴并填写取值");
       return;
@@ -1792,14 +1800,7 @@ function App() {
           )}
 
           {tab === "xyz" && (() => {
-            const lorasOfTarget = (() => {
-              switch (xyzTarget) {
-                case "default": return defaultParams.loras;
-                case "multi": return multiParams.loras;
-                case "highres": return highresParams.loras;
-                default: return [];
-              }
-            })();
+            const lorasOfTarget = getXyzLoras();
             const xyzFields: XyzField[] = [
               "seed",
               "steps",
@@ -1823,7 +1824,7 @@ function App() {
                   </select>
                 </label>
                 <div className="metric-card">
-                  <strong>{buildXyzCombinations(xyzAxes).length}</strong>
+                  <strong>{buildXyzCombinations(xyzAxes, getXyzLoras()).length}</strong>
                   <span>组合</span>
                 </div>
                 <div className="xyz-preset-bar">
@@ -1846,7 +1847,7 @@ function App() {
                   </div>
                 ))}
               </div>
-              <XyzPreview axes={xyzAxes} />
+              <XyzPreview axes={xyzAxes} lorasOfTarget={getXyzLoras()} />
               <button className="primary-action" type="button" onClick={runXyz}>
                 <SlidersHorizontal size={18} />
                 顺序执行 XYZ
@@ -2333,8 +2334,8 @@ function ExampleImagesProgressBar({ status, pullingCount = 0 }: { status: Exampl
   );
 }
 
-function XyzPreview({ axes }: { axes: XyzAxis[] }) {
-  const combos = buildXyzCombinations(axes);
+function XyzPreview({ axes, lorasOfTarget }: { axes: XyzAxis[], lorasOfTarget?: { name: string; displayName?: string }[] }) {
+  const combos = buildXyzCombinations(axes, lorasOfTarget);
   return (
     <div className="xyz-preview">
       <div className="section-toolbar">
