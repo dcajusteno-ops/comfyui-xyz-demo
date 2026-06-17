@@ -113,7 +113,8 @@ export function applySpecialXyzPatch<T extends BaseGenerationParams>(params: T, 
   let next = applyXyzPatch(params, patch);
   if (strengthLoras) {
     for (const lora of strengthLoras) {
-      const idx = parseInt(lora.name.split("_")[3]);
+      const match = lora.name.match(/\d+/);
+      const idx = match ? parseInt(match[0], 10) : 0;
       next = loraStrengthPatch(next, idx, lora.strength);
     }
   }

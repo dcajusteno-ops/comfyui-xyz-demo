@@ -695,7 +695,7 @@ export function loraStrengthPatch<T extends BaseGenerationParams>(params: T, ind
   }
   return {
     ...params,
-    loras: params.loras.map((lora, i) => i === index ? { ...lora, strength } : lora),
+    loras: params.loras.map((lora, i) => i === index ? { ...lora, strength, clipStrength: strength } : lora),
   };
 }
 
