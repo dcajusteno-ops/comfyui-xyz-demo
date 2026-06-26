@@ -404,7 +404,14 @@ export type DetailerParams = {
 };
 
 export type HighresParams = BaseGenerationParams & {
-  variant: HighresVariant;
+  // Legacy variant, kept for migration
+  variant?: HighresVariant;
+  enableUpscale: boolean;
+  enableSegsDetailer: boolean;
+  enableHandDetailer: boolean;
+  enableFaceDetailer: boolean;
+  enableEyesDetailer: boolean;
+  enableNsfwDetailer: boolean;
   upscaleMethod: string;
   scaleBy: number;
   highresSeed: number;
@@ -415,8 +422,13 @@ export type HighresParams = BaseGenerationParams & {
   randomizeHighresSeed?: boolean;
   handDetector: string;
   faceDetector: string;
+  eyesDetector: string;
+  nsfwDetector: string;
   handDetailer: DetailerParams;
   faceDetailer: DetailerParams;
+  eyesDetailer: DetailerParams;
+  nsfwDetailer: DetailerParams;
+  segsDetailer: DetailerParams;
 };
 
 export type OutputImage = {

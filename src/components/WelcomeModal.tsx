@@ -157,6 +157,16 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
                 url="https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8s.pt"
               />
               <ModelLink 
+                name="Eyeful_v2-Individual.pt" 
+                desc="用于 Impact Pack 眼部修复（单眼检测）。请放入 models/ultralytics/bbox/ 目录"
+                url="https://civitai.com/models/150925/eyeful"
+              />
+              <ModelLink 
+                name="ntd11_anime_nsfw_segm_v5-variant1.pt" 
+                desc="用于 Impact Pack NSFW修复（语义分割）。请放入 models/ultralytics/segm/ 目录"
+                url="https://civitai.com/models/261944"
+              />
+              <ModelLink 
                 name="wd-v1-4-moat-tagger-v2" 
                 desc="用于 WD1.4 反推（Moat 模型）。通常自动下载，若失败请放入 models/taggers/ 目录"
                 url="https://huggingface.co/SmilingWolf/wd-v1-4-moat-tagger-v2"

@@ -13,7 +13,7 @@ export function handlePromptWeightAdjustment(
     let end = target.selectionEnd;
     const text = value;
 
-    const regex = /\(([^:()]+):(-?[0-9.]+)\)/g;
+    const regex = /\(([^)]+):\s*(-?[0-9.]+)\s*\)/g;
     let match;
     let foundMatch = null;
     while ((match = regex.exec(text)) !== null) {
@@ -84,7 +84,7 @@ export function parsePromptTags(text: string): PromptTag[] {
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
     
-    if (char === '\\' && (text[i + 1] === '(' || text[i + 1] === ')')) {
+    if (char === '\\') {
       i++; 
       continue;
     }
@@ -115,7 +115,7 @@ function processChunk(chunk: string, offset: number, tags: PromptTag[]) {
   if (trimStart === trimEnd) return;
   
   const selected = chunk.slice(trimStart, trimEnd);
-  const match = selected.match(/^\((.+):(-?[0-9.]+)\)$/);
+  const match = selected.match(/^\((.+):\s*(-?[0-9.]+)\s*\)$/);
   
   let word = selected;
   let weight = 1.0;

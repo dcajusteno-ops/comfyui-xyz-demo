@@ -480,7 +480,26 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
       inputs: samplerInputs(params, ["2", 0], ["3", 0], ["4", 0], ["5", 0], baseResolvedSeed),
       _meta: { title: "基础采样" },
     },
-    "7": {
+    "base_vae_decode": {
+      class_type: "VAEDecode",
+      inputs: {
+        samples: ["6", 0],
+        vae: ["1", 2],
+      },
+      _meta: { title: "基础图像解码" },
+    },
+  };
+
+  // Handle backward compatibility for legacy variant
+  const enableUpscale = params.enableUpscale ?? true;
+  const enableSegsDetailer = params.enableSegsDetailer ?? false;
+  const enableHandDetailer = params.enableHandDetailer ?? false;
+  const enableFaceDetailer = params.enableFaceDetailer ?? false;
+  const enableEyesDetailer = params.enableEyesDetailer ?? false;
+  const enableNsfwDetailer = params.enableNsfwDetailer ?? false;
+
+  if (enableUpscale) {
+    prompt["7"] = {
       class_type: "LatentUpscaleBy",
       inputs: {
         samples: ["6", 0],
@@ -488,8 +507,8 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
         scale_by: params.scaleBy,
       },
       _meta: { title: "Latent 高清放大" },
-    },
-    "8": {
+    };
+    prompt["8"] = {
       class_type: "KSampler",
       inputs: {
         seed: highresResolvedSeed,
@@ -504,69 +523,140 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
         latent_image: ["7", 0],
       },
       _meta: { title: "高清修复采样" },
-    },
-    "base_vae_decode": {
-      class_type: "VAEDecode",
-      inputs: {
-        samples: ["6", 0],
-        vae: ["1", 2],
-      },
-      _meta: { title: "基础图像解码" },
-    },
-    "base_preview": {
-      class_type: "PreviewImage",
-      inputs: {
-        images: ["base_vae_decode", 0],
-      },
-      _meta: { title: "基础图像" },
-    },
-    "9": {
+    };
+    prompt["9"] = {
       class_type: "VAEDecode",
       inputs: {
         samples: ["8", 0],
         vae: ["1", 2],
       },
       _meta: { title: "高清修复 VAE Decode" },
-    },
-  };
+    };
+  }
 
-  let currentImage: [string, number] = ["9", 0];
+  let currentImage: [string, number] = enableUpscale ? ["9", 0] : ["base_vae_decode", 0];
   let nextId = 10;
 
-  if (needsHandDetailer(params.variant) || needsFaceDetailer(params.variant)) {
+  if (enableHandDetailer || enableFaceDetailer || enableEyesDetailer || enableNsfwDetailer || enableSegsDetailer) {
     const previewId = String(nextId++);
     prompt[previewId] = {
       class_type: "PreviewImage",
       inputs: {
         images: currentImage,
       },
-      _meta: { title: "高清放大图像" },
+      _meta: { title: enableUpscale ? "高清放大图像" : "基础生成图像" },
     };
   }
 
-  if (needsHandDetailer(params.variant)) {
-    const detectorId = String(nextId++);
-    const detailerId = String(nextId++);
-    prompt[detectorId] = detectorNode(params.handDetector, "手部检测器");
-    prompt[detailerId] = faceDetailerNode(params.handDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "手部修复");
-    currentImage = [detailerId, 0];
+  if (enableSegsDetailer) {
+    if (currentImage[0] !== "9" && currentImage[0] !== "base_vae_decode") {
+      const previewId = String(nextId++);
+      prompt[previewId] = { class_type: "PreviewImage", inputs: { images: currentImage }, _meta: { title: "进入全图修复前" } };
+    }
+    const targetWidth = enableUpscale ? Math.round(params.width * params.scaleBy) : params.width;
+    const targetHeight = enableUpscale ? Math.round(params.height * params.scaleBy) : params.height;
+
+    const solidMaskId = String(nextId++);
+    prompt[solidMaskId] = {
+      class_type: "SolidMask",
+      inputs: { value: 1, width: targetWidth, height: targetHeight },
+      _meta: { title: "全图蒙版" },
+    };
+
+    const maskToSegsId = String(nextId++);
+    prompt[maskToSegsId] = {
+      class_type: "MaskToSEGS",
+      inputs: { combined: false, crop_factor: 1, bbox_fill: false, drop_size: 10, contour_fill: false, mask: [solidMaskId, 0] },
+      _meta: { title: "MASK to SEGS" },
+    };
+
+    const diffDiffId = String(nextId++);
+    prompt[diffDiffId] = {
+      class_type: "DifferentialDiffusion",
+      inputs: { strength: 1, model: ["2", 0] },
+      _meta: { title: "差异扩散" },
+    };
+
+    const segsDetailerId = String(nextId++);
+    prompt[segsDetailerId] = {
+      class_type: "DetailerForEach",
+      inputs: {
+        guide_size: params.segsDetailer.guideSize,
+        guide_size_for: true,
+        max_size: params.segsDetailer.maxSize,
+        seed: resolveSeed(0, true),
+        steps: params.segsDetailer.steps,
+        cfg: params.segsDetailer.cfg,
+        sampler_name: params.segsDetailer.samplerName,
+        scheduler: params.segsDetailer.scheduler,
+        denoise: params.segsDetailer.denoise,
+        feather: params.segsDetailer.feather,
+        noise_mask: true,
+        force_inpaint: true,
+        wildcard: "",
+        cycle: 1,
+        inpaint_model: false,
+        noise_mask_feather: 32,
+        tiled_encode: false,
+        tiled_decode: false,
+        image: currentImage,
+        segs: [maskToSegsId, 0],
+        model: [diffDiffId, 0],
+        clip: ["2", 1],
+        vae: ["1", 2],
+        positive: ["3", 0],
+        negative: ["4", 0],
+      },
+      _meta: { title: "全图修复 (SEGS)" },
+    };
+    currentImage = [segsDetailerId, 0];
   }
 
-  if (needsFaceDetailer(params.variant)) {
-    if (needsHandDetailer(params.variant)) {
+  if (enableFaceDetailer) {
+    if (currentImage[0] !== "9" && currentImage[0] !== "base_vae_decode") {
       const previewId = String(nextId++);
-      prompt[previewId] = {
-        class_type: "PreviewImage",
-        inputs: {
-          images: currentImage,
-        },
-        _meta: { title: "手部修复后" },
-      };
+      prompt[previewId] = { class_type: "PreviewImage", inputs: { images: currentImage }, _meta: { title: "进入脸部修复前" } };
     }
     const detectorId = String(nextId++);
     const detailerId = String(nextId++);
     prompt[detectorId] = detectorNode(params.faceDetector, "脸部检测器");
     prompt[detailerId] = faceDetailerNode(params.faceDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "脸部修复");
+    currentImage = [detailerId, 0];
+  }
+
+  if (enableEyesDetailer) {
+    if (currentImage[0] !== "9" && currentImage[0] !== "base_vae_decode") {
+      const previewId = String(nextId++);
+      prompt[previewId] = { class_type: "PreviewImage", inputs: { images: currentImage }, _meta: { title: "进入眼部修复前" } };
+    }
+    const detectorId = String(nextId++);
+    const detailerId = String(nextId++);
+    prompt[detectorId] = detectorNode(params.eyesDetector, "眼部检测器");
+    prompt[detailerId] = faceDetailerNode(params.eyesDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "眼部修复");
+    currentImage = [detailerId, 0];
+  }
+
+  if (enableNsfwDetailer) {
+    if (currentImage[0] !== "9" && currentImage[0] !== "base_vae_decode") {
+      const previewId = String(nextId++);
+      prompt[previewId] = { class_type: "PreviewImage", inputs: { images: currentImage }, _meta: { title: "进入NSFW修复前" } };
+    }
+    const detectorId = String(nextId++);
+    const detailerId = String(nextId++);
+    prompt[detectorId] = detectorNode(params.nsfwDetector, "NSFW检测器");
+    prompt[detailerId] = faceDetailerNode(params.nsfwDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "NSFW修复");
+    currentImage = [detailerId, 0];
+  }
+
+  if (enableHandDetailer) {
+    if (currentImage[0] !== "9" && currentImage[0] !== "base_vae_decode") {
+      const previewId = String(nextId++);
+      prompt[previewId] = { class_type: "PreviewImage", inputs: { images: currentImage }, _meta: { title: "进入手部修复前" } };
+    }
+    const detectorId = String(nextId++);
+    const detailerId = String(nextId++);
+    prompt[detectorId] = detectorNode(params.handDetector, "手部检测器");
+    prompt[detailerId] = faceDetailerNode(params.handDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "手部修复");
     currentImage = [detailerId, 0];
   }
 
@@ -577,7 +667,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
       image_a: ["base_vae_decode", 0],
       image_b: currentImage,
     },
-    _meta: { title: "高清放大/脸手修复 图像对比" },
+    _meta: { title: "生成结果 对比" },
   };
 
   prompt[String(nextId)] = {
@@ -614,13 +704,7 @@ function samplerInputs(
   };
 }
 
-function needsHandDetailer(variant: HighresVariant) {
-  return variant === "full" || variant === "hand" || variant === "upscale_hand" || variant === "hand_face";
-}
 
-function needsFaceDetailer(variant: HighresVariant) {
-  return variant === "full" || variant === "face" || variant === "upscale_face" || variant === "hand_face";
-}
 
 function detectorNode(modelName: string, title: string) {
   return {
@@ -701,8 +785,6 @@ export function loraStrengthPatch<T extends BaseGenerationParams>(params: T, ind
 
 export const exposedForTests = {
   loraAwarePrompt,
-  needsFaceDetailer,
-  needsHandDetailer,
 };
 
 function formatDate(date: Date, format: string) {

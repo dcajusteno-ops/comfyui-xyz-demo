@@ -72,7 +72,7 @@ describe("workflow builders", () => {
     expect(prompt["8"].inputs.cfg).toBe(5);
   });
 
-  it("splits highres variants into upscale, hand, face, and full detailer chains", () => {
+  it("chains face, eyes, nsfw, and hand detailers correctly", () => {
     const detailer = {
       guideSize: 1024,
       maxSize: 1400,
@@ -88,7 +88,12 @@ describe("workflow builders", () => {
     };
     const highres: HighresParams = {
       ...baseParams,
-      variant: "full",
+      enableUpscale: true,
+      enableSegsDetailer: false,
+      enableHandDetailer: false,
+      enableFaceDetailer: false,
+      enableEyesDetailer: false,
+      enableNsfwDetailer: false,
       upscaleMethod: "nearest-exact",
       scaleBy: 1.5,
       highresSeed: 43,
@@ -97,12 +102,44 @@ describe("workflow builders", () => {
       highresDenoise: 0.58,
       handDetector: "bbox/hand_yolov8s.pt",
       faceDetector: "bbox/face_yolov8m.pt",
+      eyesDetector: "bbox/Eyeful_v2-Individual.pt",
+      nsfwDetector: "segm/ntd11_anime_nsfw_segm_v5-variant1.pt",
       handDetailer: detailer,
       faceDetailer: { ...detailer, denoise: 0.25 },
+      eyesDetailer: { ...detailer, denoise: 0.24 },
+      nsfwDetailer: { ...detailer, denoise: 0.3 },
+      segsDetailer: { ...detailer, denoise: 0.24 },
     };
-    expect(Object.values(buildHighresPrompt({ ...highres, variant: "upscale" })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(0);
-    expect(Object.values(buildHighresPrompt({ ...highres, variant: "hand" })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(1);
-    expect(Object.values(buildHighresPrompt({ ...highres, variant: "face" })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(1);
-    expect(Object.values(buildHighresPrompt(highres)).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(2);
+    expect(Object.values(buildHighresPrompt({ ...highres })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(0);
+    expect(Object.values(buildHighresPrompt({ ...highres, enableSegsDetailer: true })).filter((node) => node.class_type === "DetailerForEach")).toHaveLength(1);
+    expect(Object.values(buildHighresPrompt({ ...highres, enableHandDetailer: true })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(1);
+    expect(Object.values(buildHighresPrompt({ ...highres, enableFaceDetailer: true })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(1);
+    expect(Object.values(buildHighresPrompt({ ...highres, enableEyesDetailer: true })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(1);
+    expect(Object.values(buildHighresPrompt({ ...highres, enableNsfwDetailer: true })).filter((node) => node.class_type === "FaceDetailer")).toHaveLength(1);
+    expect(Object.values(buildHighresPrompt({ ...highres, enableSegsDetailer: true, enableFaceDetailer: true, enableHandDetailer: true, enableEyesDetailer: true, enableNsfwDetailer: true })).filter((node) => node.class_type === "FaceDetailer" || node.class_type === "DetailerForEach")).toHaveLength(5);
+  });
+
+  it("handles all 64 combinations of repair toggles without throwing", () => {
+    const detailer = { guideSize: 1024, maxSize: 1400, steps: 20, cfg: 7, denoise: 0.38, feather: 5, bboxThreshold: 0.5, bboxDilation: 10, bboxCropFactor: 3, samplerName: "euler_ancestral", scheduler: "simple" };
+    const baseHighres: HighresParams = {
+      ...baseParams, enableUpscale: false, enableSegsDetailer: false, enableHandDetailer: false, enableFaceDetailer: false, enableEyesDetailer: false, enableNsfwDetailer: false, upscaleMethod: "nearest-exact", scaleBy: 1.5, highresSeed: 43, highresSteps: 20, highresCfg: 8, highresDenoise: 0.58, handDetector: "bbox/hand_yolov8s.pt", faceDetector: "bbox/face_yolov8m.pt", eyesDetector: "bbox/Eyeful_v2-Individual.pt", nsfwDetector: "segm/ntd11_anime_nsfw_segm_v5-variant1.pt", handDetailer: detailer, faceDetailer: detailer, eyesDetailer: detailer, nsfwDetailer: detailer, segsDetailer: detailer,
+    };
+    
+    let combinations = 0;
+    for (let upscale of [false, true]) {
+      for (let segs of [false, true]) {
+        for (let face of [false, true]) {
+          for (let eyes of [false, true]) {
+            for (let nsfw of [false, true]) {
+              for (let hand of [false, true]) {
+                combinations++;
+                expect(() => buildHighresPrompt({ ...baseHighres, enableUpscale: upscale, enableSegsDetailer: segs, enableFaceDetailer: face, enableEyesDetailer: eyes, enableNsfwDetailer: nsfw, enableHandDetailer: hand })).not.toThrow();
+              }
+            }
+          }
+        }
+      }
+    }
+    expect(combinations).toBe(64);
   });
 });

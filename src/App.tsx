@@ -291,7 +291,12 @@ function makeHighresParams(checkpoint = fallbackOptions.checkpoints[0]): Highres
   return {
     ...makeBaseParams(checkpoint),
     filenamePrefix: "高清修复/%date:yyyy-MM-dd%/ComfyUI",
-    variant: "full",
+    enableUpscale: true,
+    enableSegsDetailer: false,
+    enableHandDetailer: false,
+    enableFaceDetailer: false,
+    enableEyesDetailer: false,
+    enableNsfwDetailer: false,
     upscaleMethod: "nearest-exact",
     scaleBy: 1.5,
     highresSeed: 43,
@@ -302,8 +307,13 @@ function makeHighresParams(checkpoint = fallbackOptions.checkpoints[0]): Highres
     highresDenoise: 0.58,
     handDetector: "bbox/hand_yolov8s.pt",
     faceDetector: "bbox/face_yolov8m.pt",
+    eyesDetector: "bbox/Eyeful_v2-Individual.pt",
+    nsfwDetector: "segm/ntd11_anime_nsfw_segm_v5-variant1.pt",
     handDetailer: makeDetailerParams(0.38),
     faceDetailer: makeDetailerParams(0.25),
+    eyesDetailer: makeDetailerParams(0.24),
+    nsfwDetailer: makeDetailerParams(0.3),
+    segsDetailer: { ...makeDetailerParams(0.24), steps: 18, cfg: 6, guideSize: 512, maxSize: 1024 },
   };
 }
 
@@ -559,6 +569,8 @@ function App() {
           checkpoint: nextOptions.checkpoints.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint,
           handDetector: nextOptions.detectors.includes(prev.handDetector) ? prev.handDetector : (nextOptions.detectors.find((item) => item.includes("hand")) ?? ""),
           faceDetector: nextOptions.detectors.includes(prev.faceDetector) ? prev.faceDetector : (nextOptions.detectors.find((item) => item.includes("face")) ?? ""),
+          eyesDetector: nextOptions.detectors.includes(prev.eyesDetector) ? prev.eyesDetector : (nextOptions.detectors.find((item) => item.includes("Eye") || item.includes("eye")) ?? (prev.eyesDetector || "bbox/Eyeful_v2-Individual.pt")),
+          nsfwDetector: nextOptions.detectors.includes(prev.nsfwDetector) ? prev.nsfwDetector : (nextOptions.detectors.find((item) => item.includes("nsfw")) ?? (prev.nsfwDetector || "segm/ntd11_anime_nsfw_segm_v5-variant1.pt")),
         }));
         setWd14((prev) => ({ ...prev, model: nextOptions.wdModels.includes(prev.model) ? prev.model : (nextOptions.wdModels[0] ?? "") }));
         setWdBatchParams((prev) => ({ ...prev, model: nextOptions.wdModels.includes(prev.model) ? prev.model : (nextOptions.wdModels[0] ?? "") }));
@@ -1727,19 +1739,12 @@ function App() {
               </div>
               <div className="panel-body">
                 <div className="segmented">
-                  {[
-                    ["full", "全套修复"],
-                    ["upscale", "仅高清修复"],
-                    ["hand", "仅手部"],
-                    ["face", "仅脸部"],
-                    ["upscale_hand", "高清+手部"],
-                    ["upscale_face", "高清+脸部"],
-                    ["hand_face", "手部+脸部"],
-                  ].map(([value, label]) => (
-                    <button key={value} type="button" className={highresParams.variant === value ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, variant: value as HighresVariant }))}>
-                      {label}
-                    </button>
-                  ))}
+                  <button type="button" className={highresParams.enableUpscale ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableUpscale: !prev.enableUpscale }))}>高清放大</button>
+                  <button type="button" className={highresParams.enableSegsDetailer ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableSegsDetailer: !prev.enableSegsDetailer }))}>全图修复</button>
+                  <button type="button" className={highresParams.enableFaceDetailer ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableFaceDetailer: !prev.enableFaceDetailer }))}>脸部修复</button>
+                  <button type="button" className={highresParams.enableEyesDetailer ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableEyesDetailer: !prev.enableEyesDetailer }))}>眼部修复</button>
+                  <button type="button" className={highresParams.enableNsfwDetailer ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableNsfwDetailer: !prev.enableNsfwDetailer }))}>NSFW修复</button>
+                  <button type="button" className={highresParams.enableHandDetailer ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableHandDetailer: !prev.enableHandDetailer }))}>手部修复</button>
                 </div>
                 <BaseControls params={highresParams} options={options} setParams={setHighresParams} onLoraDetail={(lora) => setLoraDetail({ file_path: lora.filePath || lora.name, file_name: lora.name.split("/").pop() || lora.name, file_size: 0, sha256: lora.sha256 } as LoraItem)} />
                 <div className="xyz-fields-grid" style={{ marginBottom: "12px" }}>
@@ -1757,8 +1762,11 @@ function App() {
                   <NumberField label="高修重绘" value={highresParams.highresDenoise} step={0.01} min={0} max={1} onChange={(value) => setHighresParams((prev) => ({ ...prev, highresDenoise: value }))} />
                 </div>
                 <div className="detailer-grid">
-                  <DetailerControls title="手部修复参数" detector={highresParams.handDetector} detectors={options.detectors} params={highresParams.handDetailer} onDetector={(value) => setHighresParams((prev) => ({ ...prev, handDetector: value }))} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, handDetailer: detailer }))} />
-                  <DetailerControls title="脸部修复参数" detector={highresParams.faceDetector} detectors={options.detectors} params={highresParams.faceDetailer} onDetector={(value) => setHighresParams((prev) => ({ ...prev, faceDetector: value }))} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, faceDetailer: detailer }))} />
+                  {highresParams.enableSegsDetailer && <DetailerControls title="全图修复参数" params={highresParams.segsDetailer ?? { ...makeDetailerParams(0.24), steps: 18, cfg: 6, guideSize: 512, maxSize: 1024 }} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, segsDetailer: detailer }))} />}
+                  {highresParams.enableHandDetailer && <DetailerControls title="手部修复参数" detector={highresParams.handDetector} detectors={options.detectors} params={highresParams.handDetailer ?? makeDetailerParams(0.38)} onDetector={(value) => setHighresParams((prev) => ({ ...prev, handDetector: value }))} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, handDetailer: detailer }))} />}
+                  {highresParams.enableFaceDetailer && <DetailerControls title="脸部修复参数" detector={highresParams.faceDetector} detectors={options.detectors} params={highresParams.faceDetailer ?? makeDetailerParams(0.25)} onDetector={(value) => setHighresParams((prev) => ({ ...prev, faceDetector: value }))} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, faceDetailer: detailer }))} />}
+                  {highresParams.enableEyesDetailer && <DetailerControls title="眼部修复参数" detector={highresParams.eyesDetector} detectors={options.detectors} params={highresParams.eyesDetailer ?? makeDetailerParams(0.24)} onDetector={(value) => setHighresParams((prev) => ({ ...prev, eyesDetector: value }))} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, eyesDetailer: detailer }))} />}
+                  {highresParams.enableNsfwDetailer && <DetailerControls title="NSFW修复参数" detector={highresParams.nsfwDetector} detectors={options.detectors} params={highresParams.nsfwDetailer ?? makeDetailerParams(0.3)} onDetector={(value) => setHighresParams((prev) => ({ ...prev, nsfwDetector: value }))} onChange={(detailer) => setHighresParams((prev) => ({ ...prev, nsfwDetailer: detailer }))} />}
                 </div>
               </div>
               <div className="panel-footer" style={{ display: "flex", gap: "8px" }}>
@@ -3824,18 +3832,22 @@ function DetailerControls({
   onChange,
 }: {
   title: string;
-  detector: string;
-  detectors: string[];
+  detector?: string;
+  detectors?: string[];
   params: DetailerParams;
-  onDetector: (detector: string) => void;
+  onDetector?: (detector: string) => void;
   onChange: (params: DetailerParams) => void;
 }) {
   const set = <K extends keyof DetailerParams>(key: K, value: DetailerParams[K]) => onChange({ ...params, [key]: value });
   return (
     <div className="sub-panel">
       <h3>{title}</h3>
-      <div className="form-grid two compact">
-        <SelectField label="检测器" value={detector} options={detectors} onChange={onDetector} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px", marginBottom: "14px" }}>
+        {detector !== undefined && detectors !== undefined && onDetector !== undefined && (
+          <div style={{ gridColumn: "1 / -1" }}>
+            <SelectField label="检测器" value={detector} options={detectors} onChange={onDetector} />
+          </div>
+        )}
         <NumberField label="guide" value={params.guideSize} step={8} min={64} onChange={(value) => set("guideSize", value)} />
         <NumberField label="max" value={params.maxSize} step={8} min={64} onChange={(value) => set("maxSize", value)} />
         <NumberField label="steps" value={params.steps} step={1} min={1} onChange={(value) => set("steps", value)} />
