@@ -616,23 +616,29 @@ export class ComfyClient {
           const message = JSON.parse(event.data);
           const data = message.data ?? {};
           if (message.type === "progress") {
+            const nodeId = data.node;
+            const nodeDef = nodeId ? prompt[nodeId] : null;
+            const nodeTitle = nodeDef ? String(nodeDef._meta?.title || nodeId) : nodeId;
             updateProgress({
               running: true,
               promptId,
-              node: data.node ?? null,
+              node: nodeId ?? null,
               value: Number(data.value ?? 0),
               max: Math.max(1, Number(data.max ?? 1)),
-              label: "绘图中",
+              label: nodeTitle ? `绘图: ${nodeTitle}` : "绘图中",
             });
           }
           if (message.type === "executing" && data.prompt_id === promptId) {
+            const nodeId = data.node;
+            const nodeDef = nodeId ? prompt[nodeId] : null;
+            const nodeTitle = nodeDef ? String(nodeDef._meta?.title || nodeId) : nodeId;
             updateProgress({
               running: true,
               promptId,
-              node: data.node ?? null,
-              value: data.node ? 0 : 1,
+              node: nodeId ?? null,
+              value: nodeId ? 0 : 1,
               max: 1,
-              label: data.node ? `执行节点 ${data.node}` : "收尾中",
+              label: nodeId ? `正在执行 ${nodeTitle}` : "收尾中",
             });
             if (data.node === null) {
               window.clearInterval(fallbackTimer);

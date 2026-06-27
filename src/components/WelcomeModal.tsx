@@ -162,9 +162,14 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
                 url="https://civitai.com/models/150925/eyeful"
               />
               <ModelLink 
-                name="ntd11_anime_nsfw_segm_v5-variant1.pt" 
+                name="ntd11_anime_nsfw_segm_v5.pt" 
                 desc="用于 Impact Pack NSFW修复（语义分割）。请放入 models/ultralytics/segm/ 目录"
                 url="https://civitai.com/models/261944"
+              />
+              <ModelLink 
+                name="sam_vit_b_01ec64.pth" 
+                desc="用于精确遮罩生成（Segment Anything）。请放入 models/sams/ 目录"
+                url="https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
               />
               <ModelLink 
                 name="wd-v1-4-moat-tagger-v2" 

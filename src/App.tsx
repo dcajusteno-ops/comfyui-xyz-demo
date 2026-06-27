@@ -3855,6 +3855,9 @@ function DetailerControls({
         <NumberField label="denoise" value={params.denoise} step={0.01} min={0} max={1} onChange={(value) => set("denoise", value)} />
         <NumberField label="阈值" value={params.bboxThreshold} step={0.01} min={0} max={1} onChange={(value) => set("bboxThreshold", value)} />
         <NumberField label="扩张" value={params.bboxDilation} step={1} onChange={(value) => set("bboxDilation", value)} />
+        <div style={{ gridColumn: "1 / -1" }}>
+          <TextAreaField label="独立正向提示词" value={params.prompt ?? ""} placeholder="留空则继承全局正向提示词，输入空格则完全清空\n支持 Impact Pack 的 [LAB] 等分层语法" onChange={(value) => set("prompt", value)} />
+        </div>
       </div>
     </div>
   );
@@ -4233,6 +4236,16 @@ function NumberField({ label, value, min, max, step, disabled, onChange }: { lab
     </label>
   );
 }
+
+function TextField({ label, value, placeholder, disabled, onChange }: { label: string; value: string; placeholder?: string; disabled?: boolean; onChange: (value: string) => void }) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <input type="text" value={value} placeholder={placeholder} disabled={disabled} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  );
+}
+
 
 function SelectField({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
   return (

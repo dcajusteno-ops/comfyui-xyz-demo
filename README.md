@@ -91,6 +91,11 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **底层解析正则完美重构**：彻底重构了对于提示词文本块 (`PromptTagBlocks`) 解析的底层正则表达式。现已完美支持带有空格后缀的权重标记（例如 `(artist: ciloranko: 0.6)`），并智能移除了旧版本遗留导致双冒号堆叠的缓存污染。保证胶囊级权重的极速调节准确无误。
 - **UI 布局抗折叠优化**：强力修复了在部分分辨率下 Detailer 参数栏内由于 CSS 网格容器不足引发的单列瀑布流崩坏问题，强制开启了两列紧凑排版，大幅改善视觉与操作体验。
 
+### 18. 多行提示词与 SAM 精准遮罩升级 (v0.1.3 新增)
+- **多行提示词解析完美支持**：将原本的单行文本框升级为可自由拉伸的多行 `TextArea`，完美兼容 Impact Pack 中必须依赖换行符分割的 `[LAB]` 等高级语法，并解决了 `[CONCAT]` 拼接导致的全局画质词丢失问题。
+- **SAM 与原生 SEGM 遮罩智能分流**：新增了 `sam_vit_b_01ec64.pth` 的底层链路，提供精确到像素级的遮罩边缘提取。同时为带有 `segm` 原生语义分割的模型（如 NSFW 检测器）做了旁路直通处理，防止 SAM 覆盖原生完美遮罩，使局部修复更加精准。
+- **生图进度条节点溯源**：生图进度条彻底摆脱了原本干瘪的数字 ID，现已支持在 ComfyUI 工作流流转时，实时反查并明确展示当前正在执行的具体节点中文名称（如 `正在执行 高清修复 (SEGS)`），执行进度一目了然。
+
 ---
 
 ## 🚀 快速开始 (Quick Start)
@@ -113,6 +118,31 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
    npm run dev
    ```
    *(注：在 Windows 环境下也可以直接双击 `run.bat`，它会自动处理端口冲突并自动在浏览器中打开页面)*
+
+## 🧩 核心插件与模型依赖
+
+本项目深度依赖部分 ComfyUI 原生及第三方节点，请确保您的 ComfyUI 环境中已安装以下插件与模型：
+
+### 第三方插件列表 (请在 ComfyUI Manager 中安装)
+- **ComfyUI-Impact-Pack**：提供人脸、手部等局部高清修复节点及 SAM 加载器。
+- **rgthree-comfy**：提供工作流内部的图像滑块对比节点。
+- **ComfyUI-WD14-Tagger**：提供 WD1.4 提示词反推能力。
+- **ComfyUI_Mira**：提供 CL Tagger 提示词反推能力与附加组件。
+- **ComfyUI-Prompt-Control**：提供 LoRA 懒加载及提示词权重动态调度。
+- **ComfyUI-Danbooru-Gallery**：提供 MultiCharacterEditorNode 多角色蒙版生成。
+- **ComfyUI-Lora-Manager**：提供原生的 LoRA 检索及元数据管理服务。
+- **was-node-suite-comfyui**：提供 Text Concatenate 文本拼接等基础核心节点。
+- **ComfyUI_yanc**：提供目录读取及图片/文本批量存取扩展节点。
+
+### 核心模型文件下载
+请将以下模型放置于 ComfyUI 对应的目录下：
+- **脸部修复** (`models/ultralytics/bbox/`)：`face_yolov8m.pt`, `face_yolov8n.pt`, `face_yolov8s.pt`
+- **手部修复** (`models/ultralytics/bbox/`)：`hand_yolov8n.pt`, `hand_yolov8s.pt`
+- **眼部修复** (`models/ultralytics/bbox/`)：`Eyeful_v2-Individual.pt`
+- **NSFW修复** (`models/ultralytics/segm/`)：`ntd11_anime_nsfw_segm_v5.pt`
+- **SAM模型** (`models/sams/`)：`sam_vit_b_01ec64.pth`
+- **反推模型** (`models/taggers/`)：WD1.4 相关模型 (Moat, ViT, SwinV2, ConvNextV2)
+- **CL Tagger** (`models/onnx/cl_tagger/`)：`cl_tagger_1_02.onnx` 及对应的映射 json 文件。
 
 ---
 

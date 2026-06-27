@@ -593,7 +593,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
         feather: params.segsDetailer.feather,
         noise_mask: true,
         force_inpaint: true,
-        wildcard: "",
+        wildcard: params.segsDetailer.prompt ?? "",
         cycle: 1,
         inpaint_model: false,
         noise_mask_feather: 32,
@@ -612,6 +612,22 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
     currentImage = [segsDetailerId, 0];
   }
 
+  let samModelId: string | null = null;
+  const getSamModel = () => {
+    if (!samModelId) {
+      samModelId = String(nextId++);
+      prompt[samModelId] = {
+        class_type: "SAMLoader",
+        inputs: {
+          model_name: "sam_vit_b_01ec64.pth",
+          device_mode: "AUTO",
+        },
+        _meta: { title: "SAM 加载器" },
+      };
+    }
+    return [samModelId, 0] as [string, number];
+  };
+
   if (enableFaceDetailer) {
     if (currentImage[0] !== "9" && currentImage[0] !== "base_vae_decode") {
       const previewId = String(nextId++);
@@ -620,7 +636,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
     const detectorId = String(nextId++);
     const detailerId = String(nextId++);
     prompt[detectorId] = detectorNode(params.faceDetector, "脸部检测器");
-    prompt[detailerId] = faceDetailerNode(params.faceDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "脸部修复");
+    prompt[detailerId] = faceDetailerNode(params.faceDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], params.faceDetector.includes("segm"), getSamModel(), "脸部修复");
     currentImage = [detailerId, 0];
   }
 
@@ -632,7 +648,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
     const detectorId = String(nextId++);
     const detailerId = String(nextId++);
     prompt[detectorId] = detectorNode(params.eyesDetector, "眼部检测器");
-    prompt[detailerId] = faceDetailerNode(params.eyesDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "眼部修复");
+    prompt[detailerId] = faceDetailerNode(params.eyesDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], params.eyesDetector.includes("segm"), getSamModel(), "眼部修复");
     currentImage = [detailerId, 0];
   }
 
@@ -644,7 +660,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
     const detectorId = String(nextId++);
     const detailerId = String(nextId++);
     prompt[detectorId] = detectorNode(params.nsfwDetector, "NSFW检测器");
-    prompt[detailerId] = faceDetailerNode(params.nsfwDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "NSFW修复");
+    prompt[detailerId] = faceDetailerNode(params.nsfwDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], params.nsfwDetector.includes("segm"), getSamModel(), "NSFW修复");
     currentImage = [detailerId, 0];
   }
 
@@ -656,7 +672,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
     const detectorId = String(nextId++);
     const detailerId = String(nextId++);
     prompt[detectorId] = detectorNode(params.handDetector, "手部检测器");
-    prompt[detailerId] = faceDetailerNode(params.handDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], "手部修复");
+    prompt[detailerId] = faceDetailerNode(params.handDetailer, currentImage, ["2", 0], ["2", 1], ["1", 2], ["3", 0], ["4", 0], [detectorId, 0], params.handDetector.includes("segm"), getSamModel(), "手部修复");
     currentImage = [detailerId, 0];
   }
 
@@ -725,43 +741,53 @@ function faceDetailerNode(
   positive: [string, number],
   negative: [string, number],
   detector: [string, number],
+  isSegm: boolean,
+  samModel: [string, number] | undefined,
   title: string,
 ) {
+  const inputs: any = {
+    image,
+    model,
+    clip,
+    vae,
+    guide_size: detailer.guideSize,
+    guide_size_for: true,
+    max_size: detailer.maxSize,
+    seed: resolveSeed(0, true),
+    steps: detailer.steps,
+    cfg: detailer.cfg,
+    sampler_name: detailer.samplerName,
+    scheduler: detailer.scheduler,
+    positive,
+    negative,
+    denoise: detailer.denoise,
+    feather: detailer.feather,
+    noise_mask: true,
+    force_inpaint: true,
+    bbox_threshold: detailer.bboxThreshold,
+    bbox_dilation: detailer.bboxDilation,
+    bbox_crop_factor: detailer.bboxCropFactor,
+    sam_detection_hint: "center-1",
+    sam_dilation: 0,
+    sam_threshold: 0.93,
+    sam_bbox_expansion: 0,
+    sam_mask_hint_threshold: 0.7,
+    sam_mask_hint_use_negative: "False",
+    drop_size: 10,
+    bbox_detector: detector,
+    wildcard: detailer.prompt ?? "",
+    cycle: 1,
+  };
+
+  if (isSegm) {
+    inputs.segm_detector_opt = [detector[0], 1];
+  } else if (samModel) {
+    inputs.sam_model_opt = samModel;
+  }
+
   return {
     class_type: "FaceDetailer",
-    inputs: {
-      image,
-      model,
-      clip,
-      vae,
-      guide_size: detailer.guideSize,
-      guide_size_for: true,
-      max_size: detailer.maxSize,
-      seed: resolveSeed(0, true),
-      steps: detailer.steps,
-      cfg: detailer.cfg,
-      sampler_name: detailer.samplerName,
-      scheduler: detailer.scheduler,
-      positive,
-      negative,
-      denoise: detailer.denoise,
-      feather: detailer.feather,
-      noise_mask: true,
-      force_inpaint: true,
-      bbox_threshold: detailer.bboxThreshold,
-      bbox_dilation: detailer.bboxDilation,
-      bbox_crop_factor: detailer.bboxCropFactor,
-      sam_detection_hint: "center-1",
-      sam_dilation: 0,
-      sam_threshold: 0.93,
-      sam_bbox_expansion: 0,
-      sam_mask_hint_threshold: 0.7,
-      sam_mask_hint_use_negative: "False",
-      drop_size: 10,
-      bbox_detector: detector,
-      wildcard: "",
-      cycle: 1,
-    },
+    inputs,
     _meta: { title },
   };
 }

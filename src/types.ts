@@ -401,6 +401,7 @@ export type DetailerParams = {
   bboxCropFactor: number;
   samplerName: string;
   scheduler: string;
+  prompt?: string;
 };
 
 export type HighresParams = BaseGenerationParams & {
