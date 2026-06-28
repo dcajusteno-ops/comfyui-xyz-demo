@@ -24,7 +24,15 @@ export function resolveSeed(seed: number, randomizeSeed = false): number {
 export function buildLoraSyntax(loras: LoraSelection[]): string {
   return loras
     .filter((lora) => lora.active && lora.name.trim())
-    .map((lora) => `<lora:${lora.name.trim()}:${formatStrength(lora.strength)}>`)
+    .map((lora) => {
+      const name = lora.name.trim();
+      const hasExtension = /\.(safetensors|pt|ckpt|bin)$/i.test(name);
+      let finalName = hasExtension ? name : `${name}.safetensors`;
+      // Normalize to backslashes for ComfyUI's get_filename_list on Windows
+      // PCLazyLoraLoader requires exact string match with what the filesystem returns
+      finalName = finalName.replace(/\//g, "\\");
+      return `<lora:${finalName}:${formatStrength(lora.strength)}>`;
+    })
     .join(" ");
 }
 
@@ -345,48 +353,49 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
         secondaryColor: "#333333",
       },
     },
+    timestamp: Date.now(),
   };
 
   return {
     ...baseCheckpoint(params),
-    "2": {
+    "27": {
       class_type: "MultiCharacterEditorNode",
       inputs: {
-        base_prompt: "",
         syntax_mode: params.syntaxMode,
         use_fill: params.useFill,
-        mce_config: JSON.stringify(mceConfig, null, 2),
+        mce_config: JSON.stringify(mceConfig),
         canvas_width: params.canvasWidth,
         canvas_height: params.canvasHeight,
+        multi_character_editor: "",
       },
-      _meta: { title: "多角色编辑器" },
+      _meta: { title: "多角色编辑器 (Multi Character Editor)" },
     },
-    "3": {
+    "25": {
       class_type: "PCLazyLoraLoader",
       inputs: {
-        text: ["2", 0],
+        text: ["27", 0],
         model: ["1", 0],
         clip: ["1", 1],
       },
       _meta: { title: "PC: Schedule LoRAs" },
     },
-    "4": {
+    "2": {
       class_type: "PCLazyTextEncode",
       inputs: {
-        clip: ["3", 1],
-        text: ["2", 0],
+        clip: ["25", 1],
+        text: ["27", 0],
       },
       _meta: { title: "PC: Schedule Prompt (positive)" },
     },
-    "5": {
+    "7": {
       class_type: "PCLazyTextEncode",
       inputs: {
-        clip: ["3", 1],
-        text: params.negativePrompt,
+        clip: ["1", 1],
+        text: params.negativePrompt || " ",
       },
       _meta: { title: "PC: Schedule Prompt (negative)" },
     },
-    "6": {
+    "22": {
       class_type: "ResolutionMasterSimplify",
       inputs: {
         width: params.width,
@@ -394,35 +403,35 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
       },
       _meta: { title: "Resolution Master Simplify" },
     },
-    "7": {
+    "9": {
       class_type: "EmptyLatentImage",
       inputs: {
-        width: ["6", 0],
-        height: ["6", 1],
+        width: ["22", 0],
+        height: ["22", 1],
         batch_size: params.batchSize,
       },
-      _meta: { title: "空 Latent" },
+      _meta: { title: "空Latent图像" },
     },
-    "8": {
+    "4": {
       class_type: "KSampler",
-      inputs: samplerInputs(params, ["3", 0], ["4", 0], ["5", 0], ["7", 0]),
-      _meta: { title: "KSampler" },
-    },
-    "9": {
-      class_type: "VAEDecode",
-      inputs: {
-        samples: ["8", 0],
-        vae: ["1", 2],
-      },
-      _meta: { title: "VAE Decode" },
+      inputs: samplerInputs(params, ["25", 0], ["2", 0], ["7", 0], ["9", 0]),
+      _meta: { title: "K采样器" },
     },
     "10": {
+      class_type: "VAEDecode",
+      inputs: {
+        samples: ["4", 0],
+        vae: ["1", 2],
+      },
+      _meta: { title: "VAE解码" },
+    },
+    "18": {
       class_type: "SaveImage",
       inputs: {
-        images: ["9", 0],
+        images: ["10", 0],
         filename_prefix: outputPrefix(params.filenamePrefix, "多人/%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
       },
-      _meta: { title: "Save Image" },
+      _meta: { title: "保存图像" },
     },
   };
 }

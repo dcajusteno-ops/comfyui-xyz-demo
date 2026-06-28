@@ -731,7 +731,8 @@ button {
 
 .character-panel {
   max-height: min(940px, calc(100vh - 128px));
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fbfcff;
@@ -743,6 +744,7 @@ button {
   grid-template-columns: 1fr;
   gap: 10px;
   margin-bottom: 0;
+  overflow-y: auto;
 }
 
 .character-card {

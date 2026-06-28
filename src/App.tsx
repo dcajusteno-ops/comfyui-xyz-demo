@@ -1701,6 +1701,35 @@ function App() {
                 </button>
                 <button 
                   type="button" 
+                  onClick={() => setMultiParams((prev) => ({ ...prev, characters: addCharacter(prev.characters) }))}
+                  title="新增角色"
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    gap: "6px", 
+                    padding: "0 16px",
+                    backgroundColor: "var(--bg-panel, #2a2a2a)",
+                    color: "var(--text-secondary, #a0a0a0)",
+                    border: "1px solid var(--border-color, #333)",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#333";
+                    e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
+                    e.currentTarget.style.color = "var(--text-secondary, #a0a0a0)";
+                  }}
+                >
+                  <Plus size={16} /> 新增角色
+                </button>
+                <button 
+                  type="button" 
                   onClick={() => setSimpleLoraTarget("multi")}
                   title="添加 LoRA"
                   style={{ 
@@ -2091,25 +2120,7 @@ function App() {
       </div>
       <ToastViewport toasts={toasts} onClose={(id) => setToasts((prev) => prev.filter((toast) => toast.id !== id))} />
       {showXyzHelp && <XyzHelpModal onClose={() => setShowXyzHelp(false)} />}
-      {loraDetail && (
-        <LoraDetailModal
-          modelType={managedModelType}
-          item={loraDetail}
-          triggerWords={triggerWords[loraDetail.model_name || loraDetail.file_name] ?? []}
-          client={client}
-          apiBase={apiBase}
-          settings={loraSettings}
-          onClose={() => setLoraDetail(null)}
-          onInsert={(target, strength) => addLora(loraDetail, strength, target)}
-          onInsertWords={(target, words) => addTriggerWords(words, target)}
-          onTriggerWords={() => loadTriggerWords(loraDetail)}
-          onSaveTriggerWords={(words) => saveLoraTriggerWords(loraDetail, words)}
-          onToast={pushToast}
-          pullingExamples={Boolean(loraDetail.sha256 && pullingExampleHashes.includes(loraDetail.sha256.toLowerCase()))}
-          exampleStatus={exampleStatus}
-          onPullExamples={pullLoraExamples}
-        />
-      )}
+
       {featureModal && <FeatureModal modal={featureModal} onClose={() => setFeatureModal(null)} />}
       {loraOperation && (
         <LoraOperationModal
@@ -2175,7 +2186,6 @@ function App() {
               onLoadMore={loadMoreManagedModels}
               onDetail={(item) => {
                 setLoraDetail(item);
-                setSimpleLoraTarget(null);
               }}
               onInsert={(item) => {
                 addLora(item, 1, simpleLoraTarget);
@@ -2192,6 +2202,26 @@ function App() {
             />
           </div>
         </ModalFrame>
+      )}
+
+      {loraDetail && (
+        <LoraDetailModal
+          modelType={managedModelType}
+          item={loraDetail}
+          triggerWords={triggerWords[loraDetail.model_name || loraDetail.file_name] ?? []}
+          client={client}
+          apiBase={apiBase}
+          settings={loraSettings}
+          onClose={() => setLoraDetail(null)}
+          onInsert={(target, strength) => addLora(loraDetail, strength, target)}
+          onInsertWords={(target, words) => addTriggerWords(words, target)}
+          onTriggerWords={() => loadTriggerWords(loraDetail)}
+          onSaveTriggerWords={(words) => saveLoraTriggerWords(loraDetail, words)}
+          onToast={pushToast}
+          pullingExamples={Boolean(loraDetail.sha256 && pullingExampleHashes.includes(loraDetail.sha256.toLowerCase()))}
+          exampleStatus={exampleStatus}
+          onPullExamples={pullLoraExamples}
+        />
       )}
 
       {confirmDialog && (
@@ -3789,10 +3819,6 @@ function CharacterEditor({ characters, onChange }: { characters: MultiCharacter[
     <div className="character-panel">
       <div className="section-toolbar">
         <strong>角色控制</strong>
-        <button type="button" className="icon-button" onClick={() => onChange(addCharacter(characters))}>
-          <Plus size={16} />
-          新增角色
-        </button>
       </div>
       <div className="character-list">
         {characters.map((character, index) => (
