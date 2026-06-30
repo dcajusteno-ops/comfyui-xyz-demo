@@ -1674,7 +1674,7 @@ function App() {
                 <PanelTitle icon={UserRound} title="多人工作流" />
               </div>
               <div className="panel-body">
-                <BaseControls params={multiParams} options={options} setParams={setMultiParams} hidePositive onLoraDetail={(lora) => setLoraDetail({ file_path: lora.filePath || lora.name, file_name: lora.name.split("/").pop() || lora.name, file_size: 0, sha256: lora.sha256 } as LoraItem)} />
+                <BaseControls params={multiParams} options={options} setParams={setMultiParams} hidePositive disableStickyPrompt onLoraDetail={(lora) => setLoraDetail({ file_path: lora.filePath || lora.name, file_name: lora.name.split("/").pop() || lora.name, file_size: 0, sha256: lora.sha256 } as LoraItem)} />
                 <div className="multi-settings">
                   <TextAreaField label="全局 prompt" value={multiParams.globalPrompt} onChange={(value) => setMultiParams((prev) => ({ ...prev, globalPrompt: value }))} />
                   <div className="form-grid multi-options">
@@ -1685,13 +1685,12 @@ function App() {
                   </div>
                 </div>
                 <div className="multi-editor-layout">
-                  <MultiCanvasEditor
+                  <MultiWorkspace
                     canvasWidth={multiParams.canvasWidth}
                     canvasHeight={multiParams.canvasHeight}
                     characters={multiParams.characters}
                     onChange={(characters) => setMultiParams((prev) => ({ ...prev, characters }))}
                   />
-                  <CharacterEditor characters={multiParams.characters} onChange={(characters) => setMultiParams((prev) => ({ ...prev, characters }))} />
                 </div>
               </div>
               <div className="panel-footer" style={{ display: "flex", gap: "8px" }}>
@@ -3541,12 +3540,14 @@ function BaseControls<T extends BaseGenerationParams>({
   options,
   setParams,
   hidePositive = false,
+  disableStickyPrompt = false,
   onLoraDetail,
 }: {
   params: T;
   options: OptionsState;
   setParams: (updater: (prev: T) => T) => void;
   hidePositive?: boolean;
+  disableStickyPrompt?: boolean;
   onLoraDetail?: (lora: LoraSelection) => void;
 }) {
   const setField = <K extends keyof T>(key: K, value: T[K]) => {
@@ -3607,14 +3608,42 @@ function BaseControls<T extends BaseGenerationParams>({
           <input value={params.filenamePrefix} onChange={(event) => setField("filenamePrefix", event.target.value as T["filenamePrefix"])} />
         </label>
       </div>
-      {!hidePositive && (
-        <div className="form-grid two prompt-grid">
-          <TextAreaField label="正向提示词" value={params.positivePrompt} onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])} />
-          <TextAreaField label="反向提示词" value={params.negativePrompt} onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])} />
-        </div>
-      )}
-      {hidePositive && (
-        <TextAreaField label="反向提示词" value={params.negativePrompt} onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])} />
+      {disableStickyPrompt ? (
+        <>
+          {!hidePositive && (
+            <div className="form-grid two prompt-grid">
+              <TextAreaField label="正向提示词" value={params.positivePrompt} onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])} />
+              <TextAreaField label="反向提示词" value={params.negativePrompt} onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])} />
+            </div>
+          )}
+          {hidePositive && (
+            <TextAreaField label="反向提示词" value={params.negativePrompt} onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])} />
+          )}
+        </>
+      ) : (
+        <>
+          <div className="prompt-sticky-container">
+            {!hidePositive && (
+              <div className="form-grid two prompt-grid">
+                <TextAreaField label="正向提示词" value={params.positivePrompt} onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])} hideChips />
+                <TextAreaField label="反向提示词" value={params.negativePrompt} onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])} hideChips />
+              </div>
+            )}
+            {hidePositive && (
+              <TextAreaField label="反向提示词" value={params.negativePrompt} onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])} hideChips />
+            )}
+          </div>
+          <div className={hidePositive ? "form-grid prompt-grid" : "form-grid two prompt-grid"} style={{ marginTop: '0', paddingTop: '0' }}>
+            {!hidePositive && (
+              <div>
+                {params.positivePrompt.trim() && <PromptTagBlocks value={params.positivePrompt} onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])} />}
+              </div>
+            )}
+            <div>
+              {params.negativePrompt.trim() && <PromptTagBlocks value={params.negativePrompt} onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])} />}
+            </div>
+          </div>
+        </>
       )}
       <LoraChips loras={params.loras} onChange={(loras) => setField("loras", loras as T["loras"])} onDetail={onLoraDetail} />
     </>
@@ -3631,7 +3660,7 @@ type CanvasInteraction = {
   rect: { width: number; height: number };
 };
 
-function MultiCanvasEditor({
+function MultiWorkspace({
   canvasWidth,
   canvasHeight,
   characters,
@@ -3642,17 +3671,54 @@ function MultiCanvasEditor({
   characters: MultiCharacter[];
   onChange: (characters: MultiCharacter[]) => void;
 }) {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const interactionRef = useRef<CanvasInteraction | null>(null);
   const visibleCharacters = enabledCanvasCharacters(characters);
   const [selectedId, setSelectedId] = useState(visibleCharacters[0]?.id ?? "");
-  const [interaction, setInteraction] = useState<CanvasInteraction | null>(null);
 
   useEffect(() => {
     if (!visibleCharacters.some((character) => character.id === selectedId)) {
       setSelectedId(visibleCharacters[0]?.id ?? "");
     }
   }, [characters, selectedId, visibleCharacters]);
+
+  return (
+    <>
+      <MultiCanvasEditor
+        canvasWidth={canvasWidth}
+        canvasHeight={canvasHeight}
+        characters={characters}
+        onChange={onChange}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+      />
+      <CharacterEditor 
+        characters={characters} 
+        onChange={onChange} 
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+      />
+    </>
+  );
+}
+
+function MultiCanvasEditor({
+  canvasWidth,
+  canvasHeight,
+  characters,
+  onChange,
+  selectedId,
+  onSelect,
+}: {
+  canvasWidth: number;
+  canvasHeight: number;
+  characters: MultiCharacter[];
+  onChange: (characters: MultiCharacter[]) => void;
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const interactionRef = useRef<CanvasInteraction | null>(null);
+  const visibleCharacters = enabledCanvasCharacters(characters);
+  const [interaction, setInteraction] = useState<CanvasInteraction | null>(null);
 
   useEffect(() => {
     if (!interaction) return;
@@ -3706,7 +3772,7 @@ function MultiCanvasEditor({
     pointerId: number | undefined,
     rect: CanvasInteraction["rect"],
   ) {
-    setSelectedId(character.id);
+    onSelect(character.id);
     const nextInteraction = {
       id: character.id,
       mode,
@@ -3806,7 +3872,7 @@ function MultiCanvasEditor({
   );
 }
 
-function CharacterEditor({ characters, onChange }: { characters: MultiCharacter[]; onChange: (characters: MultiCharacter[]) => void }) {
+function CharacterEditor({ characters, onChange, selectedId, onSelect }: { characters: MultiCharacter[]; onChange: (characters: MultiCharacter[]) => void; selectedId: string; onSelect: (id: string) => void }) {
   function update(index: number, patch: Partial<MultiCharacter>) {
     onChange(characters.map((character, characterIndex) => characterIndex === index ? { ...character, ...patch } : character));
   }
@@ -3815,34 +3881,51 @@ function CharacterEditor({ characters, onChange }: { characters: MultiCharacter[
     onChange(characters.map((character, characterIndex) => characterIndex === index ? { ...character, mask: { ...character.mask, ...patch } } : character));
   }
 
+  const selectedIndex = characters.findIndex(c => c.id === selectedId);
+  const activeCharacter = characters[selectedIndex] || characters[0];
+  const activeIndex = selectedIndex !== -1 ? selectedIndex : 0;
+
   return (
     <div className="character-panel">
       <div className="section-toolbar">
         <strong>角色控制</strong>
       </div>
-      <div className="character-list">
+      <div className="character-tabs">
         {characters.map((character, index) => (
-          <div className="character-card" key={character.id}>
+          <button 
+            key={character.id}
+            type="button"
+            className={`character-tab ${selectedId === character.id ? "active" : ""}`}
+            onClick={() => onSelect(character.id)}
+          >
+            <span className="tab-color-dot" style={{ background: character.color }}></span>
+            角色 {index + 1}
+          </button>
+        ))}
+      </div>
+      <div className="character-list">
+        {activeCharacter && (
+          <div className="character-card">
             <div className="character-head">
-              <label><input type="checkbox" checked={character.enabled} onChange={(event) => update(index, { enabled: event.target.checked })} /> 角色 {index + 1}</label>
-              <input className="character-name" value={character.name} onChange={(event) => update(index, { name: event.target.value })} />
-              <input type="color" value={character.color} onChange={(event) => update(index, { color: event.target.value })} />
+              <label><input type="checkbox" checked={activeCharacter.enabled} onChange={(event) => update(activeIndex, { enabled: event.target.checked })} /> 启用</label>
+              <input className="character-name" value={activeCharacter.name} onChange={(event) => update(activeIndex, { name: event.target.value })} />
+              <input type="color" value={activeCharacter.color} onChange={(event) => update(activeIndex, { color: event.target.value })} />
             </div>
-            <TextAreaField label="角色 prompt" value={character.prompt} onChange={(value) => update(index, { prompt: value })} />
-            <div className="mini-grid">
-              <NumberField label="权重" value={character.weight} step={0.1} onChange={(value) => update(index, { weight: value })} />
-              <NumberField label="feather" value={character.feather} step={1} onChange={(value) => update(index, { feather: value })} />
-              <NumberField label="x" value={character.mask.x} step={0.01} onChange={(value) => updateMask(index, { x: value })} />
-              <NumberField label="y" value={character.mask.y} step={0.01} onChange={(value) => updateMask(index, { y: value })} />
-              <NumberField label="w" value={character.mask.width} step={0.01} onChange={(value) => updateMask(index, { width: value })} />
-              <NumberField label="h" value={character.mask.height} step={0.01} onChange={(value) => updateMask(index, { height: value })} />
+            <TextAreaField label="角色 prompt" value={activeCharacter.prompt} onChange={(value) => update(activeIndex, { prompt: value })} />
+            <div className="compact-coords">
+              <NumberField label="权重" value={activeCharacter.weight} step={0.1} onChange={(value) => update(activeIndex, { weight: value })} />
+              <NumberField label="feather" value={activeCharacter.feather} step={1} onChange={(value) => update(activeIndex, { feather: value })} />
+              <NumberField label="x" value={activeCharacter.mask.x} step={0.01} onChange={(value) => updateMask(activeIndex, { x: value })} />
+              <NumberField label="y" value={activeCharacter.mask.y} step={0.01} onChange={(value) => updateMask(activeIndex, { y: value })} />
+              <NumberField label="w" value={activeCharacter.mask.width} step={0.01} onChange={(value) => updateMask(activeIndex, { width: value })} />
+              <NumberField label="h" value={activeCharacter.mask.height} step={0.01} onChange={(value) => updateMask(activeIndex, { height: value })} />
             </div>
             <div className="card-actions">
-              <button type="button" onClick={() => onChange(duplicateCharacter(characters, index))}><Copy size={15} /> 复制</button>
-              <button type="button" onClick={() => onChange(removeCharacter(characters, index))}><Trash2 size={15} /> 删除</button>
+              <button type="button" onClick={() => onChange(duplicateCharacter(characters, activeIndex))}><Copy size={15} /> 复制角色</button>
+              <button type="button" onClick={() => onChange(removeCharacter(characters, activeIndex))}><Trash2 size={15} /> 删除</button>
             </div>
           </div>
-        ))}
+        )}
         {characters.length === 0 && <div className="empty-strip">暂无角色，点击“新增角色”开始</div>}
       </div>
     </div>
@@ -4135,8 +4218,19 @@ function FolderSidebar({
   total: number;
   onSelect: (folder: string) => void;
 }) {
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (sidebarRef.current) {
+      const selectedEl = sidebarRef.current.querySelector(".selected") as HTMLElement;
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ block: "nearest" });
+      }
+    }
+  }, []); // Only run on mount so it restores position when opening
+
   return (
-    <aside className="lm-folder-sidebar">
+    <aside className="lm-folder-sidebar" ref={sidebarRef}>
       <button type="button" className={selected === "" ? "lm-sidebar-root selected" : "lm-sidebar-root"} onClick={() => onSelect("")}>
         <span className="lm-sidebar-root-label"><FolderOpen size={16} /> All {label}</span>
         <span><FolderOpen size={16} /> 全部 LoRA</span>
@@ -4314,7 +4408,7 @@ function CopyableTextarea({ value, className }: { value: string; className?: str
 }
 
 
-function TextAreaField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function TextAreaField({ label, value, placeholder, onChange, hideChips }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void; hideChips?: boolean }) {
   const isPrompt = label.toLowerCase().includes("prompt") || label.includes("提示词");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
@@ -4351,10 +4445,11 @@ function TextAreaField({ label, value, onChange }: { label: string; value: strin
       <textarea 
         ref={textareaRef}
         value={value} 
+        placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)} 
         onKeyDown={(e) => isPrompt && handlePromptWeightAdjustment(e, value, onChange)}
       />
-      {isPrompt && value.trim() && (
+      {isPrompt && value.trim() && !hideChips && (
         <PromptTagBlocks value={value} onChange={onChange} />
       )}
     </div>
