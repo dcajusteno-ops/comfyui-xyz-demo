@@ -818,6 +818,16 @@ export function loraStrengthPatch<T extends BaseGenerationParams>(params: T, ind
   };
 }
 
+export function loraNamePatch<T extends BaseGenerationParams>(params: T, index: number, name: string): T {
+  if (!params.loras.length || index < 0 || index >= params.loras.length) {
+    return params;
+  }
+  return {
+    ...params,
+    loras: params.loras.map((lora, i) => i === index ? { ...lora, name } : lora),
+  };
+}
+
 export const exposedForTests = {
   loraAwarePrompt,
 };

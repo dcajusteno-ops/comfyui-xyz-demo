@@ -471,6 +471,9 @@ export type XyzField =
   | "scheduler"
   | "denoise"
   | `loraStrength_${number}`
+  | `loraName_${number}`
+  | `loraAppendName_${number}`
+  | `loraAppendStrength_${number}`
   | "positiveAppend";
 
 export type XyzAxis = {

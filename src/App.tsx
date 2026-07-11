@@ -1847,7 +1847,11 @@ function App() {
               "scheduler",
               "denoise",
               "positiveAppend",
-              ...lorasOfTarget.map((_, i) => `loraStrength_${i}` as const)
+              ...lorasOfTarget.flatMap((_, i) => [`loraName_${i}` as const, `loraStrength_${i}` as const]),
+              "loraAppendName_1",
+              "loraAppendStrength_1",
+              "loraAppendName_2",
+              "loraAppendStrength_2",
             ];
             return (
             <section className="panel xyz-panel">
