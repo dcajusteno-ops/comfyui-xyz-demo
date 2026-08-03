@@ -123,6 +123,7 @@ import type {
   ClBatchParams,
   ClSingleParams,
   WdBatchParams,
+  DrawTextParams,
 } from "./types";
 
 type TabId = "default" | "wd14" | "multi" | "highres" | "xyz" | "loras" | "notes";
@@ -136,6 +137,7 @@ type OptionsState = {
   clModels: string[];
   detectors: string[];
   upscaleMethods: string[];
+  fonts: string[];
 };
 
 type XyzRunItem = {
@@ -168,6 +170,7 @@ const fallbackOptions: OptionsState = {
   clModels: ["cl_tagger/cl_tagger_1_02.onnx"],
   detectors: ["bbox/hand_yolov8s.pt", "bbox/face_yolov8m.pt"],
   upscaleMethods: ["nearest-exact", "bilinear", "bicubic"],
+  fonts: [],
 };
 
 const tabs: Array<{ id: TabId; label: string; icon: typeof Wand2 }> = [
@@ -249,6 +252,25 @@ function makeBaseParams(checkpoint = fallbackOptions.checkpoints[0]): BaseGenera
     denoise: 1,
     filenamePrefix: "默认生图/%date:yyyy-MM-dd%/ComfyUI",
     loras: [],
+    drawText: {
+      enabled: false,
+      text: "测试文本",
+      font: fallbackOptions.fonts[0] ?? "",
+      size: 56,
+      color: "#FFFFFF",
+      backgroundColor: "#00000000",
+      shadowDistance: 5,
+      shadowBlur: 3,
+      shadowColor: "#000000",
+      rotation: 0,
+      strokeWidth: 0,
+      strokeColor: "#00000000",
+      horizontalAlign: "left",
+      verticalAlign: "top",
+      offsetX: 0,
+      offsetY: 0,
+      direction: "ltr",
+    },
   };
 }
 
@@ -535,7 +557,7 @@ function App() {
     let canceled = false;
     async function load() {
       try {
-        const [stats, checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, managerSettings] = await Promise.all([
+        const [stats, checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, drawTextInfo, managerSettings] = await Promise.all([
           client.getSystemStats(),
           client.getObjectInfo("CheckpointLoaderSimple"),
           client.getObjectInfo("KSampler"),
@@ -543,6 +565,7 @@ function App() {
           client.getObjectInfo("cl_tagger_mira").catch(() => null),
           client.getObjectInfo("UltralyticsDetectorProvider").catch(() => null),
           client.getObjectInfo("LatentUpscaleBy").catch(() => null),
+          client.getObjectInfo("DrawText+").catch(() => null),
           client.getLoraManagerSettings().catch(() => defaultLoraManagerSettings),
         ]);
         if (canceled) return;
@@ -555,6 +578,7 @@ function App() {
           clModels: clInfo ? readCombo(clInfo, "cl_tagger_mira", "model_name", fallbackOptions.clModels) : fallbackOptions.clModels,
           detectors: detectorInfo ? readCombo(detectorInfo, "UltralyticsDetectorProvider", "model_name", fallbackOptions.detectors) : fallbackOptions.detectors,
           upscaleMethods: upscaleInfo ? readCombo(upscaleInfo, "LatentUpscaleBy", "upscale_method", fallbackOptions.upscaleMethods) : fallbackOptions.upscaleMethods,
+          fonts: drawTextInfo ? readCombo(drawTextInfo, "DrawText+", "font", fallbackOptions.fonts) : fallbackOptions.fonts,
         };
         setOptions(nextOptions);
         const managerSettingsResult = managerSettings as LoraManagerSettings & { settings?: LoraManagerSettings };
@@ -1852,6 +1876,8 @@ function App() {
               "loraAppendStrength_1",
               "loraAppendName_2",
               "loraAppendStrength_2",
+              "drawTextText",
+              "drawTextFont",
             ];
             return (
             <section className="panel xyz-panel">
@@ -3649,8 +3675,83 @@ function BaseControls<T extends BaseGenerationParams>({
           </div>
         </>
       )}
+      <DrawTextControls params={params} options={options} setParams={setParams} />
       <LoraChips loras={params.loras} onChange={(loras) => setField("loras", loras as T["loras"])} onDetail={onLoraDetail} />
     </>
+  );
+}
+
+function ColorAlphaField({ label, value, onChange }: { label: string, value: string, onChange: (v: string) => void }) {
+  const hex = value.slice(0, 7) || "#000000";
+  const alphaHex = value.slice(7, 9) || "FF";
+  const alpha = isNaN(parseInt(alphaHex, 16)) ? 255 : parseInt(alphaHex, 16);
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value + alphaHex);
+  };
+  const handleAlphaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newAlphaHex = parseInt(e.target.value).toString(16).padStart(2, "0").toUpperCase();
+    onChange(hex + newAlphaHex);
+  };
+
+  return (
+    <label className="field" style={{ display: "flex", flexDirection: "column" }}>
+      <span>{label} (不透明度: {Math.round(alpha/255*100)}%)</span>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+        <input type="color" value={hex} onChange={handleColorChange} style={{ width: "32px", height: "24px", padding: 0, border: "none" }} />
+        <input type="range" min={0} max={255} value={alpha} onChange={handleAlphaChange} style={{ flex: 1 }} />
+      </div>
+    </label>
+  );
+}
+
+function DrawTextControls<T extends BaseGenerationParams>({
+  params,
+  options,
+  setParams,
+}: {
+  params: T;
+  options: OptionsState;
+  setParams: (updater: (prev: T) => T) => void;
+}) {
+  const drawText = params.drawText || makeBaseParams().drawText!;
+  const updateDrawText = (patch: Partial<DrawTextParams>) => {
+    setParams((prev) => ({ ...prev, drawText: { ...(prev.drawText || makeBaseParams().drawText!), ...patch } }));
+  };
+
+  return (
+    <div className="draw-text-config" style={{ marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+      <div className="toggle-row" style={{ marginBottom: '8px' }}>
+         <label><input type="checkbox" checked={drawText.enabled} onChange={(e) => updateDrawText({ enabled: e.target.checked })} /> 启用自定义文字/水印</label>
+      </div>
+      {drawText.enabled && (
+        <div className="form-grid three">
+          <label className="field" style={{ gridColumn: 'span 3' }}>
+            <span>文字内容</span>
+            <input value={drawText.text} onChange={(e) => updateDrawText({ text: e.target.value })} placeholder="输入要绘制的文字..." />
+          </label>
+          <SelectField label="字体" value={drawText.font} options={options.fonts} onChange={(value) => updateDrawText({ font: value })} />
+          <NumberField label="字号" value={drawText.size} min={8} step={1} onChange={(value) => updateDrawText({ size: value })} />
+          <ColorAlphaField label="文字颜色" value={drawText.color} onChange={(value) => updateDrawText({ color: value })} />
+          
+          <SelectField label="水平对齐" value={drawText.horizontalAlign} options={["left", "center", "right"]} onChange={(value) => updateDrawText({ horizontalAlign: value })} />
+          <SelectField label="垂直对齐" value={drawText.verticalAlign} options={["top", "center", "bottom"]} onChange={(value) => updateDrawText({ verticalAlign: value })} />
+          <SelectField label="文字方向" value={drawText.direction} options={["ltr", "rtl"]} onChange={(value) => updateDrawText({ direction: value })} />
+
+          <NumberField label="文字旋转" value={drawText.rotation} step={0.1} onChange={(value) => updateDrawText({ rotation: value })} />
+          <NumberField label="字体粗细" value={drawText.strokeWidth} min={0} step={1} onChange={(value) => updateDrawText({ strokeWidth: value })} />
+          <ColorAlphaField label="加粗/描边颜色" value={drawText.strokeColor} onChange={(value) => updateDrawText({ strokeColor: value })} />
+
+          <NumberField label="阴影距离" value={drawText.shadowDistance} min={0} step={1} onChange={(value) => updateDrawText({ shadowDistance: value })} />
+          <NumberField label="阴影模糊" value={drawText.shadowBlur} min={0} step={1} onChange={(value) => updateDrawText({ shadowBlur: value })} />
+          <ColorAlphaField label="阴影颜色" value={drawText.shadowColor} onChange={(value) => updateDrawText({ shadowColor: value })} />
+
+          <NumberField label="X偏移" value={drawText.offsetX} step={1} onChange={(value) => updateDrawText({ offsetX: value })} />
+          <NumberField label="Y偏移" value={drawText.offsetY} step={1} onChange={(value) => updateDrawText({ offsetY: value })} />
+          <ColorAlphaField label="背景颜色" value={drawText.backgroundColor} onChange={(value) => updateDrawText({ backgroundColor: value })} />
+        </div>
+      )}
+    </div>
   );
 }
 

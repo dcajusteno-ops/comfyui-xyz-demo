@@ -261,6 +261,26 @@ export type LoraQueryState = {
   pageSize: number;
 };
 
+export type DrawTextParams = {
+  enabled: boolean;
+  text: string;
+  font: string;
+  size: number;
+  color: string;
+  backgroundColor: string;
+  shadowDistance: number;
+  shadowBlur: number;
+  shadowColor: string;
+  horizontalAlign: string;
+  verticalAlign: string;
+  offsetX: number;
+  offsetY: number;
+  direction: string;
+  rotation: number;
+  strokeWidth: number;
+  strokeColor: string;
+};
+
 export type BaseGenerationParams = {
   checkpoint: string;
   positivePrompt: string;
@@ -278,6 +298,7 @@ export type BaseGenerationParams = {
   filenamePrefix: string;
   filenameSuffix?: string;
   loras: LoraSelection[];
+  drawText?: DrawTextParams;
 };
 
 export type MultiCharacterMask = {
@@ -474,7 +495,9 @@ export type XyzField =
   | `loraName_${number}`
   | `loraAppendName_${number}`
   | `loraAppendStrength_${number}`
-  | "positiveAppend";
+  | "positiveAppend"
+  | "drawTextText"
+  | "drawTextFont";
 
 export type XyzAxis = {
   enabled: boolean;

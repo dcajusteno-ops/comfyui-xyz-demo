@@ -63,6 +63,44 @@ function joinPrompt(...parts: Array<string | undefined>) {
   return parts.map((part) => part?.trim()).filter(Boolean).join("\n");
 }
 
+function insertDrawTextNode(
+  prompt: ComfyPrompt,
+  params: BaseGenerationParams,
+  inputImage: [string, number],
+  nextId: number
+): [string, number] {
+  if (!params.drawText?.enabled) return inputImage;
+
+  const textToDraw = (params.drawText.text && params.drawText.text.trim()) ? params.drawText.text : "测试文本";
+
+  const drawTextId = String(nextId++);
+  prompt[drawTextId] = {
+    class_type: "DrawTextAdvanced",
+    inputs: {
+      text: textToDraw,
+      font: params.drawText.font,
+      size: params.drawText.size,
+      color: params.drawText.color,
+      background_color: params.drawText.backgroundColor,
+      shadow_distance: params.drawText.shadowDistance,
+      shadow_blur: params.drawText.shadowBlur,
+      shadow_color: params.drawText.shadowColor,
+      horizontal_align: params.drawText.horizontalAlign,
+      vertical_align: params.drawText.verticalAlign,
+      offset_x: params.drawText.offsetX,
+      offset_y: params.drawText.offsetY,
+      direction: params.drawText.direction,
+      rotation: params.drawText.rotation || 0,
+      stroke_width: params.drawText.strokeWidth || 0,
+      stroke_color: params.drawText.strokeColor || "#00000000",
+      img_composite: inputImage,
+    },
+    _meta: { title: "Draw Text" },
+  };
+
+  return [drawTextId, 0];
+}
+
 function loraAwarePrompt(params: BaseGenerationParams) {
   return joinPrompt(buildLoraSyntax(params.loras), params.positivePrompt);
 }
@@ -80,7 +118,7 @@ function baseCheckpoint(params: BaseGenerationParams): ComfyPrompt {
 }
 
 export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
-  return {
+  const prompt: ComfyPrompt = {
     ...baseCheckpoint(params),
     "2": {
       class_type: "Lora Loader (LoraManager)",
@@ -137,15 +175,20 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
       },
       _meta: { title: "VAE Decode" },
     },
-    "8": {
-      class_type: "SaveImage",
-      inputs: {
-        images: ["7", 0],
-        filename_prefix: outputPrefix(params.filenamePrefix, "%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
-      },
-      _meta: { title: "Save Image" },
-    },
   };
+
+  const finalImage = insertDrawTextNode(prompt, params, ["7", 0], 8);
+
+  prompt["999_save"] = {
+    class_type: "SaveImage",
+    inputs: {
+      images: finalImage,
+      filename_prefix: outputPrefix(params.filenamePrefix, "%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
+    },
+    _meta: { title: "Save Image" },
+  };
+
+  return prompt;
 }
 
 export function buildWd14Prompt(params: Wd14Params): ComfyPrompt {
@@ -356,7 +399,7 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
     timestamp: Date.now(),
   };
 
-  return {
+  const prompt: ComfyPrompt = {
     ...baseCheckpoint(params),
     "27": {
       class_type: "MultiCharacterEditorNode",
@@ -425,15 +468,20 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
       },
       _meta: { title: "VAE解码" },
     },
-    "18": {
-      class_type: "SaveImage",
-      inputs: {
-        images: ["10", 0],
-        filename_prefix: outputPrefix(params.filenamePrefix, "多人/%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
-      },
-      _meta: { title: "保存图像" },
-    },
   };
+
+  const finalImage = insertDrawTextNode(prompt, params, ["10", 0], 28);
+
+  prompt["999_save"] = {
+    class_type: "SaveImage",
+    inputs: {
+      images: finalImage,
+      filename_prefix: outputPrefix(params.filenamePrefix, "多人/%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix),
+    },
+    _meta: { title: "保存图像" },
+  };
+
+  return prompt;
 }
 
 export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
@@ -694,6 +742,9 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
     },
     _meta: { title: "生成结果 对比" },
   };
+
+  currentImage = insertDrawTextNode(prompt, params, currentImage, nextId);
+  nextId += 2;
 
   prompt[String(nextId)] = {
     class_type: "SaveImage",

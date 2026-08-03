@@ -98,6 +98,9 @@ export function buildXyzCombinations(axes: XyzAxis[], lorasOfTarget?: { name: st
       if (patch.loras && fp.loras) {
         nextPatch.loras = [...patch.loras, ...fp.loras];
       }
+      if (patch.drawText && fp.drawText) {
+        nextPatch.drawText = { ...patch.drawText, ...fp.drawText };
+      }
       walk(
         index + 1,
         nextPatch,
@@ -119,6 +122,11 @@ export function applyXyzPatch<T extends BaseGenerationParams>(params: T, patch: 
   }
   if (patch.loras) {
     next.loras = patch.loras;
+  }
+  if (patch.drawText && params.drawText) {
+    next.drawText = { ...params.drawText, ...patch.drawText };
+  } else if (patch.drawText) {
+    next.drawText = patch.drawText as any;
   }
   return next;
 }
@@ -142,6 +150,12 @@ function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenera
   if (field.startsWith("loraAppendStrength_")) {
     const idx = parseInt(field.split("_")[1]);
     return { loras: [{ name: `__LORA_APPEND_STRENGTH_${idx}__`, active: true, strength: Number(value), clipStrength: Number(value) } as any] };
+  }
+  if (field === "drawTextText") {
+    return { drawText: { text: String(value), enabled: true } as any };
+  }
+  if (field === "drawTextFont") {
+    return { drawText: { font: String(value), enabled: true } as any };
   }
   return { [field]: isNumericField(field) ? Number(value) : String(value) } as Partial<BaseGenerationParams>;
 }
@@ -226,6 +240,8 @@ export function fieldLabel(field: XyzField, lorasOfTarget?: { name: string; disp
     scheduler: "调度器",
     denoise: "重绘",
     positiveAppend: "正向追加",
+    drawTextText: "文字控制",
+    drawTextFont: "字体控制",
   };
   return labels[field] || field;
 }
