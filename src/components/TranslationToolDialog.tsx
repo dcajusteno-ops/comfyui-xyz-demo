@@ -46,9 +46,10 @@ export function TranslationToolDialog({ onClose, translationSettings, onToast }:
   }
 
   return (
-    <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+    <div className="modal-backdrop" onClick={onClose}>
       <div 
         className="modal" 
+        onClick={(e) => e.stopPropagation()}
         style={{ 
           maxWidth: "600px", 
           width: "100%",
