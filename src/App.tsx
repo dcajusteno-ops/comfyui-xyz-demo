@@ -2173,7 +2173,7 @@ function App() {
       {showXyzHelp && <XyzHelpModal onClose={() => setShowXyzHelp(false)} />}
 
       {featureModal && <FeatureModal modal={featureModal} onClose={() => setFeatureModal(null)} />}
-      {loraOperation && (
+      {loraOperation && loraOperation.type !== "translator" && (
         <LoraOperationModal
           modelType={managedModelType}
           operation={loraOperation}
