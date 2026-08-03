@@ -149,11 +149,15 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **ComfyUI-WD14-Tagger**：提供 WD1.4 提示词反推能力。
 - **ComfyUI_Mira**：提供 CL Tagger 提示词反推能力与附加组件。
 - **ComfyUI-Prompt-Control**：提供 LoRA 懒加载及提示词权重动态调度。
-- **ComfyUI-DrawText-Advanced**：[内置于本项目仓库内] 提供高级文字绘制节点，支持文字旋转与无级字体加粗。
 - **ComfyUI-Danbooru-Gallery**：提供 MultiCharacterEditorNode 多角色蒙版生成。
 - **ComfyUI-Lora-Manager**：提供原生的 LoRA 检索及元数据管理服务。
 - **was-node-suite-comfyui**：提供 Text Concatenate 文本拼接等基础核心节点。
 - **ComfyUI_yanc**：提供目录读取及图片/文本批量存取扩展节点。
+
+### 本项目专属自定义节点 (需手动安装)
+- **ComfyUI-DrawText-Advanced**
+  - **用处**：专为本项目定制的高级文字绘制节点。彻底重写了底层 PIL 图像渲染逻辑，完美支持高质量的**文字旋转**与基于同色描边的**无级字体加粗**。同时它也与前端的 XYZ 控制器无缝打通，支持文字属性的批量矩阵测试。
+  - **安装位置**：您需要将本项目根目录下的 `ComfyUI-DrawText-Advanced` 文件夹，完整复制或移动到您的 ComfyUI 安装目录下的 `custom_nodes` 文件夹中（例如 `ComfyUI/custom_nodes/ComfyUI-DrawText-Advanced`），然后重启 ComfyUI 即可生效。
 
 ### 核心模型文件下载
 请将以下模型放置于 ComfyUI 对应的目录下：
