@@ -100,11 +100,6 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
             url="https://github.com/Aaalice233/ComfyUI-Danbooru-Gallery"
           />
           <PluginLink 
-            name="ComfyUI-DrawText-Advanced" 
-            desc="提供高级文字绘制节点 (含旋转与自定义加粗)"
-            url="https://github.com/dcajusteno-ops/comfyui-xyz-demo/tree/master/ComfyUI-DrawText-Advanced"
-          />
-          <PluginLink 
             name="ComfyUI-Lora-Manager" 
             desc="提供原生的 LoRA 检索及元数据管理服务"
             url="https://github.com/willmiao/ComfyUI-Lora-Manager"
@@ -121,9 +116,20 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
           />
             </div>
           </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: "8px" }}>本项目专属自定义节点 (需手动安装)</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <PluginLink 
+                name="ComfyUI-DrawText-Advanced" 
+                desc="提供高级文字绘制节点，支持文字旋转与无级字体加粗。请将项目源码中的此文件夹拷贝到 ComfyUI 的 custom_nodes 目录中并重启。"
+                url="https://github.com/dcajusteno-ops/comfyui-xyz-demo/tree/master/ComfyUI-DrawText-Advanced"
+              />
+            </div>
+          </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "8px" }}>
-            <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: "8px" }}>依赖的底层模型 (Models)</h3>
+            <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: "8px" }}>核心模型文件下载</h3>
             <div style={{
               background: "rgba(245, 158, 11, 0.1)",
               borderLeft: "4px solid #f59e0b",
