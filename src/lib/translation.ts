@@ -60,17 +60,25 @@ export async function translateText(text: string, settings: TranslationSettings,
   }
 
   try {
+    let result = text;
     switch (settings.provider) {
       case "mymemory":
-        return await translateMyMemory(text, direction);
+        result = await translateMyMemory(text, direction);
+        break;
       case "baidu":
-        return await translateBaidu(text, settings.baiduAppId, settings.baiduSecret, direction);
+        result = await translateBaidu(text, settings.baiduAppId, settings.baiduSecret, direction);
+        break;
       case "aliyun":
-        return await translateAliyun(text, settings.aliyunAccessKeyId, settings.aliyunAccessKeySecret, direction);
-
-      default:
-        return text;
+        result = await translateAliyun(text, settings.aliyunAccessKeyId, settings.aliyunAccessKeySecret, direction);
+        break;
     }
+    
+    // Convert to lowercase for English prompts
+    if (direction === "zh2en") {
+      result = result.toLowerCase();
+    }
+    
+    return result;
   } catch (error) {
     console.error("Translation Error:", error);
     throw new Error(`翻译失败 (${settings.provider}): ${error instanceof Error ? error.message : String(error)}`);
