@@ -582,7 +582,14 @@ function App() {
         };
         setOptions(nextOptions);
         const managerSettingsResult = managerSettings as LoraManagerSettings & { settings?: LoraManagerSettings };
-        setLoraSettings(normalizeLoraManagerSettings(managerSettingsResult.settings ?? managerSettingsResult));
+        const finalSettings = normalizeLoraManagerSettings(managerSettingsResult.settings ?? managerSettingsResult);
+        setLoraSettings(finalSettings);
+        
+        // Enforce onboarding / setting the example images directory on first launch
+        if (finalSettings.onboarding_completed !== true || !finalSettings.example_images_path) {
+          setLoraOperation({ type: "settings" });
+        }
+
         const system = stats as { system?: { comfyui_version?: string }; devices?: Array<{ name: string }> };
         setConnection(`在线 ${system.system?.comfyui_version ?? ""}`);
         const firstCheckpoint = nextOptions.checkpoints[0] ?? "";
@@ -2874,12 +2881,17 @@ function LoraOperationModal({
   }
 
   async function saveSettings() {
+    if (!textValue.trim()) {
+      onToast("error", "必填项缺失", "第一次使用请务必配置【示例图目录】！");
+      return;
+    }
     setBusy(true);
     try {
       const payload = {
         ...settings,
         example_images_path: textValue,
         lora_syntax_format: secondaryValue || settings.lora_syntax_format,
+        onboarding_completed: true,
       };
       const result = await client.updateLoraManagerSettings(payload);
       if (result.success === false) throw new Error(result.error || "设置保存失败");
@@ -3011,7 +3023,7 @@ function LoraOperationModal({
                 <>
                   <h3 style={{ margin: "0 0 1rem", fontSize: "1.1rem", fontWeight: 600 }}>基本设置</h3>
                   <TextInput label="API Base URL" value={localApiBase} onChange={setLocalApiBase} placeholder="/comfy" />
-                  <TextInput label="示例图目录" value={textValue} onChange={setTextValue} placeholder="F:\\AI_lora\\img" />
+                  <TextInput label="示例图目录 (首次使用必填)" value={textValue} onChange={setTextValue} placeholder="必须配置，例如 F:\AI_lora\img" />
                   <TextInput label="LoRA 语法格式" value={secondaryValue} onChange={setSecondaryValue} placeholder="legacy / full" />
                   <div className="form-grid two compact">
                     <label className="field checkbox-field">
