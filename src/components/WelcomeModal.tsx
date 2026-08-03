@@ -100,6 +100,11 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
             url="https://github.com/Aaalice233/ComfyUI-Danbooru-Gallery"
           />
           <PluginLink 
+            name="ComfyUI-DrawText-Advanced" 
+            desc="提供高级文字绘制节点 (含旋转与自定义加粗)"
+            url="https://github.com/dcajusteno-ops/comfyui-xyz-demo/tree/master/ComfyUI-DrawText-Advanced"
+          />
+          <PluginLink 
             name="ComfyUI-Lora-Manager" 
             desc="提供原生的 LoRA 检索及元数据管理服务"
             url="https://github.com/willmiao/ComfyUI-Lora-Manager"
