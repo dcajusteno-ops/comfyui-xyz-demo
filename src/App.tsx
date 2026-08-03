@@ -64,6 +64,7 @@ import {
   X,
   Columns,
   Loader2,
+  Languages,
 } from "lucide-react";
 import { cloneMultiCharacterConfig } from "./data/multiTemplate";
 import { handlePromptWeightAdjustment } from "./lib/promptUtils";
@@ -71,6 +72,7 @@ import { ComfyClient } from "./lib/comfyClient";
 import { enabledCanvasCharacters, moveMaskRect, resizeMaskRect } from "./lib/multiCanvas";
 import { ImageGalleryItem } from "./components/ImageGalleryItem";
 import { PromptEditorDialog } from "./components/PromptEditorDialog";
+import { TranslationToolDialog } from "./components/TranslationToolDialog";
 import { PromptTagBlocks } from "./components/PromptTagBlocks";
 import { RichTextEditor } from "./components/RichTextEditor";
 import { WelcomeModal } from "./components/WelcomeModal";
@@ -158,6 +160,7 @@ type LoraOperation =
   | { type: "updates" }
   | { type: "doctor" }
   | { type: "settings" }
+  | { type: "translator" }
   | { type: "notifications" }
   | { type: "civitai"; item: LoraItem };
 
@@ -1332,6 +1335,10 @@ function App() {
           })}
         </nav>
         <div className="top-actions">
+          <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "translator" })}>
+            <Languages size={18} />
+            翻译工具
+          </button>
           <button type="button" className="icon-button" onClick={() => setShowPromptEditor(true)}>
             <Sparkles size={18} />
             提示词编辑器
@@ -1360,6 +1367,14 @@ function App() {
           setDefaultParams(prev => ({ ...prev, positivePrompt: positive, negativePrompt: negative }));
         }}
       />
+
+      {loraOperation?.type === "translator" && (
+        <TranslationToolDialog
+          onClose={() => setLoraOperation(null)}
+          translationSettings={translationSettings}
+          onToast={pushToast}
+        />
+      )}
 
       <RunProgressStrip progress={progress} />
 
@@ -5023,6 +5038,7 @@ function operationTitle(operation: LoraOperation) {
     settings: "全局设置",
     notifications: "通知队列",
     civitai: "Civitai 详情",
+    translator: "翻译工具",
   };
   return titles[operation.type];
 }
