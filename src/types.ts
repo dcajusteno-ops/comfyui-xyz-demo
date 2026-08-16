@@ -468,6 +468,12 @@ export type JobResult = {
   rawHistory: unknown;
 };
 
+export type ProgressBatchState = {
+  current: number;
+  total: number;
+  itemLabel: string;
+};
+
 export type ProgressState = {
   running: boolean;
   promptId?: string;
@@ -475,6 +481,7 @@ export type ProgressState = {
   value: number;
   max: number;
   label: string;
+  batch?: ProgressBatchState;
   previewUrl?: string;
   images?: OutputImage[];
   texts?: string[];

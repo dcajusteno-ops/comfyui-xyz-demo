@@ -149,6 +149,7 @@ type XyzRunItem = {
   status: "queued" | "running" | "success" | "failed" | "cancelled";
   result?: JobResult;
   error?: string;
+  comboIndex?: number;
 };
 
 type LoraOperation =
@@ -546,6 +547,14 @@ function App() {
     () => loraResult.items.filter((item) => selectedLoraPaths.includes(item.file_path)),
     [loraResult.items, selectedLoraPaths],
   );
+  const baseDocTitleRef = useRef(document.title);
+  useEffect(() => {
+    if (progress.batch && progress.running) {
+      document.title = `【XYZ ${progress.batch.current}/${progress.batch.total}】${baseDocTitleRef.current}`;
+    } else if (document.title !== baseDocTitleRef.current) {
+      document.title = baseDocTitleRef.current;
+    }
+  }, [progress]);
 
   function pushToast(type: Toast["type"], title: string, message?: string) {
     const toast: Toast = { id: crypto.randomUUID(), type, title, message };
@@ -893,21 +902,23 @@ function App() {
     }
   }
 
-  async function runPrompt(label: string, promptFactory: () => ReturnType<typeof buildDefaultPrompt>) {
+  async function runPrompt(
+    label: string,
+    promptFactory: () => ReturnType<typeof buildDefaultPrompt>,
+    onProgress: (progress: ProgressState) => void = (prog) => setProgress(prog),
+  ) {
     setError("");
     try {
-      setProgress({ running: true, value: 0, max: 1, label: `${label} 准备中` });
+      onProgress({ running: true, value: 0, max: 1, label: `${label} 准备中` });
       pushToast("info", `${label} 已提交`, "正在等待 ComfyUI 执行");
-      const result = await client.runPrompt(promptFactory(), (prog) => {
-        setProgress(prog);
-      });
+      const result = await client.runPrompt(promptFactory(), onProgress);
       setResults((prev) => [result, ...prev].slice(0, 24));
       pushToast("success", `${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : undefined);
       return result;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
       setError(message);
-      setProgress({ running: false, value: 0, max: 1, label: "失败" });
+      onProgress({ running: false, value: 0, max: 1, label: "失败" });
       pushToast("error", `${label} 失败`, message);
       throw runError;
     }
@@ -1009,15 +1020,21 @@ function App() {
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "cancelled" } : entry));
         continue;
       }
+      const batch = { current: index + 1, total: items.length, itemLabel: item.label };
       setProgress({
         running: true,
         value: index,
         max: items.length,
         label: `XYZ ${index + 1}/${items.length}`,
+        batch,
       });
       setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "running", error: undefined } : entry));
       try {
-        const result = await runPrompt(item.label, () => buildXyzPrompt(item));
+        const result = await runPrompt(
+          item.label,
+          () => buildXyzPrompt(item),
+          (prog) => setProgress({ ...prog, batch }),
+        );
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result } : entry));
       } catch (runError) {
         const message = runError instanceof Error ? runError.message : String(runError);
@@ -1025,7 +1042,13 @@ function App() {
         pushToast("error", `XYZ 组合失败：${item.label}`, message);
       }
     }
-    setProgress({ running: false, value: 1, max: 1, label: "XYZ 完成" });
+    setProgress({
+      running: false,
+      value: 1,
+      max: 1,
+      label: "XYZ 完成",
+      batch: { current: items.length, total: items.length, itemLabel: "" },
+    });
     pushToast("success", "XYZ 执行结束", `已处理 ${items.length} 个组合`);
   }
 
@@ -1035,11 +1058,12 @@ function App() {
       pushToast("error", "XYZ 无法运行", "至少需要启用一个轴并填写取值");
       return;
     }
-    const items = combos.map((combo) => ({
+    const items = combos.map((combo, index) => ({
       id: crypto.randomUUID(),
       label: combo.label,
       patch: combo.patch,
       status: "queued" as const,
+      comboIndex: index,
     }));
     await runXyzItems(items, true);
   }
@@ -1085,66 +1109,238 @@ function App() {
   }
 
   async function exportXyzGrid() {
-    const successfulItems = xyzResults.filter((item) => item.status === "success" && item.result?.images[0]);
-    if (successfulItems.length === 0) {
+    const drawableItems = xyzResults.filter((item) => item.status === "success" && item.result?.images[0]);
+    if (drawableItems.length === 0) {
       pushToast("info", "没有可导出的结果", "网格中没有成功的生成图像");
       return;
     }
     pushToast("info", "正在生成网格", "请稍候...");
 
+    const lorasOfTarget = getXyzLoras();
     const activeAxes = xyzAxes.filter((axis) => axis.enabled && axis.values.trim());
-    let cols = 1;
-    if (activeAxes.length > 0) {
-      const lastAxisValues = parseAxisValues(activeAxes[activeAxes.length - 1].values, activeAxes[activeAxes.length - 1].field);
-      cols = lastAxisValues.length > 0 ? lastAxisValues.length : 1;
-    }
-    const rows = Math.ceil(successfulItems.length / cols);
+    const lastAxis = activeAxes[activeAxes.length - 1];
+    const lastAxisValues = lastAxis ? parseAxisValues(lastAxis.values, lastAxis.field) : [];
+    const cols = lastAxisValues.length > 0 ? lastAxisValues.length : 1;
+
+    const slotOf = (item: XyzRunItem) => (typeof item.comboIndex === "number" ? item.comboIndex : xyzResults.indexOf(item));
+    const total = Math.max(...xyzResults.map((item) => slotOf(item))) + 1;
+    const rows = Math.ceil(total / cols);
 
     try {
-      const loadedImages = await Promise.all(
-        successfulItems.map((item) => {
-          return new Promise<{ img: HTMLImageElement; label: string }>((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => resolve({ img, label: item.label });
-            img.onerror = () => reject(new Error(`加载图像失败: ${item.label}`));
-            img.src = item.result!.images[0].url;
-          });
-        }),
+      const imagesBySlot = new Map<number, HTMLImageElement>();
+      await Promise.all(
+        drawableItems.map(
+          (item) =>
+            new Promise<void>((resolve, reject) => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.onload = () => {
+                imagesBySlot.set(slotOf(item), img);
+                resolve();
+              };
+              img.onerror = () => reject(new Error(`加载图像失败: ${item.label}`));
+              img.src = item.result!.images[0].url;
+            }),
+        ),
       );
 
-      const maxWidth = Math.max(...loadedImages.map((l) => l.img.width));
-      const maxHeight = Math.max(...loadedImages.map((l) => l.img.height));
-      const labelHeight = 40;
+      const itemsBySlot = new Map<number, XyzRunItem>();
+      xyzResults.forEach((item) => itemsBySlot.set(slotOf(item), item));
+      const combos = buildXyzCombinations(xyzAxes, lorasOfTarget);
+      const labelOfSlot = (slot: number) => itemsBySlot.get(slot)?.label ?? combos[slot]?.label ?? "";
 
       const canvas = document.createElement("canvas");
-      canvas.width = cols * maxWidth;
-      canvas.height = rows * (maxHeight + labelHeight);
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("无法创建 canvas 绘图上下文");
+      const fontStack = '"Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif';
 
-      ctx.fillStyle = "#1e1e1e";
+      const cellW = Math.max(...[...imagesBySlot.values()].map((img) => img.width));
+      const cellH = Math.max(...[...imagesBySlot.values()].map((img) => img.height));
+      const fontSize = Math.min(30, Math.max(18, Math.round(cellW / 26)));
+      const headerFontSize = Math.min(24, Math.max(16, Math.round(cellW / 34)));
+      const gap = 14;
+      const margin = 28;
+      const fontLineH = Math.round(fontSize * 1.45);
+      const headerLineH = Math.round(headerFontSize * 1.4);
+
+      // 文件路径类的值只保留文件名，避免标签过长被截断
+      const prettyValue = (value: string | number) => {
+        const text = String(value);
+        if (/[\\/]/.test(text) && /\.[A-Za-z0-9]{2,16}$/.test(text)) {
+          return text.split(/[\\/]/).pop() || text;
+        }
+        return text;
+      };
+      const prettyLabel = (label: string) =>
+        label
+          .split(" / ")
+          .map((segment) => {
+            const eq = segment.indexOf("=");
+            return eq > 0 ? `${segment.slice(0, eq + 1)}${prettyValue(segment.slice(eq + 1))}` : segment;
+          })
+          .join(" / ");
+
+      const wrapWidth = (text: string, maxWidth: number) => {
+        const lines: string[] = [];
+        let current = "";
+        for (const ch of text) {
+          if (current && ctx.measureText(current + ch).width > maxWidth) {
+            lines.push(current);
+            current = ch;
+          } else {
+            current += ch;
+          }
+        }
+        if (current) lines.push(current);
+        return lines;
+      };
+      const wrapLabel = (label: string, maxWidth: number, maxLines: number) => {
+        const lines = label.split(" / ").flatMap((segment) => wrapWidth(segment, maxWidth));
+        if (lines.length <= maxLines) return lines;
+        const kept = lines.slice(0, maxLines);
+        let last = kept[maxLines - 1];
+        while (last.length > 1 && ctx.measureText(`${last}…`).width > maxWidth) {
+          last = last.slice(0, -1);
+        }
+        kept[maxLines - 1] = `${last}…`;
+        return kept;
+      };
+
+      ctx.font = `600 ${fontSize}px ${fontStack}`;
+      const cellLabelLines = new Map<number, string[]>();
+      let maxCellLabelLines = 1;
+      for (let slot = 0; slot < total; slot += 1) {
+        const lines = wrapLabel(prettyLabel(labelOfSlot(slot)), cellW - 24, 2);
+        cellLabelLines.set(slot, lines);
+        maxCellLabelLines = Math.max(maxCellLabelLines, lines.length);
+      }
+      const labelH = fontLineH * maxCellLabelLines + 16;
+      const cellTotalH = cellH + labelH;
+
+      ctx.font = `600 ${headerFontSize}px ${fontStack}`;
+      const rowHeaderOf = (row: number) => {
+        const parts = prettyLabel(labelOfSlot(row * cols)).split(" / ");
+        return parts.length > 1 ? parts.slice(0, -1).join(" / ") : "";
+      };
+      const rowHeaderMaxLines = Math.max(2, Math.min(6, Math.floor((cellTotalH - 16) / headerLineH)));
+      const rowHeaders = Array.from({ length: rows }, (_, row) => rowHeaderOf(row));
+      const hasRowHeaders = rowHeaders.some(Boolean);
+      const rowHeaderW = hasRowHeaders
+        ? Math.min(
+            340,
+            Math.max(
+              ...rowHeaders
+                .filter(Boolean)
+                .flatMap((header) => wrapLabel(header, 328, rowHeaderMaxLines))
+                .map((line) => ctx.measureText(line).width),
+            ) + 24,
+          )
+        : 0;
+      const rowHeaderLines = rowHeaders.map((header) => (header ? wrapLabel(header, rowHeaderW - 12, rowHeaderMaxLines) : []));
+
+      const colHeaders = lastAxisValues.map((value) => `${fieldLabel(lastAxis.field, lorasOfTarget)}=${prettyValue(value)}`);
+      const colHeaderLines = colHeaders.map((header) => wrapLabel(header, cellW, 2));
+      const maxColHeaderLines = Math.max(1, ...colHeaderLines.map((lines) => lines.length));
+      const colHeaderH = colHeaders.length ? headerLineH * maxColHeaderLines + 18 : 0;
+      const titleH = 96;
+      const gridW = cols * cellW + (cols - 1) * gap;
+      const gridH = rows * cellTotalH + (rows - 1) * gap;
+      canvas.width = margin * 2 + rowHeaderW + (hasRowHeaders ? gap : 0) + gridW;
+      canvas.height = margin + titleH + colHeaderH + (colHeaderH ? gap : 0) + gridH + margin;
+
+      ctx.fillStyle = "#0b1220";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      loadedImages.forEach((item, index) => {
-        const c = index % cols;
-        const r = Math.floor(index / cols);
-        const x = c * maxWidth;
-        const y = r * (maxHeight + labelHeight);
+      const fitText = (text: string, maxWidth: number) => {
+        if (!text || ctx.measureText(text).width <= maxWidth) return text;
+        let truncated = text;
+        while (truncated.length > 1 && ctx.measureText(`${truncated}…`).width > maxWidth) {
+          truncated = truncated.slice(0, -1);
+        }
+        return `${truncated}…`;
+      };
 
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(x, y, maxWidth, labelHeight);
+      const now = new Date();
+      const pad = (value: number) => String(value).padStart(2, "0");
+      const title = `XYZ 网格 · ${templateLabels[xyzTarget]} · ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = `700 30px ${fontStack}`;
+      ctx.fillText(title, margin, margin + 38);
+      const subtitle = activeAxes
+        .map((axis) => `${fieldLabel(axis.field, lorasOfTarget)}: ${axis.values.replace(/[\n,]+/g, ",").trim()}`)
+        .join(" ｜ ");
+      if (subtitle) {
+        ctx.fillStyle = "#8ea0b8";
+        ctx.font = `400 18px ${fontStack}`;
+        ctx.fillText(fitText(subtitle, canvas.width - margin * 2), margin, margin + 70);
+      }
 
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "16px sans-serif";
+      const gridTop = margin + titleH + colHeaderH + (colHeaderH ? gap : 0);
+      const gridLeft = margin + rowHeaderW + (hasRowHeaders ? gap : 0);
+
+      if (colHeaders.length) {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(item.label, x + maxWidth / 2, y + labelHeight / 2);
+        ctx.fillStyle = "#93c5fd";
+        ctx.font = `600 ${headerFontSize}px ${fontStack}`;
+        colHeaderLines.forEach((lines, c) => {
+          const centerX = gridLeft + c * (cellW + gap) + cellW / 2;
+          const startY = margin + titleH + (colHeaderH - (lines.length - 1) * headerLineH) / 2;
+          lines.forEach((line, i) => ctx.fillText(line, centerX, startY + i * headerLineH));
+        });
+      }
 
-        const imgX = x + (maxWidth - item.img.width) / 2;
-        const imgY = y + labelHeight + (maxHeight - item.img.height) / 2;
-        ctx.drawImage(item.img, imgX, imgY);
-      });
+      if (hasRowHeaders) {
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#93c5fd";
+        ctx.font = `600 ${headerFontSize}px ${fontStack}`;
+        rowHeaderLines.forEach((lines, r) => {
+          if (!lines.length) return;
+          const centerY = gridTop + r * (cellTotalH + gap) + cellH / 2;
+          const startY = centerY - ((lines.length - 1) * headerLineH) / 2;
+          lines.forEach((line, i) => ctx.fillText(line, margin + rowHeaderW - 6, startY + i * headerLineH));
+        });
+      }
+
+      for (let slot = 0; slot < total; slot += 1) {
+        const c = slot % cols;
+        const r = Math.floor(slot / cols);
+        const x = gridLeft + c * (cellW + gap);
+        const y = gridTop + r * (cellTotalH + gap);
+
+        ctx.fillStyle = "#141d2c";
+        ctx.fillRect(x, y, cellW, cellTotalH);
+        ctx.strokeStyle = "#263349";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 0.5, y + 0.5, cellW - 1, cellTotalH - 1);
+
+        const img = imagesBySlot.get(slot);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        if (img) {
+          const pad = 8;
+          const scale = Math.min((cellW - pad * 2) / img.width, (cellH - pad * 2) / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          ctx.drawImage(img, x + (cellW - w) / 2, y + (cellH - h) / 2, w, h);
+        } else {
+          const status = itemsBySlot.get(slot)?.status;
+          ctx.fillStyle = status === "failed" ? "#f87171" : "#5b6b82";
+          ctx.font = `600 ${Math.max(16, Math.round(fontSize * 0.85))}px ${fontStack}`;
+          ctx.fillText(status ? `✕ ${xyzStatusLabel(status)}` : "—", x + cellW / 2, y + cellH / 2);
+        }
+
+        ctx.fillStyle = "#0e1524";
+        ctx.fillRect(x + 1, y + cellH, cellW - 2, labelH);
+        ctx.fillStyle = "#dbeafe";
+        ctx.font = `600 ${fontSize}px ${fontStack}`;
+        const lines = cellLabelLines.get(slot) ?? [];
+        const labelStartY = y + cellH + (labelH - (lines.length - 1) * fontLineH) / 2;
+        lines.forEach((line, i) => ctx.fillText(line, x + cellW / 2, labelStartY + i * fontLineH));
+      }
 
       const dataUrl = canvas.toDataURL("image/png");
       const a = document.createElement("a");
@@ -1954,7 +2150,12 @@ function App() {
                       <span>{xyzStatusLabel(item.status)}</span>
                     </div>
                     {item.result?.images[0] ? (
-                      <img src={item.result.images[0].url} alt={item.label} />
+                      <img
+                        src={item.result.images[0].url}
+                        alt={item.label}
+                        style={{ cursor: "zoom-in" }}
+                        onClick={() => setOutputLightbox(item.result!.images[0].url)}
+                      />
                     ) : (
                       <div className="xyz-image-placeholder" />
                     )}
@@ -2377,14 +2578,28 @@ function FeatureModal({ modal, onClose }: { modal: { title: string; body: string
 
 function RunProgressStrip({ progress }: { progress: ProgressState }) {
   const percent = progress.max > 0 ? Math.min(100, Math.max(0, (progress.value / progress.max) * 100)) : 0;
-  const show = progress.running || progress.label === "完成";
+  const show = progress.running || progress.label === "完成" || Boolean(progress.batch);
   if (!show) return null;
   const indeterminate = progress.running && percent <= 0;
+  const batch = progress.batch;
+  const batchPercent = batch && batch.total > 0 ? Math.min(100, Math.max(0, (batch.current / batch.total) * 100)) : 0;
   return (
     <div className="run-progress-strip" role="status" aria-live="polite">
+      {batch && (
+        <div className="run-progress-batch">
+          <span className="batch-badge">XYZ</span>
+          <strong>{batch.current}/{batch.total}</strong>
+          <span className="batch-item" title={batch.itemLabel}>
+            {batch.itemLabel || (progress.running ? "准备中" : "全部组合已处理")}
+          </span>
+          <div className="progress-track slim" aria-label="XYZ 批次进度">
+            <span style={{ width: `${batchPercent}%` }} />
+          </div>
+        </div>
+      )}
       <div className="run-progress-meta">
         <strong>{progress.label}</strong>
-        <span>{progress.node ? `节点 ${progress.node}` : progress.promptId ? `任务 ${progress.promptId.slice(0, 8)}` : "等待提交"}</span>
+        <span>{progress.node ? `节点 ${progress.node}` : progress.promptId ? `任务 ${progress.promptId.slice(0, 8)}` : progress.running ? "等待提交" : ""}</span>
         <b>{indeterminate ? "处理中" : `${Math.round(percent)}%`}</b>
       </div>
       <div className={indeterminate ? "progress-track indeterminate" : "progress-track"} aria-label="生图进度">

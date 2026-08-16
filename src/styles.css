@@ -1708,6 +1708,42 @@ textarea {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.26);
 }
 
+.run-progress-batch {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) minmax(120px, 240px);
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.run-progress-batch .batch-badge {
+  padding: 2px 9px;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.18);
+  color: #93c5fd;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.run-progress-batch strong {
+  color: #dbeafe;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.run-progress-batch .batch-item {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-track.slim {
+  height: 5px;
+}
+
 .run-progress-meta,
 .lm-download-progress-meta {
   display: grid;
