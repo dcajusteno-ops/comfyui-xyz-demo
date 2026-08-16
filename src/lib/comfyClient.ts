@@ -539,6 +539,7 @@ export class ComfyClient {
     const socket = this.openSocket(clientId);
     let promptId = "";
     let completed = false;
+    let finishNotified = false;
 
     await new Promise<void>((resolve) => {
       socket.addEventListener("open", () => resolve(), { once: true });
@@ -571,13 +572,16 @@ export class ComfyClient {
       completed = true;
       socket.close();
       const extracted = this.extractHistory(promptId, history);
-      updateProgress({
-        running: false,
-        promptId,
-        value: 1,
-        max: 1,
-        label: "完成",
-      });
+      if (!finishNotified) {
+        finishNotified = true;
+        updateProgress({
+          running: false,
+          promptId,
+          value: 1,
+          max: 1,
+          label: "完成",
+        });
+      }
       return extracted;
     };
 
@@ -598,6 +602,7 @@ export class ComfyClient {
 
       socket.addEventListener("message", async (event) => {
         try {
+          if (completed) return;
           if (typeof event.data !== "string") {
             let blob: Blob;
             if (event.data instanceof Blob) {
