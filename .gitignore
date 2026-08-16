@@ -24,3 +24,7 @@ pnpm-debug.log*
 test-results/
 *.log
 *.zip
+
+# session artifacts
+.zcode/
+.playwright-mcp/
