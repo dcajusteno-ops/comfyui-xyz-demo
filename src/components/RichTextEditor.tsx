@@ -1,25 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  Bold,
   Clock,
   Copy,
   Download,
-  Eraser,
-  Heading1,
-  Heading2,
-  Highlighter,
-  Italic,
-  List,
-  ListOrdered,
   Maximize,
   Minimize,
-  Strikethrough,
   Trash2,
   Type,
-  Underline,
-  Undo,
-  Redo,
-  Upload
+  Upload,
+  Save,
+  CheckCircle2,
+  Eraser,
+  Sparkles,
+  Zap,
+  AlignLeft
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -28,53 +22,66 @@ interface RichTextEditorProps {
   onSave: () => void;
   title: string;
   onClear: () => void;
+  saving?: boolean;
 }
 
-export function RichTextEditor({ value, onChange, onSave, title, onClear }: RichTextEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
+const COMMON_SNIPPETS = [
+  { label: "大师级", value: "masterpiece, best quality, highres, " },
+  { label: "写实", value: "photorealistic, ultra detailed, 8k uhd, " },
+  { label: "二次元", value: "anime style, vibrant colors, " },
+  { label: "负面提示词", value: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, " }
+];
+
+export function RichTextEditor({ value, onChange, onSave, title, onClear, saving }: RichTextEditorProps) {
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [zoom, setZoom] = useState(16); // Base font size
+  const [zoom, setZoom] = useState(16);
+  const [showSnippets, setShowSnippets] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync initial value, but avoid cursor jumps during active typing
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value;
-    }
-  }, [value]);
-
-  const handleInput = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value);
   };
 
-  const exec = (command: string, value: string | undefined = undefined) => {
-    document.execCommand(command, false, value);
-    editorRef.current?.focus();
-    handleInput();
+  const insertText = (text: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = textarea.value;
+    const newText = currentText.substring(0, start) + text + currentText.substring(end);
+    
+    onChange(newText);
+    
+    // Focus back and set selection
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + text.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
   };
 
-  const handleCopy = () => {
-    if (editorRef.current) {
-      const text = editorRef.current.innerText; // Copy plain text for ComfyUI
-      navigator.clipboard.writeText(text);
-      // Let parent handle toast if needed, but we don't have access to pushToast here easily unless passed down.
-      // So we just rely on browser or add a simple callback. For now, it copies silently.
-    }
+  const handleCopyPrompt = () => {
+    // Clean up text for ComfyUI: strip HTML tags if any, collapse multiple spaces/newlines
+    const div = document.createElement("div");
+    div.innerHTML = value;
+    let cleanText = div.innerText || div.textContent || value;
+    
+    // Remove multiple newlines and spaces that might break prompts
+    cleanText = cleanText.replace(/\n\s*\n/g, "\n").trim();
+    
+    navigator.clipboard.writeText(cleanText);
   };
 
   const handleDownload = () => {
-    if (editorRef.current) {
-      const text = editorRef.current.innerText;
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title || "note"}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    const blob = new Blob([value], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${title || "prompt"}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,21 +90,40 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear }: Rich
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
-      const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
-      exec("insertHTML", safeText);
+      onChange(text);
     };
     reader.readAsText(file);
-    e.target.value = ""; // reset
+    e.target.value = "";
   };
 
-  const insertTime = () => {
-    const time = new Date().toLocaleString();
-    exec("insertText", time);
+  const cleanupHtml = () => {
+    const div = document.createElement("div");
+    div.innerHTML = value;
+    const plainText = div.innerText || div.textContent || "";
+    onChange(plainText.replace(/&nbsp;/g, " ").trim());
   };
 
-  const ToolbarButton = ({ icon: Icon, title, onClick }: any) => (
-    <button type="button" className="lm-text-btn" onClick={onClick} title={title} style={{ padding: "6px" }}>
+  const ToolbarButton = ({ icon: Icon, title, onClick, active, color }: any) => (
+    <button 
+      type="button" 
+      className={`lm-text-btn ${active ? "active" : ""}`} 
+      onClick={onClick} 
+      title={title} 
+      style={{ 
+        padding: "6px 10px",
+        background: active ? "rgba(59, 130, 246, 0.2)" : "transparent",
+        color: active ? "#60a5fa" : (color || "#94a3b8"),
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        fontSize: "12px",
+        border: active ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid transparent",
+      }}
+    >
       <Icon size={16} />
+      {title && <span className="btn-label">{title}</span>}
     </button>
   );
 
@@ -108,74 +134,185 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear }: Rich
       flex: 1,
       minHeight: 0,
       background: "#080b12",
-      ...(isFullScreen ? { position: "fixed", inset: 0, zIndex: 100, padding: "20px" } : {})
+      ...(isFullScreen ? { position: "fixed", inset: 0, zIndex: 1000, padding: "20px" } : {})
     }}>
-      {/* Primary Toolbar */}
-      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "8px", background: "#111827", padding: "6px 10px", borderRadius: "8px", border: "1px solid #263244", alignItems: "center" }}>
-        <ToolbarButton icon={Undo} title="撤销 (Ctrl+Z)" onClick={() => exec("undo")} />
-        <ToolbarButton icon={Redo} title="重做 (Ctrl+Y)" onClick={() => exec("redo")} />
-        <div style={{ width: "1px", height: "16px", background: "#263244", margin: "0 4px" }} />
+      {/* Prompt Utility Bar */}
+      <div style={{ 
+        display: "flex", 
+        gap: "8px", 
+        flexWrap: "wrap", 
+        marginBottom: "10px", 
+        background: "#111827", 
+        padding: "8px 12px", 
+        borderRadius: "10px", 
+        border: "1px solid #263244", 
+        alignItems: "center" 
+      }}>
+        <button 
+          type="button" 
+          className="primary-action" 
+          onClick={handleCopyPrompt}
+          style={{ 
+            background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+            padding: "6px 16px",
+            height: "32px",
+            fontSize: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.2)"
+          }}
+        >
+          <Copy size={16} />
+          复制到 ComfyUI
+        </button>
+
+        <div style={{ width: "1px", height: "20px", background: "#263244", margin: "0 4px" }} />
+
+        <div style={{ position: "relative" }}>
+          <ToolbarButton 
+            icon={Sparkles} 
+            title="快捷片段" 
+            active={showSnippets} 
+            onClick={() => setShowSnippets(!showSnippets)} 
+            color="#fbbf24"
+          />
+          {showSnippets && (
+            <div style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              marginTop: "8px",
+              background: "#111827",
+              border: "1px solid #263244",
+              borderRadius: "8px",
+              padding: "8px",
+              zIndex: 10,
+              boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+              width: "200px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px"
+            }}>
+              {COMMON_SNIPPETS.map((s, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="lm-text-btn"
+                  style={{ justifyContent: "flex-start", padding: "6px 10px", fontSize: "12px", width: "100%" }}
+                  onClick={() => {
+                    insertText(s.value);
+                    setShowSnippets(false);
+                  }}
+                >
+                  <Zap size={14} style={{ marginRight: "8px", color: "#fbbf24" }} />
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <ToolbarButton icon={Clock} title="时间戳" onClick={() => insertText(`\n[${new Date().toLocaleString()}]\n`)} />
+        <ToolbarButton icon={Eraser} title="清理格式" onClick={cleanupHtml} />
         
-        <ToolbarButton icon={Bold} title="加粗" onClick={() => exec("bold")} />
-        <ToolbarButton icon={Italic} title="斜体" onClick={() => exec("italic")} />
-        <ToolbarButton icon={Underline} title="下划线" onClick={() => exec("underline")} />
-        <ToolbarButton icon={Strikethrough} title="删除线" onClick={() => exec("strikeThrough")} />
-        <div style={{ width: "1px", height: "16px", background: "#263244", margin: "0 4px" }} />
+        <div style={{ width: "1px", height: "20px", background: "#263244", margin: "0 4px" }} />
         
-        <ToolbarButton icon={Heading1} title="一级标题" onClick={() => exec("formatBlock", "H1")} />
-        <ToolbarButton icon={Heading2} title="二级标题" onClick={() => exec("formatBlock", "H2")} />
-        <ToolbarButton icon={List} title="无序列表" onClick={() => exec("insertUnorderedList")} />
-        <ToolbarButton icon={ListOrdered} title="有序列表" onClick={() => exec("insertOrderedList")} />
-        <div style={{ width: "1px", height: "16px", background: "#263244", margin: "0 4px" }} />
-        
-        <ToolbarButton icon={Highlighter} title="高亮标记" onClick={() => exec("hiliteColor", "rgba(234, 179, 8, 0.4)")} />
-        <ToolbarButton icon={Eraser} title="清除格式" onClick={() => exec("removeFormat")} />
-        <div style={{ width: "1px", height: "16px", background: "#263244", margin: "0 4px" }} />
-        
-        <ToolbarButton icon={Copy} title="复制纯文本" onClick={handleCopy} />
-        <ToolbarButton icon={Download} title="下载本地文件" onClick={handleDownload} />
-        <ToolbarButton icon={Upload} title="导入本地文件" onClick={() => fileInputRef.current?.click()} />
-        <input type="file" accept=".txt,.md" ref={fileInputRef} style={{ display: "none" }} onChange={handleImport} />
-        
-        <ToolbarButton icon={Clock} title="插入时间" onClick={insertTime} />
-        <ToolbarButton icon={Trash2} title="清空内容" onClick={onClear} />
+        <ToolbarButton icon={Download} title="导出" onClick={handleDownload} />
+        <ToolbarButton icon={Upload} title="导入" onClick={() => fileInputRef.current?.click()} />
+        <input type="file" accept=".txt" ref={fileInputRef} style={{ display: "none" }} onChange={handleImport} />
         
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
-          <button type="button" className="lm-text-btn" onClick={() => setZoom(Math.max(12, zoom - 2))} title="缩小字号"><Type size={14} /></button>
-          <span style={{ color: "#94a3b8", fontSize: "12px", width: "24px", textAlign: "center" }}>{zoom}</span>
-          <button type="button" className="lm-text-btn" onClick={() => setZoom(Math.min(32, zoom + 2))} title="放大字号"><Type size={18} /></button>
+          <div style={{ display: "flex", alignItems: "center", background: "#0c111a", padding: "2px", borderRadius: "6px", border: "1px solid #1e293b" }}>
+            <button type="button" className="lm-text-btn" onClick={() => setZoom(Math.max(12, zoom - 2))} title="缩小"><Type size={14} /></button>
+            <span style={{ color: "#94a3b8", fontSize: "12px", width: "24px", textAlign: "center" }}>{zoom}</span>
+            <button type="button" className="lm-text-btn" onClick={() => setZoom(Math.min(32, zoom + 2))} title="放大"><Type size={18} /></button>
+          </div>
           
-          <div style={{ width: "1px", height: "16px", background: "#263244", margin: "0 4px" }} />
-          <ToolbarButton icon={isFullScreen ? Minimize : Maximize} title={isFullScreen ? "退出全屏" : "全屏沉浸模式"} onClick={() => setIsFullScreen(!isFullScreen)} />
+          <button 
+            type="button" 
+            className="primary-action" 
+            onClick={onSave} 
+            disabled={saving}
+            style={{ 
+              padding: "4px 12px", 
+              fontSize: "12px", 
+              height: "28px", 
+              background: saving ? "#059669" : "#374151",
+              border: "none"
+            }}
+          >
+            {saving ? <CheckCircle2 size={14} className="animate-pulse" /> : <Save size={14} />}
+            {saving ? "已存" : "保存"}
+          </button>
+
+          <button 
+            type="button" 
+            className="lm-text-btn" 
+            onClick={() => setIsFullScreen(!isFullScreen)} 
+            title={isFullScreen ? "退出全屏" : "全屏模式"}
+          >
+            {isFullScreen ? <Minimize size={18} /> : <Maximize size={18} />}
+          </button>
         </div>
       </div>
 
-      {/* Editor Area */}
-      <div 
-        ref={editorRef}
-        contentEditable
-        onInput={handleInput}
-        onKeyDown={(e) => {
-          if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-            e.preventDefault();
-            onSave();
-          }
-        }}
-        className="rich-editor-content"
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "16px",
-          outline: "none",
-          fontSize: `${zoom}px`,
-          lineHeight: 1.6,
-          color: "#e2e8f0",
-          background: "#0c111a",
-          borderRadius: "8px",
-          border: "1px solid #1e293b",
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-        }}
-      />
+      {/* Main Textarea */}
+      <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column" }}>
+        <div style={{
+          position: "absolute",
+          top: "10px",
+          right: "20px",
+          fontSize: "11px",
+          color: "#4b5563",
+          pointerEvents: "none",
+          zIndex: 5
+        }}>
+          {value.length} 字符 | {value.split(/\s+/).filter(Boolean).length} 单词
+        </div>
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleInput}
+          onKeyDown={(e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+              e.preventDefault();
+              onSave();
+            }
+            if (e.key === "Tab") {
+              e.preventDefault();
+              insertText("  ");
+            }
+          }}
+          placeholder="在这里记录您的提示词（Prompt）..."
+          style={{
+            flex: 1,
+            padding: "24px",
+            outline: "none",
+            fontSize: `${zoom}px`,
+            lineHeight: 1.8,
+            color: "#e2e8f0",
+            background: "#0c111a",
+            borderRadius: "12px",
+            border: "1px solid #1e293b",
+            fontFamily: "'Fira Code', 'Cascadia Code', Consolas, monospace",
+            resize: "none",
+            tabSize: 2,
+            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3)"
+          }}
+        />
+      </div>
+
+      <style>{`
+        .btn-label { display: inline; }
+        @media (max-width: 1200px) {
+          .btn-label { display: none; }
+        }
+        textarea::placeholder {
+          color: #334155;
+          font-style: italic;
+        }
+      `}</style>
     </div>
   );
 }

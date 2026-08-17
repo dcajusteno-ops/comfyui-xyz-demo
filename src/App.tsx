@@ -436,6 +436,9 @@ function App() {
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [notesSaving, setNotesSaving] = useState(false);
+  const [notesSearch, setNotesSearch] = useState("");
+  const [isNotesWide, setIsNotesWide] = useState(false);
+  const notesSaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (tab === "notes") {
@@ -453,7 +456,8 @@ function App() {
     }
   }, [tab]);
 
-  async function saveNotes(currentNotes: NoteItem[]) {
+  async function saveNotes(currentNotes: NoteItem[], silent = false) {
+    if (currentNotes.length === 0 && notes.length === 0) return;
     setNotesSaving(true);
     try {
       const res = await fetch("/api/notes", {
@@ -463,13 +467,33 @@ function App() {
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      pushToast("success", "笔记已保存");
+      if (!silent) pushToast("success", "笔记已保存");
     } catch (err) {
-      pushToast("error", "保存笔记失败", String(err));
+      if (!silent) pushToast("error", "保存笔记失败", String(err));
     } finally {
-      setNotesSaving(false);
+      // Keep "saving" state for a moment to show visual feedback
+      setTimeout(() => setNotesSaving(false), 800);
     }
   }
+
+  // Auto-save effect
+  useEffect(() => {
+    if (tab !== "notes") return;
+    
+    if (notesSaveTimerRef.current) {
+      window.clearTimeout(notesSaveTimerRef.current);
+    }
+
+    notesSaveTimerRef.current = window.setTimeout(() => {
+      saveNotes(notes, true);
+    }, 2000); // 2 seconds debounce
+
+    return () => {
+      if (notesSaveTimerRef.current) {
+        window.clearTimeout(notesSaveTimerRef.current);
+      }
+    };
+  }, [notes, tab]);
 
   function handleAddNote() {
     const newNote: NoteItem = {
@@ -523,6 +547,7 @@ function App() {
     max: 1,
     label: "空闲",
   });
+  const [activeTaskLabel, setActiveTaskLabel] = useState("");
   const [results, setResults] = useState<JobResult[]>([]);
   const [error, setError] = useState("");
   const [xyzTarget, setXyzTarget] = useLocalStorageState<TemplateKind>("comfyui_xyz_target", "default");
@@ -549,12 +574,18 @@ function App() {
   );
   const baseDocTitleRef = useRef(document.title);
   useEffect(() => {
-    if (progress.batch && progress.running) {
-      document.title = `【XYZ ${progress.batch.current}/${progress.batch.total}】${baseDocTitleRef.current}`;
+    if (progress.running) {
+      const percent = progress.max > 0 ? Math.round((progress.value / progress.max) * 100) : 0;
+      let prefix = `${percent}%`;
+      if (progress.batch) {
+        prefix = `[${progress.batch.current}/${progress.batch.total}] ${prefix}`;
+      }
+      const taskPart = activeTaskLabel ? ` | ${activeTaskLabel}` : "";
+      document.title = `${prefix}${taskPart} - ${baseDocTitleRef.current}`;
     } else if (document.title !== baseDocTitleRef.current) {
       document.title = baseDocTitleRef.current;
     }
-  }, [progress]);
+  }, [progress.running, progress.value, progress.max, progress.batch, activeTaskLabel]);
 
   function pushToast(type: Toast["type"], title: string, message?: string) {
     const toast: Toast = { id: crypto.randomUUID(), type, title, message };
@@ -906,8 +937,10 @@ function App() {
     label: string,
     promptFactory: () => ReturnType<typeof buildDefaultPrompt>,
     onProgress: (progress: ProgressState) => void = (prog) => setProgress(prog),
+    taskLabel?: string,
   ) {
     setError("");
+    setActiveTaskLabel(taskLabel || label);
     try {
       onProgress({ running: true, value: 0, max: 1, label: `${label} 准备中` });
       pushToast("info", `${label} 已提交`, "正在等待 ComfyUI 执行");
@@ -926,6 +959,7 @@ function App() {
 
   async function runBatchTagger(type: "cl" | "wd") {
     setError("");
+    setActiveTaskLabel(type === "cl" ? "CL 批量打标" : "WD 批量打标");
     const params = type === "cl" ? clBatchParams : wdBatchParams;
     try {
       pushToast("info", "批量打标已启动", `计划处理 ${params.runCount} 张`);
@@ -949,6 +983,7 @@ function App() {
 
   async function runWd14() {
     setError("");
+    setActiveTaskLabel("WD1.4");
     try {
       if (!wdFile && !wd14.imageName) {
         throw new Error("请先选择一张图片");
@@ -972,6 +1007,7 @@ function App() {
 
   async function runClSingle() {
     setError("");
+    setActiveTaskLabel("CL 单图识别");
     try {
       if (!clFile && !clSingleParams.imageName) {
         throw new Error("请先选择一张图片");
@@ -1010,6 +1046,7 @@ function App() {
 
   async function runXyzItems(items: XyzRunItem[], reset = false) {
     setError("");
+    setActiveTaskLabel("XYZ 控制器");
     xyzCancelRef.current = false;
     if (reset) {
       setXyzResults(items);
@@ -1034,6 +1071,7 @@ function App() {
           item.label,
           () => buildXyzPrompt(item),
           (prog) => setProgress({ ...prog, batch }),
+          "XYZ 控制器",
         );
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result } : entry));
       } catch (runError) {
@@ -2203,83 +2241,127 @@ function App() {
           {tab === "notes" && (
             <section className="panel notes-panel" style={{ padding: 0, display: "flex", flexDirection: "row", overflow: "hidden" }}>
               {/* Sidebar */}
-              <div style={{ width: "240px", borderRight: "1px solid #263244", display: "flex", flexDirection: "column", background: "#0c111a" }}>
-                <div style={{ padding: "16px", borderBottom: "1px solid #263244", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "bold" }}>
-                    <FileText size={18} /> 记事本
+              <div style={{ width: "260px", borderRight: "1px solid #263244", display: "flex", flexDirection: "column", background: "#0c111a" }}>
+                <div style={{ padding: "16px", borderBottom: "1px solid #263244" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "bold", color: "#e2e8f0" }}>
+                      <FileText size={18} /> 记事本
+                    </div>
+                    <button type="button" className="lm-text-btn" onClick={handleAddNote} title="新建笔记">
+                      <Plus size={18} />
+                    </button>
                   </div>
-                  <button type="button" className="lm-text-btn" onClick={handleAddNote} title="新建笔记">
-                    <Plus size={18} />
-                  </button>
+                  <div style={{ position: "relative" }}>
+                    <Search size={14} style={{ position: "absolute", left: "8px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
+                    <input 
+                      type="text" 
+                      placeholder="搜索笔记..." 
+                      value={notesSearch}
+                      onChange={(e) => setNotesSearch(e.target.value)}
+                      style={{ 
+                        width: "100%", 
+                        background: "#080b12", 
+                        border: "1px solid #1e293b", 
+                        borderRadius: "6px", 
+                        padding: "6px 8px 6px 28px", 
+                        fontSize: "12px", 
+                        color: "#e2e8f0",
+                        outline: "none"
+                      }} 
+                    />
+                  </div>
                 </div>
-                <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
-                  {notes.length === 0 && <div className="empty-state" style={{ padding: "20px 0" }}>暂无笔记</div>}
-                  {notes.map((note) => (
+                <div style={{ flex: 1, overflowY: "auto", padding: "8px" }} className="custom-scrollbar">
+                  {notes.filter(n => n.title.toLowerCase().includes(notesSearch.toLowerCase()) || n.content.toLowerCase().includes(notesSearch.toLowerCase())).length === 0 && (
+                    <div className="empty-state" style={{ padding: "40px 0", fontSize: "12px" }}>
+                      {notes.length === 0 ? "暂无笔记" : "未找到匹配项"}
+                    </div>
+                  )}
+                  {notes
+                    .filter(n => n.title.toLowerCase().includes(notesSearch.toLowerCase()) || n.content.toLowerCase().includes(notesSearch.toLowerCase()))
+                    .map((note) => (
                     <div
                       key={note.id}
                       onClick={() => setActiveNoteId(note.id)}
                       style={{
                         padding: "10px 12px",
-                        marginBottom: "6px",
+                        marginBottom: "4px",
                         borderRadius: "8px",
                         cursor: "pointer",
-                        background: activeNoteId === note.id ? "rgba(59, 130, 246, 0.15)" : "transparent",
-                        border: activeNoteId === note.id ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid transparent",
-                        boxShadow: activeNoteId === note.id ? "0 0 15px rgba(59, 130, 246, 0.1) inset" : "none",
+                        background: activeNoteId === note.id ? "rgba(59, 130, 246, 0.12)" : "transparent",
+                        border: activeNoteId === note.id ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid transparent",
                         color: activeNoteId === note.id ? "#93c5fd" : "#94a3b8",
                         display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        transition: "all 0.2s ease-in-out",
+                        flexDirection: "column",
+                        gap: "4px",
+                        transition: "all 0.15s ease",
                       }}
+                      className="note-list-item"
                     >
-                      <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {note.title || "未命名"}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: activeNoteId === note.id ? "bold" : "normal", fontSize: "13px" }}>
+                          {note.title || "未命名"}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteNote(note.id);
+                          }}
+                          className="delete-btn"
+                          style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "2px", display: "flex", opacity: 0.6 }}
+                        >
+                          <Trash2 size={12} />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteNote(note.id);
-                        }}
-                        style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: 0 }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div style={{ fontSize: "11px", color: "#64748b", display: "flex", justifyContent: "space-between" }}>
+                        <span>{new Date(note.updatedAt).toLocaleDateString()}</span>
+                        {note.content.length > 0 && <span>{note.content.length} 字</span>}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Editor */}
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "20px", background: "#080b12" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px", background: "#080b12" }}>
                 {activeNoteId && notes.find((n) => n.id === activeNoteId) ? (
                   <>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                      <input
-                        type="text"
-                        value={notes.find((n) => n.id === activeNoteId)?.title || ""}
-                        onChange={(e) => updateActiveNote({ title: e.target.value })}
-                        placeholder="笔记标题"
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                          color: "#e7edf7",
-                          width: "60%",
-                          outline: "none",
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="primary-action"
-                        onClick={() => saveNotes(notes)}
-                        disabled={notesSaving}
-                        style={{ minWidth: "80px" }}
-                      >
-                        {notesSaving ? "保存中..." : "保存记录"}
-                      </button>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+                        <input
+                          type="text"
+                          value={notes.find((n) => n.id === activeNoteId)?.title || ""}
+                          onChange={(e) => updateActiveNote({ title: e.target.value })}
+                          placeholder="笔记标题"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                            color: "#e7edf7",
+                            width: "100%",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <button
+                          type="button"
+                          className={`lm-text-btn ${isNotesWide ? "active" : ""}`}
+                          onClick={() => setIsNotesWide(!isNotesWide)}
+                          title={isNotesWide ? "显示输出面板" : "全宽模式"}
+                          style={{
+                            color: isNotesWide ? "#60a5fa" : "#64748b",
+                            background: isNotesWide ? "rgba(59, 130, 246, 0.1)" : "transparent",
+                            padding: "4px",
+                            borderRadius: "4px"
+                          }}
+                        >
+                          {isNotesWide ? <Minimize size={18} /> : <Maximize size={18} />}
+                        </button>
+                        {notesSaving && <span style={{ fontSize: "12px", color: "#60a5fa" }} className="animate-pulse">保存中...</span>}
+                      </div>
                     </div>
                     
                     <RichTextEditor
@@ -2287,6 +2369,7 @@ function App() {
                       onChange={(content) => updateActiveNote({ content })}
                       onSave={() => saveNotes(notes)}
                       title={notes.find((n) => n.id === activeNoteId)?.title || "note"}
+                      saving={notesSaving}
                       onClear={() => {
                         setConfirmDialog({
                           title: "清空内容",
@@ -2297,12 +2380,16 @@ function App() {
                         });
                       }}
                     />
-                      
-
                   </>
                 ) : (
-                  <div className="empty-state" style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    请在左侧选择或新建笔记
+                  <div className="empty-state" style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px" }}>
+                    <div style={{ background: "#111827", padding: "20px", borderRadius: "50%", color: "#374151" }}>
+                      <FileText size={48} />
+                    </div>
+                    <div style={{ color: "#4b5563" }}>请在左侧选择或新建笔记</div>
+                    <button type="button" className="primary-action" onClick={handleAddNote}>
+                      <Plus size={16} /> 新建第一条笔记
+                    </button>
                   </div>
                 )}
               </div>
@@ -2310,7 +2397,7 @@ function App() {
           )}
         </main>
 
-        {tab !== "loras" && (
+        {tab !== "loras" && !(tab === "notes" && isNotesWide) && (
           <aside className={results.length > 0 || progress.previewUrl ? "output-panel" : "output-panel is-empty"}>
             <div className="gallery">
               <h2><GalleryHorizontalEnd size={18} /> 输出</h2>
