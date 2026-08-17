@@ -14,6 +14,7 @@ export type LoraSelection = {
   active: boolean;
   filePath?: string;
   sha256?: string;
+  previewUrl?: string;
 };
 
 export type ManagedModelType = "loras" | "embeddings";

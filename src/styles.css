@@ -8,6 +8,7 @@
   -webkit-font-smoothing: antialiased;
 
   --accent: #1687f2;
+  --accent-rgb: 22, 135, 242;
   --accent-hover: #0f6fd0;
   --accent-soft: rgba(22, 135, 242, 0.1);
   --surface: #ffffff;
@@ -508,97 +509,297 @@ button {
   margin-bottom: 14px;
 }
 
-.lora-compact-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-
-.lora-compact-row {
-  display: flex;
-  align-items: center;
+.lora-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface-alt);
-  transition: opacity 0.2s;
+  margin-bottom: 20px;
 }
 
-.lora-compact-row.disabled {
-  opacity: 0.5;
-  background: transparent;
-}
-
-.lora-compact-toggle {
+.lora-selection-card {
   display: flex;
-  align-items: center;
-  margin: 0;
-  cursor: pointer;
-}
-
-.lora-compact-name {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
+  flex-direction: row;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1), 
+              opacity 0.2s ease, 
+              background 0.2s ease, 
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
+  position: relative;
+  user-select: none;
+  will-change: transform, opacity;
 }
 
-.lora-compact-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 160px;
+.lora-selection-card.dragging {
+  z-index: 100;
+  opacity: 0.5;
+  background: rgba(var(--accent-rgb), 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-.lora-slider {
-  flex: 1;
-  min-width: 0;
+.lora-selection-card.dragging-active {
+  opacity: 0.2;
+  transform: scale(0.95);
+  border-style: dashed;
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.05);
+}
+
+/* 拖拽时，其他卡片的反馈 */
+.lora-selection-grid:has(.dragging-active) .lora-selection-card:not(.dragging-active) {
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+
+.lora-selection-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.lora-selection-card.disabled {
+  filter: grayscale(0.8) opacity(0.5);
+}
+
+.lora-selection-card.disabled:hover {
+  filter: grayscale(0.4) opacity(0.8);
+}
+
+.lora-card-preview {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  background: #151515;
   cursor: pointer;
-  accent-color: var(--accent);
+  overflow: hidden;
+  border-right: 1.5px solid rgba(255, 255, 255, 0.08);
 }
 
-.lora-number {
-  width: 54px;
-  height: 24px;
-  padding: 0 4px;
-  border: 1px solid var(--border-hover);
-  border-radius: 4px;
-  background: var(--surface);
-  font-size: 12px;
-  text-align: center;
+.lora-card-preview .lm-media-frame,
+.lora-card-preview img,
+.lora-card-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.lora-number::-webkit-outer-spin-button,
-.lora-number::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.lora-selection-card:hover .lora-card-preview img,
+.lora-selection-card:hover .lora-card-preview video {
+  transform: scale(1.1);
 }
 
-.lora-compact-remove {
+.lora-card-placeholder {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
 }
 
-.lora-compact-remove:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+.lora-card-handle {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: grab;
+  padding: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lora-card-handle:active {
+  cursor: grabbing;
+}
+
+.lora-selection-card:hover .lora-card-handle {
+  opacity: 1;
+}
+
+.lora-card-info {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.lora-card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.lora-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.lora-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lora-card-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.lora-card-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkbox-custom {
+  height: 16px;
+  width: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1.2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lora-card-toggle:hover input ~ .checkbox-custom {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.lora-card-toggle input:checked ~ .checkbox-custom {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkbox-custom:after {
+  content: "";
+  display: none;
+  width: 4px;
+  height: 7px;
+  border: solid white;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg) translate(-0.5px, -0.5px);
+}
+
+.lora-card-toggle input:checked ~ .checkbox-custom:after {
+  display: block;
+}
+
+.lora-card-remove {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+  opacity: 0.9;
+}
+
+.lora-card-remove:hover {
+  opacity: 1;
+  color: #fff;
+  background: #ef4444;
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+.lora-card-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.lora-card-controls .lora-slider-wrapper {
+  flex: 1;
+  position: relative;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.lora-card-controls .lora-slider {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  opacity: 0;
+  z-index: 3;
+  cursor: pointer;
+}
+
+.lora-card-controls .lora-slider-track-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.lora-card-controls .lora-slider-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: var(--slider-thumb-pos, 50%);
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lora-card-controls .lora-number {
+  width: 48px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.lora-card-controls .lora-number:focus {
+  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.3);
+  outline: none;
 }
 
 .segmented {
@@ -1172,72 +1373,88 @@ button {
 
 .toast-viewport {
   position: fixed;
-  top: 66px;
-  right: 18px;
-  z-index: 60;
-  display: grid;
-  gap: 10px;
-  width: min(380px, calc(100vw - 32px));
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(420px, calc(100vw - 40px));
+  pointer-events: none;
 }
 
 .toast {
   display: flex;
-  gap: 14px;
-  align-items: start;
-  padding: 16px;
-  border: 1px solid var(--border);
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 16px 40px rgba(31, 42, 68, 0.18);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(17, 24, 39, 0.95);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #f1f5f9;
+  pointer-events: auto;
+  animation: toast-in 0.3s ease-out forwards;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .toast.success {
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(17, 24, 39, 0.92);
 }
 
 .toast.error {
-  border-color: rgba(239, 68, 68, 0.3);
-  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(17, 24, 39, 0.92);
 }
 
 .toast.info {
-  border-color: rgba(59, 130, 246, 0.3);
-  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(17, 24, 39, 0.92);
 }
 
 .toast strong {
   display: block;
   margin-bottom: 4px;
-  color: var(--text);
+  color: #fff;
+  font-weight: 600;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .toast p {
   margin: 0;
-  color: var(--muted);
-  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
   line-height: 1.5;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .toast .toast-close {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: 0;
   border-radius: 6px;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.4);
   background: transparent;
   cursor: pointer;
   transition: all 0.2s;
+  margin-left: 4px;
 }
 
 .toast .toast-close:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .modal-backdrop {
@@ -1573,6 +1790,7 @@ button {
 :root {
   color-scheme: dark;
   --accent: #3b82f6;
+  --accent-rgb: 59, 130, 246;
   --accent-hover: #60a5fa;
   --accent-soft: rgba(59, 130, 246, 0.14);
   --surface: #101722;
@@ -2214,20 +2432,28 @@ textarea {
 .lora-grid {
   grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
   gap: 14px;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 320px;
 }
 
 .lora-grid.density-compact {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  content-visibility: auto;
+  contain-intrinsic-size: 0 240px;
 }
 
 .lora-grid.density-large {
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px;
 }
 
 .lora-card {
   border-color: rgba(111, 130, 158, 0.42);
   background: #0c121d;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 .lora-preview {
@@ -2253,30 +2479,6 @@ textarea {
 
 .result-card img {
   background: #090f18;
-}
-
-.toast {
-  background: rgba(17, 24, 39, 0.85);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-}
-
-.toast.success {
-  background: rgba(17, 24, 39, 0.85);
-  border-color: rgba(16, 185, 129, 0.4);
-}
-
-.toast.error {
-  background: rgba(17, 24, 39, 0.85);
-  border-color: rgba(239, 68, 68, 0.4);
-}
-
-.toast.info {
-  background: rgba(17, 24, 39, 0.85);
-  border-color: rgba(59, 130, 246, 0.4);
-}
-
-.toast .toast-close:hover {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 .modal-backdrop {

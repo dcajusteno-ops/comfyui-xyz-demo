@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DOMPurify from "dompurify";
+
+const EMPTY_ARRAY: any[] = [];
+const EMPTY_OBJECT: any = {};
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent, ReactNode, UIEvent } from "react";
 import {
@@ -25,6 +28,7 @@ import {
   GalleryHorizontalEnd,
   Globe2,
   Grid3X3,
+  GripVertical,
   Heading1,
   Heading2,
   Highlighter,
@@ -440,11 +444,25 @@ function App() {
   });
   const [managedModelType, setManagedModelType] = useState<ManagedModelType>("loras");
   const [loraResult, setLoraResult] = useState<LoraListResult>(emptyLoraResult);
+  const loraResultRef = useRef(loraResult);
+  useEffect(() => { loraResultRef.current = loraResult; }, [loraResult]);
+
   const [loraQuery, setLoraQuery] = useState<LoraQueryState>(defaultLoraQuery);
+  const loraQueryRef = useRef(loraQuery);
+  useEffect(() => { loraQueryRef.current = loraQuery; }, [loraQuery]);
+
   const [loraLoading, setLoraLoading] = useState(false);
   const [loraFolders, setLoraFolders] = useState<string[]>([]);
+  const loraFoldersRef = useRef(loraFolders);
+  useEffect(() => { loraFoldersRef.current = loraFolders; }, [loraFolders]);
+
   const [loraBaseModels, setLoraBaseModels] = useState<Array<{ name: string; count: number }>>([]);
+  const loraBaseModelsRef = useRef(loraBaseModels);
+  useEffect(() => { loraBaseModelsRef.current = loraBaseModels; }, [loraBaseModels]);
+
   const [loraTags, setLoraTags] = useState<string[]>([]);
+  const loraTagsRef = useRef(loraTags);
+  useEffect(() => { loraTagsRef.current = loraTags; }, [loraTags]);
   const [loraTarget, setLoraTarget] = useState<TemplateKind>("default");
   const [loraDensity, setLoraDensity] = useState<"compact" | "medium" | "large">("medium");
   const [loraDetail, setLoraDetail] = useState<LoraItem | null>(null);
@@ -551,6 +569,8 @@ function App() {
     );
   }
   const [loraExampleFilesByHash, setLoraExampleFilesByHash] = useState<Record<string, LoraExampleMedia[]>>({});
+  const loraExampleFilesByHashRef = useRef(loraExampleFilesByHash);
+  useEffect(() => { loraExampleFilesByHashRef.current = loraExampleFilesByHash; }, [loraExampleFilesByHash]);
   const [exampleStatus, setExampleStatus] = useState<ExampleImagesStatus | null>(null);
   const [examplePending, setExamplePending] = useState<ExampleImagesPendingResult | null>(null);
   const [pullingExampleHashes, setPullingExampleHashes] = useState<string[]>([]);
@@ -699,11 +719,22 @@ function App() {
     });
   }, [client, tab, managedModelType]);
 
+  const allRelevantHashes = useMemo(() => {
+    const selectedHashes = [
+      ...defaultParams.loras,
+      ...multiParams.loras,
+      ...highresParams.loras,
+    ].map((l) => l.sha256?.toLowerCase()).filter((h): h is string => Boolean(h));
+
+    return uniqueStrings([
+      ...loraResult.items.map((item) => item.sha256?.toLowerCase()).filter((h): h is string => Boolean(h)),
+      ...selectedHashes,
+    ]);
+  }, [loraResult.items, defaultParams.loras, multiParams.loras, highresParams.loras]);
+
   useEffect(() => {
-    if (tab !== "loras") return;
     let canceled = false;
-    const hashes = uniqueStrings(loraResult.items.map((item) => item.sha256?.toLowerCase()).filter(Boolean));
-    const missingHashes = hashes.filter((hash) => !(hash in loraExampleFilesByHash));
+    const missingHashes = allRelevantHashes.filter((hash) => !(hash in loraExampleFilesByHash));
     if (missingHashes.length === 0) return;
 
     async function loadLocalExampleFiles() {
@@ -727,7 +758,7 @@ function App() {
     return () => {
       canceled = true;
     };
-  }, [client, tab, loraResult.items, loraExampleFilesByHash]);
+  }, [client, allRelevantHashes, loraExampleFilesByHash]);
 
   useEffect(() => {
     return () => {
@@ -735,21 +766,12 @@ function App() {
     };
   }, []);
 
-  async function refreshLoras(query = loraQuery) {
-    await loadManagedModelsPage(managedModelType, query, 1, { append: false, reloadFacets: true });
-  }
-
-  async function loadMoreManagedModels() {
-    if (loraLoadingRef.current || loraResult.page >= loraResult.totalPages) return;
-    await loadManagedModelsPage(managedModelType, loraQuery, loraResult.page + 1, { append: true, reloadFacets: false });
-  }
-
-  async function loadManagedModelsPage(
+  const loadManagedModelsPage = useCallback(async (
     modelType: ManagedModelType,
     query: LoraQueryState,
     pageNumber: number,
     options: { append: boolean; reloadFacets: boolean },
-  ) {
+  ) => {
     if (loraLoadingRef.current) return;
     loraLoadingRef.current = true;
     setLoraLoading(true);
@@ -762,7 +784,7 @@ function App() {
           client.getManagedModelBaseModels(modelType),
           client.getManagedModelTopTags(modelType),
         ])
-        : Promise.resolve<[string[], Array<{ name: string; count: number }>, string[]]>([loraFolders, loraBaseModels, loraTags]);
+        : Promise.resolve<[string[], Array<{ name: string; count: number }>, string[]]>([loraFoldersRef.current, loraBaseModelsRef.current, loraTagsRef.current]);
       const [page, [folders, baseModels, tags]] = await Promise.all([pagePromise, facetsPromise]);
       setLoraResult((prev) => options.append
         ? { ...page, items: mergeManagedModelItems(prev.items, page.items) }
@@ -777,7 +799,17 @@ function App() {
       loraLoadingRef.current = false;
       setLoraLoading(false);
     }
-  }
+  }, [client]);
+
+  const refreshLoras = useCallback(async (query = loraQueryRef.current) => {
+    await loadManagedModelsPage(managedModelType, query, 1, { append: false, reloadFacets: true });
+  }, [managedModelType, loadManagedModelsPage]);
+
+  const loadMoreManagedModels = useCallback(async () => {
+    const currentResult = loraResultRef.current;
+    if (loraLoadingRef.current || currentResult.page >= currentResult.totalPages) return;
+    await loadManagedModelsPage(managedModelType, loraQueryRef.current, currentResult.page + 1, { append: true, reloadFacets: false });
+  }, [managedModelType, loadManagedModelsPage]);
 
   async function refreshExampleImageInfo() {
     const [status, pending] = await Promise.all([
@@ -825,7 +857,7 @@ function App() {
     examplePollRef.current = window.setInterval(tick, 2200);
   }
 
-  async function pullAllLoraExamples() {
+  const pullAllLoraExamples = useCallback(async () => {
     setError("");
     try {
       setLoraExampleFilesByHash({});
@@ -843,7 +875,7 @@ function App() {
       setError(message);
       pushToast("error", "一键拉取失败", message);
     }
-  }
+  }, [client, managedModelType]);
 
   async function pullLoraExamples(item: LoraItem): Promise<LoraExampleMedia[]> {
     const hash = item.sha256?.toLowerCase();
@@ -1412,7 +1444,25 @@ function App() {
     }
   }
 
-  function addLora(item: LoraItem, strength = 1, target = loraTarget) {
+  function handleOpenLoraDetail(lora: LoraSelection) {
+    setManagedModelType("loras");
+    const hash = lora.sha256?.toLowerCase();
+    const fallbackPreview = hash ? (loraExampleFilesByHash[hash]?.[0]?.path || loraExampleFilesByHash[hash]?.[0]?.url) : undefined;
+    
+    setLoraDetail({ 
+      file_path: lora.filePath || lora.name, 
+      file_name: lora.name.split("/").pop() || lora.name,
+      model_name: lora.displayName || lora.name.split("/").pop() || lora.name,
+      preview_url: lora.previewUrl || fallbackPreview,
+      file_size: 0, 
+      sha256: lora.sha256 
+    } as LoraItem);
+  }
+
+  const addLora = useCallback((item: LoraItem, strength = 1, target = loraTarget) => {
+    const hash = item.sha256?.toLowerCase();
+    const localFiles = hash ? loraExampleFilesByHashRef.current[hash] ?? EMPTY_ARRAY : EMPTY_ARRAY;
+    const previewMedia = pickCardPreviewMedia(item, localFiles);
     const selection: LoraSelection = {
       name: loraSyntaxName(item),
       displayName: item.model_name,
@@ -1421,6 +1471,7 @@ function App() {
       active: true,
       filePath: item.file_path,
       sha256: item.sha256,
+      previewUrl: previewMedia.path || previewMedia.url || item.preview_url,
     };
     if (target === "multi") {
       setMultiParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
@@ -1430,7 +1481,11 @@ function App() {
       setDefaultParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
     }
     pushToast("success", "LoRA 已插入", `${selection.name} -> ${templateLabels[target]}`);
-  }
+  }, [loraTarget]);
+
+  const handleLoraInsert = useCallback((item: LoraItem, target: TemplateKind) => {
+    addLora(item, 1, target);
+  }, [addLora]);
 
   function addTriggerWords(words: string[], target = loraTarget) {
     if (!words || words.length === 0) return;
@@ -1513,7 +1568,7 @@ function App() {
       : uniqueStrings([...prev, ...visiblePaths]));
   }
 
-  function changeManagedModelType(nextType: ManagedModelType) {
+  const changeManagedModelType = useCallback((nextType: ManagedModelType) => {
     if (nextType === managedModelType) return;
     setManagedModelType(nextType);
     setLoraQuery(defaultLoraQuery);
@@ -1524,7 +1579,7 @@ function App() {
     setSelectedLoraPaths([]);
     setLoraDetail(null);
     setLoraOperation(null);
-  }
+  }, [managedModelType]);
 
   async function refreshLoraListsAfterMutation(message?: string) {
     await refreshLoras();
@@ -1664,7 +1719,15 @@ function App() {
                 <PanelTitle icon={Wand2} title="默认生图" />
               </div>
               <div className="panel-body">
-                <BaseControls params={defaultParams} options={options} setParams={setDefaultParams} onLoraDetail={(lora) => setLoraDetail({ file_path: lora.filePath || lora.name, file_name: lora.name.split("/").pop() || lora.name, file_size: 0, sha256: lora.sha256 } as LoraItem)} />
+                <BaseControls 
+                  params={defaultParams} 
+                  options={options} 
+                  setParams={setDefaultParams} 
+                  apiBase={apiBase} 
+                  settings={loraSettings}
+                  localExampleFilesByHash={loraExampleFilesByHash}
+                  onLoraDetail={handleOpenLoraDetail} 
+                />
               </div>
               <div className="panel-footer" style={{ display: "flex", gap: "8px" }}>
                 <button className="primary-action" style={{ flex: 1 }} type="button" onClick={() => runPrompt("默认生图", () => buildDefaultPrompt(defaultParams))}>
@@ -1996,7 +2059,17 @@ function App() {
                 <PanelTitle icon={UserRound} title="多人工作流" />
               </div>
               <div className="panel-body">
-                <BaseControls params={multiParams} options={options} setParams={setMultiParams} hidePositive disableStickyPrompt onLoraDetail={(lora) => setLoraDetail({ file_path: lora.filePath || lora.name, file_name: lora.name.split("/").pop() || lora.name, file_size: 0, sha256: lora.sha256 } as LoraItem)} />
+                <BaseControls 
+                  params={multiParams} 
+                  options={options} 
+                  setParams={setMultiParams} 
+                  apiBase={apiBase} 
+                  settings={loraSettings}
+                  localExampleFilesByHash={loraExampleFilesByHash}
+                  hidePositive 
+                  disableStickyPrompt 
+                  onLoraDetail={handleOpenLoraDetail} 
+                />
                 <div className="multi-settings">
                   <TextAreaField label="全局 prompt" value={multiParams.globalPrompt} onChange={(value) => setMultiParams((prev) => ({ ...prev, globalPrompt: value }))} />
                   <div className="form-grid multi-options">
@@ -2096,7 +2169,15 @@ function App() {
                   <button type="button" className={highresParams.enableNsfwDetailer ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableNsfwDetailer: !prev.enableNsfwDetailer }))}>NSFW修复</button>
                   <button type="button" className={highresParams.enableHandDetailer ? "active" : ""} onClick={() => setHighresParams((prev) => ({ ...prev, enableHandDetailer: !prev.enableHandDetailer }))}>手部修复</button>
                 </div>
-                <BaseControls params={highresParams} options={options} setParams={setHighresParams} onLoraDetail={(lora) => setLoraDetail({ file_path: lora.filePath || lora.name, file_name: lora.name.split("/").pop() || lora.name, file_size: 0, sha256: lora.sha256 } as LoraItem)} />
+                <BaseControls 
+                  params={highresParams} 
+                  options={options} 
+                  setParams={setHighresParams} 
+                  apiBase={apiBase} 
+                  settings={loraSettings}
+                  localExampleFilesByHash={loraExampleFilesByHash}
+                  onLoraDetail={handleOpenLoraDetail} 
+                />
                 <div className="xyz-fields-grid" style={{ marginBottom: "12px" }}>
                   <label className="field checkbox-field"><input type="checkbox" checked={highresParams.syncHighresSeed ?? true} onChange={(event) => setHighresParams((prev) => ({ ...prev, syncHighresSeed: event.target.checked }))} /> 同步基础 Seed</label>
                   <NumberField label={highresParams.randomizeHighresSeed ? "高修 seed（随机）" : "高修 seed"} value={highresParams.highresSeed} step={1} min={0} disabled={highresParams.syncHighresSeed !== false || highresParams.randomizeHighresSeed} onChange={(value) => setHighresParams((prev) => ({ ...prev, highresSeed: value }))} />
@@ -2300,7 +2381,7 @@ function App() {
                 onRefresh={refreshLoras}
                 onLoadMore={loadMoreManagedModels}
                 onDetail={setLoraDetail}
-                onInsert={(item, target) => addLora(item, 1, target)}
+                onInsert={handleLoraInsert}
                 exampleStatus={exampleStatus}
                 examplePending={examplePending}
                 pullingExampleHashes={pullingExampleHashes}
@@ -2600,9 +2681,8 @@ function App() {
               onDetail={(item) => {
                 setLoraDetail(item);
               }}
-              onInsert={(item) => {
-                addLora(item, 1, simpleLoraTarget);
-                pushToast("success", "已添加 LoRA", `成功添加 ${item.model_name || item.file_name}`);
+              onInsert={(item, target) => {
+                addLora(item, 1, target);
               }}
               exampleStatus={exampleStatus}
               examplePending={examplePending}
@@ -2688,7 +2768,7 @@ function ToastViewport({ toasts, onClose }: { toasts: Toast[]; onClose: (id: str
       {toasts.map((toast) => (
         <div className={`toast ${toast.type}`} key={toast.id}>
           <ToastIcon type={toast.type} />
-          <div className="toast-content" style={{ flex: 1, minWidth: 0 }}>
+          <div className="toast-content" style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
             <strong>{toast.title}</strong>
             {toast.message && <p>{toast.message}</p>}
           </div>
@@ -2918,18 +2998,25 @@ function LoraDetailModal({
       let metadataTask = currentPath ? client.getManagedModelMetadataByPath(modelType, currentPath) : Promise.resolve(undefined);
       let [metadataResult] = await Promise.allSettled([metadataTask]);
 
-      if (metadataResult.status === "rejected" && currentPath && !currentPath.includes(".")) {
+      if ((metadataResult.status === "rejected" || (metadataResult.status === "fulfilled" && !metadataResult.value)) && currentPath) {
         try {
-          const searchRes = await client.listManagedModels(modelType, { search: item.model_name || item.file_name });
-          const match = searchRes.items.find((x) => x.model_name === (item.model_name || item.file_name) || x.file_name === (item.file_name || item.file_path));
-          if (match?.file_path) {
-            Object.assign(item, match);
-            currentPath = match.file_path;
-            currentSha = match.sha256;
-            
-            metadataTask = client.getManagedModelMetadataByPath(modelType, currentPath);
-            const retryResult = await Promise.allSettled([metadataTask]);
-            metadataResult = retryResult[0];
+          const searchName = item.model_name || item.file_name || currentPath.split("/").pop() || "";
+          if (searchName) {
+            const searchRes = await client.listManagedModels(modelType, { search: searchName });
+            const match = searchRes.items.find((x) => 
+              x.model_name === searchName || 
+              x.file_name === searchName || 
+              x.file_path === currentPath ||
+              loraSyntaxName(x) === currentPath
+            );
+            if (match?.file_path) {
+              currentPath = match.file_path;
+              currentSha = match.sha256;
+              
+              metadataTask = client.getManagedModelMetadataByPath(modelType, currentPath);
+              const retryResult = await Promise.allSettled([metadataTask]);
+              metadataResult = retryResult[0];
+            }
           }
         } catch (e) {
           // Ignore search error
@@ -3882,7 +3969,7 @@ function PromptBlock({ label, value, onCopy }: { label: string; value: string; o
   );
 }
 
-function LoraMedia({
+const LoraMedia = memo(({
   media,
   apiBase,
   alt,
@@ -3898,7 +3985,7 @@ function LoraMedia({
   settings: LoraManagerSettings;
   fallbackNsfwLevel?: number;
   onOpen?: () => void;
-}) {
+}) => {
   const src = normalizePreview(apiBase, media.path || media.url);
   const [revealed, setRevealed] = useState(false);
   const nsfwLevel = getMediaNsfwLevel(media, fallbackNsfwLevel);
@@ -3930,7 +4017,7 @@ function LoraMedia({
       muted
       loop
       playsInline
-      preload="metadata"
+      preload="none"
       className={mediaClassWithOpen}
       data-nsfw-level={nsfwLevel}
     />
@@ -3938,6 +4025,8 @@ function LoraMedia({
     <img
       src={src}
       alt={alt}
+      loading="lazy"
+      draggable={false}
       className={mediaClassWithOpen}
       data-nsfw-level={nsfwLevel}
       onClick={onOpen && !isBlurred ? (event) => {
@@ -3966,7 +4055,18 @@ function LoraMedia({
       )}
     </div>
   );
-}
+}, (prev, next) => {
+  return prev.apiBase === next.apiBase &&
+         prev.alt === next.alt &&
+         prev.controls === next.controls &&
+         prev.settings === next.settings &&
+         prev.fallbackNsfwLevel === next.fallbackNsfwLevel &&
+         prev.onOpen === next.onOpen &&
+         prev.media.url === next.media.url &&
+         prev.media.path === next.media.path &&
+         prev.media.type === next.media.type &&
+         prev.media.source === next.media.source;
+});
 
 function BaseControls<T extends BaseGenerationParams>({
   params,
@@ -3975,6 +4075,9 @@ function BaseControls<T extends BaseGenerationParams>({
   hidePositive = false,
   disableStickyPrompt = false,
   onLoraDetail,
+  apiBase,
+  settings,
+  localExampleFilesByHash = {},
 }: {
   params: T;
   options: OptionsState;
@@ -3982,6 +4085,9 @@ function BaseControls<T extends BaseGenerationParams>({
   hidePositive?: boolean;
   disableStickyPrompt?: boolean;
   onLoraDetail?: (lora: LoraSelection) => void;
+  apiBase: string;
+  settings: LoraManagerSettings;
+  localExampleFilesByHash?: Record<string, LoraExampleMedia[]>;
 }) {
   const setField = <K extends keyof T>(key: K, value: T[K]) => {
     setParams((prev) => ({ ...prev, [key]: value }));
@@ -4078,7 +4184,7 @@ function BaseControls<T extends BaseGenerationParams>({
           </div>
         </>
       )}
-      <LoraChips loras={params.loras} onChange={(loras) => setField("loras", loras as T["loras"])} onDetail={onLoraDetail} />
+      <LoraChips loras={params.loras} onChange={(loras) => setField("loras", loras as T["loras"])} onDetail={onLoraDetail} apiBase={apiBase} settings={settings} localExampleFilesByHash={localExampleFilesByHash} />
     </>
   );
 }
@@ -4668,10 +4774,11 @@ function MultiWorkspace({
   const [selectedId, setSelectedId] = useState(visibleCharacters[0]?.id ?? "");
 
   useEffect(() => {
-    if (!visibleCharacters.some((character) => character.id === selectedId)) {
-      setSelectedId(visibleCharacters[0]?.id ?? "");
+    if (selectedId && !characters.some((character) => character.id === selectedId)) {
+      const visible = enabledCanvasCharacters(characters);
+      setSelectedId(visible[0]?.id ?? "");
     }
-  }, [characters, selectedId, visibleCharacters]);
+  }, [characters, selectedId]);
 
   return (
     <>
@@ -4971,7 +5078,157 @@ type FolderTreeNode = {
   children: FolderTreeNode[];
 };
 
-function LoraManagerPanel({
+const LoraCard = memo(({ 
+  item, 
+  words,
+  previewNsfwLevel,
+  previewUrl,
+  previewPath,
+  previewType,
+  previewSource,
+  settings, 
+  apiBase, 
+  onDetail, 
+  onInsert 
+}: {
+  item: LoraItem;
+  words: string[];
+  previewNsfwLevel: number;
+  previewUrl?: string;
+  previewPath?: string;
+  previewType?: "image" | "video";
+  previewSource?: "preview" | "local" | "civitai";
+  settings: LoraManagerSettings;
+  apiBase: string;
+  onDetail: (item: LoraItem) => void;
+  onInsert?: (item: LoraItem, target: TemplateKind) => void;
+}) => {
+  const key = item.model_name || item.file_name;
+  const previewMedia = useMemo(() => ({
+    url: previewUrl,
+    path: previewPath,
+    type: previewType,
+    source: previewSource,
+  } as LoraPreviewMedia), [previewUrl, previewPath, previewType, previewSource]);
+
+  return (
+    <article
+      className={[
+        "lora-card lm-model-card",
+        shouldBlurNsfwLevel(previewNsfwLevel, settings) ? "nsfw-content" : "",
+      ].filter(Boolean).join(" ")}
+      data-nsfw-level={previewNsfwLevel}
+      onClick={() => onDetail(item)}
+      tabIndex={0}
+    >
+      <div className="lora-preview lm-card-preview">
+        <LoraMedia
+          media={previewMedia}
+          apiBase={apiBase}
+          alt={key}
+          settings={settings}
+          fallbackNsfwLevel={previewNsfwLevel}
+        />
+        {!previewMedia.path && !previewMedia.url && <Layers size={34} />}
+        <div className="card-header lm-card-header">
+          <div className="card-header-info">
+            <span className="base-model-label" title={`${item.sub_type || "LoRA"} | ${item.base_model || "Unknown"}`}>
+              <span className="model-sub-type">{subTypeAbbreviation(item.sub_type)}</span>
+              <span className="model-separator" />
+              <span className="model-base-type">{baseModelAbbreviation(item.base_model)}</span>
+            </span>
+            {item.update_available && <span className="model-update-badge">Update</span>}
+          </div>
+          <div className="card-quick-actions">
+            <button type="button" title="添加到默认" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "default"); }}>默认</button>
+            <button type="button" title="添加到多人" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "multi"); }}>多人</button>
+            <button type="button" title="添加到高修" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "highres"); }}>高修</button>
+          </div>
+        </div>
+        <div className="card-footer lm-card-footer">
+          <div className="lora-info model-info">
+            <strong className="model-name">{key}</strong>
+            <span className="version-name">{(item.civitai as LoraMetadata | undefined)?.name || item.folder || "local"}</span>
+            <span>{item.folder || "root"} · {formatBytes(item.file_size)}</span>
+            {words.length > 0 && <p>{words.slice(0, 2).join(" / ")}</p>}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+});
+
+const FolderNodeButton = memo(({
+  folder,
+  selected,
+  level,
+  onSelect,
+}: {
+  folder: FolderTreeNode;
+  selected: string;
+  level: number;
+  onSelect: (folder: string) => void;
+}) => {
+  return (
+    <div className="lm-folder-node">
+      <button
+        type="button"
+        className={selected === folder.path ? "selected" : ""}
+        onClick={() => onSelect(folder.path)}
+        style={{ paddingLeft: 12 + level * 16 }}
+        title={folder.path}
+      >
+        <Folder size={15} />
+        <span>{folder.name}</span>
+      </button>
+      {folder.children.map((child) => (
+        <FolderNodeButton folder={child} selected={selected} level={level + 1} onSelect={onSelect} key={child.path} />
+      ))}
+    </div>
+  );
+});
+
+const FolderSidebar = memo(({
+  label,
+  folders,
+  selected,
+  total,
+  onSelect,
+}: {
+  label: string;
+  folders: FolderTreeNode[];
+  selected: string;
+  total: number;
+  onSelect: (folder: string) => void;
+}) => {
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (sidebarRef.current) {
+      const selectedEl = sidebarRef.current.querySelector(".selected") as HTMLElement;
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ block: "nearest" });
+      }
+    }
+  }, []); // Only run on mount so it restores position when opening
+
+  return (
+    <aside className="lm-folder-sidebar" ref={sidebarRef}>
+      <button type="button" className={selected === "" ? "lm-sidebar-root selected" : "lm-sidebar-root"} onClick={() => onSelect("")}>
+        <span className="lm-sidebar-root-label"><FolderOpen size={16} /> 全部 {label}</span>
+        <small>{total}</small>
+      </button>
+      <div className="lm-folder-tree">
+        {folders.map((folder) => (
+          <FolderNodeButton folder={folder} selected={selected} level={0} onSelect={onSelect} key={folder.path} />
+        ))}
+        {folders.length === 0 && <div className="empty-strip">暂无文件夹</div>}
+      </div>
+    </aside>
+  );
+});
+
+const LoraManagerPanel = memo(({
   modelType,
   onModelTypeChange,
   result,
@@ -5023,7 +5280,7 @@ function LoraManagerPanel({
   apiBase: string;
   settings: LoraManagerSettings;
   isSimple?: boolean;
-}) {
+}) => {
   const isLora = modelType === "loras";
   const modelLabel = managedModelLabel(modelType);
   const visibleItems = result.items;
@@ -5042,9 +5299,25 @@ function LoraManagerPanel({
   const matureBlurLevel = normalizeMatureBlurLevel(settings.mature_blur_level);
   const matureBlurEnabled = settings.blur_mature_content !== false;
   const modelScrollRef = useRef<HTMLDivElement | null>(null);
-  const updateQuery = (patch: Partial<LoraQueryState>) => {
+  const updateQuery = useCallback((patch: Partial<LoraQueryState>) => {
     setQuery((prev) => ({ ...prev, ...patch, page: patch.page ?? 1 }));
-  };
+  }, [setQuery]);
+
+  const handleFolderSelect = useCallback((folder: string) => {
+     updateQuery({ folder });
+   }, [updateQuery]);
+
+   const handleBaseModelSelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    updateQuery({ baseModel: event.target.value });
+  }, [updateQuery]);
+
+  const handleTagSelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    updateQuery({ tag: event.target.value });
+  }, [updateQuery]);
+
+  const handleDensityChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    setDensity(event.target.value as "compact" | "medium" | "large");
+  }, [setDensity]);
 
   useEffect(() => {
     modelScrollRef.current?.scrollTo({ top: 0 });
@@ -5095,23 +5368,23 @@ function LoraManagerPanel({
           folders={folderTree}
           selected={query.folder}
           total={result.total}
-          onSelect={(folder) => updateQuery({ folder })}
+          onSelect={handleFolderSelect}
         />
         <div className="lm-model-area">
           <div className="lora-filter-row lm-filter-row">
-            <select value={query.folder} onChange={(event) => updateQuery({ folder: event.target.value })}>
+            <select value={query.folder} onChange={(e) => handleFolderSelect(e.target.value)}>
               <option value="">全部文件夹</option>
               {folders.map((folder) => <option key={folder} value={folder}>{folder}</option>)}
             </select>
-            <select value={query.baseModel} onChange={(event) => updateQuery({ baseModel: event.target.value })}>
+            <select value={query.baseModel} onChange={handleBaseModelSelect}>
               <option value="">全部模型类型</option>
               {baseModels.map((item) => <option key={item.name} value={item.name}>{item.name} ({item.count})</option>)}
             </select>
-            <select value={query.tag} onChange={(event) => updateQuery({ tag: event.target.value })}>
+            <select value={query.tag} onChange={handleTagSelect}>
               <option value="">全部标签</option>
               {tags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
             </select>
-            <select value={density} onChange={(event) => setDensity(event.target.value as "compact" | "medium" | "large")}>
+            <select value={density} onChange={handleDensityChange}>
               <option value="compact">紧凑</option>
               <option value="medium">中等</option>
               <option value="large">大图</option>
@@ -5132,145 +5405,139 @@ function LoraManagerPanel({
           <ExampleImagesProgressBar status={exampleStatus} pullingCount={pullingExampleHashes.length} />
 
           <div className="lm-model-scroll" ref={modelScrollRef} onScroll={handleModelScroll}>
-          <div className={`lora-grid lm-card-grid density-${density}`}>
-            {visibleItems.map((item) => {
-              const key = item.model_name || item.file_name;
-              const words = triggerWords[key] ?? extractItemTrainedWords(item);
-              const previewNsfwLevel = getItemNsfwLevel(item);
-              const previewMedia = pickCardPreviewMedia(item, localExampleFilesByHash);
-              return (
-                <article
-                  className={[
-                    "lora-card lm-model-card",
-                    shouldBlurNsfwLevel(previewNsfwLevel, settings) ? "nsfw-content" : "",
-                  ].filter(Boolean).join(" ")}
-                  data-nsfw-level={previewNsfwLevel}
-                  key={item.file_path}
-                  onClick={() => onDetail(item)}
-                  tabIndex={0}
-                >
-                  <div className="lora-preview lm-card-preview">
-                    <LoraMedia
-                      media={previewMedia}
-                      apiBase={apiBase}
-                      alt={key}
-                      settings={settings}
-                      fallbackNsfwLevel={previewNsfwLevel}
-                    />
-                    {!previewMedia.path && !previewMedia.url && <Layers size={34} />}
-                    <div className="card-header lm-card-header">
-                      <div className="card-header-info">
-                        <span className="base-model-label" title={`${item.sub_type || "LoRA"} | ${item.base_model || "Unknown"}`}>
-                          <span className="model-sub-type">{subTypeAbbreviation(item.sub_type)}</span>
-                          <span className="model-separator" />
-                          <span className="model-base-type">{baseModelAbbreviation(item.base_model)}</span>
-                        </span>
-                        {item.update_available && <span className="model-update-badge">Update</span>}
-                      </div>
-                      <div className="card-quick-actions" onClick={(e) => e.stopPropagation()}>
-                        <button type="button" title="添加到默认" onClick={() => onInsert?.(item, "default")}>默认</button>
-                        <button type="button" title="添加到多人" onClick={() => onInsert?.(item, "multi")}>多人</button>
-                        <button type="button" title="添加到高修" onClick={() => onInsert?.(item, "highres")}>高修</button>
-                      </div>
-                    </div>
-                    <div className="card-footer lm-card-footer">
-                      <div className="lora-info model-info">
-                        <strong className="model-name">{key}</strong>
-                        <span className="version-name">{(item.civitai as LoraMetadata | undefined)?.name || item.folder || "local"}</span>
-                        <span>{item.folder || "root"} · {formatBytes(item.file_size)}</span>
-                        {words.length > 0 && <p>{words.slice(0, 2).join(" / ")}</p>}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-            {visibleItems.length === 0 && <div className="empty-strip">没有匹配的 {modelLabel}，试试清空搜索或切换筛选</div>}
-          </div>
-          <div className="lm-load-status">
-            {loading ? "正在加载..." : hasMore ? "滚动到底部继续加载" : `已加载全部 ${visibleItems.length} 个 ${modelLabel}`}
-          </div>
+            <div className={`lora-grid lm-card-grid density-${density}`}>
+              {visibleItems.map((item) => {
+                const key = item.model_name || item.file_name;
+                const hash = item.sha256?.toLowerCase();
+                const localFiles = hash ? localExampleFilesByHash[hash] ?? EMPTY_ARRAY : EMPTY_ARRAY;
+                const words = triggerWords[key] ?? extractItemTrainedWords(item);
+                const previewNsfwLevel = getItemNsfwLevel(item);
+                const previewMedia = pickCardPreviewMedia(item, localFiles);
 
+                return (
+                  <LoraCard
+                    key={item.file_path}
+                    item={item}
+                    words={words}
+                    previewNsfwLevel={previewNsfwLevel}
+                    previewUrl={previewMedia.url}
+                    previewPath={previewMedia.path}
+                    previewType={previewMedia.type}
+                    previewSource={previewMedia.source}
+                    settings={settings}
+                    apiBase={apiBase}
+                    onDetail={onDetail}
+                    onInsert={onInsert}
+                  />
+                );
+              })}
+              {visibleItems.length === 0 && <div className="empty-strip">没有匹配的 {modelLabel}，试试清空搜索或切换筛选</div>}
+            </div>
+            <div className="lm-load-status">
+              {loading ? "正在加载..." : hasMore ? "滚动到底部继续加载" : `已加载全部 ${visibleItems.length} 个 ${modelLabel}`}
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    </div>
   );
-}
+});
 
-function FolderSidebar({
-  label,
-  folders,
-  selected,
-  total,
-  onSelect,
-}: {
-  label: string;
-  folders: FolderTreeNode[];
-  selected: string;
-  total: number;
-  onSelect: (folder: string) => void;
+function LoraChips({ 
+  loras, 
+  onChange, 
+  onDetail,
+  apiBase,
+  settings,
+  localExampleFilesByHash = {}
+}: { 
+  loras: LoraSelection[]; 
+  onChange: (loras: LoraSelection[]) => void; 
+  onDetail?: (lora: LoraSelection) => void;
+  apiBase: string;
+  settings: LoraManagerSettings;
+  localExampleFilesByHash?: Record<string, LoraExampleMedia[]>;
 }) {
-  const sidebarRef = useRef<HTMLElement>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [draggableIndex, setDraggableIndex] = useState<number | null>(null);
+  const [isDraggingActive, setIsDraggingActive] = useState(false);
+  const scrollIntervalRef = useRef<number | null>(null);
+  const scrollParentRef = useRef<HTMLElement | null>(null);
+  const scrollVelocityRef = useRef<number>(0);
 
   useEffect(() => {
-    if (sidebarRef.current) {
-      const selectedEl = sidebarRef.current.querySelector(".selected") as HTMLElement;
-      if (selectedEl) {
-        selectedEl.scrollIntoView({ block: "nearest" });
+    const handleGlobalDragEnd = () => {
+      setDraggedIndex(null);
+      setDraggableIndex(null);
+      setIsDraggingActive(false);
+      scrollParentRef.current = null;
+      scrollVelocityRef.current = 0;
+      if (scrollIntervalRef.current) {
+        window.clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
       }
+    };
+
+    window.addEventListener('dragend', handleGlobalDragEnd);
+    return () => {
+      window.removeEventListener('dragend', handleGlobalDragEnd);
+      if (scrollIntervalRef.current) {
+        window.clearInterval(scrollIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // 统一的滚动定时器与位置监听管理
+  useEffect(() => {
+    const handleWindowDragOver = (e: DragEvent) => {
+      if (!isDraggingActive || !scrollParentRef.current) return;
+      
+      const threshold = 80;  // 触发滚动的边缘距离
+      const maxSpeed = 20;   // 最大滚动速度
+      const { clientY } = e;
+      
+      const scrollParent = scrollParentRef.current;
+      const rect = scrollParent.getBoundingClientRect();
+      const relativeY = clientY - rect.top;
+
+      // 严格的边界检查与强度裁剪
+      if (relativeY >= 0 && relativeY < threshold) {
+        // 靠近容器顶部，向上滚动
+        const intensity = Math.max(0, Math.min(1, (threshold - relativeY) / threshold));
+        scrollVelocityRef.current = -maxSpeed * Math.pow(intensity, 2);
+      } else if (relativeY > rect.height - threshold && relativeY <= rect.height) {
+        // 靠近容器底部，向下滚动
+        const intensity = Math.max(0, Math.min(1, (relativeY - (rect.height - threshold)) / threshold));
+        scrollVelocityRef.current = maxSpeed * Math.pow(intensity, 2);
+      } else {
+        // 超出边缘或在中间区域，立即停止
+        scrollVelocityRef.current = 0;
+      }
+    };
+
+    if (isDraggingActive) {
+      window.addEventListener('dragover', handleWindowDragOver);
+      scrollIntervalRef.current = window.setInterval(() => {
+        if (scrollParentRef.current && scrollVelocityRef.current !== 0) {
+          scrollParentRef.current.scrollBy(0, scrollVelocityRef.current);
+        }
+      }, 16);
+    } else {
+      window.removeEventListener('dragover', handleWindowDragOver);
+      if (scrollIntervalRef.current) {
+        window.clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+      }
+      scrollVelocityRef.current = 0;
     }
-  }, []); // Only run on mount so it restores position when opening
 
-  return (
-    <aside className="lm-folder-sidebar" ref={sidebarRef}>
-      <button type="button" className={selected === "" ? "lm-sidebar-root selected" : "lm-sidebar-root"} onClick={() => onSelect("")}>
-        <span className="lm-sidebar-root-label"><FolderOpen size={16} /> All {label}</span>
-        <span><FolderOpen size={16} /> 全部 LoRA</span>
-        <small>{total}</small>
-      </button>
-      <div className="lm-folder-tree">
-        {folders.map((folder) => (
-          <FolderNodeButton folder={folder} selected={selected} level={0} onSelect={onSelect} key={folder.path} />
-        ))}
-        {folders.length === 0 && <div className="empty-strip">暂无文件夹</div>}
-      </div>
-    </aside>
-  );
-}
-
-function FolderNodeButton({
-  folder,
-  selected,
-  level,
-  onSelect,
-}: {
-  folder: FolderTreeNode;
-  selected: string;
-  level: number;
-  onSelect: (folder: string) => void;
-}) {
-  return (
-    <div className="lm-folder-node">
-      <button
-        type="button"
-        className={selected === folder.path ? "selected" : ""}
-        onClick={() => onSelect(folder.path)}
-        style={{ paddingLeft: 12 + level * 16 }}
-        title={folder.path}
-      >
-        <Folder size={15} />
-        <span>{folder.name}</span>
-      </button>
-      {folder.children.map((child) => (
-        <FolderNodeButton folder={child} selected={selected} level={level + 1} onSelect={onSelect} key={child.path} />
-      ))}
-    </div>
-  );
-}
-
-function LoraChips({ loras, onChange, onDetail }: { loras: LoraSelection[]; onChange: (loras: LoraSelection[]) => void; onDetail?: (lora: LoraSelection) => void }) {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    return () => {
+      window.removeEventListener('dragover', handleWindowDragOver);
+      if (scrollIntervalRef.current) {
+        window.clearInterval(scrollIntervalRef.current);
+      }
+    };
+  }, [isDraggingActive]);
 
   if (!loras.length) {
     return (
@@ -5283,51 +5550,175 @@ function LoraChips({ loras, onChange, onDetail }: { loras: LoraSelection[]; onCh
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = "move";
+    
+    // 查找并缓存最近的可滚动祖先容器
+    const getScrollParent = (node: HTMLElement | null): HTMLElement | null => {
+      if (!node) return null;
+      if (node.scrollHeight > node.clientHeight && 
+          (window.getComputedStyle(node).overflowY === 'auto' || window.getComputedStyle(node).overflowY === 'scroll')) {
+        return node;
+      }
+      return getScrollParent(node.parentElement);
+    };
+    scrollParentRef.current = getScrollParent(e.currentTarget as HTMLElement) || document.documentElement;
+
+    // 延迟设置活跃状态，确保拖拽的 ghost image 是完全不透明的
+    setTimeout(() => {
+      setIsDraggingActive(true);
+    }, 0);
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragEnter = (e: React.DragEvent, index: number) => {
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const newLoras = [...loras];
+    const draggedItem = newLoras[draggedIndex];
+    newLoras.splice(draggedIndex, 1);
+    newLoras.splice(index, 0, draggedItem);
+    
+    setDraggedIndex(index);
+    onChange(newLoras);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
 
-  const handleDrop = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-    const newLoras = [...loras];
-    const [dragged] = newLoras.splice(draggedIndex, 1);
-    newLoras.splice(index, 0, dragged);
-    onChange(newLoras);
+  const handleDragEnd = () => {
     setDraggedIndex(null);
+    setDraggableIndex(null);
+    setIsDraggingActive(false);
+    scrollParentRef.current = null;
+    scrollVelocityRef.current = 0;
+    if (scrollIntervalRef.current) {
+      window.clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
   };
 
   return (
-    <div className="lora-compact-list">
-      {loras.map((lora, index) => (
-        <div 
-          className={`lora-compact-row ${lora.active ? "" : "disabled"} ${draggedIndex === index ? "dragging" : ""}`} 
-          key={lora.name + index}
-          draggable
-          onDragStart={(e) => handleDragStart(e, index)}
-          onDragOver={(e) => handleDragOver(e, index)}
-          onDrop={(e) => handleDrop(e, index)}
-          onDragEnd={() => setDraggedIndex(null)}
-          style={{ cursor: "grab" }}
-        >
-          <label className="lora-compact-toggle">
-            <input type="checkbox" checked={lora.active} onChange={(event) => onChange(loras.map((item, itemIndex) => itemIndex === index ? { ...item, active: event.target.checked } : item))} />
-          </label>
-          <div className="lora-compact-name" title={lora.displayName || lora.name} onClick={() => onDetail?.(lora)} style={onDetail ? { cursor: "pointer", textDecoration: "underline" } : undefined}>
-            {lora.displayName || lora.name}
+    <div className="lora-selection-grid">
+      {loras.map((lora, index) => {
+        const hash = lora.sha256?.toLowerCase();
+        const fallbackPreview = hash ? (localExampleFilesByHash[hash]?.[0]?.path || localExampleFilesByHash[hash]?.[0]?.url) : undefined;
+        const previewUrl = lora.previewUrl || fallbackPreview;
+        // 使用更稳定的 key，避免重新排序时 Key 变化导致 DragEnd 丢失
+        const cardKey = lora.sha256 ? `lora-${lora.sha256}` : `lora-${lora.name}-${index}`;
+
+        return (
+          <div 
+            className={`lora-selection-card ${lora.active ? "" : "disabled"} ${draggedIndex === index ? "dragging" : ""} ${draggedIndex === index && isDraggingActive ? "dragging-active" : ""}`} 
+            key={cardKey}
+            draggable={draggableIndex === index}
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragEnter={(e) => handleDragEnter(e, index)}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDrop={(e) => e.preventDefault()}
+          >
+            <div className="lora-card-preview" onClick={() => onDetail?.(lora)}>
+              {previewUrl ? (
+                <LoraMedia
+                  media={{
+                    url: previewUrl,
+                    type: isVideoPath(previewUrl || "") ? "video" : "image",
+                    source: "preview",
+                  }}
+                  apiBase={apiBase}
+                  alt={lora.displayName || lora.name}
+                  settings={settings}
+                />
+              ) : (
+                <div className="lora-card-placeholder">
+                  <Boxes size={24} opacity={0.2} />
+                </div>
+              )}
+              <div 
+                className="lora-card-handle"
+                onMouseEnter={() => setDraggableIndex(index)}
+                onMouseLeave={() => draggedIndex === null && setDraggableIndex(null)}
+              >
+                <GripVertical size={12} />
+              </div>
+            </div>
+            
+            <div className="lora-card-info">
+              <div className="lora-card-header-row">
+                <div className="lora-card-name" title={lora.displayName || lora.name}>
+                  {lora.displayName || lora.name}
+                </div>
+                <div className="lora-card-actions" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+                  <label className="lora-card-toggle" onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+                    <input 
+                      type="checkbox" 
+                      checked={lora.active} 
+                      onDragStart={(e) => e.stopPropagation()}
+                      onChange={(event) => onChange(loras.map((item, itemIndex) => itemIndex === index ? { ...item, active: event.target.checked } : item))} 
+                    />
+                    <span className="checkbox-custom"></span>
+                  </label>
+                  <button 
+                    className="lora-card-remove" 
+                    type="button" 
+                    title="移除"
+                    onDragStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChange(loras.filter((_, itemIndex) => itemIndex !== index));
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="lora-card-controls" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+                <div 
+                  className="lora-slider-wrapper"
+                  style={{ "--slider-thumb-pos": `${((lora.strength + 2) / 4) * 100}%` } as React.CSSProperties}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
+                  <input 
+                    className="lora-slider" 
+                    type="range" 
+                    value={lora.strength} 
+                    min={-2} 
+                    max={2} 
+                    step={0.05} 
+                    onDragStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onChange={(event) => onChange(loras.map((item, itemIndex) => itemIndex === index ? { ...item, strength: Number(event.target.value), clipStrength: Number(event.target.value) } : item))} 
+                  />
+                  <div 
+                    className="lora-slider-track-fill" 
+                    style={{ 
+                      width: `${((lora.strength + 2) / 4) * 100}%`,
+                      background: lora.strength >= 0 ? 'var(--accent)' : '#ef4444'
+                    }}
+                  ></div>
+                </div>
+                <input 
+                  className="lora-number" 
+                  type="number" 
+                  value={lora.strength} 
+                  min={-10} 
+                  max={10} 
+                  step={0.05} 
+                  onDragStart={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onChange={(event) => onChange(loras.map((item, itemIndex) => itemIndex === index ? { ...item, strength: Number(event.target.value), clipStrength: Number(event.target.value) } : item))} 
+                />
+              </div>
+            </div>
           </div>
-          <div className="lora-compact-controls">
-            <input className="lora-slider" type="range" value={lora.strength} min={-2} max={2} step={0.05} onChange={(event) => onChange(loras.map((item, itemIndex) => itemIndex === index ? { ...item, strength: Number(event.target.value), clipStrength: Number(event.target.value) } : item))} />
-            <input className="lora-number" type="number" value={lora.strength} min={-10} max={10} step={0.05} onChange={(event) => onChange(loras.map((item, itemIndex) => itemIndex === index ? { ...item, strength: Number(event.target.value), clipStrength: Number(event.target.value) } : item))} />
-          </div>
-          <button className="lora-compact-remove" type="button" onClick={() => onChange(loras.filter((_, itemIndex) => itemIndex !== index))}>
-            ×
-          </button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -5547,8 +5938,18 @@ function normalizePreview(apiBase: string, preview?: string) {
   if (!preview) return "";
   if (/^https?:\/\//.test(preview)) return preview;
   if (preview.startsWith("/xyz/")) return preview;
-  if (preview.startsWith("/")) return `${apiBase}${preview}`;
-  return `${apiBase}/${preview}`;
+  if (preview.startsWith("data:")) return preview;
+  
+  // Handle potential Windows absolute paths or other absolute paths that don't start with /
+  if (/^[a-zA-Z]:\\/.test(preview) || preview.startsWith("\\\\")) {
+    // This is a local file path that the browser can't access directly
+    // Usually these should have been converted to /xyz/ or similar by the backend
+    // If not, we might need a specific API to serve them, but for now we'll assume it's relative to ComfyUI if not /xyz/
+  }
+
+  const base = (apiBase || "/comfy").replace(/\/+$/, "");
+  if (preview.startsWith("/")) return `${base}${preview}`;
+  return `${base}/${preview}`;
 }
 
 function normalizeLoraManagerSettings(settings?: LoraManagerSettings | null): LoraManagerSettings {
@@ -5664,9 +6065,7 @@ function mergeRemoteWithLocalExample(remote: LoraExampleMedia, local: LoraExampl
   };
 }
 
-function pickCardPreviewMedia(item: LoraItem, localFilesByHash: Record<string, LoraExampleMedia[]>): LoraExampleMedia {
-  const hash = item.sha256?.toLowerCase();
-  const localFiles = hash ? localFilesByHash[hash] ?? [] : [];
+function pickCardPreviewMedia(item: LoraItem, localFiles: LoraExampleMedia[]): LoraExampleMedia {
   const localPreview = pickPreferredLocalExample(localFiles.filter((file) => /^image_0\./i.test(localExampleName(file))))
     ?? pickPreferredLocalExample(localFiles);
   if (localPreview) {
