@@ -1646,9 +1646,22 @@ textarea {
 
 .tabs {
   justify-content: center;
-  gap: 7px;
+  gap: 12px;
   overflow: visible;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(124, 145, 176, 0.22);
+  margin: 0 4px;
 }
 
 .tab,
@@ -1692,8 +1705,25 @@ textarea {
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.32);
 }
 
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.action-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(124, 145, 176, 0.22);
+  margin: 0 2px;
+}
+
 .top-actions {
   flex-wrap: nowrap;
+  gap: 10px;
 }
 
 .run-progress-strip {
@@ -2349,7 +2379,31 @@ textarea {
   }
 }
 
-/* Final overrides: keep output on the right and compact XYZ/LoRA. */
+/* Topbar compact optimizations */
+@media (max-width: 1560px) {
+  .brand h1, .brand span {
+    display: none;
+  }
+  .brand {
+    min-width: auto;
+  }
+  .topbar {
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .tab span {
+    display: none;
+  }
+  .tab {
+    padding: 0 10px;
+  }
+  .nav-group {
+    gap: 4px;
+  }
+}
 .layout.no-output,
 .layout.has-output {
   grid-template-columns: minmax(0, 1fr) minmax(260px, 318px);

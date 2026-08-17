@@ -268,6 +268,13 @@ export type DrawTextParams = {
   size: number;
   color: string;
   backgroundColor: string;
+  width: number;
+  height: number;
+  maxWidth: number;
+  lineSpacing: number;
+  letterSpacing: number;
+  glowBlur: number;
+  glowColor: string;
   shadowDistance: number;
   shadowBlur: number;
   shadowColor: string;
@@ -279,6 +286,14 @@ export type DrawTextParams = {
   rotation: number;
   strokeWidth: number;
   strokeColor: string;
+  color2: string;
+  gradientColors?: string[];
+  gradientDirection: "none" | "horizontal" | "vertical" | "diagonal" | "angle";
+  gradientAngle?: number;
+  layoutDirection: "horizontal" | "vertical";
+  decoration: "none" | "underline" | "strikethrough" | "overline" | "underline_overline" | "box" | "both" | "double_underline" | "dotted_underline" | "wave_underline" | "background_box" | "bracket" | "circle" | "rhombus" | "tag" | "dashed_underline" | "rounded_box" | "double_strikethrough" | "parallelogram" | "corners" | "speech_bubble" | "neon_border" | "double_box" | "shadow_box" | "wave_overline" | "bold_underline" | "zigzag_underline" | "dotted_box" | "dashed_box" | "bracket_curly" | "bracket_angle" | "ribbon" | "highlight" | "double_underline_overline" | "stitch" | "comic_bubble" | "capsule" | "wavy_box" | "leaf_box" | "trapezoid" | "star_corners" | "double_ribbon" | "dot_dash_underline" | "bracket_square_bold" | "pill_border" | "cross_out" | "heart_box" | "cloud_bubble" | "dashed_overline" | "double_wave_underline";
+  syncWithImage: boolean;
+  syncMode?: 'default' | 'multi' | 'highres' | 'manual';
 };
 
 export type BaseGenerationParams = {
@@ -504,7 +519,33 @@ export type XyzField =
   | `loraAppendStrength_${number}`
   | "positiveAppend"
   | "drawTextText"
-  | "drawTextFont";
+  | "drawTextFont"
+  | "drawTextSize"
+  | "drawTextColor"
+  | "drawTextWidth"
+  | "drawTextHeight"
+  | "drawTextMaxWidth"
+  | "drawTextLineSpacing"
+  | "drawTextLetterSpacing"
+  | "drawTextGlowBlur"
+  | "drawTextGlowColor"
+  | "drawTextShadowDistance"
+  | "drawTextShadowBlur"
+  | "drawTextShadowColor"
+  | "drawTextHorizontalAlign"
+  | "drawTextVerticalAlign"
+  | "drawTextOffsetX"
+  | "drawTextOffsetY"
+  | "drawTextRotation"
+  | "drawTextStrokeWidth"
+  | "drawTextStrokeColor"
+  | "drawTextColor2"
+  | "drawTextGradientDirection"
+  | "drawTextLayoutDirection"
+  | "drawTextDecoration"
+  | "drawTextSyncWithImage"
+  | "drawTextSyncMode"
+  | "drawTextGradientAngle";
 
 export type XyzAxis = {
   enabled: boolean;

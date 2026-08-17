@@ -8,6 +8,19 @@ const numericFields = new Set<string>([
   "width",
   "height",
   "denoise",
+  "drawTextSize",
+  "drawTextWidth",
+  "drawTextHeight",
+  "drawTextMaxWidth",
+  "drawTextLineSpacing",
+  "drawTextLetterSpacing",
+  "drawTextGlowBlur",
+  "drawTextShadowDistance",
+  "drawTextShadowBlur",
+  "drawTextOffsetX",
+  "drawTextOffsetY",
+  "drawTextRotation",
+  "drawTextStrokeWidth",
 ]);
 
 function isNumericField(field: XyzField) {
@@ -131,6 +144,16 @@ export function applyXyzPatch<T extends BaseGenerationParams>(params: T, patch: 
   return next;
 }
 
+function isBooleanField(field: XyzField) {
+  return field === "drawTextSyncWithImage";
+}
+
+function parseValue(field: XyzField, value: any) {
+  if (isNumericField(field)) return Number(value);
+  if (isBooleanField(field)) return String(value).toLowerCase() === "true" || value === "1" || value === 1;
+  return String(value);
+}
+
 function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenerationParams> {
   if (field === "positiveAppend") {
     return { positivePrompt: String(value), filenameSuffix: String(value) };
@@ -157,7 +180,12 @@ function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenera
   if (field === "drawTextFont") {
     return { drawText: { font: String(value), enabled: true } as any };
   }
-  return { [field]: isNumericField(field) ? Number(value) : String(value) } as Partial<BaseGenerationParams>;
+  if (field.startsWith("drawText")) {
+    const subField = field.slice(8);
+    const camelSubField = subField.charAt(0).toLowerCase() + subField.slice(1);
+    return { drawText: { [camelSubField]: parseValue(field, value), enabled: true } as any };
+  }
+  return { [field]: parseValue(field, value) } as Partial<BaseGenerationParams>;
 }
 
 export function applySpecialXyzPatch<T extends BaseGenerationParams>(params: T, combo: XyzCombination): T {
@@ -240,8 +268,34 @@ export function fieldLabel(field: XyzField, lorasOfTarget?: { name: string; disp
     scheduler: "调度器",
     denoise: "重绘",
     positiveAppend: "正向追加",
-    drawTextText: "文字控制",
-    drawTextFont: "字体控制",
+    drawTextText: "文字内容",
+    drawTextFont: "文字字体",
+    drawTextSize: "文字大小",
+    drawTextColor: "文字颜色",
+    drawTextWidth: "画布宽",
+    drawTextHeight: "画布高",
+    drawTextMaxWidth: "文字换行宽",
+    drawTextLineSpacing: "行间距",
+    drawTextLetterSpacing: "字间距",
+    drawTextGlowBlur: "发光模糊",
+    drawTextGlowColor: "发光颜色",
+    drawTextShadowDistance: "阴影距离",
+    drawTextShadowBlur: "阴影模糊",
+    drawTextShadowColor: "阴影颜色",
+    drawTextHorizontalAlign: "水平对齐",
+    drawTextVerticalAlign: "垂直对齐",
+    drawTextOffsetX: "偏移X",
+    drawTextOffsetY: "偏移Y",
+    drawTextRotation: "旋转角度",
+    drawTextStrokeWidth: "描边粗细",
+    drawTextStrokeColor: "描边颜色",
+    drawTextColor2: "渐变颜色2",
+    drawTextGradientDirection: "渐变方向",
+    drawTextLayoutDirection: "排列方向",
+    drawTextDecoration: "文字装饰",
+    drawTextSyncWithImage: "同步画布大小",
+    drawTextSyncMode: "画布同步模式",
+    drawTextGradientAngle: "渐变角度",
   };
   return labels[field] || field;
 }
