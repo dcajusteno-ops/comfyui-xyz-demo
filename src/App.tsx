@@ -100,6 +100,8 @@ import {
 import { applySpecialXyzPatch, buildXyzCombinations, fieldLabel, parseAxisValues } from "./lib/xyz";
 import type {
   BaseGenerationParams,
+  ConnectionInfo,
+  ConnectionStatus,
   DetailerParams,
   DoctorDiagnostic,
   DownloadProgress,
@@ -371,6 +373,21 @@ function makeHighresParams(checkpoint = fallbackOptions.checkpoints[0]): Highres
 }
 
 function App() {
+  const [apiBase, setApiBase] = useState("/comfy");
+  const client = useMemo(() => new ComfyClient(apiBase), [apiBase]);
+  const [connection, setConnection] = useState<ConnectionInfo>({ status: "checking" });
+
+  useEffect(() => {
+    client.startMonitoring();
+    const unsubsribe = client.onStatusChange((info) => {
+      setConnection(info);
+    });
+    return () => {
+      unsubsribe();
+      client.stopMonitoring();
+    };
+  }, [client]);
+
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
@@ -385,10 +402,7 @@ function App() {
   }, []);
 
   const [tab, setTab] = useLocalStorageState<TabId>("comfyui_active_tab", "default");
-  const [apiBase, setApiBase] = useState("/comfy");
-  const client = useMemo(() => new ComfyClient(apiBase), [apiBase]);
   const [options, setOptions] = useState<OptionsState>(fallbackOptions);
-  const [connection, setConnection] = useState("检查中");
   const [defaultParams, setDefaultParams] = useLocalStorageState<BaseGenerationParams>("comfyui_default_params", makeBaseParams());
   const [multiParams, setMultiParams] = useLocalStorageState<MultiGenerationParams>("comfyui_multi_params", makeMultiParams());
   const [highresParams, setHighresParams] = useLocalStorageState<HighresParams>("comfyui_highres_params", makeHighresParams());
@@ -678,7 +692,6 @@ function App() {
         }
 
         const system = stats as { system?: { comfyui_version?: string }; devices?: Array<{ name: string }> };
-        setConnection(`在线 ${system.system?.comfyui_version ?? ""}`);
         const firstCheckpoint = nextOptions.checkpoints[0] ?? "";
         setDefaultParams((prev) => ({ ...prev, checkpoint: nextOptions.checkpoints.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint }));
         setMultiParams((prev) => ({ ...prev, checkpoint: nextOptions.checkpoints.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint }));
@@ -695,7 +708,6 @@ function App() {
         setClBatchParams((prev) => ({ ...prev, modelName: nextOptions.clModels.includes(prev.modelName) ? prev.modelName : (nextOptions.clModels[0] ?? "") }));
       } catch (loadError) {
         if (canceled) return;
-        setConnection("离线");
         setError(loadError instanceof Error ? loadError.message : String(loadError));
         pushToast("error", "连接失败", loadError instanceof Error ? loadError.message : String(loadError));
       }
@@ -1663,9 +1675,20 @@ function App() {
           <div className="brand-mark">
             <Sparkles size={22} />
           </div>
-          <div>
+          <div className="brand-info">
             <h1>ComfyUI XYZ 控制台</h1>
-            <span>{connection}</span>
+            <div className={`connection-status ${connection.status}`} title={connection.message}>
+              <div className="status-dot" />
+              <span>
+                {connection.status === "online" 
+                  ? `在线 ${connection.version || ""}` 
+                  : connection.status === "offline" 
+                  ? "离线" 
+                  : connection.status === "checking" 
+                  ? "正在连接..." 
+                  : "连接错误"}
+              </span>
+            </div>
           </div>
         </div>
         <nav className="tabs" aria-label="模板导航">
@@ -1727,6 +1750,34 @@ function App() {
           </button>
         </div>
       </header>
+      
+      {connection.status !== "online" && connection.status !== "checking" && (
+        <div className="connection-overlay">
+          <div className="overlay-content">
+            <div className="overlay-icon">
+              <RefreshCw size={48} className="animate-spin-slow" />
+            </div>
+            <h2>ComfyUI 连接已断开</h2>
+            <p>无法连接到 ComfyUI 后端服务，请确保：</p>
+            <ul>
+              <li>ComfyUI 服务已经在 <b>{apiBase}</b> 启动</li>
+              <li>如果使用了插件，请确保插件已正确安装</li>
+              <li>尝试手动刷新页面或重启 ComfyUI</li>
+            </ul>
+            <div className="overlay-actions">
+              <button className="primary-action" onClick={() => window.location.reload()}>
+                <RefreshCw size={18} />
+                重新连接
+              </button>
+              <button className="secondary-action" onClick={() => setLoraOperation({ type: "settings" })}>
+                <Settings size={18} />
+                修改 API 地址
+              </button>
+            </div>
+            {connection.message && <div className="error-detail">{connection.message}</div>}
+          </div>
+        </div>
+      )}
 
       <PromptEditorDialog 
         open={showPromptEditor} 

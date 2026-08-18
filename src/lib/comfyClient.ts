@@ -1,6 +1,8 @@
 import type {
   ApiResult,
   ComfyPrompt,
+  ConnectionInfo,
+  ConnectionStatus,
   DoctorDiagnosticsResult,
   DownloadProgress,
   ExampleImagesPendingResult,
@@ -58,7 +60,118 @@ function managedModelPayloadType(modelType: ManagedModelType) {
 }
 
 export class ComfyClient {
+  private status: ConnectionInfo = { status: "checking" };
+  private listeners: ((info: ConnectionInfo) => void)[] = [];
+  private monitorSocket: WebSocket | null = null;
+  private heartbeatTimer: number | null = null;
+  private reconnectTimer: number | null = null;
+  private clientId: string = this.generateId();
+
   constructor(private readonly baseUrl = "/comfy") {}
+
+  private generateId() {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    }
+  }
+
+  onStatusChange(listener: (info: ConnectionInfo) => void) {
+    this.listeners.push(listener);
+    listener(this.status);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  private updateStatus(patch: Partial<ConnectionInfo>) {
+    this.status = { ...this.status, ...patch };
+    this.listeners.forEach((l) => l(this.status));
+  }
+
+  getStatus() {
+    return this.status;
+  }
+
+  startMonitoring() {
+    if (this.monitorSocket) return;
+    this.connectMonitor();
+  }
+
+  stopMonitoring() {
+    this.clearTimers();
+    if (this.monitorSocket) {
+      this.monitorSocket.close();
+      this.monitorSocket = null;
+    }
+  }
+
+  private clearTimers() {
+    if (this.heartbeatTimer) {
+      window.clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    if (this.reconnectTimer) {
+      window.clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  private async connectMonitor() {
+    this.clearTimers();
+    
+    try {
+      // First check if the server is alive via HTTP
+      const stats = await this.getSystemStats() as any;
+      const version = stats?.system?.comfyui_version || "未知版本";
+      
+      const socket = this.openSocket(this.clientId);
+      this.monitorSocket = socket;
+
+      socket.onopen = () => {
+        this.updateStatus({ status: "online", version });
+        this.startHeartbeat();
+      };
+
+      socket.onclose = () => {
+        this.monitorSocket = null;
+        this.updateStatus({ status: "offline" });
+        this.scheduleReconnect();
+      };
+
+      socket.onerror = () => {
+        this.updateStatus({ status: "error", message: "WebSocket 连接错误" });
+      };
+
+      socket.onmessage = (event) => {
+        if (event.data === "pong") {
+          // Heartbeat response
+        }
+      };
+    } catch (error) {
+      this.updateStatus({ status: "offline", message: error instanceof Error ? error.message : String(error) });
+      this.scheduleReconnect();
+    }
+  }
+
+  private startHeartbeat() {
+    if (this.heartbeatTimer) window.clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = window.setInterval(() => {
+      if (this.monitorSocket?.readyState === WebSocket.OPEN) {
+        // ComfyUI doesn't strictly require pings to stay open, 
+        // but sending something keeps the connection active through proxies
+        this.monitorSocket.send(JSON.stringify({ type: "ping" }));
+      }
+    }, 30000); // 30 seconds heartbeat
+  }
+
+  private scheduleReconnect() {
+    if (this.reconnectTimer) window.clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = window.setTimeout(() => {
+      this.connectMonitor();
+    }, 5000); // Reconnect every 5 seconds
+  }
 
   async getSystemStats() {
     return this.getJson("/system_stats").catch(() => this.getJson("/api/system_stats"));

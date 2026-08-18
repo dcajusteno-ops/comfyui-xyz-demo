@@ -1,3 +1,11 @@
+export type ConnectionStatus = "checking" | "online" | "offline" | "error";
+
+export type ConnectionInfo = {
+  status: ConnectionStatus;
+  version?: string;
+  message?: string;
+};
+
 export type ComfyPromptNode = {
   class_type: string;
   inputs: Record<string, unknown>;
