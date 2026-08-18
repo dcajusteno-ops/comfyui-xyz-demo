@@ -224,8 +224,11 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
       borderLeft: '1px solid var(--border)',
       display: 'flex',
       flexDirection: 'column',
-      zIndex: 100,
-      position: 'relative',
+      zIndex: 200,
+      position: 'fixed',
+      right: 0,
+      top: 0,
+      bottom: 0,
       boxShadow: '-4px 0 12px rgba(0,0,0,0.1)'
     }}>
       <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

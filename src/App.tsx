@@ -12,6 +12,7 @@ import {
   Brain,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   Bold,
   CheckCircle2,
   CircleHelp,
@@ -372,6 +373,87 @@ function makeHighresParams(checkpoint = fallbackOptions.checkpoints[0]): Highres
   };
 }
 
+const AppSidebar = memo(({
+  isCollapsed,
+  onToggle,
+  activeTab,
+  onTabChange,
+  generationTabs,
+  toolTabs,
+}: {
+  isCollapsed: boolean;
+  onToggle: () => void;
+  activeTab: TabId;
+  onTabChange: (id: TabId) => void;
+  generationTabs: Array<{ id: TabId; label: string; icon: any }>;
+  toolTabs: Array<{ id: TabId; label: string; icon: any }>;
+}) => {
+  return (
+    <aside className={isCollapsed ? "app-sidebar is-collapsed" : "app-sidebar"}>
+      <div className="sidebar-header">
+        <div className="brand-mark">
+          <Sparkles size={22} />
+        </div>
+        {!isCollapsed && <h1>ComfyUI XYZ</h1>}
+      </div>
+      
+      <nav className="sidebar-nav">
+        <div className="nav-section">
+          {!isCollapsed && <label>生图模板</label>}
+          {generationTabs.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={activeTab === item.id ? "nav-item active" : "nav-item"}
+                onClick={() => onTabChange(item.id)}
+                title={item.label}
+              >
+                <Icon size={20} />
+                {!isCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
+        </div>
+        
+        <div className="nav-divider" />
+        
+        <div className="nav-section">
+          {!isCollapsed && <label>工具组件</label>}
+          {toolTabs.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={activeTab === item.id ? "nav-item active" : "nav-item"}
+                onClick={() => onTabChange(item.id)}
+                title={item.label}
+              >
+                <Icon size={20} />
+                {!isCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      <div className="sidebar-footer">
+        <button
+          type="button"
+          className="collapse-toggle"
+          onClick={onToggle}
+          title={isCollapsed ? "展开" : "收起"}
+        >
+          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {!isCollapsed && <span>收起</span>}
+        </button>
+      </div>
+    </aside>
+  );
+});
+
 function App() {
   const [apiBase, setApiBase] = useState("/comfy");
   const client = useMemo(() => new ComfyClient(apiBase), [apiBase]);
@@ -493,6 +575,20 @@ function App() {
   const [notesSaving, setNotesSaving] = useState(false);
   const [notesSearch, setNotesSearch] = useState("");
   const [isNotesWide, setIsNotesWide] = useState(false);
+
+  const [isAppSidebarCollapsed, setIsAppSidebarCollapsed] = useState(false);
+
+  // Global responsive collapse
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsAppSidebarCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const notesSaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -1668,15 +1764,19 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark">
-            <Sparkles size={22} />
-          </div>
-          <div className="brand-info">
-            <h1>ComfyUI XYZ 控制台</h1>
+    <div className={isAppSidebarCollapsed ? "app-shell sidebar-collapsed" : "app-shell"}>
+      <AppSidebar
+        isCollapsed={isAppSidebarCollapsed}
+        onToggle={() => setIsAppSidebarCollapsed(!isAppSidebarCollapsed)}
+        activeTab={tab}
+        onTabChange={setTab}
+        generationTabs={generationTabs}
+        toolTabs={toolTabs}
+      />
+      <div className="app-main">
+        {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
+        <header className="topbar">
+          <div className="brand">
             <div className={`connection-status ${connection.status}`} title={connection.message}>
               <div className="status-dot" />
               <span>
@@ -1690,68 +1790,40 @@ function App() {
               </span>
             </div>
           </div>
-        </div>
-        <nav className="tabs" aria-label="模板导航">
-          <div className="nav-group">
-            {generationTabs.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button key={item.id} type="button" className={tab === item.id ? "tab active" : "tab"} onClick={() => setTab(item.id)}>
-                  <Icon size={16} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-          
-          <div className="nav-divider" />
-
-          <div className="nav-group">
-            {toolTabs.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button key={item.id} type="button" className={tab === item.id ? "tab active" : "tab"} onClick={() => setTab(item.id)}>
-                  <Icon size={16} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </nav>
-        <div className="top-actions">
-          <div className="action-group">
-            <button type="button" className="icon-button" onClick={() => setShowPromptEditor(true)} title="提示词编辑器">
-              <Sparkles size={18} />
-              <span>提示词</span>
-            </button>
-            <button type="button" className={showPromptSidebar ? "icon-button active" : "icon-button"} onClick={() => setShowPromptSidebar(!showPromptSidebar)} title="提示词仓库">
-              <Bookmark size={18} />
-              <span>仓库</span>
-            </button>
-            <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "translator" })} title="翻译工具">
-              <Languages size={18} />
+          <div className="top-actions">
+            <div className="action-group">
+              <button type="button" className="icon-button" onClick={() => setShowPromptEditor(true)} title="提示词编辑器">
+                <Sparkles size={18} />
+                <span>提示词</span>
+              </button>
+              <button type="button" className={showPromptSidebar ? "icon-button active" : "icon-button"} onClick={() => setShowPromptSidebar(!showPromptSidebar)} title="提示词仓库">
+                <Bookmark size={18} />
+                <span>仓库</span>
+              </button>
+              <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "translator" })} title="翻译工具">
+                <Languages size={18} />
+              </button>
+            </div>
+            
+            <div className="action-divider" />
+            
+            <div className="action-group">
+              <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "notifications" })} title="通知">
+                <ListFilter size={18} />
+              </button>
+              <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "settings" })} title="设置">
+                <Settings size={18} />
+              </button>
+            </div>
+  
+            <button type="button" className="icon-button danger" onClick={() => client.interrupt(progress.promptId)} disabled={!progress.running}>
+              <PauseCircle size={18} />
+              <span>中断</span>
             </button>
           </div>
-          
-          <div className="action-divider" />
-          
-          <div className="action-group">
-            <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "notifications" })} title="通知">
-              <ListFilter size={18} />
-            </button>
-            <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "settings" })} title="设置">
-              <Settings size={18} />
-            </button>
-          </div>
-
-          <button type="button" className="icon-button danger" onClick={() => client.interrupt(progress.promptId)} disabled={!progress.running}>
-            <PauseCircle size={18} />
-            <span>中断</span>
-          </button>
-        </div>
-      </header>
+        </header>
       
-      {connection.status !== "online" && connection.status !== "checking" && (
+        {connection.status !== "online" && connection.status !== "checking" && (
         <div className="connection-overlay">
           <div className="overlay-content">
             <div className="overlay-icon">
@@ -2848,6 +2920,7 @@ function App() {
         </ModalFrame>
       )}
 
+      </div>
     </div>
   );
 
