@@ -355,6 +355,7 @@ export type MultiCharacter = {
 export type MultiCharacterConfig = {
   version: string;
   syntax_mode: "attention_couple" | "regional_prompts";
+  fusion_mode: "mask_overlap" | "latent_fusion";
   base_prompt: string;
   global_prompt: string;
   use_fill: boolean;
@@ -370,6 +371,7 @@ export type MultiCharacterConfig = {
 export type MultiGenerationParams = BaseGenerationParams & {
   globalPrompt: string;
   syntaxMode: "attention_couple" | "regional_prompts";
+  fusionMode: "mask_overlap" | "latent_fusion";
   useFill: boolean;
   canvasWidth: number;
   canvasHeight: number;

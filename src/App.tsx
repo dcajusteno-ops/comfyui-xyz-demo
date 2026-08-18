@@ -76,7 +76,7 @@ import {
 import { cloneMultiCharacterConfig } from "./data/multiTemplate";
 import { handlePromptWeightAdjustment } from "./lib/promptUtils";
 import { ComfyClient } from "./lib/comfyClient";
-import { enabledCanvasCharacters, moveMaskRect, resizeMaskRect } from "./lib/multiCanvas";
+import { enabledCanvasCharacters, moveMaskRect, resizeMaskRect, findOverlapRegions, autoBalanceWeights } from "./lib/multiCanvas";
 import { ImageGalleryItem } from "./components/ImageGalleryItem";
 import { PromptEditorDialog } from "./components/PromptEditorDialog";
 import { TranslationToolDialog } from "./components/TranslationToolDialog";
@@ -320,6 +320,7 @@ function makeMultiParams(checkpoint = fallbackOptions.checkpoints[0]): MultiGene
     filenamePrefix: "多人/%date:yyyy-MM-dd%/ComfyUI",
     globalPrompt: "",
     syntaxMode: "attention_couple",
+    fusionMode: "mask_overlap",
     useFill: false,
     canvasWidth: 1024,
     canvasHeight: 1024,
@@ -2243,6 +2244,15 @@ function App() {
                   <TextAreaField label="全局 prompt" value={multiParams.globalPrompt} onChange={(value) => setMultiParams((prev) => ({ ...prev, globalPrompt: value }))} />
                   <div className="form-grid multi-options">
                     <SelectField label="语法模式" value={multiParams.syntaxMode} options={["attention_couple", "regional_prompts"]} onChange={(value) => setMultiParams((prev) => ({ ...prev, syntaxMode: value as MultiGenerationParams["syntaxMode"] }))} />
+                    <SelectField 
+                      label="融合算法" 
+                      value={multiParams.fusionMode} 
+                      options={[
+                        { label: "Mask 叠加", value: "mask_overlap" },
+                        { label: "Latent 融合", value: "latent_fusion" }
+                      ]} 
+                      onChange={(value) => setMultiParams((prev) => ({ ...prev, fusionMode: value as MultiGenerationParams["fusionMode"] }))} 
+                    />
                     <NumberField label="多人画布宽" value={multiParams.canvasWidth} step={64} min={256} onChange={(value) => setMultiParams((prev) => ({ ...prev, canvasWidth: value }))} />
                     <NumberField label="多人画布高" value={multiParams.canvasHeight} step={64} min={256} onChange={(value) => setMultiParams((prev) => ({ ...prev, canvasHeight: value }))} />
                     <label className="field checkbox-field"><input type="checkbox" checked={multiParams.useFill} onChange={(event) => setMultiParams((prev) => ({ ...prev, useFill: event.target.checked }))} /> use_fill</label>
@@ -5151,7 +5161,12 @@ function MultiCanvasEditor({
     <div className="multi-canvas-panel">
       <div className="section-toolbar">
         <strong>角色画布</strong>
-        <span>{canvasWidth}x{canvasHeight}</span>
+        <div style={{ display: 'flex', gap: '8px', fontSize: '11px', color: '#888' }}>
+          <span>{canvasWidth}x{canvasHeight}</span>
+          {findOverlapRegions(characters).length > 0 && (
+            <span style={{ color: '#ff4757', fontWeight: 600 }}>重叠区域: {findOverlapRegions(characters).length}</span>
+          )}
+        </div>
       </div>
       <div
         className="multi-canvas"
@@ -5180,6 +5195,19 @@ function MultiCanvasEditor({
               onPointerDown={(event) => startInteraction(event, character, "move")}
               onMouseDown={(event) => startMouseInteraction(event, character, "move")}
             >
+              {character.feather > 0 && (
+                <div 
+                  className="mask-feather-preview" 
+                  style={{ 
+                    position: 'absolute', 
+                    inset: 0, 
+                    boxShadow: `inset 0 0 ${character.feather}px ${character.color}`,
+                    opacity: 0.4,
+                    pointerEvents: 'none',
+                    borderRadius: 'inherit'
+                  }} 
+                />
+              )}
               <span>{character.name}</span>
               {(["nw", "ne", "sw", "se"] as MaskHandle[]).map((handle) => (
                 <button
@@ -5194,6 +5222,23 @@ function MultiCanvasEditor({
             </div>
           );
         })}
+        {findOverlapRegions(characters).map((overlap, idx) => (
+          <div 
+            key={`overlap-${idx}`}
+            className="mask-overlap-region"
+            style={{
+              position: 'absolute',
+              left: `${overlap.rect.x * 100}%`,
+              top: `${overlap.rect.y * 100}%`,
+              width: `${overlap.rect.width * 100}%`,
+              height: `${overlap.rect.height * 100}%`,
+              backgroundColor: 'rgba(255, 71, 87, 0.15)',
+              border: '1px dashed rgba(255, 71, 87, 0.4)',
+              pointerEvents: 'none',
+              zIndex: 10
+            }}
+          />
+        ))}
         {visibleCharacters.length === 0 && <div className="canvas-empty">启用角色后会显示 mask 区域</div>}
         <div className="canvas-corner">{canvasWidth}x{canvasHeight}<br />缩放: 100%</div>
       </div>
@@ -5241,15 +5286,26 @@ function CharacterEditor({ characters, onChange, selectedId, onSelect }: { chara
               <input type="color" value={activeCharacter.color} onChange={(event) => update(activeIndex, { color: event.target.value })} />
             </div>
             <TextAreaField label="角色 prompt" value={activeCharacter.prompt} onChange={(value) => update(activeIndex, { prompt: value })} />
-            <div className="compact-coords">
+            <div className="compact-coords" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
               <NumberField label="权重" value={activeCharacter.weight} step={0.1} onChange={(value) => update(activeIndex, { weight: value })} />
               <NumberField label="feather" value={activeCharacter.feather} step={1} onChange={(value) => update(activeIndex, { feather: value })} />
+              <SelectField 
+                label="融合模式" 
+                value={activeCharacter.mask.blend_mode || "normal"} 
+                options={[
+                  { label: "正常", value: "normal" },
+                  { label: "叠加", value: "additive" },
+                  { label: "乘法", value: "multiply" }
+                ]} 
+                onChange={(value) => updateMask(activeIndex, { blend_mode: value })} 
+              />
               <NumberField label="x" value={activeCharacter.mask.x} step={0.01} onChange={(value) => updateMask(activeIndex, { x: value })} />
               <NumberField label="y" value={activeCharacter.mask.y} step={0.01} onChange={(value) => updateMask(activeIndex, { y: value })} />
               <NumberField label="w" value={activeCharacter.mask.width} step={0.01} onChange={(value) => updateMask(activeIndex, { width: value })} />
               <NumberField label="h" value={activeCharacter.mask.height} step={0.01} onChange={(value) => updateMask(activeIndex, { height: value })} />
             </div>
             <div className="card-actions">
+              <button type="button" onClick={() => onChange(autoBalanceWeights(characters))} title="根据重叠区域自动调整角色权重"><Boxes size={15} /> 平衡权重</button>
               <button type="button" onClick={() => onChange(duplicateCharacter(characters, activeIndex))}><Copy size={15} /> 复制角色</button>
               <button type="button" onClick={() => onChange(removeCharacter(characters, activeIndex))}><Trash2 size={15} /> 删除</button>
             </div>
