@@ -66,6 +66,8 @@ export class ComfyClient {
   private heartbeatTimer: number | null = null;
   private reconnectTimer: number | null = null;
   private clientId: string = this.generateId();
+  private promptListeners = new Map<string, (message: any) => void>();
+  private currentExecutingPromptId: string | null = null;
 
   constructor(private readonly baseUrl = "/comfy") {}
 
@@ -146,7 +148,38 @@ export class ComfyClient {
 
       socket.onmessage = (event) => {
         if (event.data === "pong") {
-          // Heartbeat response
+          return;
+        }
+        
+        try {
+          // Handle binary previews
+          if (typeof event.data !== "string") {
+            if (this.currentExecutingPromptId) {
+              const listener = this.promptListeners.get(this.currentExecutingPromptId);
+              if (listener) {
+                listener({ type: "preview", data: event.data });
+              }
+            }
+            return;
+          }
+
+          const message = JSON.parse(event.data);
+          const data = message.data ?? {};
+          const promptId = data.prompt_id;
+
+          // Track which prompt is currently executing for binary preview routing
+          if (message.type === "executing" && promptId) {
+            this.currentExecutingPromptId = data.node ? promptId : null;
+          }
+
+          if (promptId) {
+            const listener = this.promptListeners.get(promptId);
+            if (listener) {
+              listener(message);
+            }
+          }
+        } catch (e) {
+          // Ignore parse errors for non-JSON messages
         }
       };
     } catch (error) {
@@ -648,16 +681,23 @@ export class ComfyClient {
     prompt: ComfyPrompt,
     onProgress: (progress: ProgressState) => void,
   ): Promise<JobResult> {
-    const clientId = crypto.randomUUID();
-    const socket = this.openSocket(clientId);
+    // Ensure monitoring is active (shared WebSocket)
+    if (!this.monitorSocket || this.monitorSocket.readyState !== WebSocket.OPEN) {
+      await this.connectMonitor();
+      // Wait a bit for open if just called
+      if (this.monitorSocket?.readyState !== WebSocket.OPEN) {
+        await new Promise<void>((resolve) => {
+          this.monitorSocket?.addEventListener("open", () => resolve(), { once: true });
+          setTimeout(resolve, 5000); // Fallback
+        });
+      }
+    }
+
+    const socket = this.monitorSocket!;
+    const clientId = this.clientId;
     let promptId = "";
     let completed = false;
     let finishNotified = false;
-
-    await new Promise<void>((resolve) => {
-      socket.addEventListener("open", () => resolve(), { once: true });
-      socket.addEventListener("error", () => resolve(), { once: true });
-    });
 
     const queued = await this.queuePrompt(prompt, clientId);
     promptId = queued.prompt_id;
@@ -683,7 +723,7 @@ export class ComfyClient {
     const finishFromHistory = async () => {
       const history = await this.waitForHistory(promptId);
       completed = true;
-      socket.close();
+      this.promptListeners.delete(promptId);
       const extracted = this.extractHistory(promptId, history);
       if (!finishNotified) {
         finishNotified = true;
@@ -699,6 +739,8 @@ export class ComfyClient {
     };
 
     return new Promise<JobResult>((resolve, reject) => {
+      let resultsFromExecuted: JobResult | null = null;
+
       const fallbackTimer = window.setInterval(async () => {
         if (completed) return;
         try {
@@ -709,19 +751,21 @@ export class ComfyClient {
             resolve(await finishFromHistory());
           }
         } catch {
-          // WebSocket remains the primary path.
+          // Keep waiting
         }
-      }, 1250);
+      }, 1000);
 
-      socket.addEventListener("message", async (event) => {
+      const messageHandler = async (message: any) => {
         try {
           if (completed) return;
-          if (typeof event.data !== "string") {
+          const data = message.data ?? {};
+          
+          if (message.type === "preview") {
             let blob: Blob;
-            if (event.data instanceof Blob) {
-              blob = event.data.slice(8);
-            } else if (event.data instanceof ArrayBuffer) {
-              blob = new Blob([event.data.slice(8)]);
+            if (data instanceof Blob) {
+              blob = data.slice(8);
+            } else if (data instanceof ArrayBuffer) {
+              blob = new Blob([data.slice(8)]);
             } else {
               return;
             }
@@ -731,8 +775,7 @@ export class ComfyClient {
             updateProgress({ previewUrl: URL.createObjectURL(blob) });
             return;
           }
-          const message = JSON.parse(event.data);
-          const data = message.data ?? {};
+
           if (message.type === "progress") {
             const nodeId = data.node;
             const nodeDef = nodeId ? prompt[nodeId] : null;
@@ -760,12 +803,19 @@ export class ComfyClient {
             });
             if (data.node === null) {
               window.clearInterval(fallbackTimer);
-              resolve(await finishFromHistory());
+              if (resultsFromExecuted) {
+                completed = true;
+                this.promptListeners.delete(promptId);
+                updateProgress({ running: false, value: 1, max: 1, label: "完成" });
+                resolve(resultsFromExecuted);
+              } else {
+                resolve(await finishFromHistory());
+              }
             }
           }
           if (message.type === "execution_error" && data.prompt_id === promptId) {
             window.clearInterval(fallbackTimer);
-            socket.close();
+            this.promptListeners.delete(promptId);
             reject(new Error(data.exception_message || "ComfyUI 执行失败"));
           }
           if (message.type === "executed" && data.prompt_id === promptId) {
@@ -790,7 +840,9 @@ export class ComfyClient {
             if (outputs.text) {
               texts.push(...outputs.text);
             }
+            
             if (images.length > 0 || texts.length > 0) {
+              resultsFromExecuted = { promptId, images, texts, rawHistory: {} };
               updateProgress({
                 running: true,
                 promptId,
@@ -805,14 +857,12 @@ export class ComfyClient {
           }
         } catch (error) {
           window.clearInterval(fallbackTimer);
-          socket.close();
+          this.promptListeners.delete(promptId);
           reject(error);
         }
-      });
+      };
 
-      socket.addEventListener("error", () => {
-        if (!promptId || completed) return;
-      });
+      this.promptListeners.set(promptId, messageHandler);
     });
   }
 
@@ -823,7 +873,7 @@ export class ComfyClient {
       if (entry?.outputs && Object.keys(entry.outputs).length > 0) {
         return history;
       }
-      await new Promise((resolve) => window.setTimeout(resolve, 500));
+      await new Promise((resolve) => window.setTimeout(resolve, 300));
     }
     return this.getHistory(promptId);
   }

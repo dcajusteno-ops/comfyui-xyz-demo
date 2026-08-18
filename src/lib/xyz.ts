@@ -83,7 +83,11 @@ export function parseAxisValues(raw: string, field: XyzField): Array<string | nu
     });
 }
 
-export function buildXyzCombinations(axes: XyzAxis[], lorasOfTarget?: { name: string; displayName?: string }[]): XyzCombination[] {
+export function buildXyzCombinations(
+  axes: XyzAxis[],
+  lorasOfTarget?: { name: string; displayName?: string }[],
+  excludedIndices?: Set<number>
+): XyzCombination[] {
   const activeAxes = axes
     .filter((axis) => axis.enabled)
     .map((axis) => ({
@@ -95,12 +99,18 @@ export function buildXyzCombinations(axes: XyzAxis[], lorasOfTarget?: { name: st
   if (!activeAxes.length) return [];
 
   const combinations: XyzCombination[] = [];
+  let currentIndex = 0;
+
   const walk = (index: number, patch: Partial<BaseGenerationParams>, labels: string[]) => {
     if (index === activeAxes.length) {
-      combinations.push({
-        patch,
-        label: labels.join(" / "),
-      });
+      if (!excludedIndices || !excludedIndices.has(currentIndex)) {
+        combinations.push({
+          patch,
+          label: labels.join(" / "),
+          originalIndex: currentIndex,
+        });
+      }
+      currentIndex++;
       return;
     }
 

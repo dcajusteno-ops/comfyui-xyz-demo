@@ -718,6 +718,7 @@ function App() {
     { enabled: false, field: "cfg", values: "5,7" },
     { enabled: false, field: "steps", values: "20..30..10" },
   ]);
+  const [xyzExcludedIndices, setXyzExcludedIndices] = useState<Set<number>>(new Set());
   const [xyzResults, setXyzResults] = useState<XyzRunItem[]>([]);
   const examplePollRef = useRef<number | null>(null);
   const loraLoadingRef = useRef(false);
@@ -1215,12 +1216,14 @@ function App() {
     if (reset) {
       setXyzResults(items);
     }
+
     for (let index = 0; index < items.length; index += 1) {
       const item = items[index];
       if (xyzCancelRef.current) {
-        setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "cancelled" } : entry));
+        setXyzResults((prev) => prev.map((entry) => entry.id === item.id && entry.status === "queued" ? { ...entry, status: "cancelled" } : entry));
         continue;
       }
+
       const batch = { current: index + 1, total: items.length, itemLabel: item.label };
       setProgress({
         running: true,
@@ -1229,13 +1232,13 @@ function App() {
         label: `XYZ ${index + 1}/${items.length}`,
         batch,
       });
+
       setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "running", error: undefined } : entry));
+
       try {
-        const result = await runPrompt(
-          item.label,
-          () => buildXyzPrompt(item),
-          (prog) => setProgress({ ...prog, batch }),
-          "XYZ 控制器",
+        const result = await client.runPrompt(
+          buildXyzPrompt(item),
+          (prog) => setProgress({ ...prog, batch })
         );
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result } : entry));
       } catch (runError) {
@@ -1244,6 +1247,7 @@ function App() {
         pushToast("error", `XYZ 组合失败：${item.label}`, message);
       }
     }
+
     setProgress({
       running: false,
       value: 1,
@@ -1255,17 +1259,17 @@ function App() {
   }
 
   async function runXyz() {
-    const combos = buildXyzCombinations(xyzAxes, getXyzLoras());
+    const combos = buildXyzCombinations(xyzAxes, getXyzLoras(), xyzExcludedIndices);
     if (!combos.length) {
-      pushToast("error", "XYZ 无法运行", "至少需要启用一个轴并填写取值");
+      pushToast("error", "XYZ 无法运行", "至少需要启用一个轴并填写取值，且不能全部被排除");
       return;
     }
-    const items = combos.map((combo, index) => ({
+    const items = combos.map((combo) => ({
       id: crypto.randomUUID(),
       label: combo.label,
       patch: combo.patch,
       status: "queued" as const,
-      comboIndex: index,
+      comboIndex: combo.originalIndex,
     }));
     await runXyzItems(items, true);
   }
@@ -2455,7 +2459,19 @@ function App() {
                   </div>
                 ))}
               </div>
-              <XyzPreview axes={xyzAxes} lorasOfTarget={getXyzLoras()} />
+              <XyzPreview
+                axes={xyzAxes}
+                lorasOfTarget={lorasOfTarget}
+                excludedIndices={xyzExcludedIndices}
+                onToggleIndex={(index) => {
+                  setXyzExcludedIndices((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(index)) next.delete(index);
+                    else next.add(index);
+                    return next;
+                  });
+                }}
+              />
               <button className="primary-action" type="button" onClick={runXyz}>
                 <SlidersHorizontal size={18} />
                 顺序执行 XYZ
@@ -2926,6 +2942,7 @@ function App() {
 
   function updateAxis(index: number, patch: Partial<XyzAxis>) {
     setXyzAxes((prev) => prev.map((axis, axisIndex) => axisIndex === index ? { ...axis, ...patch } : axis));
+    setXyzExcludedIndices(new Set());
   }
 }
 
@@ -3052,26 +3069,63 @@ function ExampleImagesProgressBar({ status, pullingCount = 0 }: { status: Exampl
   );
 }
 
-function XyzPreview({ axes, lorasOfTarget }: { axes: XyzAxis[], lorasOfTarget?: { name: string; displayName?: string }[] }) {
-  const combos = buildXyzCombinations(axes, lorasOfTarget);
+function XyzPreview({
+  axes,
+  lorasOfTarget,
+  excludedIndices,
+  onToggleIndex,
+}: {
+  axes: XyzAxis[];
+  lorasOfTarget?: { name: string; displayName?: string }[];
+  excludedIndices: Set<number>;
+  onToggleIndex: (index: number) => void;
+}) {
+  const allCombos = useMemo(() => buildXyzCombinations(axes, lorasOfTarget), [axes, lorasOfTarget]);
+  const activeCount = allCombos.length - excludedIndices.size;
+  const estMinutes = Math.ceil((activeCount * 15) / 60);
+
   return (
     <div className="xyz-preview">
       <div className="section-toolbar">
-        <strong>组合预览</strong>
-        <span>{combos.length} 个组合</span>
+        <div className="preview-status">
+          <strong>组合预览</strong>
+          <span className="count-badge">
+            {activeCount} / {allCombos.length} 活跃
+          </span>
+        </div>
+        {activeCount > 0 && (
+          <div className="est-time">
+            <Clock size={14} />
+            预计 {estMinutes} 分钟
+          </div>
+        )}
       </div>
-      {combos.length === 0 ? (
+      {allCombos.length === 0 ? (
         <div className="empty-strip">启用轴并填写取值后会显示组合预览</div>
       ) : (
-        <div className="preview-table">
-          {combos.slice(0, 80).map((combo, index) => (
-            <div className="preview-row" key={`${combo.label}-${index}`}>
-              <span>{index + 1}</span>
-              <strong>{combo.label}</strong>
-              <code>{JSON.stringify(combo.patch)}</code>
-            </div>
-          ))}
-          {combos.length > 80 && <div className="empty-strip">仅预览前 80 个组合</div>}
+        <div className="preview-table custom-scrollbar">
+          {allCombos.slice(0, 100).map((combo, index) => {
+            const isExcluded = excludedIndices.has(index);
+            return (
+              <div
+                className={`preview-row ${isExcluded ? "excluded" : ""}`}
+                key={`${combo.label}-${index}`}
+                onClick={() => onToggleIndex(index)}
+              >
+                <div className="row-selector">
+                  <div className={`checkbox-mini ${!isExcluded ? "checked" : ""}`}>
+                    {!isExcluded && <div className="check-mark" />}
+                  </div>
+                  <span className="idx">{index + 1}</span>
+                </div>
+                <div className="row-content">
+                  <strong className="label">{combo.label}</strong>
+                  <code className="patch-info">{JSON.stringify(combo.patch)}</code>
+                </div>
+              </div>
+            );
+          })}
+          {allCombos.length > 100 && <div className="empty-strip">仅预览前 100 个组合</div>}
         </div>
       )}
     </div>

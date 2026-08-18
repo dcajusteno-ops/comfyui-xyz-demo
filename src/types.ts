@@ -565,6 +565,7 @@ export type XyzAxis = {
 export type XyzCombination = {
   label: string;
   patch: Partial<BaseGenerationParams>;
+  originalIndex?: number;
 };
 
 export type Toast = {
