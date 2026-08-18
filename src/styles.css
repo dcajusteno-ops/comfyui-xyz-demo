@@ -186,6 +186,34 @@ button {
   flex-wrap: wrap;
 }
 
+.layout-with-sidebar {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 54px);
+}
+
+.workspace-container {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.sidebar-item:hover {
+  border-color: var(--accent) !important;
+  background-color: var(--surface-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.sidebar-item button:hover {
+  filter: brightness(0.95);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
 .base-url {
   display: flex;
   align-items: center;

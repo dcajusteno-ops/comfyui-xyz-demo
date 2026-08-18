@@ -7,6 +7,7 @@ import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent, ReactNode, UIEvent } from "react";
 import {
   BadgePlus,
+  Bookmark,
   Boxes,
   Brain,
   ChevronDown,
@@ -81,6 +82,7 @@ import { TranslationToolDialog } from "./components/TranslationToolDialog";
 import { PromptTagBlocks } from "./components/PromptTagBlocks";
 import { RichTextEditor } from "./components/RichTextEditor";
 import { WelcomeModal } from "./components/WelcomeModal";
+import { PromptSidebar } from "./components/PromptSidebar";
 import { translateText, defaultTranslationSettings } from "./lib/translation";
 import type { TranslationSettings, TranslationProvider } from "./lib/translation";
 import type { MaskHandle } from "./lib/multiCanvas";
@@ -581,6 +583,7 @@ function App() {
   const [notificationLog, setNotificationLog] = useState<Toast[]>([]);
   const [showXyzHelp, setShowXyzHelp] = useState(false);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [showPromptSidebar, setShowPromptSidebar] = useState(false);
 
   const [progress, setProgress] = useState<ProgressState>({
     running: false,
@@ -1459,6 +1462,38 @@ function App() {
     } as LoraItem);
   }
 
+  const handleSidebarSelect = useCallback((text: string, type: 'positive' | 'negative' | 'combo', target: 'positive' | 'negative') => {
+    if (tab === "default") {
+      if (target === "positive") {
+        setDefaultParams(prev => ({ ...prev, positivePrompt: prev.positivePrompt + (prev.positivePrompt ? ", " : "") + text }));
+      } else {
+        setDefaultParams(prev => ({ ...prev, negativePrompt: prev.negativePrompt + (prev.negativePrompt ? ", " : "") + text }));
+      }
+    } else if (tab === "multi") {
+      if (target === "positive") {
+        setMultiParams(prev => ({ ...prev, globalPrompt: prev.globalPrompt + (prev.globalPrompt ? "\n" : "") + text }));
+      } else {
+        setMultiParams(prev => ({ ...prev, negativePrompt: prev.negativePrompt + (prev.negativePrompt ? ", " : "") + text }));
+      }
+    } else if (tab === "highres") {
+      if (target === "positive") {
+        setHighresParams(prev => ({ ...prev, positivePrompt: prev.positivePrompt + (prev.positivePrompt ? ", " : "") + text }));
+      } else {
+        setHighresParams(prev => ({ ...prev, negativePrompt: prev.negativePrompt + (prev.negativePrompt ? ", " : "") + text }));
+      }
+    }
+    pushToast("info", "提示词已添加", `${text.slice(0, 20)}...`);
+  }, [tab, setDefaultParams, setMultiParams, setHighresParams]);
+
+  const currentPrompts = useMemo(() => {
+    if (tab === "multi") {
+      return { positive: multiParams.globalPrompt, negative: multiParams.negativePrompt };
+    } else if (tab === "highres") {
+      return { positive: highresParams.positivePrompt, negative: highresParams.negativePrompt };
+    }
+    return { positive: defaultParams.positivePrompt, negative: defaultParams.negativePrompt };
+  }, [tab, defaultParams, multiParams, highresParams]);
+
   const addLora = useCallback((item: LoraItem, strength = 1, target = loraTarget) => {
     const hash = item.sha256?.toLowerCase();
     const localFiles = hash ? loraExampleFilesByHashRef.current[hash] ?? EMPTY_ARRAY : EMPTY_ARRAY;
@@ -1666,6 +1701,10 @@ function App() {
               <Sparkles size={18} />
               <span>提示词</span>
             </button>
+            <button type="button" className={showPromptSidebar ? "icon-button active" : "icon-button"} onClick={() => setShowPromptSidebar(!showPromptSidebar)} title="提示词仓库">
+              <Bookmark size={18} />
+              <span>仓库</span>
+            </button>
             <button type="button" className="icon-button" onClick={() => setLoraOperation({ type: "translator" })} title="翻译工具">
               <Languages size={18} />
             </button>
@@ -1709,7 +1748,8 @@ function App() {
 
       <RunProgressStrip progress={progress} />
 
-      <div className={["layout", results.length > 0 ? "has-output" : "no-output", tab === "loras" ? "lora-full" : ""].filter(Boolean).join(" ")}>
+      <div className="layout-with-sidebar">
+        <div className={["layout", results.length > 0 ? "has-output" : "no-output", tab === "loras" ? "lora-full" : ""].filter(Boolean).join(" ")}>
         <main className="workspace">
           {error && <div className="error-line">{error}</div>}
 
@@ -2612,6 +2652,15 @@ function App() {
           </aside>
         )}
       </div>
+
+      <PromptSidebar 
+         isOpen={showPromptSidebar} 
+         onClose={() => setShowPromptSidebar(false)} 
+         onSelect={handleSidebarSelect} 
+         currentPositive={currentPrompts.positive}
+         currentNegative={currentPrompts.negative}
+       />
+    </div>
       <ToastViewport toasts={toasts} onClose={(id) => setToasts((prev) => prev.filter((toast) => toast.id !== id))} />
       {showXyzHelp && <XyzHelpModal onClose={() => setShowXyzHelp(false)} />}
 
