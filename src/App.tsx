@@ -1241,6 +1241,8 @@ function App() {
           (prog) => setProgress({ ...prog, batch })
         );
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result } : entry));
+        // 同步更新全局输出面板，让图片显示在右侧
+        setResults((prev) => [result, ...prev].slice(0, 24));
       } catch (runError) {
         const message = runError instanceof Error ? runError.message : String(runError);
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "failed", error: message } : entry));
