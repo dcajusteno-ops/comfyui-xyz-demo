@@ -165,6 +165,55 @@ import {
   makeHighresParams,
   makeMultiParams,
 } from "./lib/paramBuilders";
+import {
+  normalizePreview,
+  mergeLora,
+  readCombo,
+  normalizeLoraManagerSettings,
+  buildFolderTree,
+  extractItemTrainedWords,
+  subTypeAbbreviation,
+  baseModelAbbreviation,
+  uniqueStrings,
+  mergeManagedModelItems,
+  parseTriggerWordsInput,
+  stripHtml,
+  formatStrength,
+  loraSyntaxName,
+  roundCanvasMask,
+  loraModelId,
+  buildLoraCivitaiUrl,
+  updateRecordModelId,
+} from "./lib/lora-helper";
+import {
+  normalizeMatureBlurLevel,
+  getMatureBlurThreshold,
+  normalizeNsfwLevel,
+  getItemNsfwLevel,
+  getMediaNsfwLevel,
+  shouldBlurNsfwLevel,
+  getNSFWLevelName,
+  getNsfwWarningText,
+} from "./lib/nsfw";
+import {
+  buildLoraExamples,
+  mergeRemoteWithLocalExample,
+  pickCardPreviewMedia,
+  normalizeLocalExample,
+  findMatchingLocalExample,
+  dedupeLocalExamples,
+  pickPreferredLocalExample,
+  localExampleKey,
+  localExampleName,
+  localExampleSource,
+  localExampleExtension,
+  localExampleScore,
+  isLoraVideo,
+  isVideoPath,
+} from "./lib/lora-media";
+import { formatBytes, downloadTextFile } from "./lib/file-helper";
+import { hexToRgba } from "./lib/color-helper";
+import { initialTabFromUrl, operationTitle, xyzStatusLabel } from "./lib/app-utils";
 
 const AppSidebar = memo(({
   isCollapsed,
@@ -6013,491 +6062,6 @@ function TextAreaField({ label, value, placeholder, onChange, hideChips }: { lab
   );
 }
 
-function mergeLora(loras: LoraSelection[], selection: LoraSelection) {
-  if (loras.some((lora) => lora.name === selection.name)) {
-    return loras;
-  }
-  return [...loras, selection];
-}
-
-function readCombo(data: unknown, node: string, input: string, fallback: string[]) {
-  const entry = (data as Record<string, { input?: { required?: Record<string, unknown> } }>)[node]?.input?.required?.[input];
-  if (Array.isArray(entry) && Array.isArray(entry[0])) {
-    return entry[0].map(String);
-  }
-  return fallback;
-}
-
-function normalizePreview(apiBase: string, preview?: string) {
-  if (!preview) return "";
-  if (/^https?:\/\//.test(preview)) return preview;
-  if (preview.startsWith("/xyz/")) return preview;
-  if (preview.startsWith("data:")) return preview;
-  
-  // Handle potential Windows absolute paths or other absolute paths that don't start with /
-  if (/^[a-zA-Z]:\\/.test(preview) || preview.startsWith("\\\\")) {
-    // This is a local file path that the browser can't access directly
-    // Usually these should have been converted to /xyz/ or similar by the backend
-    // If not, we might need a specific API to serve them, but for now we'll assume it's relative to ComfyUI if not /xyz/
-  }
-
-  const base = (apiBase || "/comfy").replace(/\/+$/, "");
-  if (preview.startsWith("/")) return `${base}${preview}`;
-  return `${base}/${preview}`;
-}
-
-function normalizeLoraManagerSettings(settings?: LoraManagerSettings | null): LoraManagerSettings {
-  return {
-    ...defaultLoraManagerSettings,
-    ...(settings ?? {}),
-    blur_mature_content: settings?.blur_mature_content ?? defaultLoraManagerSettings.blur_mature_content,
-    mature_blur_level: normalizeMatureBlurLevel(settings?.mature_blur_level),
-  };
-}
-
-function normalizeMatureBlurLevel(value: unknown): MatureBlurLevel {
-  const normalized = typeof value === "string" ? value.trim().toUpperCase() : "";
-  return validMatureBlurLevels.includes(normalized as MatureBlurLevel) ? normalized as MatureBlurLevel : "R";
-}
-
-function getMatureBlurThreshold(settings?: LoraManagerSettings | null) {
-  const level = normalizeMatureBlurLevel(settings?.mature_blur_level);
-  return NSFW_LEVELS[level] ?? NSFW_LEVELS.R;
-}
-
-function normalizeNsfwLevel(value: unknown) {
-  const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value) : 0;
-  return Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : 0;
-}
-
-function getItemNsfwLevel(item: LoraItem, metadata?: LoraMetadata | null) {
-  const explicitLevel = normalizeNsfwLevel(item.preview_nsfw_level);
-  if (explicitLevel > 0 || item.preview_nsfw_level !== undefined) {
-    return explicitLevel;
-  }
-  const itemCivitai = item.civitai as LoraMetadata | undefined;
-  return metadata?.model?.nsfw || itemCivitai?.model?.nsfw ? NSFW_LEVELS.R : NSFW_LEVELS.UNKNOWN;
-}
-
-function getMediaNsfwLevel(media: LoraExampleMedia, fallbackLevel = 0) {
-  if (media.nsfwLevel !== undefined) {
-    return normalizeNsfwLevel(media.nsfwLevel);
-  }
-  const metadata = media.metadata as Record<string, unknown> | undefined;
-  const meta = media.meta as Record<string, unknown> | undefined;
-  const metadataLevel = normalizeNsfwLevel(metadata?.nsfwLevel ?? meta?.nsfwLevel);
-  if (metadataLevel > 0) return metadataLevel;
-  if (metadata?.nsfw === true || meta?.nsfw === true) return NSFW_LEVELS.R;
-  return normalizeNsfwLevel(fallbackLevel);
-}
-
-function shouldBlurNsfwLevel(level: number, settings?: LoraManagerSettings | null) {
-  return settings?.blur_mature_content !== false && normalizeNsfwLevel(level) >= getMatureBlurThreshold(settings);
-}
-
-function getNSFWLevelName(level: number) {
-  const normalized = normalizeNsfwLevel(level);
-  if (normalized >= NSFW_LEVELS.BLOCKED) return "Blocked";
-  if (normalized >= NSFW_LEVELS.XXX) return "XXX";
-  if (normalized >= NSFW_LEVELS.X) return "X";
-  if (normalized >= NSFW_LEVELS.R) return "R";
-  if (normalized >= NSFW_LEVELS.PG13) return "PG13";
-  if (normalized >= NSFW_LEVELS.PG) return "PG";
-  return "Unknown";
-}
-
-function getNsfwWarningText(level: number) {
-  const normalized = normalizeNsfwLevel(level);
-  if (normalized >= NSFW_LEVELS.XXX) return "XXX-rated Content";
-  if (normalized >= NSFW_LEVELS.X) return "X-rated Content";
-  if (normalized >= NSFW_LEVELS.R) return "R-rated Content";
-  return "Mature Content";
-}
-
-function buildLoraExamples(
-  _apiBase: string,
-  item: LoraItem,
-  metadata: LoraMetadata | null,
-  localFiles: LoraExampleMedia[],
-) {
-  const remoteImages = [...(metadata?.images ?? []), ...(metadata?.customImages ?? [])].filter(Boolean);
-  if (remoteImages.length > 0) {
-    return remoteImages.map((remote, index) => {
-      const local = findMatchingLocalExample(remote, index, localFiles);
-      if (!local) {
-        return { ...remote, source: remote.source ?? "civitai" };
-      }
-      return mergeRemoteWithLocalExample(remote, local);
-    });
-  }
-
-  const dedupedLocal = dedupeLocalExamples(localFiles);
-  if (dedupedLocal.length > 0) {
-    return dedupedLocal.map(normalizeLocalExample);
-  }
-
-  const merged: LoraExampleMedia[] = [];
-  if (item.preview_url) {
-    merged.push({
-      url: item.preview_url,
-      type: isVideoPath(item.preview_url) ? "video" : "image",
-      source: "preview",
-      nsfwLevel: getItemNsfwLevel(item, metadata),
-    });
-  }
-  return merged;
-}
-
-function mergeRemoteWithLocalExample(remote: LoraExampleMedia, local: LoraExampleMedia) {
-  const localExample = normalizeLocalExample(local);
-  return {
-    ...remote,
-    ...localExample,
-    source: "local" as const,
-    meta: remote.meta ?? localExample.meta,
-    nsfwLevel: localExample.nsfwLevel ?? remote.nsfwLevel,
-  };
-}
-
-function pickCardPreviewMedia(item: LoraItem, localFiles: LoraExampleMedia[]): LoraExampleMedia {
-  const localPreview = pickPreferredLocalExample(localFiles.filter((file) => /^image_0\./i.test(localExampleName(file))))
-    ?? pickPreferredLocalExample(localFiles);
-  if (localPreview) {
-    return {
-      ...normalizeLocalExample(localPreview),
-      nsfwLevel: item.preview_nsfw_level ?? localPreview.nsfwLevel,
-    };
-  }
-  return {
-    url: item.preview_url,
-    type: isVideoPath(item.preview_url ?? "") ? "video" : "image",
-    nsfwLevel: item.preview_nsfw_level,
-    source: "preview",
-  };
-}
-
-function normalizeLocalExample(local: LoraExampleMedia): LoraExampleMedia {
-  const localSource = localExampleSource(local);
-  const normalized = {
-    ...local,
-    source: "local" as const,
-    type: local.is_video ? "video" : local.type ?? (isVideoPath(localSource) ? "video" : "image"),
-  };
-  if (!normalized.path && localSource) {
-    normalized.path = localSource;
-  }
-  if (!normalized.url && localSource) {
-    normalized.url = localSource;
-  }
-  return normalized;
-}
-
-function findMatchingLocalExample(remote: LoraExampleMedia, index: number, localFiles: LoraExampleMedia[]) {
-  const customId = remote.id !== undefined && remote.id !== null ? `custom_${String(remote.id)}` : "";
-  const candidates = localFiles.filter((file) => {
-    const name = localExampleName(file);
-    const imageMatch = name.match(/^image_(\d+)\./i);
-    if (customId) {
-      return name.startsWith(customId) || Boolean(imageMatch && Number(imageMatch[1]) === index);
-    }
-    return Boolean(imageMatch && Number(imageMatch[1]) === index);
-  });
-  return pickPreferredLocalExample(candidates);
-}
-
-function dedupeLocalExamples(localFiles: LoraExampleMedia[]) {
-  const byKey = new Map<string, LoraExampleMedia>();
-  for (const file of localFiles) {
-    const key = localExampleKey(file);
-    const current = byKey.get(key);
-    if (!current || localExampleScore(file) > localExampleScore(current)) {
-      byKey.set(key, file);
-    }
-  }
-  return Array.from(byKey.values());
-}
-
-function pickPreferredLocalExample(files: LoraExampleMedia[]) {
-  return files.reduce<LoraExampleMedia | undefined>((best, file) => {
-    if (!best || localExampleScore(file) > localExampleScore(best)) {
-      return file;
-    }
-    return best;
-  }, undefined);
-}
-
-function localExampleKey(file: LoraExampleMedia) {
-  const name = localExampleName(file);
-  return name.replace(/\.[^.]+$/, "").toLowerCase();
-}
-
-function localExampleName(file: LoraExampleMedia) {
-  const value = file.name || localExampleSource(file);
-  return value.split(/[\\/]/).pop() || value;
-}
-
-function localExampleSource(file: LoraExampleMedia) {
-  return file.path || file.url || "";
-}
-
-function localExampleExtension(file: LoraExampleMedia) {
-  const fromType = file.extension || localExampleName(file).match(/\.[^.]+$/)?.[0] || "";
-  return fromType.toLowerCase();
-}
-
-function localExampleScore(file: LoraExampleMedia) {
-  if (isLoraVideo(file, localExampleSource(file))) return 50;
-  const extension = localExampleExtension(file);
-  if (extension === ".webp") return 40;
-  if (extension === ".png") return 30;
-  if (extension === ".jpg" || extension === ".jpeg") return 20;
-  if (extension === ".gif") return 10;
-  return 0;
-}
-
-function isLoraVideo(media: LoraExampleMedia, src = "") {
-  return Boolean(media.is_video || media.type === "video" || isVideoPath(src || media.path || media.url || ""));
-}
-
-function isVideoPath(value: string) {
-  return /\.(mp4|webm|mov)(\?|#|$)/i.test(value);
-}
-
-function buildFolderTree(folders: string[]) {
-  const roots: FolderTreeNode[] = [];
-  const lookup = new Map<string, FolderTreeNode>();
-  for (const folder of folders) {
-    const parts = folder.split(/[\\/]/).filter(Boolean);
-    let path = "";
-    let siblings = roots;
-    for (const part of parts) {
-      path = path ? `${path}/${part}` : part;
-      let node = lookup.get(path);
-      if (!node) {
-        node = { name: part, path, children: [] };
-        lookup.set(path, node);
-        siblings.push(node);
-      }
-      siblings = node.children;
-    }
-  }
-  return roots;
-}
-
-function extractItemTrainedWords(item: LoraItem) {
-  const civitai = item.civitai as LoraMetadata | undefined;
-  return uniqueStrings(civitai?.trainedWords ?? []);
-}
-
-function subTypeAbbreviation(value?: string) {
-  const normalized = value?.toLowerCase();
-  if (normalized === "locon" || normalized === "lycoris") return "LyCO";
-  if (normalized === "dora") return "DoRA";
-  if (normalized === "loha") return "LoHA";
-  return "LoRA";
-}
-
-function baseModelAbbreviation(value?: string) {
-  const text = value || "Unknown";
-  const normalized = text.toLowerCase();
-  if (normalized.includes("stable diffusion xl") || normalized.includes("sdxl")) return "SDXL";
-  if (normalized.includes("stable diffusion 1.5") || normalized.includes("sd 1.5")) return "SD1.5";
-  if (normalized.includes("illustrious")) return "Illustrious";
-  if (normalized.includes("pony")) return "Pony";
-  return text.length > 14 ? `${text.slice(0, 12)}...` : text;
-}
-
-function uniqueStrings(values: Array<string | undefined | null>) {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const value of values) {
-    const text = String(value ?? "").trim();
-    if (!text || seen.has(text.toLowerCase())) continue;
-    seen.add(text.toLowerCase());
-    result.push(text);
-  }
-  return result;
-}
-
-function mergeManagedModelItems(currentItems: LoraItem[], nextItems: LoraItem[]) {
-  const byPath = new Map<string, LoraItem>();
-  for (const item of currentItems) {
-    byPath.set(item.file_path || `${item.model_name}-${item.file_name}`, item);
-  }
-  for (const item of nextItems) {
-    byPath.set(item.file_path || `${item.model_name}-${item.file_name}`, item);
-  }
-  return Array.from(byPath.values());
-}
-
-function parseTriggerWordsInput(value: string) {
-  return uniqueStrings(value.split(/[\n]+/).map((word) => word.trim()).filter(Boolean));
-}
-
-function stripHtml(value: string) {
-  return value
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .trim();
-}
-
-function formatStrength(value: number) {
-  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
-}
-
-function loraSyntaxName(item: LoraItem) {
-  if (item.folder && item.file_name) {
-    return `${item.folder}/${item.file_name}`;
-  }
-  return item.file_name || item.model_name;
-}
-
-function roundCanvasMask(mask: MultiCharacter["mask"]) {
-  const round = (value: number) => Math.round(value * 10000) / 10000;
-  return {
-    ...mask,
-    x: round(mask.x),
-    y: round(mask.y),
-    width: round(mask.width),
-    height: round(mask.height),
-  };
-}
-
-function hexToRgba(hex: string, alpha: number) {
-  const normalized = hex.replace("#", "");
-  const value = normalized.length === 3
-    ? normalized.split("").map((part) => `${part}${part}`).join("")
-    : normalized.padEnd(6, "0").slice(0, 6);
-  const number = Number.parseInt(value, 16);
-  const red = (number >> 16) & 255;
-  const green = (number >> 8) & 255;
-  const blue = number & 255;
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
-function formatBytes(value?: number) {
-  if (!value) return "未知";
-  const units = ["B", "KB", "MB", "GB"];
-  let size = value;
-  let unit = 0;
-  while (size >= 1024 && unit < units.length - 1) {
-    size /= 1024;
-    unit += 1;
-  }
-  return `${size.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
-}
-
-function initialTabFromUrl(): TabId {
-  if (typeof window === "undefined") return "default";
-  const tabParam = new URLSearchParams(window.location.search).get("tab");
-  const match = tabs.find((item) => item.id === tabParam);
-  return match?.id ?? "default";
-}
-
-function loraModelId(item?: LoraItem) {
-  if (!item) return undefined;
-  const civitai = item.civitai as LoraMetadata | undefined;
-  const metadata = item.metadata as LoraMetadata | undefined;
-  const fromRaw = [
-    civitai?.modelId,
-    metadata?.modelId,
-    (item.civitai as Record<string, unknown> | undefined)?.modelId,
-    (item.metadata as Record<string, unknown> | undefined)?.modelId,
-    (item.civitai as Record<string, unknown> | undefined)?.model_id,
-    (item.metadata as Record<string, unknown> | undefined)?.model_id,
-  ].find((value) => Number.isFinite(Number(value)));
-  return fromRaw === undefined ? undefined : Number(fromRaw);
-}
-
-function buildLoraCivitaiUrl(item: LoraItem, metadata?: LoraMetadata | null) {
-  const itemCivitai = item.civitai as Record<string, unknown> | undefined;
-  const itemMetadata = item.metadata as Record<string, unknown> | undefined;
-  const loadedMetadata = metadata as Record<string, unknown> | null | undefined;
-  const modelId = firstFiniteNumber([
-    itemCivitai?.modelId,
-    itemCivitai?.model_id,
-    loadedMetadata?.modelId,
-    loadedMetadata?.model_id,
-    itemMetadata?.modelId,
-    itemMetadata?.model_id,
-  ]);
-  const versionId = firstFiniteNumber([
-    itemCivitai?.id,
-    itemCivitai?.modelVersionId,
-    itemCivitai?.model_version_id,
-    loadedMetadata?.id,
-    loadedMetadata?.modelVersionId,
-    loadedMetadata?.model_version_id,
-    itemMetadata?.id,
-    itemMetadata?.modelVersionId,
-    itemMetadata?.model_version_id,
-  ]);
-  if (modelId !== undefined) {
-    const base = `https://civitai.red/models/${encodeURIComponent(String(modelId))}`;
-    return versionId !== undefined ? `${base}?modelVersionId=${encodeURIComponent(String(versionId))}` : base;
-  }
-  if (versionId !== undefined) {
-    return `https://civitai.red/model-versions/${encodeURIComponent(String(versionId))}`;
-  }
-  if (item.from_civitai) {
-    return `https://civitai.red/models?query=${encodeURIComponent(item.model_name || item.file_name)}`;
-  }
-  return null;
-}
-
-function firstFiniteNumber(values: unknown[]) {
-  const value = values.find((candidate) => Number.isFinite(Number(candidate)) && String(candidate).trim() !== "");
-  return value === undefined ? undefined : Number(value);
-}
-
-function updateRecordModelId(record: LoraUpdateRecord) {
-  const value = record.modelId ?? record.model_id;
-  return Number.isFinite(Number(value)) ? Number(value) : undefined;
-}
-
-function operationTitle(operation: LoraOperation) {
-  const titles: Record<LoraOperation["type"], string> = {
-    rename: "重命名 LoRA",
-    move: "移动 LoRA",
-    delete: "删除 LoRA",
-    download: "下载 LoRA",
-    duplicates: "重复项管理",
-    updates: "更新检查",
-    doctor: "医生检查",
-    settings: "全局设置",
-    notifications: "通知队列",
-    civitai: "Civitai 详情",
-    translator: "翻译工具",
-  };
-  return titles[operation.type];
-}
-
-function xyzStatusLabel(status: XyzRunItem["status"]) {
-  const labels: Record<XyzRunItem["status"], string> = {
-    queued: "等待",
-    running: "运行中",
-    success: "完成",
-    failed: "失败",
-    cancelled: "已中断",
-  };
-  return labels[status];
-}
-
-function downloadTextFile(filename: string, content: string, type = "text/plain") {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
 
 function ImageComparerModal({ imageA, imageB, onClose }: { imageA: string; imageB: string; onClose: () => void }) {
   const [sliderPos, setSliderPos] = useState(50);
