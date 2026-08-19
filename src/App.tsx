@@ -232,11 +232,15 @@ import {
 import { formatBytes, downloadTextFile } from "./lib/file-helper";
 import { hexToRgba } from "./lib/color-helper";
 import { initialTabFromUrl, operationTitle, xyzStatusLabel } from "./lib/app-utils";
+import { useToast } from "./hooks/useToast";
 
 
 function App() {
   const { apiBase, setApiBase, client, connection, tab, setTab } = useAppContext();
-  
+
+  // ===== Toast Hook =====
+  const { toasts: hookToasts, notificationLog: hookNotificationLog, pushToast, removeToast } = useToast();
+
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
@@ -455,8 +459,6 @@ function App() {
   const [featureModal, setFeatureModal] = useState<{ title: string; body: string } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   const [triggerWords, setTriggerWords] = useState<Record<string, string[]>>({});
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const [notificationLog, setNotificationLog] = useState<Toast[]>([]);
   const [showXyzHelp, setShowXyzHelp] = useState(false);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showPromptSidebar, setShowPromptSidebar] = useState(false);
@@ -507,15 +509,6 @@ function App() {
       document.title = baseDocTitleRef.current;
     }
   }, [progress.running, progress.value, progress.max, progress.batch, activeTaskLabel]);
-
-  function pushToast(type: Toast["type"], title: string, message?: string) {
-    const toast: Toast = { id: crypto.randomUUID(), type, title, message };
-    setNotificationLog((prev) => [toast, ...prev].slice(0, 80));
-    setToasts((prev) => [...prev, toast].slice(-5));
-    window.setTimeout(() => {
-      setToasts((prev) => prev.filter((item) => item.id !== toast.id));
-    }, type === "error" ? 5200 : 3600);
-  }
 
   useEffect(() => {
     let canceled = false;
@@ -2577,7 +2570,7 @@ function App() {
          currentNegative={currentPrompts.negative}
        />
     </div>
-      <ToastViewport toasts={toasts} onClose={(id) => setToasts((prev) => prev.filter((toast) => toast.id !== id))} />
+      <ToastViewport toasts={hookToasts} onClose={removeToast} />
       {showXyzHelp && <XyzHelpModal onClose={() => setShowXyzHelp(false)} />}
 
       {featureModal && <FeatureModal modal={featureModal} onClose={() => setFeatureModal(null)} />}
@@ -2588,7 +2581,7 @@ function App() {
           client={client}
           settingsApiBase={apiBase}
           selectedItems={selectedLoraItems}
-          notifications={notificationLog}
+          notifications={hookNotificationLog}
           onShowWelcome={() => {
             setLoraOperation(null);
             setShowWelcome(true);

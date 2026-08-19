@@ -45,6 +45,7 @@ export function useUiState() {
 
   return {
     showWelcome,
+    setShowWelcome,
     handleCloseWelcome,
     outputLightbox,
     setOutputLightbox,
