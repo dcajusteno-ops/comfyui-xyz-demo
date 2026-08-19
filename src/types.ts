@@ -79,7 +79,7 @@ export type LoraExampleMedia = {
   metadata?: Record<string, unknown>;
   hasMeta?: boolean;
   hasPositivePrompt?: boolean;
-  source?: "local" | "civitai" | "custom" | "preview";
+  source?: string;
 };
 
 export type LoraMetadata = {
@@ -594,3 +594,14 @@ export type NoteItem = {
   content: string;
   updatedAt: number;
 };
+
+export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes";
+
+export type LoraPreviewMedia = {
+  url?: string;
+  path?: string;
+  type?: string;
+  source?: string;
+};
+
+

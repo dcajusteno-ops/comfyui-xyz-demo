@@ -56,6 +56,7 @@ describe("workflow builders", () => {
       scheduler: "karras",
       globalPrompt: "",
       syntaxMode: "attention_couple",
+      fusionMode: "mask_overlap",
       useFill: false,
       canvasWidth: 1024,
       canvasHeight: 1024,

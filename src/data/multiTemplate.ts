@@ -3,6 +3,7 @@ import type { MultiCharacterConfig } from "../types";
 export const originalMultiCharacterConfig: MultiCharacterConfig = {
   version: "1.1.0",
   syntax_mode: "attention_couple",
+  fusion_mode: "mask_overlap",
   base_prompt: "",
   global_prompt: "",
   use_fill: false,

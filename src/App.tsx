@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CONFIG } from "./config";
 import DOMPurify from "dompurify";
 
 const EMPTY_ARRAY: any[] = [];
@@ -136,9 +137,10 @@ import type {
   ClSingleParams,
   WdBatchParams,
   DrawTextParams,
+  TabId,
+  LoraPreviewMedia,
 } from "./types";
-
-type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes";
+import { useAppContext } from "./AppContext";
 
 type OptionsState = {
   checkpoints: string[];
@@ -456,21 +458,8 @@ const AppSidebar = memo(({
 });
 
 function App() {
-  const [apiBase, setApiBase] = useState("/comfy");
-  const client = useMemo(() => new ComfyClient(apiBase), [apiBase]);
-  const [connection, setConnection] = useState<ConnectionInfo>({ status: "checking" });
-
-  useEffect(() => {
-    client.startMonitoring();
-    const unsubsribe = client.onStatusChange((info) => {
-      setConnection(info);
-    });
-    return () => {
-      unsubsribe();
-      client.stopMonitoring();
-    };
-  }, [client]);
-
+  const { apiBase, setApiBase, client, connection, tab, setTab } = useAppContext();
+  
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
@@ -484,7 +473,6 @@ function App() {
     setShowWelcome(false);
   }, []);
 
-  const [tab, setTab] = useLocalStorageState<TabId>("comfyui_active_tab", "default");
   const [options, setOptions] = useState<OptionsState>(fallbackOptions);
   const [defaultParams, setDefaultParams] = useLocalStorageState<BaseGenerationParams>("comfyui_default_params", makeBaseParams());
   const [multiParams, setMultiParams] = useLocalStorageState<MultiGenerationParams>("comfyui_multi_params", makeMultiParams());
@@ -516,8 +504,8 @@ function App() {
     sessionMethod: "GPU",
   });
   const [clBatchParams, setClBatchParams] = useLocalStorageState<ClBatchParams>("comfyui_cl_batch_params", {
-    imageFolder: "F:\\AI_lora\\lora-data-img\\tag-cs",
-    outputFolder: "./ComfyUI-tag/cs",
+    imageFolder: CONFIG.DEFAULT_TAG_IMAGE_FOLDER,
+    outputFolder: CONFIG.DEFAULT_TAG_OUTPUT_FOLDER,
     prependText: "cs",
     runCount: 20,
     modelName: "cl_tagger/cl_tagger_1_02.onnx",
@@ -529,8 +517,8 @@ function App() {
     sessionMethod: "GPU",
   });
   const [wdBatchParams, setWdBatchParams] = useLocalStorageState<WdBatchParams>("comfyui_wd_batch_params", {
-    imageFolder: "F:\\AI_lora\\lora-data-img\\tag-cs",
-    outputFolder: "./ComfyUI-tag/cs",
+    imageFolder: CONFIG.DEFAULT_TAG_IMAGE_FOLDER,
+    outputFolder: CONFIG.DEFAULT_TAG_OUTPUT_FOLDER,
     prependText: "cs",
     runCount: 20,
     model: "wd-v1-4-moat-tagger-v2",
@@ -2143,7 +2131,7 @@ function App() {
                     <div className="form-grid two">
                       <label className="field">
                         <span>图片目录</span>
-                        <input value={clBatchParams.imageFolder} onChange={(e) => setClBatchParams(prev => ({ ...prev, imageFolder: e.target.value }))} placeholder="例如: F:\AI_lora\lora-data-img" />
+                        <input value={clBatchParams.imageFolder} onChange={(e) => setClBatchParams(prev => ({ ...prev, imageFolder: e.target.value }))} placeholder={`例如: ${CONFIG.DEFAULT_TAG_IMAGE_FOLDER}`} />
                       </label>
                       <label className="field">
                         <span>输出目录</span>
@@ -2186,7 +2174,7 @@ function App() {
                     <div className="form-grid two">
                       <label className="field">
                         <span>图片目录</span>
-                        <input value={wdBatchParams.imageFolder} onChange={(e) => setWdBatchParams(prev => ({ ...prev, imageFolder: e.target.value }))} placeholder="例如: F:\AI_lora\lora-data-img" />
+                        <input value={wdBatchParams.imageFolder} onChange={(e) => setWdBatchParams(prev => ({ ...prev, imageFolder: e.target.value }))} placeholder={`例如: ${CONFIG.DEFAULT_TAG_IMAGE_FOLDER}`} />
                       </label>
                       <label className="field">
                         <span>输出目录</span>
@@ -3482,12 +3470,18 @@ function LoraOperationModal({
         setRawData(result);
       }
       if (operation.type === "settings") {
-        const result = await client.getLoraManagerSettings();
-        if (result.success === false) throw new Error(result.error || "设置读取失败");
-        const nextSettings = normalizeLoraManagerSettings(result.settings ?? result);
-        setSettings(nextSettings);
-        setTextValue(String(nextSettings.example_images_path ?? ""));
-        setSecondaryValue(String(nextSettings.lora_syntax_format ?? ""));
+        try {
+          const result = await client.getLoraManagerSettings();
+          if (result.success !== false) {
+            const nextSettings = normalizeLoraManagerSettings(result.settings ?? result);
+            setSettings(nextSettings);
+            setTextValue(String(nextSettings.example_images_path ?? ""));
+            setSecondaryValue(String(nextSettings.lora_syntax_format ?? ""));
+          }
+        } catch (settingsError) {
+          // 忽略设置读取失败，因为可能只是 API 地址没配对，允许用户继续修改 API 地址
+          console.warn("Failed to load settings from server:", settingsError);
+        }
       }
       if (operation.type === "civitai") {
         const hash = operation.item.sha256;
@@ -3598,10 +3592,26 @@ function LoraOperationModal({
   }
 
   async function saveSettings() {
-    if (!textValue.trim()) {
-      onToast("error", "必填项缺失", "第一次使用请务必配置【示例图目录】！");
-      return;
+    const apiBaseChanged = localApiBase !== settingsApiBase;
+    
+    // 如果 API 地址变了，先尝试更新本地 API 地址，这样即使后端挂了也能切地址
+    if (apiBaseChanged) {
+      onApiBaseSaved(localApiBase);
     }
+
+    // 只有在 API 地址没变或者后端可能可用的情况下才强制校验示例图目录
+    if (!textValue.trim()) {
+      if (!apiBaseChanged) {
+        onToast("error", "必填项缺失", "第一次使用请务必配置【示例图目录】！");
+        return;
+      } else {
+        // 如果改了 API 地址但没填目录，我们还是保存地址并关闭，但给个提醒
+        onToast("success", "API 地址已更新");
+        onClose();
+        return;
+      }
+    }
+
     setBusy(true);
     try {
       const payload = {
@@ -3610,14 +3620,23 @@ function LoraOperationModal({
         lora_syntax_format: secondaryValue || settings.lora_syntax_format,
         onboarding_completed: true,
       };
-      const result = await client.updateLoraManagerSettings(payload);
-      if (result.success === false) throw new Error(result.error || "设置保存失败");
-      const nextSettings = normalizeLoraManagerSettings(result.settings ?? payload);
-      setSettings(nextSettings);
-      onSettingsSaved(nextSettings);
-      onApiBaseSaved(localApiBase);
+      
+      try {
+        const result = await client.updateLoraManagerSettings(payload);
+        if (result.success === false) throw new Error(result.error || "设置保存失败");
+        const nextSettings = normalizeLoraManagerSettings(result.settings ?? payload);
+        setSettings(nextSettings);
+        onSettingsSaved(nextSettings);
+      } catch (serverError) {
+        // 如果后端不可达，但在改 API 地址，我们忽略后端保存失败
+        if (!apiBaseChanged) {
+          throw serverError;
+        }
+        console.warn("Failed to sync settings to server, but API base was updated:", serverError);
+      }
+
       onTranslationSettingsSaved(localTranslationSettings);
-      onToast("success", "设置已保存");
+      onToast("success", apiBaseChanged ? "设置已更新 (API 地址已修改)" : "设置已保存");
       onClose();
     } catch (error) {
       onToast("error", "设置保存失败", error instanceof Error ? error.message : String(error));
@@ -3740,7 +3759,7 @@ function LoraOperationModal({
                 <>
                   <h3 style={{ margin: "0 0 1rem", fontSize: "1.1rem", fontWeight: 600 }}>基本设置</h3>
                   <TextInput label="API Base URL" value={localApiBase} onChange={setLocalApiBase} placeholder="/comfy" />
-                  <TextInput label="示例图目录 (首次使用必填)" value={textValue} onChange={setTextValue} placeholder="必须配置，例如 F:\AI_lora\img" />
+                  <TextInput label="示例图目录 (首次使用必填)" value={textValue} onChange={setTextValue} placeholder={`必须配置，例如 ${CONFIG.DEFAULT_EXAMPLE_IMAGE_PATH}`} />
                   <TextInput label="LoRA 语法格式" value={secondaryValue} onChange={setSecondaryValue} placeholder="legacy / full" />
                   <div className="form-grid two compact">
                     <label className="field checkbox-field">
@@ -5381,8 +5400,8 @@ const LoraCard = memo(({
   previewNsfwLevel: number;
   previewUrl?: string;
   previewPath?: string;
-  previewType?: "image" | "video";
-  previewSource?: "preview" | "local" | "civitai";
+  previewType?: string;
+  previewSource?: string;
   settings: LoraManagerSettings;
   apiBase: string;
   onDetail: (item: LoraItem) => void;
