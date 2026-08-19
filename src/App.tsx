@@ -85,6 +85,24 @@ import { PromptTagBlocks } from "./components/PromptTagBlocks";
 import { RichTextEditor } from "./components/RichTextEditor";
 import { WelcomeModal } from "./components/WelcomeModal";
 import { PromptSidebar } from "./components/PromptSidebar";
+import { AppSidebar } from "./components/layout/AppSidebar";
+import {
+  ToastViewport,
+  RunProgressStrip,
+  ExampleImagesProgressBar,
+  ModalFrame,
+  PanelTitle,
+  NumberField,
+  TextField,
+  SelectField,
+  MultiSelectField,
+  TextAreaField,
+  CopyableTextarea,
+  ColorAlphaField,
+  InfoItem,
+  TagCloud,
+  PromptBlock,
+} from "./components/ui";
 import { translateText, defaultTranslationSettings } from "./lib/translation";
 import type { TranslationSettings, TranslationProvider } from "./lib/translation";
 import type { MaskHandle } from "./lib/multiCanvas";
@@ -215,86 +233,6 @@ import { formatBytes, downloadTextFile } from "./lib/file-helper";
 import { hexToRgba } from "./lib/color-helper";
 import { initialTabFromUrl, operationTitle, xyzStatusLabel } from "./lib/app-utils";
 
-const AppSidebar = memo(({
-  isCollapsed,
-  onToggle,
-  activeTab,
-  onTabChange,
-  generationTabs,
-  toolTabs,
-}: {
-  isCollapsed: boolean;
-  onToggle: () => void;
-  activeTab: TabId;
-  onTabChange: (id: TabId) => void;
-  generationTabs: Array<{ id: TabId; label: string; icon: any }>;
-  toolTabs: Array<{ id: TabId; label: string; icon: any }>;
-}) => {
-  return (
-    <aside className={isCollapsed ? "app-sidebar is-collapsed" : "app-sidebar"}>
-      <div className="sidebar-header">
-        <div className="brand-mark">
-          <Sparkles size={22} />
-        </div>
-        {!isCollapsed && <h1>ComfyUI XYZ</h1>}
-      </div>
-      
-      <nav className="sidebar-nav">
-        <div className="nav-section">
-          {!isCollapsed && <label>生图模板</label>}
-          {generationTabs.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={activeTab === item.id ? "nav-item active" : "nav-item"}
-                onClick={() => onTabChange(item.id)}
-                title={item.label}
-              >
-                <Icon size={20} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </button>
-            );
-          })}
-        </div>
-        
-        <div className="nav-divider" />
-        
-        <div className="nav-section">
-          {!isCollapsed && <label>工具组件</label>}
-          {toolTabs.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={activeTab === item.id ? "nav-item active" : "nav-item"}
-                onClick={() => onTabChange(item.id)}
-                title={item.label}
-              >
-                <Icon size={20} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
-      <div className="sidebar-footer">
-        <button
-          type="button"
-          className="collapse-toggle"
-          onClick={onToggle}
-          title={isCollapsed ? "展开" : "收起"}
-        >
-          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          {!isCollapsed && <span>收起</span>}
-        </button>
-      </div>
-    </aside>
-  );
-});
 
 function App() {
   const { apiBase, setApiBase, client, connection, tab, setTab } = useAppContext();
@@ -2785,44 +2723,6 @@ function App() {
   }
 }
 
-const ToastIcon = ({ type }: { type: Toast["type"] }) => {
-  if (type === "success") return <CheckCircle2 size={20} color="#10b981" style={{ flexShrink: 0, marginTop: "2px" }} />;
-  if (type === "error") return <X size={20} color="#ef4444" style={{ flexShrink: 0, marginTop: "2px" }} />;
-  return <Info size={20} color="#3b82f6" style={{ flexShrink: 0, marginTop: "2px" }} />;
-};
-
-function ToastViewport({ toasts, onClose }: { toasts: Toast[]; onClose: (id: string) => void }) {
-  return (
-    <div className="toast-viewport">
-      {toasts.map((toast) => (
-        <div className={`toast ${toast.type}`} key={toast.id}>
-          <ToastIcon type={toast.type} />
-          <div className="toast-content" style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
-            <strong>{toast.title}</strong>
-            {toast.message && <p>{toast.message}</p>}
-          </div>
-          <button type="button" className="toast-close" onClick={() => onClose(toast.id)} style={{ flexShrink: 0 }}>
-            <X size={14} />
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ModalFrame({ title, children, onClose, className, style }: { title: string; children: ReactNode; onClose: () => void; className?: string; style?: React.CSSProperties }) {
-  return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <div className={`modal ${className || ""}`} style={style} role="dialog" aria-modal="true" aria-label={title} onMouseDown={(event) => event.stopPropagation()}>
-        <div className="modal-head">
-          <h2>{title}</h2>
-          <button type="button" className="icon-button" onClick={onClose}><X size={16} /> 关闭</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 function XyzHelpModal({ onClose }: { onClose: () => void }) {
   return (
@@ -2843,68 +2743,6 @@ function FeatureModal({ modal, onClose }: { modal: { title: string; body: string
         <p>{modal.body}</p>
       </div>
     </ModalFrame>
-  );
-}
-
-function RunProgressStrip({ progress }: { progress: ProgressState }) {
-  const percent = progress.max > 0 ? Math.min(100, Math.max(0, (progress.value / progress.max) * 100)) : 0;
-  const show = progress.running || progress.label === "完成" || Boolean(progress.batch);
-  if (!show) return null;
-  const indeterminate = progress.running && percent <= 0;
-  const batch = progress.batch;
-  const batchPercent = batch && batch.total > 0 ? Math.min(100, Math.max(0, (batch.current / batch.total) * 100)) : 0;
-  return (
-    <div className="run-progress-strip" role="status" aria-live="polite">
-      {batch && (
-        <div className="run-progress-batch">
-          <span className="batch-badge">XYZ</span>
-          <strong>{batch.current}/{batch.total}</strong>
-          <span className="batch-item" title={batch.itemLabel}>
-            {batch.itemLabel || (progress.running ? "准备中" : "全部组合已处理")}
-          </span>
-          <div className="progress-track slim" aria-label="XYZ 批次进度">
-            <span style={{ width: `${batchPercent}%` }} />
-          </div>
-        </div>
-      )}
-      <div className="run-progress-meta">
-        <strong>{progress.label}</strong>
-        <span>{progress.node ? `节点 ${progress.node}` : progress.promptId ? `任务 ${progress.promptId.slice(0, 8)}` : progress.running ? "等待提交" : ""}</span>
-        <b>{indeterminate ? "处理中" : `${Math.round(percent)}%`}</b>
-      </div>
-      <div className={indeterminate ? "progress-track indeterminate" : "progress-track"} aria-label="生图进度">
-        <span style={{ width: `${indeterminate ? 34 : percent}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function ExampleImagesProgressBar({ status, pullingCount = 0 }: { status: ExampleImagesStatus | null; pullingCount?: number }) {
-  const progress = status?.status;
-  const running = Boolean(status?.is_downloading || pullingCount > 0 || progress?.status === "running");
-  const total = Math.max(1, Number(progress?.total ?? pullingCount ?? 1));
-  const completed = Math.min(total, Math.max(0, Number(progress?.completed ?? 0)));
-  const percent = Math.min(100, Math.max(0, (completed / total) * 100));
-  const label = running
-    ? progress?.current_model || (pullingCount > 0 ? `单独拉取 ${pullingCount} 个 LoRA` : "正在拉取示例图")
-    : progress?.status === "completed"
-      ? `示例图拉取完成：${completed}/${total}`
-      : progress?.status === "error"
-        ? progress.last_error || "示例图拉取失败"
-        : "";
-  if (!running && !label) return null;
-  const indeterminate = running && completed === 0;
-  return (
-    <div className="lm-download-progress" role="status" aria-live="polite">
-      <div className="lm-download-progress-meta">
-        <strong>{running ? "示例图拉取中" : progress?.status === "error" ? "示例图拉取失败" : "示例图拉取完成"}</strong>
-        <span title={label}>{label}</span>
-        <b>{indeterminate ? "处理中" : `${completed}/${total}`}</b>
-      </div>
-      <div className={indeterminate ? "progress-track indeterminate" : "progress-track"} aria-label="示例图拉取进度">
-        <span style={{ width: `${indeterminate ? 34 : percent}%` }} />
-      </div>
-    </div>
   );
 }
 
@@ -3802,38 +3640,6 @@ function DoctorPane({ diagnostics, rawData, onAction }: { diagnostics: DoctorDia
   );
 }
 
-function InfoItem({ label, value, wide = false, isHtml = false, onHtmlCopy }: { label: string; value: string; wide?: boolean; isHtml?: boolean; onHtmlCopy?: (text: string) => void }) {
-  if (!value) return null;
-  return (
-    <div className="lm-info-item" style={wide ? { gridColumn: "1 / -1" } : undefined}>
-      <label>{label}</label>
-      {isHtml ? (
-        <div 
-          className="html-content" 
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }} 
-          onClick={(e) => {
-            const target = e.target as HTMLElement;
-            const block = target.closest('pre, code');
-            if (block && onHtmlCopy) {
-              onHtmlCopy(block.textContent || "");
-            }
-          }}
-        />
-      ) : (
-        <span>{value}</span>
-      )}
-    </div>
-  );
-}
-
-function TagCloud({ tags }: { tags: string[] }) {
-  if (!tags.length) return null;
-  return (
-    <div className="lm-tag-cloud">
-      {tags.slice(0, 20).map((tag) => <span key={tag}>{tag}</span>)}
-    </div>
-  );
-}
 
 function TriggerWordsPanel({
   words,
@@ -4054,17 +3860,6 @@ function LoraExampleMetadata({ meta, onToast }: { meta: LoraMediaMeta; onToast: 
   );
 }
 
-function PromptBlock({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) {
-  return (
-    <div className="lm-prompt-block">
-      <div className="lm-section-head">
-        <label>{label}</label>
-        <button type="button" className="lm-text-btn" onClick={onCopy}><Copy size={13} /> 复制</button>
-      </div>
-      <pre>{value}</pre>
-    </div>
-  );
-}
 
 const LoraMedia = memo(({
   media,
@@ -4286,29 +4081,6 @@ function BaseControls<T extends BaseGenerationParams>({
   );
 }
 
-function ColorAlphaField({ label, value, onChange }: { label: string, value: string, onChange: (v: string) => void }) {
-  const hex = value.slice(0, 7) || "#000000";
-  const alphaHex = value.slice(7, 9) || "FF";
-  const alpha = isNaN(parseInt(alphaHex, 16)) ? 255 : parseInt(alphaHex, 16);
-
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value + alphaHex);
-  };
-  const handleAlphaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newAlphaHex = parseInt(e.target.value).toString(16).padStart(2, "0").toUpperCase();
-    onChange(hex + newAlphaHex);
-  };
-
-  return (
-    <label className="field" style={{ display: "flex", flexDirection: "column" }}>
-      <span>{label} (不透明度: {Math.round(alpha/255*100)}%)</span>
-      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
-        <input type="color" value={hex} onChange={handleColorChange} style={{ width: "32px", height: "24px", padding: 0, border: "none" }} />
-        <input type="range" min={0} max={255} value={alpha} onChange={handleAlphaChange} style={{ flex: 1 }} />
-      </div>
-    </label>
-  );
-}
 
 function DrawTextCanvas({ width, height, drawText, onChange }: { width: number; height: number; drawText: DrawTextParams; onChange: (patch: Partial<DrawTextParams>) => void }) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -5866,201 +5638,6 @@ function LoraChips({
   );
 }
 
-function PanelTitle({ icon: Icon, title }: { icon: typeof Wand2; title: string }) {
-  return (
-    <div className="panel-title">
-      <Icon size={20} />
-      <h2>{title}</h2>
-    </div>
-  );
-}
-
-function NumberField({ label, value, min, max, step, disabled, onChange }: { label: string; value: number; min?: number; max?: number; step?: number; disabled?: boolean; onChange: (value: number) => void }) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <input type="number" value={value} min={min} max={max} step={step} disabled={disabled} onChange={(event) => onChange(Number(event.target.value))} />
-    </label>
-  );
-}
-
-function TextField({ label, value, placeholder, disabled, onChange }: { label: string; value: string; placeholder?: string; disabled?: boolean; onChange: (value: string) => void }) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <input type="text" value={value} placeholder={placeholder} disabled={disabled} onChange={(event) => onChange(event.target.value)} />
-    </label>
-  );
-}
-
-
-function SelectField({ label, value, options, onChange }: { 
-  label: string; 
-  value: string; 
-  options: (string | { label: string; value: string })[]; 
-  onChange: (value: string) => void 
-}) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map((option) => {
-          const val = typeof option === 'string' ? option : option.value;
-          const lab = typeof option === 'string' ? option : option.label;
-          return <option key={val} value={val}>{lab}</option>;
-        })}
-      </select>
-    </label>
-  );
-}
-
-function MultiSelectField({ label, value, options, onChange }: { 
-  label: string; 
-  value: string; 
-  options: { label: string; value: string }[]; 
-  onChange: (value: string) => void 
-}) {
-  const selectedValues = value.split(',').filter(v => v && v !== 'none');
-  
-  const toggleValue = (val: string) => {
-    if (val === 'none') {
-      onChange('none');
-      return;
-    }
-    
-    let newValues: string[];
-    if (selectedValues.includes(val)) {
-      newValues = selectedValues.filter(v => v !== val);
-    } else {
-      newValues = [...selectedValues, val];
-    }
-    
-    if (newValues.length === 0) {
-      onChange('none');
-    } else {
-      onChange(newValues.join(','));
-    }
-  };
-
-  return (
-    <div className="field" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-      <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>{label} (可多选组合)</span>
-      <div style={{ 
-        display: 'flex', 
-        flexWrap: 'wrap', 
-        gap: '6px', 
-        background: 'rgba(0,0,0,0.2)', 
-        padding: '10px', 
-        borderRadius: '8px',
-        border: '1px solid rgba(255,255,255,0.1)',
-        maxHeight: '200px',
-        overflowY: 'auto'
-      }}>
-        {options.map((option) => {
-          const isSelected = option.value === 'none' ? selectedValues.length === 0 : selectedValues.includes(option.value);
-          return (
-            <div 
-              key={option.value}
-              onClick={() => toggleValue(option.value)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                background: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)',
-                color: isSelected ? '#60a5fa' : 'rgba(255,255,255,0.6)',
-                border: '1px solid',
-                borderColor: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.1)',
-                transition: 'all 0.2s',
-                userSelect: 'none'
-              }}
-            >
-              {option.label}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-function CopyableTextarea({ value, className }: { value: string; className?: string }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column" }}>
-      <textarea className={className} style={{ flex: 1, width: "100%", resize: "none" }} value={value} readOnly />
-      {value && (
-        <button 
-          type="button"
-          onClick={handleCopy} 
-          title="复制"
-          style={{ 
-            position: "absolute", top: "8px", right: "16px", 
-            background: "rgba(42, 42, 42, 0.9)", border: "1px solid var(--border-color, #444)", 
-            color: "var(--text-secondary, #aaa)", borderRadius: "4px", padding: "4px 8px", 
-            cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px",
-            backdropFilter: "blur(4px)"
-          }}>
-          {copied ? <CheckCircle2 size={14} color="#4caf50" /> : <Copy size={14} />}
-          {copied ? "已复制" : "复制"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-
-function TextAreaField({ label, value, placeholder, onChange, hideChips }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void; hideChips?: boolean }) {
-  const isPrompt = label.toLowerCase().includes("prompt") || label.includes("提示词");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
-  const [isTranslating, setIsTranslating] = useState(false);
-
-
-
-  const handleTranslate = async () => {
-    if (!value.trim() || isTranslating) return;
-    setIsTranslating(true);
-    try {
-      const translated = await translateText(value, translationSettings);
-      onChange(translated);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsTranslating(false);
-    }
-  };
-
-  return (
-    <div className="field text-field">
-      <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {label}
-        {isPrompt && (
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleTranslate(); }} style={{ padding: '0 8px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--accent)', background: 'var(--accent-soft)', cursor: isTranslating ? 'wait' : 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '8px' }}>
-              <Globe2 size={12} />
-              {isTranslating ? "翻译中..." : "翻译为英文"}
-            </button>
-          </div>
-        )}
-      </span>
-      <textarea 
-        ref={textareaRef}
-        value={value} 
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)} 
-        onKeyDown={(e) => isPrompt && handlePromptWeightAdjustment(e, value, onChange)}
-      />
-      {isPrompt && value.trim() && !hideChips && (
-        <PromptTagBlocks value={value} onChange={onChange} />
-      )}
-    </div>
-  );
-}
 
 
 function ImageComparerModal({ imageA, imageB, onClose }: { imageA: string; imageB: string; onClose: () => void }) {
