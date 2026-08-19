@@ -234,6 +234,7 @@ import { hexToRgba } from "./lib/color-helper";
 import { initialTabFromUrl, operationTitle, xyzStatusLabel } from "./lib/app-utils";
 import { useToast } from "./hooks/useToast";
 import { useUiState } from "./hooks/useUiState";
+import { useNotes } from "./hooks/useNotes";
 
 
 function App() {
@@ -242,6 +243,7 @@ function App() {
   // ===== Hooks =====
   const { toasts: hookToasts, notificationLog: hookNotificationLog, pushToast, removeToast } = useToast();
   const ui = useUiState();
+  const notesHook = useNotes({ tab, pushToast, confirm: ui.confirm });
 
   const [options, setOptions] = useState<OptionsState>(fallbackOptions);
   const [defaultParams, setDefaultParams] = useLocalStorageState<BaseGenerationParams>("comfyui_default_params", makeBaseParams());
@@ -327,12 +329,6 @@ function App() {
   const [simpleLoraTarget, setSimpleLoraTarget] = useState<TemplateKind | null>(null);
   const [translationSettings, setTranslationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
 
-  const [notes, setNotes] = useState<NoteItem[]>([]);
-  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
-  const [notesSaving, setNotesSaving] = useState(false);
-  const [notesSearch, setNotesSearch] = useState("");
-  const [isNotesWide, setIsNotesWide] = useState(false);
-
   const [isAppSidebarCollapsed, setIsAppSidebarCollapsed] = useState(false);
 
   // Global responsive collapse
@@ -346,97 +342,6 @@ function App() {
     handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  const notesSaveTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (tab === "notes") {
-      fetch("/api/notes")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data && data.data.notes) {
-            setNotes(data.data.notes);
-            if (data.data.notes.length > 0 && !activeNoteId) {
-              setActiveNoteId(data.data.notes[0].id);
-            }
-          }
-        })
-        .catch((err) => pushToast("error", "加载笔记失败", String(err)));
-    }
-  }, [tab]);
-
-  async function saveNotes(currentNotes: NoteItem[], silent = false) {
-    if (currentNotes.length === 0 && notes.length === 0) return;
-    setNotesSaving(true);
-    try {
-      const res = await fetch("/api/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes: currentNotes }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
-      if (!silent) pushToast("success", "笔记已保存");
-    } catch (err) {
-      if (!silent) pushToast("error", "保存笔记失败", String(err));
-    } finally {
-      // Keep "saving" state for a moment to show visual feedback
-      setTimeout(() => setNotesSaving(false), 800);
-    }
-  }
-
-  // Auto-save effect
-  useEffect(() => {
-    if (tab !== "notes") return;
-    
-    if (notesSaveTimerRef.current) {
-      window.clearTimeout(notesSaveTimerRef.current);
-    }
-
-    notesSaveTimerRef.current = window.setTimeout(() => {
-      saveNotes(notes, true);
-    }, 2000); // 2 seconds debounce
-
-    return () => {
-      if (notesSaveTimerRef.current) {
-        window.clearTimeout(notesSaveTimerRef.current);
-      }
-    };
-  }, [notes, tab]);
-
-  function handleAddNote() {
-    const newNote: NoteItem = {
-      id: Math.random().toString(36).slice(2),
-      title: "未命名笔记",
-      content: "",
-      updatedAt: Date.now(),
-    };
-    const nextNotes = [newNote, ...notes];
-    setNotes(nextNotes);
-    setActiveNoteId(newNote.id);
-    saveNotes(nextNotes);
-  }
-
-  function handleDeleteNote(id: string) {
-    setConfirmDialog({
-      title: "删除笔记",
-      message: "确定要删除这条笔记吗？删除后将无法恢复。",
-      onConfirm: () => {
-        const nextNotes = notes.filter((n) => n.id !== id);
-        setNotes(nextNotes);
-        if (activeNoteId === id) {
-          setActiveNoteId(nextNotes.length > 0 ? nextNotes[0].id : null);
-        }
-        saveNotes(nextNotes);
-      }
-    });
-  }
-
-  function updateActiveNote(partial: Partial<NoteItem>) {
-    if (!activeNoteId) return;
-    setNotes((prev) =>
-      prev.map((n) => (n.id === activeNoteId ? { ...n, ...partial, updatedAt: Date.now() } : n))
-    );
-  }
   const [loraExampleFilesByHash, setLoraExampleFilesByHash] = useState<Record<string, LoraExampleMedia[]>>({});
   const loraExampleFilesByHashRef = useRef(loraExampleFilesByHash);
   useEffect(() => { loraExampleFilesByHashRef.current = loraExampleFilesByHash; }, [loraExampleFilesByHash]);
@@ -2330,7 +2235,7 @@ function App() {
           )}
 
           {tab === "notes" && (
-            <section className="panel notes-panel" style={{ padding: 0, display: "flex", flexDirection: "row", overflow: "hidden" }}>
+            <section className="panel notesHook.notes-panel" style={{ padding: 0, display: "flex", flexDirection: "row", overflow: "hidden" }}>
               {/* Sidebar */}
               <div style={{ width: "260px", borderRight: "1px solid #263244", display: "flex", flexDirection: "column", background: "#0c111a" }}>
                 <div style={{ padding: "16px", borderBottom: "1px solid #263244" }}>
@@ -2338,7 +2243,7 @@ function App() {
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "bold", color: "#e2e8f0" }}>
                       <FileText size={18} /> 记事本
                     </div>
-                    <button type="button" className="lm-text-btn" onClick={handleAddNote} title="新建笔记">
+                    <button type="button" className="lm-text-btn" onClick={notesHook.handleAddNote} title="新建笔记">
                       <Plus size={18} />
                     </button>
                   </div>
@@ -2347,8 +2252,8 @@ function App() {
                     <input 
                       type="text" 
                       placeholder="搜索笔记..." 
-                      value={notesSearch}
-                      onChange={(e) => setNotesSearch(e.target.value)}
+                      value={notesHook.notesSearch}
+                      onChange={(e) => notesHook.setNotesSearch(e.target.value)}
                       style={{ 
                         width: "100%", 
                         background: "#080b12", 
@@ -2363,25 +2268,25 @@ function App() {
                   </div>
                 </div>
                 <div style={{ flex: 1, overflowY: "auto", padding: "8px" }} className="custom-scrollbar">
-                  {notes.filter(n => n.title.toLowerCase().includes(notesSearch.toLowerCase()) || n.content.toLowerCase().includes(notesSearch.toLowerCase())).length === 0 && (
+                  {notesHook.notes.filter(n => n.title.toLowerCase().includes(notesHook.notesSearch.toLowerCase()) || n.content.toLowerCase().includes(notesHook.notesSearch.toLowerCase())).length === 0 && (
                     <div className="empty-state" style={{ padding: "40px 0", fontSize: "12px" }}>
-                      {notes.length === 0 ? "暂无笔记" : "未找到匹配项"}
+                      {notesHook.notes.length === 0 ? "暂无笔记" : "未找到匹配项"}
                     </div>
                   )}
-                  {notes
-                    .filter(n => n.title.toLowerCase().includes(notesSearch.toLowerCase()) || n.content.toLowerCase().includes(notesSearch.toLowerCase()))
+                  {notesHook.notes
+                    .filter(n => n.title.toLowerCase().includes(notesHook.notesSearch.toLowerCase()) || n.content.toLowerCase().includes(notesHook.notesSearch.toLowerCase()))
                     .map((note) => (
                     <div
                       key={note.id}
-                      onClick={() => setActiveNoteId(note.id)}
+                      onClick={() => notesHook.setActiveNoteId(note.id)}
                       style={{
                         padding: "10px 12px",
                         marginBottom: "4px",
                         borderRadius: "8px",
                         cursor: "pointer",
-                        background: activeNoteId === note.id ? "rgba(59, 130, 246, 0.12)" : "transparent",
-                        border: activeNoteId === note.id ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid transparent",
-                        color: activeNoteId === note.id ? "#93c5fd" : "#94a3b8",
+                        background: notesHook.activeNoteId === note.id ? "rgba(59, 130, 246, 0.12)" : "transparent",
+                        border: notesHook.activeNoteId === note.id ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid transparent",
+                        color: notesHook.activeNoteId === note.id ? "#93c5fd" : "#94a3b8",
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
@@ -2390,14 +2295,14 @@ function App() {
                       className="note-list-item"
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: activeNoteId === note.id ? "bold" : "normal", fontSize: "13px" }}>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: notesHook.activeNoteId === note.id ? "bold" : "normal", fontSize: "13px" }}>
                           {note.title || "未命名"}
                         </div>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteNote(note.id);
+                            notesHook.handleDeleteNote(note.id);
                           }}
                           className="delete-btn"
                           style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "2px", display: "flex", opacity: 0.6 }}
@@ -2416,14 +2321,14 @@ function App() {
 
               {/* Editor */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px", background: "#080b12" }}>
-                {activeNoteId && notes.find((n) => n.id === activeNoteId) ? (
+                {notesHook.activeNoteId && notesHook.notes.find((n) => n.id === notesHook.activeNoteId) ? (
                   <>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
                         <input
                           type="text"
-                          value={notes.find((n) => n.id === activeNoteId)?.title || ""}
-                          onChange={(e) => updateActiveNote({ title: e.target.value })}
+                          value={notesHook.notes.find((n) => n.id === notesHook.activeNoteId)?.title || ""}
+                          onChange={(e) => notesHook.updateActiveNote({ title: e.target.value })}
                           placeholder="笔记标题"
                           style={{
                             background: "transparent",
@@ -2439,34 +2344,34 @@ function App() {
                       <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                         <button
                           type="button"
-                          className={`lm-text-btn ${isNotesWide ? "active" : ""}`}
-                          onClick={() => setIsNotesWide(!isNotesWide)}
-                          title={isNotesWide ? "显示输出面板" : "全宽模式"}
+                          className={`lm-text-btn ${notesHook.isNotesWide ? "active" : ""}`}
+                          onClick={() => notesHook.setIsNotesWide(!notesHook.isNotesWide)}
+                          title={notesHook.isNotesWide ? "显示输出面板" : "全宽模式"}
                           style={{
-                            color: isNotesWide ? "#60a5fa" : "#64748b",
-                            background: isNotesWide ? "rgba(59, 130, 246, 0.1)" : "transparent",
+                            color: notesHook.isNotesWide ? "#60a5fa" : "#64748b",
+                            background: notesHook.isNotesWide ? "rgba(59, 130, 246, 0.1)" : "transparent",
                             padding: "4px",
                             borderRadius: "4px"
                           }}
                         >
-                          {isNotesWide ? <Minimize size={18} /> : <Maximize size={18} />}
+                          {notesHook.isNotesWide ? <Minimize size={18} /> : <Maximize size={18} />}
                         </button>
-                        {notesSaving && <span style={{ fontSize: "12px", color: "#60a5fa" }} className="animate-pulse">保存中...</span>}
+                        {notesHook.notesSaving && <span style={{ fontSize: "12px", color: "#60a5fa" }} className="animate-pulse">保存中...</span>}
                       </div>
                     </div>
                     
                     <RichTextEditor
-                      value={notes.find((n) => n.id === activeNoteId)?.content || ""}
-                      onChange={(content) => updateActiveNote({ content })}
-                      onSave={() => saveNotes(notes)}
-                      title={notes.find((n) => n.id === activeNoteId)?.title || "note"}
-                      saving={notesSaving}
+                      value={notesHook.notes.find((n) => n.id === notesHook.activeNoteId)?.content || ""}
+                      onChange={(content) => notesHook.updateActiveNote({ content })}
+                      onSave={() => notesHook.saveNotes(notesHook.notes)}
+                      title={notesHook.notes.find((n) => n.id === notesHook.activeNoteId)?.title || "note"}
+                      saving={notesHook.notesSaving}
                       onClear={() => {
                         setConfirmDialog({
                           title: "清空内容",
                           message: "确定要清空当前笔记的所有内容吗？此操作无法撤销。",
                           onConfirm: () => {
-                            updateActiveNote({ content: "" });
+                            notesHook.updateActiveNote({ content: "" });
                           }
                         });
                       }}
@@ -2478,7 +2383,7 @@ function App() {
                       <FileText size={48} />
                     </div>
                     <div style={{ color: "#4b5563" }}>请在左侧选择或新建笔记</div>
-                    <button type="button" className="primary-action" onClick={handleAddNote}>
+                    <button type="button" className="primary-action" onClick={notesHook.handleAddNote}>
                       <Plus size={16} /> 新建第一条笔记
                     </button>
                   </div>
@@ -2488,7 +2393,7 @@ function App() {
           )}
         </main>
 
-        {tab !== "loras" && !(tab === "notes" && isNotesWide) && (
+        {tab !== "loras" && !(tab === "notes" && notesHook.isNotesWide) && (
           <aside className={results.length > 0 || progress.previewUrl ? "output-panel" : "output-panel is-empty"}>
             <div className="gallery">
               <h2><GalleryHorizontalEnd size={18} /> 输出</h2>
