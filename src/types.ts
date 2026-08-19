@@ -1,3 +1,5 @@
+import type { MaskHandle } from "./lib/multiCanvas";
+
 export type ConnectionStatus = "checking" | "online" | "offline" | "error";
 
 export type ConnectionInfo = {
@@ -602,6 +604,59 @@ export type LoraPreviewMedia = {
   path?: string;
   type?: string;
   source?: string;
+};
+
+export type OptionsState = {
+  checkpoints: string[];
+  samplers: string[];
+  schedulers: string[];
+  wdModels: string[];
+  wdDevices: string[];
+  clModels: string[];
+  detectors: string[];
+  upscaleMethods: string[];
+  fonts: string[];
+};
+
+export type XyzRunItem = {
+  id: string;
+  label: string;
+  patch: Partial<BaseGenerationParams>;
+  status: "queued" | "running" | "success" | "failed" | "cancelled";
+  result?: JobResult;
+  error?: string;
+  comboIndex?: number;
+};
+
+export type LoraOperation =
+  | { type: "rename"; item: LoraItem }
+  | { type: "move"; items: LoraItem[] }
+  | { type: "delete"; items: LoraItem[] }
+  | { type: "download"; item?: LoraItem }
+  | { type: "duplicates" }
+  | { type: "updates" }
+  | { type: "doctor" }
+  | { type: "settings" }
+  | { type: "translator" }
+  | { type: "notifications" }
+  | { type: "civitai"; item: LoraItem };
+
+export type MatureBlurLevel = "PG13" | "R" | "X" | "XXX";
+
+export type CanvasInteraction = {
+  id: string;
+  mode: "move" | MaskHandle;
+  pointerId?: number;
+  startX: number;
+  startY: number;
+  startMask: MultiCharacter["mask"];
+  rect: { width: number; height: number };
+};
+
+export type FolderTreeNode = {
+  name: string;
+  path: string;
+  children: FolderTreeNode[];
 };
 
 
