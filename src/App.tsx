@@ -233,33 +233,20 @@ import { formatBytes, downloadTextFile } from "./lib/file-helper";
 import { hexToRgba } from "./lib/color-helper";
 import { initialTabFromUrl, operationTitle, xyzStatusLabel } from "./lib/app-utils";
 import { useToast } from "./hooks/useToast";
+import { useUiState } from "./hooks/useUiState";
 
 
 function App() {
   const { apiBase, setApiBase, client, connection, tab, setTab } = useAppContext();
 
-  // ===== Toast Hook =====
+  // ===== Hooks =====
   const { toasts: hookToasts, notificationLog: hookNotificationLog, pushToast, removeToast } = useToast();
-
-  const [showWelcome, setShowWelcome] = useState(false);
-
-  useEffect(() => {
-    if (!localStorage.getItem("xyz_welcome_seen")) {
-      setShowWelcome(true);
-    }
-  }, []);
-
-  const handleCloseWelcome = useCallback(() => {
-    localStorage.setItem("xyz_welcome_seen", "true");
-    setShowWelcome(false);
-  }, []);
+  const ui = useUiState();
 
   const [options, setOptions] = useState<OptionsState>(fallbackOptions);
   const [defaultParams, setDefaultParams] = useLocalStorageState<BaseGenerationParams>("comfyui_default_params", makeBaseParams());
   const [multiParams, setMultiParams] = useLocalStorageState<MultiGenerationParams>("comfyui_multi_params", makeMultiParams());
   const [highresParams, setHighresParams] = useLocalStorageState<HighresParams>("comfyui_highres_params", makeHighresParams());
-  const [outputLightbox, setOutputLightbox] = useState<string | null>(null);
-  const [compareLightbox, setCompareLightbox] = useState<[string, string] | null>(null);
   const [wd14, setWd14] = useLocalStorageState<Wd14Params>("comfyui_wd14_params", {
     imageName: "",
     model: "wd-v1-4-moat-tagger-v2",
@@ -1539,7 +1526,7 @@ function App() {
         toolTabs={toolTabs}
       />
       <div className="app-main">
-        {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
+        {ui.showWelcome && <WelcomeModal onClose={ui.handleCloseWelcome} />}
         <header className="topbar">
           <div className="brand">
             <div className={`connection-status ${connection.status}`} title={connection.message}>
@@ -2264,7 +2251,7 @@ function App() {
                         src={item.result.images[0].url}
                         alt={item.label}
                         style={{ cursor: "zoom-in" }}
-                        onClick={() => setOutputLightbox(item.result!.images[0].url)}
+                        onClick={() => ui.setOutputLightbox(item.result!.images[0].url)}
                       />
                     ) : (
                       <div className="xyz-image-placeholder" />
@@ -2540,13 +2527,13 @@ function App() {
                           src={image.url} 
                           alt={image.filename} 
                           style={{ cursor: "zoom-in" }}
-                          onClick={() => setOutputLightbox(image.url)}
+                          onClick={() => ui.setOutputLightbox(image.url)}
                         />
                         {baseImages.length > 0 && (
                           <button 
                             className="secondary-action" 
                             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%' }}
-                            onClick={() => setCompareLightbox([baseImages[Math.min(i, baseImages.length - 1)].url, image.url])}
+                            onClick={() => ui.setCompareLightbox([baseImages[Math.min(i, baseImages.length - 1)].url, image.url])}
                           >
                             <Columns size={14} /> 对比基础图像
                           </button>
@@ -2584,7 +2571,7 @@ function App() {
           notifications={hookNotificationLog}
           onShowWelcome={() => {
             setLoraOperation(null);
-            setShowWelcome(true);
+            ui.setShowWelcome(true);
           }}
           onClose={() => setLoraOperation(null)}
           onToast={pushToast}
@@ -2599,18 +2586,18 @@ function App() {
           }}
         />
       )}
-      {outputLightbox && (
-        <div className="lm-lightbox" role="dialog" aria-modal="true" aria-label="查看大图" onMouseDown={() => setOutputLightbox(null)}>
+      {ui.outputLightbox && (
+        <div className="lm-lightbox" role="dialog" aria-modal="true" aria-label="查看大图" onMouseDown={() => ui.setOutputLightbox(null)}>
           <div className="lm-lightbox-content" onMouseDown={(event) => event.stopPropagation()}>
-            <button type="button" className="lm-lightbox-close" title="关闭" onClick={() => setOutputLightbox(null)}><X size={18} /></button>
+            <button type="button" className="lm-lightbox-close" title="关闭" onClick={() => ui.setOutputLightbox(null)}><X size={18} /></button>
             <div className="lm-media-frame">
-              <img src={outputLightbox} alt="大图" className="lm-media-asset" />
+              <img src={ui.outputLightbox} alt="大图" className="lm-media-asset" />
             </div>
           </div>
         </div>
       )}
-      {compareLightbox && (
-        <ImageComparerModal imageA={compareLightbox[0]} imageB={compareLightbox[1]} onClose={() => setCompareLightbox(null)} />
+      {ui.compareLightbox && (
+        <ImageComparerModal imageA={ui.compareLightbox[0]} imageB={ui.compareLightbox[1]} onClose={() => ui.setCompareLightbox(null)} />
       )}
 
       {simpleLoraTarget && (
