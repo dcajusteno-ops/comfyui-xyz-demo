@@ -28,3 +28,7 @@ test-results/
 # session artifacts
 .zcode/
 .playwright-mcp/
+
+# backups & temp files
+backup_*/
+`*.md

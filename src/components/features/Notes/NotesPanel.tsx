@@ -1,5 +1,5 @@
 import { FileText, Maximize, Minimize, Plus, Search, Trash2 } from "lucide-react";
-import { RichTextEditor } from "../../RichTextEditor";
+import { RichTextEditor } from "../../ui";
 import type { NoteItem } from "../../../types";
 
 export function NotesPanel({

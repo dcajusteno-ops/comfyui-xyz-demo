@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { NoteItem, TabId, Toast } from "../types";
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
@@ -81,6 +81,20 @@ export function useNotes({ tab, pushToast, confirm }: { tab: TabId; pushToast: T
     saveNotes(nextNotes);
   }
 
+  function handleSaveImageToNote(url: string) {
+    const newNote: NoteItem = {
+      id: Math.random().toString(36).slice(2),
+      title: "图片保存",
+      content: `<p><img src="${url}" /></p>`,
+      updatedAt: Date.now(),
+    };
+    const nextNotes = [newNote, ...notes];
+    setNotes(nextNotes);
+    setActiveNoteId(newNote.id);
+    saveNotes(nextNotes);
+    pushToast("success", "图片已保存到笔记");
+  }
+
   function handleDeleteNote(id: string) {
     confirm("删除笔记", "确定要删除这条笔记吗？删除后将无法恢复。", () => {
       const nextNotes = notes.filter((n) => n.id !== id);
@@ -99,7 +113,7 @@ export function useNotes({ tab, pushToast, confirm }: { tab: TabId; pushToast: T
     );
   }
 
-  return {
+  return useMemo(() => ({
     notes,
     activeNoteId,
     notesSaving,
@@ -110,7 +124,19 @@ export function useNotes({ tab, pushToast, confirm }: { tab: TabId; pushToast: T
     setActiveNoteId,
     saveNotes,
     handleAddNote,
+    handleSaveImageToNote,
     handleDeleteNote,
     updateActiveNote,
-  };
+  }), [
+    notes,
+    activeNoteId,
+    notesSaving,
+    notesSearch,
+    isNotesWide,
+    saveNotes,
+    handleAddNote,
+    handleSaveImageToNote,
+    handleDeleteNote,
+    updateActiveNote,
+  ]);
 }

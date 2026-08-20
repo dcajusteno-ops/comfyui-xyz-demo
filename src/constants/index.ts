@@ -18,6 +18,7 @@ import type {
   TabId,
   TemplateKind,
 } from "../types";
+import { defaultTranslationSettings } from "../lib/translation";
 
 export const fallbackOptions: OptionsState = {
   checkpoints: ["anything-v5-PrtRE.safetensors"],
@@ -29,6 +30,7 @@ export const fallbackOptions: OptionsState = {
   detectors: ["bbox/hand_yolov8s.pt", "bbox/face_yolov8m.pt"],
   upscaleMethods: ["nearest-exact", "bilinear", "bicubic"],
   fonts: ["default"],
+  translation: defaultTranslationSettings,
 };
 
 export type TabConfig = { id: TabId; label: string; icon: typeof Wand2 };

@@ -1,4 +1,11 @@
-import type { MaskHandle } from "./lib/multiCanvas";
+import type { TranslationSettings, TranslationProvider } from "./lib/translation";
+
+export type { TranslationSettings, TranslationProvider };
+
+export type MaskHandle = "nw" | "ne" | "sw" | "se";
+
+export type Note = NoteItem;
+export type CanvasCharacter = MultiCharacter;
 
 export type ConnectionStatus = "checking" | "online" | "offline" | "error";
 
@@ -261,6 +268,7 @@ export type DownloadProgress = ApiResult<{
   filename?: string;
   downloaded_bytes?: number;
   total_bytes?: number;
+  percent?: number;
 }>;
 
 export type LoraQueryState = {
@@ -616,6 +624,7 @@ export type OptionsState = {
   detectors: string[];
   upscaleMethods: string[];
   fonts: string[];
+  translation: TranslationSettings;
 };
 
 export type XyzRunItem = {

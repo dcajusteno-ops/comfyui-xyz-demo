@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type ConfirmDialog = { title: string; message: string; onConfirm: () => void };
 
@@ -38,12 +38,13 @@ export function useUiState() {
   const [showXyzHelp, setShowXyzHelp] = useState(false);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showPromptSidebar, setShowPromptSidebar] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
 
-  function confirm(title: string, message: string, onConfirm: () => void) {
+  const confirm = (title: string, message: string, onConfirm: () => void) => {
     setConfirmDialog({ title, message, onConfirm });
-  }
+  };
 
-  return {
+  return useMemo(() => ({
     showWelcome,
     setShowWelcome,
     handleCloseWelcome,
@@ -65,6 +66,21 @@ export function useUiState() {
     setShowPromptEditor,
     showPromptSidebar,
     setShowPromptSidebar,
+    showTranslation,
+    setShowTranslation,
     confirm,
-  };
+  }), [
+    showWelcome,
+    handleCloseWelcome,
+    outputLightbox,
+    compareLightbox,
+    isAppSidebarCollapsed,
+    featureModal,
+    confirmDialog,
+    triggerWords,
+    showXyzHelp,
+    showPromptEditor,
+    showPromptSidebar,
+    showTranslation,
+  ]);
 }

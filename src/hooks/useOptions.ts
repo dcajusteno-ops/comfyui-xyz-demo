@@ -3,6 +3,7 @@ import type { ComfyClient } from "../lib/comfyClient";
 import type { BaseGenerationParams, HighresParams, OptionsState, Toast } from "../types";
 import { defaultLoraManagerSettings } from "../constants";
 import { normalizeLoraManagerSettings, readCombo } from "../lib/lora-helper";
+import { defaultTranslationSettings } from "../lib/translation";
 import type { LoraManagerSettings } from "../types";
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
@@ -20,6 +21,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
   const fallbackOptions: OptionsState = {
     checkpoints: [], samplers: [], schedulers: [], wdModels: [], wdDevices: [],
     clModels: [], detectors: [], upscaleMethods: [], fonts: [],
+    translation: defaultTranslationSettings,
   };
 
   const [options, setOptions] = useState<OptionsState>(fallbackOptions);
@@ -63,6 +65,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           detectors: detList,
           upscaleMethods: upScaleList,
           fonts: fontList,
+          translation: defaultTranslationSettings,
         };
 
         setOptions(nextOptions);
@@ -106,6 +109,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
 
   return {
     options,
+    setOptions,
     loraSettings,
     setLoraSettings,
     needsOnboarding,

@@ -23,3 +23,13 @@ export function PanelTitle({ icon: Icon, title }: { icon: any; title: string }) 
     </div>
   );
 }
+
+export function FeatureModal({ modal, onClose }: { modal: { title: string; body: string }; onClose: () => void }) {
+  return (
+    <ModalFrame title={modal.title} onClose={onClose}>
+      <div className="help-body">
+        <p>{modal.body}</p>
+      </div>
+    </ModalFrame>
+  );
+}
