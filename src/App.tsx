@@ -87,6 +87,7 @@ function App() {
     setWd14: tagging.setWd14,
     setWdBatchParams: tagging.setWdBatchParams,
     setClBatchParams: tagging.setClBatchParams,
+    setClSingleParams: tagging.setClSingleParams,
   });
 
   // Update active hashes for lora hook
@@ -351,8 +352,14 @@ function App() {
                   wdBatchParams={tagging.wdBatchParams}
                   setWdBatchParams={tagging.setWdBatchParams}
                   options={options}
-                  onRunWd14={() => gen.runWd14(tagging.wd14, tagging.wdFile).then(res => tagging.setWdTags(res.texts.join("\n")))}
-                  onRunClSingle={() => gen.runClSingle(tagging.clSingleParams, tagging.clFile).then(res => tagging.setWdTags(res.texts.join("\n")))}
+                  onRunWd14={() => {
+                    tagging.setWdTags("");
+                    return gen.runWd14(tagging.wd14, tagging.wdFile).then(res => tagging.setWdTags(res.texts.join("\n")));
+                  }}
+                  onRunClSingle={() => {
+                    tagging.setWdTags("");
+                    return gen.runClSingle(tagging.clSingleParams, tagging.clFile).then(res => tagging.setWdTags(res.texts.join("\n")));
+                  }}
                   onRunBatchTagger={(type) => gen.runBatchTagger(type, tagging.clBatchParams, tagging.wdBatchParams)}
                 />
               )}
@@ -530,7 +537,31 @@ function App() {
         onTriggerWordsSave={async (item, words) => { await loras.saveLoraTriggerWords(item, words); return words; }}
         onTriggerWordsRead={async (item) => { await loras.loadTriggerWords(item); return []; }}
         onPromptApply={(pos, neg) => {
-          params.setDefaultParams(prev => ({ ...prev, positivePrompt: pos, negativePrompt: neg }));
+          const append = (current: string, addition: string) => {
+            if (!addition.trim()) return current;
+            if (!current.trim()) return addition.trim();
+            const trimmed = current.trim();
+            const sep = (trimmed.endsWith(',') || trimmed.endsWith('，')) ? ' ' : ', ';
+            return trimmed + sep + addition.trim();
+          };
+
+          const updater = (prev: any) => {
+            const posKey = tab === "multi" ? "globalPrompt" : "positivePrompt";
+            return {
+              ...prev,
+              [posKey]: append(prev[posKey] || "", pos),
+              negativePrompt: append(prev.negativePrompt || "", neg)
+            };
+          };
+
+          if (tab === "multi") {
+            params.setMultiParams(updater);
+          } else if (tab === "highres") {
+            params.setHighresParams(updater);
+          } else {
+            params.setDefaultParams(updater);
+          }
+          pushToast("success", "提示词已应用", "已成功追加到输入框");
         }}
         onOpenLoraFolder={loras.openLoraExampleFolder}
         onPullLoraExamples={async (item) => { await loras.pullLoraExamples(item); return []; }}

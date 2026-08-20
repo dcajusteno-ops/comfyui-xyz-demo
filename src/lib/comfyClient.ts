@@ -837,12 +837,57 @@ export class ComfyClient {
                 });
               }
             }
-            if (outputs.text) {
-              texts.push(...outputs.text);
+
+            const processTextValue = (value: any) => {
+              if (Array.isArray(value)) {
+                // Filter out any objects, keep only strings/numbers
+                const validValues = value.filter(v => typeof v === 'string' || typeof v === 'number');
+                if (validValues.length === 0) return;
+
+                // If it's an array of single characters, join them
+                if (validValues.length > 1 && validValues.every(v => typeof v === 'string' && v.length === 1)) {
+                  texts.push(validValues.join(''));
+                } else {
+                  texts.push(...validValues.map(String));
+                }
+              } else if (typeof value === "string" || typeof value === "number") {
+                const strValue = String(value);
+                if (strValue.trim().length > 0) {
+                  texts.push(strValue);
+                }
+              }
+            };
+
+            for (const key of ["text", "texts", "STRING", "string", "tags", "csv"]) {
+              processTextValue(outputs[key]);
+            }
+
+            // Fallback: if no text found by common keys, look for any string/string-array output
+            if (texts.length === 0) {
+              for (const value of Object.values(outputs)) {
+                processTextValue(value);
+              }
             }
             
             if (images.length > 0 || texts.length > 0) {
-              resultsFromExecuted = { promptId, images, texts, rawHistory: {} };
+              if (!resultsFromExecuted) {
+                resultsFromExecuted = { promptId, images: [], texts: [], rawHistory: {} };
+              }
+              
+              // Add unique images
+              for (const img of images) {
+                if (!resultsFromExecuted.images.some(existing => existing.url === img.url)) {
+                  resultsFromExecuted.images.push(img);
+                }
+              }
+
+              // Add unique texts
+              for (const t of texts) {
+                if (!resultsFromExecuted.texts.includes(t)) {
+                  resultsFromExecuted.texts.push(t);
+                }
+              }
+
               updateProgress({
                 running: true,
                 promptId,
@@ -850,8 +895,8 @@ export class ComfyClient {
                 value: 1,
                 max: 1,
                 label: `节点 ${nodeTitle} 生成完毕`,
-                images,
-                texts,
+                images: resultsFromExecuted.images,
+                texts: resultsFromExecuted.texts,
               });
             }
           }
@@ -903,12 +948,32 @@ export class ComfyClient {
           }
         }
       }
-      for (const key of ["text", "texts", "STRING", "string", "tags"]) {
-        const value = output[key];
+      const processTextValue = (value: any) => {
         if (Array.isArray(value)) {
-          texts.push(...value.map(String));
-        } else if (typeof value === "string") {
-          texts.push(value);
+          const validValues = value.filter(v => typeof v === 'string' || typeof v === 'number');
+          if (validValues.length === 0) return;
+          if (validValues.length > 1 && validValues.every(v => typeof v === 'string' && v.length === 1)) {
+            texts.push(validValues.join(''));
+          } else {
+            texts.push(...validValues.map(String));
+          }
+        } else if (typeof value === "string" || typeof value === "number") {
+          const strValue = String(value);
+          if (strValue.trim().length > 0) {
+            texts.push(strValue);
+          }
+        }
+      };
+
+      for (const key of ["text", "texts", "STRING", "string", "tags", "csv"]) {
+        processTextValue(output[key]);
+      }
+      
+      // Fallback in history too
+      const foundCount = texts.length;
+      if (foundCount === 0) {
+        for (const value of Object.values(output)) {
+          processTextValue(value);
         }
       }
     }

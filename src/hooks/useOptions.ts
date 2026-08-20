@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import type { ComfyClient } from "../lib/comfyClient";
 import type { BaseGenerationParams, HighresParams, OptionsState, Toast } from "../types";
-import { defaultLoraManagerSettings } from "../constants";
+import { defaultLoraManagerSettings, fallbackOptions as globalFallbackOptions } from "../constants";
 import { normalizeLoraManagerSettings, readCombo } from "../lib/lora-helper";
 import { defaultTranslationSettings } from "../lib/translation";
 import type { LoraManagerSettings } from "../types";
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
 
-export function useOptions({ client, pushToast, setDefaultParams, setMultiParams, setHighresParams, setWd14, setWdBatchParams, setClBatchParams }: {
+export function useOptions({ client, pushToast, setDefaultParams, setMultiParams, setHighresParams, setWd14, setWdBatchParams, setClBatchParams, setClSingleParams }: {
   client: ComfyClient;
   pushToast: ToastFn;
   setDefaultParams: React.Dispatch<React.SetStateAction<BaseGenerationParams>>;
@@ -17,14 +17,9 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
   setWd14: React.Dispatch<React.SetStateAction<any>>;
   setWdBatchParams: React.Dispatch<React.SetStateAction<any>>;
   setClBatchParams: React.Dispatch<React.SetStateAction<any>>;
+  setClSingleParams: React.Dispatch<React.SetStateAction<any>>;
 }) {
-  const fallbackOptions: OptionsState = {
-    checkpoints: [], samplers: [], schedulers: [], wdModels: [], wdDevices: [],
-    clModels: [], detectors: [], upscaleMethods: [], fonts: [],
-    translation: defaultTranslationSettings,
-  };
-
-  const [options, setOptions] = useState<OptionsState>(fallbackOptions);
+  const [options, setOptions] = useState<OptionsState>(globalFallbackOptions);
   const [loraSettings, setLoraSettings] = useState<typeof defaultLoraManagerSettings>(defaultLoraManagerSettings);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
@@ -49,7 +44,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
         const samplerList: string[] = readCombo(ksamplerInfo, "KSampler", "sampler_name", []);
         const schedulerList: string[] = readCombo(ksamplerInfo, "KSampler", "scheduler", []);
         const wdModelList: string[] = wdInfo ? readCombo(wdInfo, "WD14Tagger|pysssss", "model", []) : [];
-        const wdDeviceList: string[] = wdInfo ? readCombo(wdInfo, "WD14Tagger|pysssss", "device", []) : [];
+        const wdDeviceList: string[] = wdInfo ? readCombo(wdInfo, "WD14Tagger|pysssss", "device", ["GPU", "CPU"]) : ["GPU", "CPU"];
         const clModelList: string[] = clInfo ? readCombo(clInfo, "cl_tagger_mira", "model_name", []) : [];
         const detList: string[] = detectorInfo ? readCombo(detectorInfo, "UltralyticsDetectorProvider", "model_name", []) : [];
         const upScaleList: string[] = upscaleInfo ? readCombo(upscaleInfo, "LatentUpscaleBy", "upscale_method", []) : [];
@@ -94,9 +89,26 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           nsfwDetector: detList.includes(prev.nsfwDetector) ? prev.nsfwDetector : (detList.find((item) => item.includes("nsfw")) ?? (prev.nsfwDetector || "")),
         }));
 
-        setWd14((prev: Record<string, unknown>) => ({ ...prev, model: wdModelList.includes(String(prev.model)) ? String(prev.model) : (wdModelList[0] ?? "") }));
-        setWdBatchParams((prev: Record<string, unknown>) => ({ ...prev, model: wdModelList.includes(String(prev.model)) ? String(prev.model) : (wdModelList[0] ?? "") }));
-        setClBatchParams((prev: Record<string, unknown>) => ({ ...prev, modelName: clModelList.includes(String(prev.modelName)) ? String(prev.modelName) : (clModelList[0] ?? "") }));
+        setWd14((prev: Record<string, unknown>) => ({
+          ...prev,
+          model: wdModelList.includes(String(prev.model)) ? String(prev.model) : (wdModelList[0] ?? ""),
+          device: wdDeviceList.includes(String(prev.device)) ? String(prev.device) : (wdDeviceList[0] ?? prev.device)
+        }));
+        setWdBatchParams((prev: Record<string, unknown>) => ({
+          ...prev,
+          model: wdModelList.includes(String(prev.model)) ? String(prev.model) : (wdModelList[0] ?? ""),
+          device: wdDeviceList.includes(String(prev.device)) ? String(prev.device) : (wdDeviceList[0] ?? prev.device)
+        }));
+        setClBatchParams((prev: Record<string, unknown>) => ({
+          ...prev,
+          modelName: clModelList.includes(String(prev.modelName)) ? String(prev.modelName) : (clModelList[0] ?? ""),
+          sessionMethod: wdDeviceList.includes(String(prev.sessionMethod)) ? String(prev.sessionMethod) : (wdDeviceList[0] ?? prev.sessionMethod)
+        }));
+        setClSingleParams((prev: Record<string, unknown>) => ({
+          ...prev,
+          modelName: clModelList.includes(String(prev.modelName)) ? String(prev.modelName) : (clModelList[0] ?? ""),
+          sessionMethod: wdDeviceList.includes(String(prev.sessionMethod)) ? String(prev.sessionMethod) : (wdDeviceList[0] ?? prev.sessionMethod)
+        }));
 
       } catch (loadError) {
         if (canceled) return;

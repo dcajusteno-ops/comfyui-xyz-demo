@@ -21,16 +21,31 @@ export function resolveSeed(seed: number, randomizeSeed = false): number {
   return Math.max(0, Math.floor(seed));
 }
 
-export function buildLoraSyntax(loras: LoraSelection[]): string {
+
+export function formatLoraName(name: string, withExtension = true): string {
+  const trimmed = name.trim();
+  // 在 Windows 环境下，无论是 text 语法还是 loras 列表，通常都需要反斜杠
+  let finalName = trimmed.replace(/\//g, "\\");
+  
+  if (withExtension) {
+    // 标准语法通常需要扩展名
+    const hasExtension = /\.(safetensors|pt|ckpt|bin)$/i.test(finalName);
+    if (!hasExtension) {
+      finalName = `${finalName}.safetensors`;
+    }
+  } else {
+    // LoraManager 的 loras 列表通常不需要扩展名
+    finalName = finalName.replace(/\.(safetensors|pt|ckpt|bin)$/i, "");
+  }
+  
+  return finalName;
+}
+
+export function buildLoraSyntax(loras: LoraSelection[], withExtension = true): string {
   return loras
     .filter((lora) => lora.active && lora.name.trim())
     .map((lora) => {
-      const name = lora.name.trim();
-      const hasExtension = /\.(safetensors|pt|ckpt|bin)$/i.test(name);
-      let finalName = hasExtension ? name : `${name}.safetensors`;
-      // Normalize to backslashes for ComfyUI's get_filename_list on Windows
-      // PCLazyLoraLoader requires exact string match with what the filesystem returns
-      finalName = finalName.replace(/\//g, "\\");
+      const finalName = formatLoraName(lora.name, withExtension);
       return `<lora:${finalName}:${formatStrength(lora.strength)}>`;
     })
     .join(" ");
@@ -114,10 +129,6 @@ function insertDrawTextNode(
   return [drawTextId, 0];
 }
 
-function loraAwarePrompt(params: BaseGenerationParams) {
-  return joinPrompt(buildLoraSyntax(params.loras), params.positivePrompt);
-}
-
 function baseCheckpoint(params: BaseGenerationParams): ComfyPrompt {
   return {
     "1": {
@@ -130,6 +141,26 @@ function baseCheckpoint(params: BaseGenerationParams): ComfyPrompt {
   };
 }
 
+function loraAwarePrompt(params: BaseGenerationParams) {
+  return joinPrompt(buildLoraSyntax(params.loras), params.positivePrompt);
+}
+
+function buildLoraList(loras: LoraSelection[]): any {
+  const list = loras
+    .filter((l) => l.active && l.name.trim())
+    .map((l) => ({
+      name: formatLoraName(l.name, false),
+      strength: l.strength,
+      clipStrength: l.clipStrength ?? l.strength,
+      active: true,
+      expanded: false,
+      selected: false,
+      locked: false,
+    }));
+
+  return { "__value__": list };
+}
+
 export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
   const prompt: ComfyPrompt = {
     ...baseCheckpoint(params),
@@ -138,15 +169,9 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
       inputs: {
         model: ["1", 0],
         clip: ["1", 1],
-        text: buildLoraSyntax(params.loras),
-        loras: params.loras
-          .filter((l) => l.active)
-          .map((l) => ({
-            name: l.name,
-            strength: l.strength,
-            clipStrength: l.clipStrength ?? l.strength,
-            active: true,
-          })),
+        text: buildLoraSyntax(params.loras, false),
+        loras: buildLoraList(params.loras),
+        __lm_autocomplete_meta_text: { version: 1, textWidgetName: "text" },
       },
       _meta: { title: "Lora Loader (LoraManager)" },
     },
@@ -205,6 +230,20 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
 }
 
 export function buildWd14Prompt(params: Wd14Params): ComfyPrompt {
+  const inputs: any = {
+    image: ["1", 0],
+    model: params.model,
+    threshold: params.threshold,
+    character_threshold: params.characterThreshold,
+    replace_underscore: params.replaceUnderscore,
+    trailing_comma: params.trailingComma,
+    exclude_tags: params.excludeTags,
+  };
+  
+  if (params.device) {
+    inputs.device = params.device;
+  }
+
   return {
     "1": {
       class_type: "LoadImage",
@@ -215,17 +254,26 @@ export function buildWd14Prompt(params: Wd14Params): ComfyPrompt {
     },
     "2": {
       class_type: "WD14Tagger|pysssss",
-      inputs: {
-        image: ["1", 0],
-        model: params.model,
-        threshold: params.threshold,
-        character_threshold: params.characterThreshold,
-        replace_underscore: params.replaceUnderscore,
-        trailing_comma: params.trailingComma,
-        exclude_tags: params.excludeTags,
-        device: params.device,
-      },
+      inputs: inputs,
       _meta: { title: "WD14 Tagger" },
+    },
+    "3": {
+      class_type: "PreviewImage",
+      inputs: {
+        images: ["1", 0],
+      },
+      _meta: { title: "Preview Image" },
+    },
+    // Force execution and return text via Save Text node
+    "4": {
+      class_type: "> Save Text",
+      inputs: {
+        text: ["2", 0],
+        filename_opt: "tag_temp",
+        filename_prefix: "",
+        folder: "tagging",
+      },
+      _meta: { title: "Save Tags" },
     },
   };
 }
@@ -252,6 +300,24 @@ export function buildClSinglePrompt(params: ClSingleParams): ComfyPrompt {
         session_method: params.sessionMethod,
       },
       _meta: { title: "CL Tagger" },
+    },
+    "3": {
+      class_type: "PreviewImage",
+      inputs: {
+        images: ["1", 0],
+      },
+      _meta: { title: "Preview Image" },
+    },
+    // Force execution and return text via Save Text node
+    "4": {
+      class_type: "> Save Text",
+      inputs: {
+        text: ["2", 0],
+        filename_opt: "tag_temp",
+        filename_prefix: "",
+        folder: "tagging",
+      },
+      _meta: { title: "Save Tags" },
     },
   };
 }
@@ -323,6 +389,20 @@ export function buildClBatchPrompt(params: ClBatchParams, index: number): ComfyP
 }
 
 export function buildWdBatchPrompt(params: WdBatchParams, index: number): ComfyPrompt {
+  const inputs: any = {
+    image: ["15", 0],
+    model: params.model,
+    threshold: params.threshold,
+    character_threshold: params.characterThreshold,
+    replace_underscore: params.replaceUnderscore,
+    trailing_comma: params.trailingComma,
+    exclude_tags: params.excludeTags,
+  };
+  
+  if (params.device) {
+    inputs.device = params.device;
+  }
+
   return {
     "15": {
       class_type: "> Load Image From Folder",
@@ -334,16 +414,7 @@ export function buildWdBatchPrompt(params: WdBatchParams, index: number): ComfyP
     },
     "37": {
       class_type: "WD14Tagger|pysssss",
-      inputs: {
-        image: ["15", 0],
-        model: params.model,
-        threshold: params.threshold,
-        character_threshold: params.characterThreshold,
-        replace_underscore: params.replaceUnderscore,
-        trailing_comma: params.trailingComma,
-        exclude_tags: params.excludeTags,
-        device: params.device,
-      },
+      inputs: inputs,
       _meta: { title: "WD14 Tagger" },
     },
     "19": {
@@ -508,15 +579,9 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
       inputs: {
         model: ["1", 0],
         clip: ["1", 1],
-        text: buildLoraSyntax(params.loras),
-        loras: params.loras
-          .filter((l) => l.active)
-          .map((l) => ({
-            name: l.name,
-            strength: l.strength,
-            clipStrength: l.clipStrength ?? l.strength,
-            active: true,
-          })),
+        text: buildLoraSyntax(params.loras, false),
+        loras: buildLoraList(params.loras),
+        __lm_autocomplete_meta_text: { version: 1, textWidgetName: "text" },
       },
       _meta: { title: "Lora Loader (LoraManager)" },
     },

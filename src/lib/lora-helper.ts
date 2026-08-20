@@ -10,7 +10,8 @@ export function mergeLora(loras: LoraSelection[], selection: LoraSelection) {
 }
 
 export function readCombo(data: unknown, node: string, input: string, fallback: string[]) {
-  const entry = (data as Record<string, { input?: { required?: Record<string, unknown> } }>)[node]?.input?.required?.[input];
+  const nodeData = (data as Record<string, { input?: { required?: Record<string, unknown>; optional?: Record<string, unknown> } }>)[node];
+  const entry = nodeData?.input?.required?.[input] || nodeData?.input?.optional?.[input];
   if (Array.isArray(entry) && Array.isArray(entry[0])) {
     return entry[0].map(String);
   }

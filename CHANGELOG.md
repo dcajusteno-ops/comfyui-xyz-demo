@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.1] - 2026-08-20
+
+### 🔧 核心逻辑修复 (Core Logic Fix)
+- **LoRA 加载逻辑重构**：
+  - **API 模式适配**：为 `Lora Loader (LoraManager)` 节点的 `loras` 输入字段引入了 `{"__value__": [...]}` 包装器，彻底解决了 ComfyUI API 的 `bad_linked_input` (400) 错误。
+  - **路径格式统一**：强制在所有工作流中使用反斜杠 `\` 作为 LoRA 路径分隔符，完美兼容 Windows 环境。
+  - **后缀管理优化**：在 API 模式下自动剥离 `.safetensors` 等扩展名，确保与自定义插件节点的识别逻辑完全匹配。
+  - **稳定性补丁**：移除了之前临时的列表填充（Padding）逻辑，改用标准的包装器方案，并补全了 LoRA 对象的所有状态字段。
+
 ## [v0.3.0] - 2026-08-20
 
 ### 🏗️ 架构重构 (Major Refactor)

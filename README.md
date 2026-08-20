@@ -186,6 +186,10 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 ### 30. 项目架构深度重构 (v0.3.0 新增)
 - **核心组件模块化**：彻底完成了对巨型组件 `App.tsx` 的拆分，将其解构为独立的业务模块、Hooks 及 UI 组件库，显著提升了代码的可维护性与扩展性。
+
+### 31. LoRA 加载逻辑深度修复 (v0.3.1 新增)
+- **API 调用链路重构**：针对 `Lora Loader (LoraManager)` 节点在 API 模式下的验证陷阱，引入了特殊的 `__value__` 数据包装器，彻底根治了 `bad_linked_input` 导致的 400 错误。
+- **跨平台路径适配**：强制统一使用反斜杠 `\` 并优化了扩展名剥离逻辑，确保 LoRA 在 Windows 服务器环境下能够被 ComfyUI 100% 正确识别并加载（告别 `0 patches attached`）。
 - **详尽更新日志**：更多详细的改动记录请参阅 [CHANGELOG.md](file:///f:/demo/comfyui-xyz-demo/CHANGELOG.md)。
 
 ---

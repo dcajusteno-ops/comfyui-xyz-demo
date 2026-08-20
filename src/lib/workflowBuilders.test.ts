@@ -26,7 +26,8 @@ const baseParams: BaseGenerationParams = {
 
 describe("workflow builders", () => {
   it("builds lora syntax from active selections", () => {
-    expect(buildLoraSyntax(baseParams.loras)).toBe("<lora:my_lora_v0.6:0.8>");
+    expect(buildLoraSyntax(baseParams.loras, true)).toBe("<lora:my_lora_v0.6.safetensors:0.8>");
+    expect(buildLoraSyntax(baseParams.loras, false)).toBe("<lora:my_lora_v0.6:0.8>");
   });
 
   it("builds default prompt without ui-only get/set nodes", () => {
@@ -34,6 +35,7 @@ describe("workflow builders", () => {
     expect(Object.values(prompt).map((node) => node.class_type)).not.toContain("GetNode");
     expect(Object.values(prompt).map((node) => node.class_type)).not.toContain("SetNode");
     expect(prompt["2"].class_type).toBe("Lora Loader (LoraManager)");
+    expect(Array.isArray(prompt["2"].inputs.loras)).toBe(true);
     expect(prompt["6"].inputs.seed).toBe(42);
   });
 
@@ -63,14 +65,13 @@ describe("workflow builders", () => {
       characters: config.characters,
     };
     const prompt = buildMultiPrompt(params);
-    const mce = JSON.parse(prompt["2"].inputs.mce_config as string);
-    expect(prompt["2"].inputs.base_prompt).toBe("");
+    const mce = JSON.parse(prompt["27"].inputs.mce_config as string);
     expect(mce.base_prompt).toBe("");
-    expect(mce.global_prompt).toBe("<lora:my_lora_v0.6:0.8>");
+    expect(mce.global_prompt).toBe("<lora:my_lora_v0.6.safetensors:0.8>");
     expect(mce.characters).toHaveLength(8);
     expect(mce.characters.every((character: { prompt: string }) => character.prompt === "")).toBe(true);
-    expect(prompt["3"].class_type).toBe("PCLazyLoraLoader");
-    expect(prompt["8"].inputs.cfg).toBe(5);
+    expect(prompt["25"].class_type).toBe("PCLazyLoraLoader");
+    expect(prompt["4"].inputs.cfg).toBe(5);
   });
 
   it("chains face, eyes, nsfw, and hand detailers correctly", () => {
