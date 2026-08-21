@@ -31,4 +31,6 @@ test-results/
 
 # backups & temp files
 backup_*/
-`*.md
+*.md
+!README.md
+!CHANGELOG.md
