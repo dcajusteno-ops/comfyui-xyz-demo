@@ -158,6 +158,17 @@
   box-sizing: border-box;
 }
 
+/* Theme Transition & Performance */
+.switching-theme *,
+.switching-theme *::before,
+.switching-theme *::after {
+  transition: none !important;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 svg {
   fill: none;
   stroke: currentColor;
@@ -166,6 +177,23 @@ svg {
   stroke-linejoin: round;
   display: inline-block;
   vertical-align: middle;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+/* View Transition API Improvements */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  display: block;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
 }
 
 body {
@@ -305,10 +333,14 @@ button {
 }
 
 .sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 12px;
   border-top: 1px solid var(--border);
 }
 
+.theme-toggle,
 .collapse-toggle {
   display: flex;
   align-items: center;
@@ -326,16 +358,14 @@ button {
   font-size: 13px;
 }
 
+.theme-toggle:hover,
 .collapse-toggle:hover {
   background: var(--surface-hover);
   color: var(--text);
 }
 
-.app-sidebar.is-collapsed .nav-item {
-  justify-content: center;
-  padding: 10px 0;
-}
-
+.app-sidebar.is-collapsed .nav-item,
+.app-sidebar.is-collapsed .theme-toggle,
 .app-sidebar.is-collapsed .collapse-toggle {
   justify-content: center;
   padding: 10px 0;
@@ -1847,8 +1877,8 @@ button {
   border: 1px solid var(--toast-border);
   border-radius: 12px;
   background: var(--toast-bg);
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   color: var(--toast-text);
@@ -1857,11 +1887,26 @@ button {
 }
 
 .dark .toast {
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.5), 0 4px 12px -6px rgba(0, 0, 0, 0.3);
+}
+
+.notification-log .toast {
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.notification-log .toast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent-soft);
+}
+
+.dark .notification-log .toast:hover {
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6), 0 8px 16px -8px rgba(0, 0, 0, 0.4);
 }
 
 .toast + .toast {
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 @keyframes toast-in {
@@ -2395,58 +2440,67 @@ textarea {
 
 .run-progress-strip {
   position: sticky;
-  top: 62px;
-  z-index: 18;
+  top: 54px;
+  z-index: 80;
   display: grid;
-  gap: 7px;
-  padding: 8px 20px 10px;
+  gap: 8px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface-alt);
-  box-shadow: var(--shadow);
+  background: var(--topbar-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .run-progress-batch {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) minmax(120px, 240px);
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: 12px;
   color: var(--muted);
 }
 
 .run-progress-batch .batch-badge {
-  padding: 2px 9px;
-  border: 1px solid var(--accent);
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .run-progress-batch strong {
   color: var(--text);
-  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
 .run-progress-batch .batch-item {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  opacity: 0.8;
 }
 
 .progress-track.slim {
-  height: 5px;
+  width: 120px;
+  height: 4px;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dark .progress-track.slim {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .run-progress-meta,
 .lm-download-progress-meta {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   min-width: 0;
   color: var(--muted);
   font-size: 12px;
@@ -2455,56 +2509,76 @@ textarea {
 .run-progress-meta strong,
 .lm-download-progress-meta strong {
   color: var(--text);
-  font-size: 13px;
+  font-weight: 600;
 }
 
 .run-progress-meta span,
 .lm-download-progress-meta span {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  opacity: 0.7;
 }
 
 .run-progress-meta b,
 .lm-download-progress-meta b {
   color: var(--accent);
-  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .progress-track {
   position: relative;
-  height: 8px;
+  height: 6px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 999px;
-  background: var(--surface-alt);
+  border: none;
+}
+
+.dark .progress-track {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .progress-track span {
   position: absolute;
   inset: 0 auto 0 0;
-  min-width: 18px;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--accent-hover), var(--success));
-  box-shadow: 0 0 18px var(--accent-soft);
-  transition: width 180ms ease;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  box-shadow: 0 0 10px var(--accent-soft);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-track span::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .progress-track.indeterminate span {
-  animation: progress-sweep 1.2s ease-in-out infinite;
+  width: 40% !important;
+  animation: indeterminate-progress 1.5s infinite ease-in-out;
 }
 
-@keyframes progress-sweep {
-  0% {
-    left: -36%;
-  }
-  50% {
-    left: 32%;
-  }
-  100% {
-    left: 100%;
-  }
+@keyframes indeterminate-progress {
+  0% { left: -40%; }
+  100% { left: 100%; }
 }
 
 .base-url input {
