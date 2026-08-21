@@ -16,7 +16,7 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
           padding: 0,
           background: "var(--surface)",
           border: "1px solid var(--border)",
-          boxShadow: "0 24px 48px rgba(0,0,0,0.12)",
+          boxShadow: "var(--shadow-lg)",
           borderRadius: "16px",
           overflow: "hidden",
           display: "flex",
@@ -131,12 +131,12 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
           <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "8px" }}>
             <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: "8px" }}>核心模型文件下载</h3>
             <div style={{
-              background: "rgba(245, 158, 11, 0.1)",
-              borderLeft: "4px solid #f59e0b",
+              background: "var(--accent-soft)",
+              borderLeft: "4px solid var(--accent)",
               padding: "12px 16px",
               borderRadius: "4px 8px 8px 4px",
               fontSize: "0.9rem",
-              color: "#b45309"
+              color: "var(--accent)"
             }}>
               <strong>⚠️ 注意：</strong> 下方的模型下载地址来自 HuggingFace 社区，随时可能因网络限制或原作者删除而失效。建议优先使用 ComfyUI Manager 进行自动安装，或自备网络环境下载。
             </div>

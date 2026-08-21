@@ -107,8 +107,8 @@ function DrawTextCanvas({
       className="draw-text-canvas-container"
       style={{
         margin: "20px 0",
-        background: "#1a1a1a",
-        border: "1px solid #333",
+        background: "var(--surface-alt)",
+        border: "1px solid var(--border)",
         borderRadius: "12px",
         overflow: "hidden",
         display: "flex",
@@ -119,15 +119,15 @@ function DrawTextCanvas({
         className="section-toolbar"
         style={{
           padding: "8px 16px",
-          background: "#222",
+          background: "var(--surface)",
           fontSize: "13px",
           display: "flex",
           justifyContent: "space-between",
-          borderBottom: "1px solid #333",
+          borderBottom: "1px solid var(--border)",
         }}
       >
-        <span style={{ fontWeight: 600, color: "#aaa" }}>文字位置视觉调整 (点击/拖拽紫色准星)</span>
-        <span style={{ color: "#888" }}>
+        <span style={{ fontWeight: 600, color: "var(--muted)" }}>文字位置视觉调整 (点击/拖拽紫色准星)</span>
+        <span style={{ color: "var(--muted)" }}>
           当前画布比例: {width} x {height} ({(width / height).toFixed(2)}:1)
         </span>
       </div>
@@ -137,7 +137,7 @@ function DrawTextCanvas({
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          background: "#0d0d0d",
+          background: "var(--surface-alt)",
           padding: "40px",
           minHeight: "400px",
           position: "relative",
@@ -154,12 +154,12 @@ function DrawTextCanvas({
             aspectRatio: `${width}/${height}`,
             cursor: "crosshair",
             backgroundImage:
-              "linear-gradient(45deg, #181818 25%, transparent 25%), linear-gradient(-45deg, #181818 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #181818 75%), linear-gradient(-45deg, transparent 75%, #181818 75%)",
+              "linear-gradient(45deg, var(--surface) 25%, transparent 25%), linear-gradient(-45deg, var(--surface) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--surface) 75%), linear-gradient(-45deg, transparent 75%, var(--surface) 75%)",
             backgroundSize: "20px 20px",
             backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
-            border: "2px solid #444",
+            border: "2px solid var(--border-strong)",
             touchAction: "none",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.8)",
+            boxShadow: "var(--shadow-lg)",
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
           onPointerDown={handlePointerDown}
@@ -176,10 +176,10 @@ function DrawTextCanvas({
               height: "24px",
               marginLeft: "-12px",
               marginTop: "-12px",
-              background: "#ff00ff",
-              border: "2px solid #fff",
+              background: "var(--anchor-bg)",
+              border: `2px solid var(--anchor-border)`,
               borderRadius: "50%",
-              boxShadow: "0 0 20px rgba(255,0,255,0.9)",
+              boxShadow: `0 0 20px var(--anchor-shadow)`,
               pointerEvents: "none",
               zIndex: 10,
               display: "flex",
@@ -188,10 +188,10 @@ function DrawTextCanvas({
             }}
           >
             <div
-              style={{ width: "2px", height: "100%", background: "#fff", position: "absolute", opacity: 0.8 }}
+              style={{ width: "2px", height: "100%", background: "var(--white)", position: "absolute", opacity: 0.8 }}
             />
             <div
-              style={{ width: "100%", height: "2px", background: "#fff", position: "absolute", opacity: 0.8 }}
+              style={{ width: "100%", height: "2px", background: "var(--white)", position: "absolute", opacity: 0.8 }}
             />
           </div>
           <div
@@ -199,7 +199,7 @@ function DrawTextCanvas({
               position: "absolute",
               left: `${displayX}%`,
               top: `${displayY}%`,
-              color: drawText.color.startsWith("#") ? drawText.color : "#fff",
+              color: drawText.color.startsWith("#") ? drawText.color : "var(--white)",
               fontSize: `${drawText.size * scale}px`,
               fontWeight: 500,
               whiteSpace: "nowrap",
@@ -243,27 +243,27 @@ function DrawTextCanvas({
                   if (d === "underline_overline") return "underline overline";
                   if (d === "double_underline_overline") return "underline double overline";
                   if (d === "both") return "underline line-through";
-                  if (d === "cross_out") return "line-through 4px red";
+                  if (d === "cross_out") return "line-through 4px var(--danger)";
                   return "";
                 })
                 .filter(Boolean)
                 .join(" "),
               outline: drawText.decoration.includes("box")
-                ? "1px solid #fff"
+                ? "1px solid var(--white)"
                 : drawText.decoration.includes("wavy_box")
-                ? "1px solid #fff"
+                ? "1px solid var(--white)"
                 : drawText.decoration.includes("pill_border")
-                ? "2px solid #fff"
+                ? "2px solid var(--white)"
                 : drawText.decoration.includes("double_box")
-                ? "double 4px #fff"
+                ? "double 4px var(--white)"
                 : drawText.decoration.includes("dotted_box")
-                ? "dotted 2px #fff"
+                ? "dotted 2px var(--white)"
                 : drawText.decoration.includes("dashed_box")
-                ? "dashed 2px #fff"
+                ? "dashed 2px var(--white)"
                 : drawText.decoration.includes("stitch")
                 ? "dashed 1px rgba(255,255,255,0.5)"
                 : drawText.decoration.includes("explosion")
-                ? "2px solid #fff"
+                ? "2px solid var(--white)"
                 : "none",
               outlineOffset: drawText.decoration.includes("stitch") ? "-4px" : "0px",
               boxShadow: drawText.decoration.includes("neon_border")
@@ -439,10 +439,10 @@ export function DrawTextControls<T extends BaseGenerationParams>({
           flexWrap: "wrap",
           alignItems: "center",
           gap: "20px",
-          background: "rgba(255,255,255,0.03)",
+          background: "var(--surface-alt)",
           padding: "12px 16px",
           borderRadius: "8px",
-          border: "1px solid rgba(255,255,255,0.05)",
+          border: "1px solid var(--border)",
         }}
       >
         <label
@@ -464,7 +464,7 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                 alignItems: "center",
                 gap: "8px",
                 cursor: "pointer",
-                color: syncMode === "default" ? "#fff" : "#aaa",
+                color: syncMode === "default" ? "var(--text)" : "var(--muted)",
               }}
             >
               <input
@@ -482,7 +482,7 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                   alignItems: "center",
                   gap: "8px",
                   cursor: "pointer",
-                  color: syncMode === "multi" ? "#fff" : "#aaa",
+                  color: syncMode === "multi" ? "var(--text)" : "var(--muted)",
                 }}
               >
                 <input
@@ -501,7 +501,7 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                   alignItems: "center",
                   gap: "8px",
                   cursor: "pointer",
-                  color: syncMode === "highres" ? "#fff" : "#aaa",
+                  color: syncMode === "highres" ? "var(--text)" : "var(--muted)",
                 }}
               >
                 <input
@@ -519,7 +519,7 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                 alignItems: "center",
                 gap: "8px",
                 cursor: "pointer",
-                color: syncMode === "manual" ? "#fff" : "#aaa",
+                color: syncMode === "manual" ? "var(--text)" : "var(--muted)",
               }}
             >
               <input
@@ -541,12 +541,12 @@ export function DrawTextControls<T extends BaseGenerationParams>({
               gap: "12px",
               alignItems: "center",
               padding: "4px 12px",
-              background: "rgba(255,255,255,0.05)",
+              background: "var(--surface-alt)",
               borderRadius: "6px",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid var(--border)",
             }}
           >
-            <span style={{ fontSize: "12px", color: "#888", fontWeight: 600 }}>手动尺寸:</span>
+            <span style={{ fontSize: "12px", color: "var(--muted)", fontWeight: 600 }}>手动尺寸:</span>
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <input
                 type="number"
@@ -554,24 +554,24 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                 onChange={(e) => updateDrawText({ width: parseInt(e.target.value) || 0 })}
                 style={{
                   width: "70px",
-                  background: "#000",
-                  border: "1px solid #444",
-                  color: "#fff",
+                  background: "var(--input-bg)",
+                  border: "1px solid var(--input-border)",
+                  color: "var(--text)",
                   padding: "2px 6px",
                   borderRadius: "4px",
                   fontSize: "12px",
                 }}
               />
-              <span style={{ color: "#666" }}>x</span>
+              <span style={{ color: "var(--muted)" }}>x</span>
               <input
                 type="number"
                 value={drawText.height}
                 onChange={(e) => updateDrawText({ height: parseInt(e.target.value) || 0 })}
                 style={{
                   width: "70px",
-                  background: "#000",
-                  border: "1px solid #444",
-                  color: "#fff",
+                  background: "var(--input-bg)",
+                  border: "1px solid var(--input-border)",
+                  color: "var(--text)",
                   padding: "2px 6px",
                   borderRadius: "4px",
                   fontSize: "12px",
@@ -769,10 +769,10 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
                 gap: "12px",
-                background: "rgba(255,255,255,0.02)",
+                background: "var(--surface-alt)",
                 padding: "12px",
                 borderRadius: "8px",
-                border: "1px solid rgba(255,255,255,0.05)",
+                border: "1px solid var(--border)",
                 marginTop: "8px",
               }}
             >
@@ -846,10 +846,10 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                   display: "flex",
                   flexDirection: "column",
                   gap: "12px",
-                  background: "rgba(255,255,255,0.03)",
+                  background: "var(--surface-alt)",
                   padding: "16px",
                   borderRadius: "10px",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  border: "1px solid var(--border)",
                 }}
               >
                 <div style={{ display: "flex", gap: "20px", alignItems: "flex-end" }}>
@@ -867,16 +867,16 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                   />
                   {drawText.gradientDirection === "angle" && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "6px", paddingBottom: "2px" }}>
-                      <span style={{ fontSize: "12px", color: "#888", fontWeight: 600 }}>渐变角度</span>
+                      <span style={{ fontSize: "12px", color: "var(--muted)", fontWeight: 600 }}>渐变角度</span>
                       <div
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: "6px",
-                          background: "rgba(0,0,0,0.3)",
+                          background: "var(--input-bg)",
                           padding: "6px 12px",
                           borderRadius: "6px",
-                          border: "1px solid rgba(255,255,255,0.1)",
+                          border: "1px solid var(--input-border)",
                           height: "34px",
                         }}
                       >
@@ -888,13 +888,13 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                             width: "40px",
                             background: "transparent",
                             border: "none",
-                            color: "#fff",
+                            color: "var(--text)",
                             fontSize: "13px",
                             textAlign: "center",
                             outline: "none",
                           }}
                         />
-                        <span style={{ color: "#666", fontSize: "14px" }}>°</span>
+                        <span style={{ color: "var(--muted)", fontSize: "14px" }}>°</span>
                       </div>
                     </div>
                   )}
@@ -910,8 +910,8 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                         padding: "6px 12px",
                         fontSize: "11px",
                         borderRadius: "6px",
-                        background: "#3498db",
-                        color: "#fff",
+                        background: "var(--accent)",
+                        color: "white",
                         border: "none",
                         cursor: "pointer",
                         fontWeight: 600,
@@ -926,7 +926,7 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                 {drawText.gradientDirection !== "none" && (
                   <div
                     className="gradient-colors-editor"
-                    style={{ marginTop: "4px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.05)" }}
+                    style={{ marginTop: "4px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}
                   >
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                       {(drawText.gradientColors || [drawText.color, drawText.color2]).map((col, idx) => (
@@ -937,10 +937,10 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                             display: "flex",
                             alignItems: "center",
                             gap: "6px",
-                            background: "rgba(255,255,255,0.05)",
+                            background: "var(--surface)",
                             padding: "4px",
                             borderRadius: "6px",
-                            border: "1px solid rgba(255,255,255,0.05)",
+                            border: "1px solid var(--border)",
                           }}
                         >
                           <div style={{ width: "24px", height: "24px", borderRadius: "3px", overflow: "hidden" }}>
@@ -962,7 +962,7 @@ export function DrawTextControls<T extends BaseGenerationParams>({
                               newColors.splice(idx, 1);
                               updateDrawText({ gradientColors: newColors.length >= 2 ? newColors : undefined });
                             }}
-                            style={{ background: "none", border: "none", color: "#e74c3c", cursor: "pointer", padding: "0 4px" }}
+                            style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "0 4px" }}
                           >
                             ×
                           </button>
@@ -980,10 +980,10 @@ export function DrawTextControls<T extends BaseGenerationParams>({
           style={{
             textAlign: "center",
             padding: "40px",
-            color: "#666",
-            background: "rgba(0,0,0,0.1)",
+            color: "var(--muted)",
+            background: "var(--surface-alt)",
             borderRadius: "8px",
-            border: "1px dashed #444",
+            border: "1px dashed var(--border)",
           }}
         >
           文字功能已关闭。勾选上方“启用”开启高级文字特效与水印功能。

@@ -224,7 +224,7 @@ export const XyzController = React.memo(({
         onToggleIndex={onToggleXyzIndex}
       />
       <button
-        className="primary-action"
+        className="primary-action xyz-run-btn"
         type="button"
         onClick={() =>
           gen.runXyz(

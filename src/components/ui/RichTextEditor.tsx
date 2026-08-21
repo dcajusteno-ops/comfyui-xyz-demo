@@ -111,15 +111,15 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
       title={title} 
       style={{ 
         padding: "6px 10px",
-        background: active ? "rgba(59, 130, 246, 0.2)" : "transparent",
-        color: active ? "#60a5fa" : (color || "#94a3b8"),
+        background: active ? "var(--accent-soft)" : "transparent",
+        color: active ? "var(--accent)" : (color || "var(--muted)"),
         borderRadius: "6px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         gap: "6px",
         fontSize: "12px",
-        border: active ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid transparent",
+        border: active ? "1px solid var(--accent)" : "1px solid transparent",
       }}
     >
       <Icon size={16} />
@@ -133,7 +133,7 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
       flexDirection: "column",
       flex: 1,
       minHeight: 0,
-      background: "#080b12",
+      background: "var(--surface)",
       ...(isFullScreen ? { position: "fixed", inset: 0, zIndex: 1000, padding: "20px" } : {})
     }}>
       {/* Prompt Utility Bar */}
@@ -142,10 +142,10 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
         gap: "8px", 
         flexWrap: "wrap", 
         marginBottom: "10px", 
-        background: "#111827", 
+        background: "var(--surface-alt)", 
         padding: "8px 12px", 
         borderRadius: "10px", 
-        border: "1px solid #263244", 
+        border: "1px solid var(--border)", 
         alignItems: "center" 
       }}>
         <button 
@@ -153,21 +153,21 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
           className="primary-action" 
           onClick={handleCopyPrompt}
           style={{ 
-            background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+            background: "var(--accent)",
             padding: "6px 16px",
             height: "32px",
             fontSize: "13px",
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.2)"
+            boxShadow: "var(--shadow)"
           }}
         >
           <Copy size={16} />
           复制到 ComfyUI
         </button>
 
-        <div style={{ width: "1px", height: "20px", background: "#263244", margin: "0 4px" }} />
+        <div style={{ width: "1px", height: "20px", background: "var(--border)", margin: "0 4px" }} />
 
         <div style={{ position: "relative" }}>
           <ToolbarButton 
@@ -175,7 +175,7 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
             title="快捷片段" 
             active={showSnippets} 
             onClick={() => setShowSnippets(!showSnippets)} 
-            color="#fbbf24"
+            color="var(--accent)"
           />
           {showSnippets && (
             <div style={{
@@ -183,12 +183,12 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
               top: "100%",
               left: 0,
               marginTop: "8px",
-              background: "#111827",
-              border: "1px solid #263244",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
               borderRadius: "8px",
               padding: "8px",
               zIndex: 10,
-              boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+              boxShadow: "var(--shadow)",
               width: "200px",
               display: "flex",
               flexDirection: "column",
@@ -205,7 +205,7 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
                     setShowSnippets(false);
                   }}
                 >
-                  <Zap size={14} style={{ marginRight: "8px", color: "#fbbf24" }} />
+                  <Zap size={14} style={{ marginRight: "8px", color: "var(--accent)" }} />
                   {s.label}
                 </button>
               ))}
@@ -216,16 +216,16 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
         <ToolbarButton icon={Clock} title="时间戳" onClick={() => insertText(`\n[${new Date().toLocaleString()}]\n`)} />
         <ToolbarButton icon={Eraser} title="清理格式" onClick={cleanupHtml} />
         
-        <div style={{ width: "1px", height: "20px", background: "#263244", margin: "0 4px" }} />
+        <div style={{ width: "1px", height: "20px", background: "var(--border)", margin: "0 4px" }} />
         
         <ToolbarButton icon={Download} title="导出" onClick={handleDownload} />
         <ToolbarButton icon={Upload} title="导入" onClick={() => fileInputRef.current?.click()} />
         <input type="file" accept=".txt" ref={fileInputRef} style={{ display: "none" }} onChange={handleImport} />
         
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ display: "flex", alignItems: "center", background: "#0c111a", padding: "2px", borderRadius: "6px", border: "1px solid #1e293b" }}>
+          <div style={{ display: "flex", alignItems: "center", background: "var(--surface-alt)", padding: "2px", borderRadius: "6px", border: "1px solid var(--border)" }}>
             <button type="button" className="lm-text-btn" onClick={() => setZoom(Math.max(12, zoom - 2))} title="缩小"><Type size={14} /></button>
-            <span style={{ color: "#94a3b8", fontSize: "12px", width: "24px", textAlign: "center" }}>{zoom}</span>
+            <span style={{ color: "var(--muted)", fontSize: "12px", width: "24px", textAlign: "center" }}>{zoom}</span>
             <button type="button" className="lm-text-btn" onClick={() => setZoom(Math.min(32, zoom + 2))} title="放大"><Type size={18} /></button>
           </div>
           
@@ -238,8 +238,9 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
               padding: "4px 12px", 
               fontSize: "12px", 
               height: "28px", 
-              background: saving ? "#059669" : "#374151",
-              border: "none"
+              background: saving ? "var(--accent-soft)" : "var(--surface-alt)",
+              border: "1px solid var(--border)",
+              color: saving ? "var(--accent)" : "var(--text)"
             }}
           >
             {saving ? <CheckCircle2 size={14} className="animate-pulse" /> : <Save size={14} />}
@@ -264,7 +265,7 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
           top: "10px",
           right: "20px",
           fontSize: "11px",
-          color: "#4b5563",
+          color: "var(--muted)",
           pointerEvents: "none",
           zIndex: 5
         }}>
@@ -291,14 +292,14 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
             outline: "none",
             fontSize: `${zoom}px`,
             lineHeight: 1.8,
-            color: "#e2e8f0",
-            background: "#0c111a",
+            color: "var(--text)",
+            background: "var(--surface)",
             borderRadius: "12px",
-            border: "1px solid #1e293b",
+            border: "1px solid var(--border)",
             fontFamily: "'Fira Code', 'Cascadia Code', Consolas, monospace",
             resize: "none",
             tabSize: 2,
-            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3)"
+            boxShadow: "inset 0 2px 4px var(--shadow)"
           }}
         />
       </div>
@@ -309,7 +310,7 @@ export function RichTextEditor({ value, onChange, onSave, title, onClear, saving
           .btn-label { display: none; }
         }
         textarea::placeholder {
-          color: #334155;
+          color: var(--muted);
           font-style: italic;
         }
       `}</style>

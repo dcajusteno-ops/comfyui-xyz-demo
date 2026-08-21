@@ -56,7 +56,7 @@ export function PromptTagBlocks({ value, onChange }: PromptTagBlocksProps) {
                 type="button" 
                 onClick={(e) => { e.preventDefault(); handleAdjust(tag, 0.1); }}
                 onMouseDown={(e) => e.preventDefault()}
-                style={{ padding: '0 6px', border: 'none', backgroundColor: 'rgba(255,255,255,0.05)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
+                style={{ padding: '0 6px', border: 'none', backgroundColor: 'var(--tag-btn-bg)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
               >
                 +
               </button>
@@ -64,7 +64,7 @@ export function PromptTagBlocks({ value, onChange }: PromptTagBlocksProps) {
                 type="button" 
                 onClick={(e) => { e.preventDefault(); handleAdjust(tag, -0.1); }}
                 onMouseDown={(e) => e.preventDefault()}
-                style={{ padding: '0 6px', border: 'none', backgroundColor: 'rgba(255,255,255,0.05)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
+                style={{ padding: '0 6px', border: 'none', backgroundColor: 'var(--tag-btn-bg)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
               >
                 -
               </button>
@@ -72,7 +72,7 @@ export function PromptTagBlocks({ value, onChange }: PromptTagBlocksProps) {
                 type="button"
                 onClick={(e) => { e.preventDefault(); handleTranslateTag(tag, i); }}
                 onMouseDown={(e) => e.preventDefault()}
-                style={{ padding: '0 6px', border: 'none', backgroundColor: 'rgba(255,255,255,0.05)', cursor: translating[i] ? 'wait' : 'pointer', color: 'var(--text)' }}
+                style={{ padding: '0 6px', border: 'none', backgroundColor: 'var(--tag-btn-bg)', cursor: translating[i] ? 'wait' : 'pointer', color: 'var(--text)' }}
                 title="翻译为中文"
               >
                 <Globe2 size={12} />

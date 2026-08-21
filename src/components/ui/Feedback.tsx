@@ -2,9 +2,9 @@ import { CheckCircle2, Info, X } from "lucide-react";
 import type { ExampleImagesStatus, ProgressState, Toast } from "../../types";
 
 export const ToastIcon = ({ type }: { type: Toast["type"] }) => {
-  if (type === "success") return <CheckCircle2 size={20} color="#10b981" style={{ flexShrink: 0, marginTop: "2px" }} />;
-  if (type === "error") return <X size={20} color="#ef4444" style={{ flexShrink: 0, marginTop: "2px" }} />;
-  return <Info size={20} color="#3b82f6" style={{ flexShrink: 0, marginTop: "2px" }} />;
+  if (type === "success") return <CheckCircle2 size={20} color="var(--success)" style={{ flexShrink: 0, marginTop: "2px" }} />;
+  if (type === "error") return <X size={20} color="var(--danger)" style={{ flexShrink: 0, marginTop: "2px" }} />;
+  return <Info size={20} color="var(--info)" style={{ flexShrink: 0, marginTop: "2px" }} />;
 };
 
 export function ToastViewport({ toasts, onClose }: { toasts: Toast[]; onClose: (id: string) => void }) {

@@ -382,6 +382,45 @@ export function useLoras({
     pushToast(words.length ? "success" : "info", "触发词已读取", words.length ? words.join(", ") : "该 LoRA 暂无触发词");
   }, [client, managedModelType, pushToast]);
 
+  const extractTriggerWords = useCallback(async (item: LoraItem, autoSave = false) => {
+    if (managedModelType !== "loras") return;
+    const key = item.model_name || item.file_name;
+    try {
+      pushToast("info", "正在从文件提取元数据...", item.file_name);
+      const metadata = await client.extractLoraMetadata(item.file_path);
+      
+      // Look for common tags in safetensors metadata
+      const tags = metadata.ss_tagger_tags || metadata.ss_trained_words || "";
+      const words = uniqueStrings(tags.split(/[,，\n]+/).map(w => w.trim()).filter(Boolean));
+      
+      if (words.length > 0) {
+        setTriggerWords((prev) => ({ ...prev, [key]: words }));
+        
+        if (autoSave) {
+          try {
+            await client.saveLoraTriggerWords(item.file_path, words);
+            const nextCivitai = {
+              ...((item.civitai as Record<string, unknown> | undefined) ?? {}),
+              trainedWords: words,
+            };
+            updateLoraItem(item.file_path, { civitai: nextCivitai });
+            pushToast("success", `成功提取并保存 ${words.length} 个触发词`, words.join(", "));
+          } catch (saveError) {
+            pushToast("error", "提取成功但保存失败", saveError instanceof Error ? saveError.message : String(saveError));
+          }
+        } else {
+          pushToast("success", `成功提取 ${words.length} 个触发词`, words.join(", "));
+        }
+      } else {
+        pushToast("info", "文件中未发现明显触发词元数据", "建议通过 Civitai 同步或手动编辑");
+      }
+      return words;
+    } catch (error) {
+      pushToast("error", "提取触发词失败", error instanceof Error ? error.message : String(error));
+      return [];
+    }
+  }, [client, managedModelType, pushToast, updateLoraItem]);
+
   const saveLoraTriggerWords = useCallback(async (item: LoraItem, words: string[]) => {
     if (managedModelType !== "loras") return words;
     const key = item.model_name || item.file_name;
@@ -443,6 +482,9 @@ export function useLoras({
     try {
       const result = await client.renameManagedModel(managedModelType, item.file_path, newName);
       if (result.success === false) throw new Error(result.error || "重命名失败");
+      if (loraDetail?.file_path === item.file_path) {
+        setLoraDetail(null);
+      }
       await refreshLoraListsAfterMutation("LoRA 已重命名");
     } catch (error) {
       pushToast("error", "重命名失败", error instanceof Error ? error.message : String(error));
@@ -630,6 +672,7 @@ export function useLoras({
     pullLoraExamples,
     openLoraExampleFolder,
     loadTriggerWords,
+    extractTriggerWords,
     saveLoraTriggerWords,
     pauseExampleDownloads,
     resumeExampleDownloads,
@@ -679,6 +722,7 @@ export function useLoras({
     pullLoraExamples,
     openLoraExampleFolder,
     loadTriggerWords,
+    extractTriggerWords,
     saveLoraTriggerWords,
     pauseExampleDownloads,
     resumeExampleDownloads,

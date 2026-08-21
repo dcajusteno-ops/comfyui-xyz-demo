@@ -636,6 +636,14 @@ export class ComfyClient {
     return [];
   }
 
+  async extractLoraMetadata(filePath: string): Promise<Record<string, string>> {
+    const data = await this.postLocalJson<{ success: boolean; metadata?: Record<string, string>; error?: string }>("/xyz/lora/extract-metadata", { file_path: filePath });
+    if (!data.success) {
+      throw new Error(data.error || "Failed to extract metadata");
+    }
+    return data.metadata || {};
+  }
+
   async saveLoraTriggerWords(filePath: string, words: string[]): Promise<ApiResult<{ metadata?: LoraItem; auto_tags?: string[] }>> {
     return this.saveLoraMetadata(filePath, {
       civitai: { trainedWords: words },

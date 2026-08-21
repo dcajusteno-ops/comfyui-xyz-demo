@@ -180,12 +180,14 @@ function DoctorPane({ diagnostics, rawData, onAction }: { diagnostics: DoctorDia
 function TriggerWordsPanel({
   words,
   onRead,
+  onExtract,
   onSave,
   onCopy,
   onInsertWords,
 }: {
   words: string[];
   onRead: () => void;
+  onExtract?: () => void;
   onSave: (words: string[]) => Promise<string[]>;
   onCopy: (text: string) => void;
   onInsertWords?: (target: TemplateKind, words: string[]) => void;
@@ -250,6 +252,7 @@ function TriggerWordsPanel({
               <button type="button" className="lm-text-btn" onClick={() => onInsertWords('highres', visibleWords)} title="追加到高清修复正向提示词"><BadgePlus size={14} /> 高修</button>
             </div>
           )}
+          {!editing && onExtract && <button type="button" className="lm-text-btn" onClick={onExtract} title="从 .safetensors 文件头中提取训练词并保存 (ss_tagger_tags)"><ScanSearch size={14} /> 提取并保存</button>}
           {!editing && <button type="button" className="lm-text-btn" onClick={onRead}><Brain size={14} /> 读取</button>}
           {!editing && <button type="button" className="lm-text-btn" onClick={startEditing}><Plus size={14} /> 编辑</button>}
           {editing && <button type="button" className="lm-text-btn" disabled={saving} onClick={saveDraftWords}><CheckCircle2 size={14} /> 保存</button>}
@@ -424,6 +427,8 @@ export function LoraDetailModal({
   onInsertWords,
   onTriggerWords,
   onSaveTriggerWords,
+  onExtractTriggerWords,
+  onRename,
   onToast,
   pullingExamples,
   exampleStatus,
@@ -439,7 +444,9 @@ export function LoraDetailModal({
   onInsert: (target: TemplateKind, strength: number) => void;
   onInsertWords: (target: TemplateKind, words: string[]) => void;
   onTriggerWords: () => void;
+  onExtractTriggerWords?: () => void;
   onSaveTriggerWords: (words: string[]) => Promise<string[]>;
+  onRename?: (item: LoraItem, newName: string) => Promise<void>;
   onToast: (type: Toast["type"], title: string, message?: string) => void;
   pullingExamples: boolean;
   exampleStatus: ExampleImagesStatus | null;
@@ -451,6 +458,10 @@ export function LoraDetailModal({
   const [loading, setLoading] = useState(true);
   const [detailError, setDetailError] = useState("");
   const [lightboxMedia, setLightboxMedia] = useState<{ media: LoraExampleMedia; index: number } | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState(item.file_name);
+  const [renaming, setRenaming] = useState(false);
+  
   const isLora = modelType === "loras";
   const key = item.model_name || item.file_name;
   const itemCivitai = item.civitai as LoraMetadata | undefined;
@@ -490,6 +501,22 @@ export function LoraDetailModal({
       if (latestMetadata) {
         setMetadata(latestMetadata);
       }
+    }
+  }
+
+  async function handleRename() {
+    if (!onRename || !newName.trim() || newName === item.file_name) {
+      setIsRenaming(false);
+      return;
+    }
+    setRenaming(true);
+    try {
+      await onRename(item, newName.trim());
+      setIsRenaming(false);
+    } catch (error) {
+      // Error is handled by onRename/toast
+    } finally {
+      setRenaming(false);
     }
   }
 
@@ -558,7 +585,38 @@ export function LoraDetailModal({
         <header className="lm-modal-header">
           <div className="lm-modal-title-row">
             <div className="lm-modal-title">
-              <h2>{key}</h2>
+              {isRenaming ? (
+                <div className="lm-rename-input">
+                  <input 
+                    type="text" 
+                    value={newName} 
+                    onChange={(e) => setNewName(e.target.value)}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleRename();
+                      if (e.key === "Escape") setIsRenaming(false);
+                    }}
+                  />
+                  <button type="button" className="lm-text-btn" disabled={renaming} onClick={handleRename}>
+                    {renaming ? <Loader2 size={14} className="spin" /> : <CheckCircle2 size={14} />}
+                  </button>
+                  <button type="button" className="lm-text-btn" disabled={renaming} onClick={() => setIsRenaming(false)}>
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h2>{key}</h2>
+                  {onRename && (
+                    <button type="button" className="lm-icon-btn-small" title="重命名文件" onClick={() => {
+                      setNewName(item.file_name);
+                      setIsRenaming(true);
+                    }}>
+                      <Settings size={14} />
+                    </button>
+                  )}
+                </>
+              )}
               {civitaiUrl && (
                 <button type="button" className="lm-civitai-link" title="前往 Civitai 对应模型" aria-label="前往 Civitai 对应模型" onClick={openCivitaiUrl}>
                   <Globe2 size={16} />
@@ -616,6 +674,7 @@ export function LoraDetailModal({
               <TriggerWordsPanel
                 words={trainedWords}
                 onRead={onTriggerWords}
+                onExtract={onExtractTriggerWords}
                 onSave={handleSaveTriggerWords}
                 onCopy={(text) => {
                   navigator.clipboard?.writeText(text);

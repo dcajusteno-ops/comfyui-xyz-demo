@@ -245,28 +245,8 @@ export const HighresGenerationPanel = React.memo(({
           type="button"
           onClick={() => onSetSimpleLoraTarget("highres")}
           title="添加 LoRA"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            padding: "0 16px",
-            backgroundColor: "var(--bg-panel, #2a2a2a)",
-            color: "var(--text-secondary, #a0a0a0)",
-            border: "1px solid var(--border-color, #333)",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "14px",
-            transition: "all 0.2s ease",
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = "#333";
-            e.currentTarget.style.color = "#fff";
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
-            e.currentTarget.style.color = "var(--text-secondary, #a0a0a0)";
-          }}
+          className="secondary-action"
+          style={{ flex: 1 }}
         >
           <Plus size={16} /> 添加 LoRA
         </button>

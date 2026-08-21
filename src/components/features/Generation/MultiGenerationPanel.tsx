@@ -138,21 +138,21 @@ export const MultiGenerationPanel = React.memo(({
             justifyContent: "center",
             gap: "6px",
             padding: "0 16px",
-            backgroundColor: "var(--bg-panel, #2a2a2a)",
-            color: "var(--text-secondary, #a0a0a0)",
-            border: "1px solid var(--border-color, #333)",
+            backgroundColor: "var(--surface-alt)",
+            color: "var(--muted)",
+            border: "1px solid var(--border)",
             borderRadius: "8px",
             cursor: "pointer",
             fontSize: "14px",
             transition: "all 0.2s ease",
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = "#333";
-            e.currentTarget.style.color = "#fff";
+            e.currentTarget.style.backgroundColor = "var(--surface-hover)";
+            e.currentTarget.style.color = "var(--text)";
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
-            e.currentTarget.style.color = "var(--text-secondary, #a0a0a0)";
+            e.currentTarget.style.backgroundColor = "var(--surface-alt)";
+            e.currentTarget.style.color = "var(--muted)";
           }}
         >
           <Plus size={16} /> 新增角色
@@ -161,28 +161,8 @@ export const MultiGenerationPanel = React.memo(({
           type="button"
           onClick={() => onSetSimpleLoraTarget("multi")}
           title="添加 LoRA"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            padding: "0 16px",
-            backgroundColor: "var(--bg-panel, #2a2a2a)",
-            color: "var(--text-secondary, #a0a0a0)",
-            border: "1px solid var(--border-color, #333)",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "14px",
-            transition: "all 0.2s ease",
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = "#333";
-            e.currentTarget.style.color = "#fff";
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
-            e.currentTarget.style.color = "var(--text-secondary, #a0a0a0)";
-          }}
+          className="secondary-action"
+          style={{ flex: 1 }}
         >
           <Plus size={16} /> 添加 LoRA
         </button>

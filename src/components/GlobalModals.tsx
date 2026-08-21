@@ -16,6 +16,7 @@ import { WelcomeModal } from "./WelcomeModal";
 import { TranslationToolDialog } from "./TranslationToolDialog";
 import { PromptEditorDialog } from "./PromptEditorDialog";
 import { ImageComparerModal } from "./ImageComparerModal";
+import { ImageLightbox } from "./ImageLightbox";
 import { XyzHelpModal } from "./features/Xyz/XyzHelpModal";
 import { ModalFrame, FeatureModal } from "./ui";
 
@@ -135,14 +136,10 @@ export function GlobalModals(props: GlobalModalsProps) {
       )}
       
       {ui.outputLightbox && (
-        <div className="lm-lightbox" role="dialog" aria-modal="true" aria-label="查看大图" onMouseDown={() => ui.setOutputLightbox(null)}>
-          <div className="lm-lightbox-content" onMouseDown={(event) => event.stopPropagation()}>
-            <button type="button" className="lm-lightbox-close" title="关闭" onClick={() => ui.setOutputLightbox(null)}><X size={18} /></button>
-            <div className="lm-media-frame">
-              <img src={ui.outputLightbox} alt="大图" className="lm-media-asset" />
-            </div>
-          </div>
-        </div>
+        <ImageLightbox 
+          url={ui.outputLightbox} 
+          onClose={() => ui.setOutputLightbox(null)} 
+        />
       )}
 
       {ui.compareLightbox && (
@@ -203,7 +200,9 @@ export function GlobalModals(props: GlobalModalsProps) {
           onInsert={(target, strength) => onLoraInsert(loraDetail, target, strength)}
           onInsertWords={(target, words) => onTriggerWordsApply(words)}
           onTriggerWords={() => onTriggerWordsRead(loraDetail)}
+          onExtractTriggerWords={() => loras.extractTriggerWords(loraDetail, true)}
           onSaveTriggerWords={(words) => onTriggerWordsSave(loraDetail, words)}
+          onRename={props.onLoraRename}
           onToast={pushToast}
           pullingExamples={loras.pullingExampleHashes.includes(loraDetail.sha256?.toLowerCase() ?? "")}
           exampleStatus={loras.exampleStatus}
@@ -237,7 +236,7 @@ export function GlobalModals(props: GlobalModalsProps) {
               <button
                 type="button"
                 className="primary-action"
-                style={{ background: "#ef4444", border: "1px solid #dc2626", padding: "8px 16px" }}
+                style={{ background: "var(--danger)", border: "1px solid var(--danger)", padding: "8px 16px" }}
                 onClick={() => {
                   ui.confirmDialog.onConfirm();
                   ui.setConfirmDialog(null);

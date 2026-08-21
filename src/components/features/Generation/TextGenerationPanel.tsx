@@ -60,7 +60,7 @@ export function TextGenerationPanel({
         </button>
         <button
           className="primary-action"
-          style={{ flex: 1, background: "linear-gradient(135deg, #743795, #9b51e0)", borderColor: "#9b51e0" }}
+          style={{ flex: 1, background: "var(--grad-purple)", borderColor: "transparent" }}
           type="button"
           onClick={onRunMulti}
         >
@@ -69,7 +69,7 @@ export function TextGenerationPanel({
         </button>
         <button
           className="primary-action"
-          style={{ flex: 1, background: "linear-gradient(135deg, #27ae60, #2ecc71)", borderColor: "#2ecc71" }}
+          style={{ flex: 1, background: "var(--grad-green)", borderColor: "transparent" }}
           type="button"
           onClick={onRunHighres}
         >

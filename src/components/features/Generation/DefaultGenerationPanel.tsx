@@ -64,26 +64,7 @@ export const DefaultGenerationPanel = React.memo(({
           type="button"
           onClick={() => onSetSimpleLoraTarget("default")}
           title="添加 LoRA"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            padding: "0 16px",
-            backgroundColor: "var(--bg-panel, #2a2a2a)",
-            color: "var(--text-primary, #eaeaea)",
-            border: "1px solid var(--border-color, #444)",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "13px",
-            transition: "all 0.2s ease",
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = "#333";
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--bg-panel, #2a2a2a)";
-          }}
+          className="secondary-action"
         >
           <Plus size={16} /> 添加 LoRA
         </button>
@@ -91,19 +72,7 @@ export const DefaultGenerationPanel = React.memo(({
           type="button"
           onClick={onSendToHighres}
           title="将当前提示词和 Lora 快捷发送到高清修复并跳转"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            padding: "0 16px",
-            backgroundColor: "var(--bg-panel, #2a2a2a)",
-            color: "var(--text-primary, #eaeaea)",
-            border: "1px solid var(--border-color, #444)",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "13px",
-          }}
+          className="secondary-action"
         >
           <Send size={16} />
           送到高修

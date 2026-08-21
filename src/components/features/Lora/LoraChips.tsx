@@ -293,7 +293,7 @@ export function LoraChips({
                     className="lora-slider-track-fill"
                     style={{
                       width: `${((lora.strength + 2) / 4) * 100}%`,
-                      background: lora.strength >= 0 ? "var(--accent)" : "#ef4444",
+                      background: lora.strength >= 0 ? "var(--accent)" : "var(--danger)",
                     }}
                   ></div>
                 </div>

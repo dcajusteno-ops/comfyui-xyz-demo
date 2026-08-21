@@ -29,16 +29,16 @@ export function ImageComparerModal({ imageA, imageB, onClose }: { imageA: string
       {/* Header bar */}
       <div
         onMouseDown={(e) => e.stopPropagation()}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: 'min(92vw, 1200px)', color: '#e7edf7', flexShrink: 0 }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: 'min(92vw, 1200px)', color: 'var(--slate-100)', flexShrink: 0 }}
       >
-        <span style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: '#93a4ba' }}>
+        <span style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--slate-400)' }}>
           <Columns size={15} /> 拖动中间滑块对比
         </span>
         <button
           type="button"
           onClick={onClose}
           onMouseDown={(e) => e.stopPropagation()}
-          style={{ background: 'none', border: 'none', color: '#93a4ba', cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}
+          style={{ background: 'none', border: 'none', color: 'var(--slate-400)', cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}
         >
           <X size={18} />
         </button>
@@ -89,7 +89,7 @@ export function ImageComparerModal({ imageA, imageB, onClose }: { imageA: string
           position: 'absolute', top: 0, bottom: 0,
           left: `${sliderPos}%`,
           width: '2px',
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--white)',
           transform: 'translateX(-50%)',
           pointerEvents: 'none',
           boxShadow: '0 0 6px rgba(0,0,0,0.8)',
@@ -100,14 +100,14 @@ export function ImageComparerModal({ imageA, imageB, onClose }: { imageA: string
             transform: 'translate(-50%, -50%)',
             width: '38px', height: '38px',
             borderRadius: '50%',
-            backgroundColor: '#fff',
-            border: '2px solid #ddd',
+            backgroundColor: 'var(--white)',
+            border: '2px solid var(--slate-200)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 0 4px rgba(0,0,0,0.3)',
           }}>
-            <Columns size={16} color="#333" />
+            <Columns size={16} color="var(--slate-800)" />
           </div>
         </div>
       </div>

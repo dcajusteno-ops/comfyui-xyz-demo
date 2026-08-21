@@ -39,10 +39,10 @@ export function NotesPanel({
   return (
     <section className="panel notes-panel" style={{ padding: 0, display: "flex", flexDirection: "row", overflow: "hidden" }}>
       {/* Sidebar */}
-      <div style={{ width: "260px", borderRight: "1px solid #263244", display: "flex", flexDirection: "column", background: "#0c111a" }}>
-        <div style={{ padding: "16px", borderBottom: "1px solid #263244" }}>
+      <div style={{ width: "260px", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", background: "var(--surface)" }}>
+        <div style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "bold", color: "#e2e8f0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "bold", color: "var(--text)" }}>
               <FileText size={18} /> 记事本
             </div>
             <button type="button" className="lm-text-btn" onClick={handleAddNote} title="新建笔记">
@@ -50,7 +50,7 @@ export function NotesPanel({
             </button>
           </div>
           <div style={{ position: "relative" }}>
-            <Search size={14} style={{ position: "absolute", left: "8px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
+            <Search size={14} style={{ position: "absolute", left: "8px", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }} />
             <input
               type="text"
               placeholder="搜索笔记..."
@@ -58,12 +58,12 @@ export function NotesPanel({
               onChange={(e) => setNotesSearch(e.target.value)}
               style={{
                 width: "100%",
-                background: "#080b12",
-                border: "1px solid #1e293b",
+                background: "var(--input-bg)",
+                border: "1px solid var(--input-border)",
                 borderRadius: "6px",
                 padding: "6px 8px 6px 28px",
                 fontSize: "12px",
-                color: "#e2e8f0",
+                color: "var(--text)",
                 outline: "none"
               }}
             />
@@ -84,9 +84,9 @@ export function NotesPanel({
                 marginBottom: "4px",
                 borderRadius: "8px",
                 cursor: "pointer",
-                background: activeNoteId === note.id ? "rgba(59, 130, 246, 0.12)" : "transparent",
-                border: activeNoteId === note.id ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid transparent",
-                color: activeNoteId === note.id ? "#93c5fd" : "#94a3b8",
+                background: activeNoteId === note.id ? "var(--accent-soft)" : "transparent",
+                border: activeNoteId === note.id ? "1px solid var(--accent)" : "1px solid transparent",
+                color: activeNoteId === note.id ? "var(--accent)" : "var(--muted)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "4px",
@@ -105,12 +105,12 @@ export function NotesPanel({
                     handleDeleteNote(note.id);
                   }}
                   className="delete-btn"
-                  style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "2px", display: "flex", opacity: 0.6 }}
+                  style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: "2px", display: "flex", opacity: 0.6 }}
                 >
                   <Trash2 size={12} />
                 </button>
               </div>
-              <div style={{ fontSize: "11px", color: "#64748b", display: "flex", justifyContent: "space-between" }}>
+              <div style={{ fontSize: "11px", color: "var(--muted)", display: "flex", justifyContent: "space-between" }}>
                 <span>{new Date(note.updatedAt).toLocaleDateString()}</span>
                 {note.content.length > 0 && <span>{note.content.length} 字</span>}
               </div>
@@ -120,7 +120,7 @@ export function NotesPanel({
       </div>
 
       {/* Editor */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px", background: "#080b12" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px", background: "var(--surface-alt)" }}>
         {activeNoteId && notes.find((n) => n.id === activeNoteId) ? (
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -135,7 +135,7 @@ export function NotesPanel({
                     border: "none",
                     fontSize: "18px",
                     fontWeight: "bold",
-                    color: "#e7edf7",
+                    color: "var(--text)",
                     width: "100%",
                     outline: "none",
                   }}
@@ -148,15 +148,15 @@ export function NotesPanel({
                   onClick={() => setIsNotesWide(!isNotesWide)}
                   title={isNotesWide ? "显示输出面板" : "全宽模式"}
                   style={{
-                    color: isNotesWide ? "#60a5fa" : "#64748b",
-                    background: isNotesWide ? "rgba(59, 130, 246, 0.1)" : "transparent",
+                    color: isNotesWide ? "var(--accent)" : "var(--muted)",
+                    background: isNotesWide ? "var(--accent-soft)" : "transparent",
                     padding: "4px",
                     borderRadius: "4px"
                   }}
                 >
                   {isNotesWide ? <Minimize size={18} /> : <Maximize size={18} />}
                 </button>
-                {notesSaving && <span style={{ fontSize: "12px", color: "#60a5fa" }} className="animate-pulse">保存中...</span>}
+                {notesSaving && <span style={{ fontSize: "12px", color: "var(--accent)" }} className="animate-pulse">保存中...</span>}
               </div>
             </div>
 
@@ -175,10 +175,10 @@ export function NotesPanel({
           </>
         ) : (
           <div className="empty-state" style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px" }}>
-            <div style={{ background: "#111827", padding: "20px", borderRadius: "50%", color: "#374151" }}>
+            <div style={{ background: "var(--surface)", padding: "20px", borderRadius: "50%", color: "var(--muted)" }}>
               <FileText size={48} />
             </div>
-            <div style={{ color: "#4b5563" }}>请在左侧选择或新建笔记</div>
+            <div style={{ color: "var(--muted)" }}>请在左侧选择或新建笔记</div>
             <button type="button" className="primary-action" onClick={handleAddNote}>
               <Plus size={16} /> 新建第一条笔记
             </button>

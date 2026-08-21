@@ -72,14 +72,10 @@ export const TaggingPanel = React.memo(({
             <button
               key={tab.id}
               onClick={() => setWd14Tab(tab.id as any)}
+              className={wd14Tab === tab.id ? "primary-action" : "secondary-action"}
               style={{
                 padding: "4px 12px",
-                background:
-                  wd14Tab === tab.id ? "var(--primary, #007bff)" : "var(--bg-panel, #2a2a2a)",
-                color: "var(--text-primary, #fff)",
-                border: "1px solid var(--border-color, #444)",
-                borderRadius: "4px",
-                cursor: "pointer",
+                height: "28px",
                 fontSize: "12px",
               }}
             >
@@ -98,17 +94,17 @@ export const TaggingPanel = React.memo(({
                 <label
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.borderColor = "#007bff";
-                    e.currentTarget.style.backgroundColor = "rgba(0, 123, 255, 0.1)";
+                    e.currentTarget.style.borderColor = "var(--accent)";
+                    e.currentTarget.style.backgroundColor = "var(--accent-soft)";
                   }}
                   onDragLeave={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.borderColor = "var(--border-color, #444)";
+                    e.currentTarget.style.borderColor = "var(--border)";
                     e.currentTarget.style.backgroundColor = "transparent";
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.borderColor = "var(--border-color, #444)";
+                    e.currentTarget.style.borderColor = "var(--border)";
                     e.currentTarget.style.backgroundColor = "transparent";
                     const file = e.dataTransfer.files?.[0];
                     if (file && file.type.startsWith("image/")) {
@@ -116,7 +112,7 @@ export const TaggingPanel = React.memo(({
                     }
                   }}
                   style={{
-                    border: "2px dashed var(--border-color, #444)",
+                    border: "2px dashed var(--border)",
                     padding: "16px",
                     borderRadius: "4px",
                     cursor: "pointer",
@@ -125,7 +121,7 @@ export const TaggingPanel = React.memo(({
                     justifyContent: "center",
                     flexDirection: "column",
                     transition: "all 0.2s",
-                    background: "var(--bg-panel, #2a2a2a)",
+                    background: "var(--surface-alt)",
                   }}
                 >
                   <input
@@ -137,7 +133,7 @@ export const TaggingPanel = React.memo(({
                   {wdFile ? (
                     <div
                       style={{
-                        color: "var(--text-primary, #fff)",
+                        color: "var(--text)",
                         fontSize: "13px",
                         textAlign: "center",
                         wordBreak: "break-all",
@@ -146,7 +142,7 @@ export const TaggingPanel = React.memo(({
                       {wdFile.name}
                     </div>
                   ) : (
-                    <div style={{ color: "var(--text-secondary, #aaa)", fontSize: "13px" }}>
+                    <div style={{ color: "var(--muted)", fontSize: "13px" }}>
                       点击或拖拽图片到此处
                     </div>
                   )}
@@ -232,17 +228,17 @@ export const TaggingPanel = React.memo(({
                 <label
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.borderColor = "#007bff";
-                    e.currentTarget.style.backgroundColor = "rgba(0, 123, 255, 0.1)";
+                    e.currentTarget.style.borderColor = "var(--accent)";
+                    e.currentTarget.style.backgroundColor = "var(--accent-soft)";
                   }}
                   onDragLeave={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.borderColor = "var(--border-color, #444)";
+                    e.currentTarget.style.borderColor = "var(--border)";
                     e.currentTarget.style.backgroundColor = "transparent";
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.borderColor = "var(--border-color, #444)";
+                    e.currentTarget.style.borderColor = "var(--border)";
                     e.currentTarget.style.backgroundColor = "transparent";
                     const file = e.dataTransfer.files?.[0];
                     if (file && file.type.startsWith("image/")) {
@@ -250,7 +246,7 @@ export const TaggingPanel = React.memo(({
                     }
                   }}
                   style={{
-                    border: "2px dashed var(--border-color, #444)",
+                    border: "2px dashed var(--border)",
                     padding: "16px",
                     borderRadius: "4px",
                     cursor: "pointer",
@@ -259,7 +255,7 @@ export const TaggingPanel = React.memo(({
                     justifyContent: "center",
                     flexDirection: "column",
                     transition: "all 0.2s",
-                    background: "var(--bg-panel, #2a2a2a)",
+                    background: "var(--surface-alt)",
                   }}
                 >
                   <input
@@ -271,7 +267,7 @@ export const TaggingPanel = React.memo(({
                   {clFile ? (
                     <div
                       style={{
-                        color: "var(--text-primary, #fff)",
+                        color: "var(--text)",
                         fontSize: "13px",
                         textAlign: "center",
                         wordBreak: "break-all",
@@ -280,7 +276,7 @@ export const TaggingPanel = React.memo(({
                       {clFile.name}
                     </div>
                   ) : (
-                    <div style={{ color: "var(--text-secondary, #aaa)", fontSize: "13px" }}>
+                    <div style={{ color: "var(--muted)", fontSize: "13px" }}>
                       点击或拖拽图片到此处
                     </div>
                   )}

@@ -540,7 +540,7 @@ export function PromptEditorDialog({
   if (!open) return null;
 
   return (
-    <div className="prompt-editor-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(31, 42, 68, 0.4)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+    <div className="prompt-editor-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "var(--overlay-dark)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
       <div className="prompt-editor-dialog" style={{ width: "95vw", height: "90vh", maxWidth: "1400px", backgroundColor: "var(--surface)", borderRadius: "12px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)", boxShadow: "var(--shadow)" }}>
         
         {/* Header */}
@@ -553,7 +553,7 @@ export function PromptEditorDialog({
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button className="icon-button" onClick={() => copyToClipboard(finalPositive + "\\n" + finalNegative)} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Copy size={16} /> 复制全部</button>
+            <button className="icon-button" onClick={() => copyToClipboard(finalPositive + "\n" + finalNegative)} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Copy size={16} /> 复制全部</button>
             <button className="primary-action" onClick={handleApply}>完成并应用</button>
             <button className="icon-button" onClick={onClose} style={{ border: "none" }}><X size={20} /></button>
           </div>
@@ -604,7 +604,7 @@ export function PromptEditorDialog({
                         {importingNetwork ? "..." : "导入"}
                       </button>
                     </div>
-                    <button onClick={() => { if (confirm("确定要清空自定义词库吗？")) setCustomEntries([]); }} style={{ padding: "0.4rem", fontSize: "0.8rem", borderRadius: "6px", border: "1px solid var(--danger)", background: "rgba(210, 75, 75, 0.1)", color: "var(--danger)", cursor: "pointer", textAlign: "left", marginTop: "0.5rem" }}>清空所有自定义词条</button>
+                    <button onClick={() => { if (confirm("确定要清空自定义词库吗？")) setCustomEntries([]); }} style={{ padding: "0.4rem", fontSize: "0.8rem", borderRadius: "6px", border: "1px solid var(--danger)", background: "var(--accent-soft)", color: "var(--danger)", cursor: "pointer", textAlign: "left", marginTop: "0.5rem" }}>清空所有自定义词条</button>
                   </div>
                 </>
               )}
@@ -731,8 +731,8 @@ export function PromptEditorDialog({
           {/* Right - Editor */}
           <div style={{ width: "420px", display: "flex", flexDirection: "column", backgroundColor: "var(--surface-alt)" }}>
             <div style={{ display: "flex", padding: "1rem", gap: "0.5rem", borderBottom: "1px solid var(--border)" }}>
-              <button onClick={() => setActiveEditor("positive")} style={{ flex: 1, padding: "0.6rem", borderRadius: "6px", border: activeEditor === "positive" ? "1px solid var(--accent)" : "1px solid var(--border)", backgroundColor: activeEditor === "positive" ? "var(--accent)" : "var(--surface)", color: activeEditor === "positive" ? "white" : "var(--text)", cursor: "pointer", fontWeight: activeEditor === "positive" ? 600 : 400 }}>正向编辑区</button>
-              <button onClick={() => setActiveEditor("negative")} style={{ flex: 1, padding: "0.6rem", borderRadius: "6px", border: activeEditor === "negative" ? "1px solid var(--danger)" : "1px solid var(--border)", backgroundColor: activeEditor === "negative" ? "var(--danger)" : "var(--surface)", color: activeEditor === "negative" ? "white" : "var(--text)", cursor: "pointer", fontWeight: activeEditor === "negative" ? 600 : 400 }}>反向编辑区</button>
+              <button onClick={() => setActiveEditor("positive")} style={{ flex: 1, padding: "0.6rem", borderRadius: "6px", border: activeEditor === "positive" ? "1px solid var(--accent)" : "1px solid var(--border)", backgroundColor: activeEditor === "positive" ? "var(--accent)" : "var(--surface)", color: activeEditor === "positive" ? "var(--white)" : "var(--text)", cursor: "pointer", fontWeight: activeEditor === "positive" ? 600 : 400 }}>正向编辑区</button>
+              <button onClick={() => setActiveEditor("negative")} style={{ flex: 1, padding: "0.6rem", borderRadius: "6px", border: activeEditor === "negative" ? "1px solid var(--danger)" : "1px solid var(--border)", backgroundColor: activeEditor === "negative" ? "var(--danger)" : "var(--surface)", color: activeEditor === "negative" ? "var(--white)" : "var(--text)", cursor: "pointer", fontWeight: activeEditor === "negative" ? 600 : 400 }}>反向编辑区</button>
             </div>
 
             <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -823,7 +823,7 @@ export function PromptEditorDialog({
                         <button onClick={() => movePart(index, 'up', activeEditor === "positive")} disabled={index === 0} style={{ padding: "0 0.2rem", height: "12px", background: "none", border: "none", borderBottom: "1px solid var(--border)", fontSize: "0.55rem", color: "var(--muted)", cursor: index === 0 ? "default" : "pointer", opacity: index === 0 ? 0.3 : 1 }}>▲</button>
                         <button onClick={() => movePart(index, 'down', activeEditor === "positive")} disabled={index === (activeEditor === "positive" ? positiveParts : negativeParts).length - 1} style={{ padding: "0 0.2rem", height: "12px", background: "none", border: "none", fontSize: "0.55rem", color: "var(--muted)", cursor: index === (activeEditor === "positive" ? positiveParts : negativeParts).length - 1 ? "default" : "pointer", opacity: index === (activeEditor === "positive" ? positiveParts : negativeParts).length - 1 ? 0.3 : 1 }}>▼</button>
                       </div>
-                      <button onClick={() => removePart(part.key, activeEditor === "positive")} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 0.4rem", backgroundColor: "rgba(210, 75, 75, 0.1)", color: "var(--danger)", border: "none", borderLeft: "1px solid var(--border)", cursor: "pointer" }}>
+                      <button onClick={() => removePart(part.key, activeEditor === "positive")} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 0.4rem", backgroundColor: "var(--accent-soft)", color: "var(--danger)", border: "none", borderLeft: "1px solid var(--border)", cursor: "pointer" }}>
                         <X size={14} />
                       </button>
                     </div>

@@ -74,15 +74,15 @@ export function MultiSelectField({ label, value, options, onChange }: {
 
   return (
     <div className="field" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-      <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>{label} (可多选组合)</span>
+      <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--muted)' }}>{label} (可多选组合)</span>
       <div style={{ 
         display: 'flex', 
         flexWrap: 'wrap', 
         gap: '6px', 
-        background: 'rgba(0,0,0,0.2)', 
+        background: 'var(--surface-alt)', 
         padding: '10px', 
         borderRadius: '8px',
-        border: '1px solid rgba(255,255,255,0.1)',
+        border: '1px solid var(--border)',
         maxHeight: '200px',
         overflowY: 'auto'
       }}>
@@ -97,10 +97,10 @@ export function MultiSelectField({ label, value, options, onChange }: {
                 borderRadius: '4px',
                 fontSize: '12px',
                 cursor: 'pointer',
-                background: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)',
-                color: isSelected ? '#60a5fa' : 'rgba(255,255,255,0.6)',
+                background: isSelected ? 'var(--accent)' : 'var(--surface)',
+                color: isSelected ? 'white' : 'var(--text)',
                 border: '1px solid',
-                borderColor: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.1)',
+                borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
                 transition: 'all 0.2s',
                 userSelect: 'none'
               }}
@@ -131,12 +131,12 @@ export function CopyableTextarea({ value, className }: { value: string; classNam
           title="复制"
           style={{ 
             position: "absolute", top: "8px", right: "16px", 
-            background: "rgba(42, 42, 42, 0.9)", border: "1px solid var(--border-color, #444)", 
-            color: "var(--text-secondary, #aaa)", borderRadius: "4px", padding: "4px 8px", 
+            background: "var(--surface)", border: "1px solid var(--border)", 
+            color: "var(--muted)", borderRadius: "4px", padding: "4px 8px", 
             cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px",
             backdropFilter: "blur(4px)"
           }}>
-          {copied ? <CheckCircle2 size={14} color="#4caf50" /> : <Copy size={14} />}
+          {copied ? <CheckCircle2 size={14} color="var(--accent)" /> : <Copy size={14} />}
           {copied ? "已复制" : "复制"}
         </button>
       )}

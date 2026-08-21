@@ -291,7 +291,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
             fontSize: '0.75rem', 
             borderRadius: '6px', 
             border: '1px solid var(--danger)', 
-            backgroundColor: 'rgba(210, 75, 75, 0.1)', 
+            backgroundColor: 'var(--danger-soft)', 
             color: 'var(--danger)',
             cursor: currentNegative.trim() ? 'pointer' : 'default',
             opacity: currentNegative.trim() ? 1 : 0.5,
@@ -343,7 +343,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
           <button 
             onClick={handleSaveManual}
             disabled={!customForm.text_en.trim()}
-            style={{ padding: '0.4rem', fontSize: '0.8rem', borderRadius: '4px', border: 'none', backgroundColor: 'var(--accent)', color: 'white', cursor: customForm.text_en.trim() ? 'pointer' : 'default', opacity: customForm.text_en.trim() ? 1 : 0.5 }}
+            style={{ padding: '0.4rem', fontSize: '0.8rem', borderRadius: '4px', border: 'none', backgroundColor: 'var(--accent)', color: 'var(--white)', cursor: customForm.text_en.trim() ? 'pointer' : 'default', opacity: customForm.text_en.trim() ? 1 : 0.5 }}
           >
             保存到词库
           </button>
@@ -441,11 +441,11 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
                         </button>
                         {item.negative && (
                           <button 
-                            onClick={() => onSelect(item.negative, 'negative', 'negative')}
-                            style={{ flex: 1, padding: '2px 4px', fontSize: '0.7rem', borderRadius: '4px', border: '1px solid var(--danger)', background: 'rgba(210, 75, 75, 0.1)', color: 'var(--danger)', cursor: 'pointer' }}
-                          >
-                            应用反向
-                          </button>
+                          onClick={() => onSelect(item.negative, 'negative', 'negative')}
+                          style={{ flex: 1, padding: '2px 4px', fontSize: '0.7rem', borderRadius: '4px', border: '1px solid var(--danger)', background: 'var(--danger-soft)', color: 'var(--danger)', cursor: 'pointer' }}
+                        >
+                          应用反向
+                        </button>
                         )}
                         <button 
                           onClick={() => {
@@ -467,7 +467,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
                         </button>
                         <button 
                           onClick={() => onSelect(item.text_en, 'negative', 'negative')}
-                          style={{ flex: 1, padding: '2px 4px', fontSize: '0.7rem', borderRadius: '4px', border: '1px solid var(--danger)', background: 'rgba(210, 75, 75, 0.1)', color: 'var(--danger)', cursor: 'pointer' }}
+                          style={{ flex: 1, padding: '2px 4px', fontSize: '0.7rem', borderRadius: '4px', border: '1px solid var(--danger)', background: 'var(--danger-soft)', color: 'var(--danger)', cursor: 'pointer' }}
                         >
                           入反向
                         </button>

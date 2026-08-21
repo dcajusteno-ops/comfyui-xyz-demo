@@ -208,12 +208,12 @@ function MultiCanvasEditor({
     <div className="multi-canvas-panel">
       <div className="section-toolbar">
         <strong>角色画布</strong>
-        <div style={{ display: "flex", gap: "8px", fontSize: "11px", color: "#888" }}>
+        <div style={{ display: "flex", gap: "8px", fontSize: "11px", color: "var(--muted)" }}>
           <span>
             {canvasWidth}x{canvasHeight}
           </span>
           {findOverlapRegions(characters).length > 0 && (
-            <span style={{ color: "#ff4757", fontWeight: 600 }}>
+            <span style={{ color: "var(--danger)", fontWeight: 600 }}>
               重叠区域: {findOverlapRegions(characters).length}
             </span>
           )}
@@ -283,8 +283,8 @@ function MultiCanvasEditor({
               top: `${overlap.rect.y * 100}%`,
               width: `${overlap.rect.width * 100}%`,
               height: `${overlap.rect.height * 100}%`,
-              backgroundColor: "rgba(255, 71, 87, 0.15)",
-              border: "1px dashed rgba(255, 71, 87, 0.4)",
+              backgroundColor: "var(--danger-soft)",
+              border: "1px dashed var(--danger)",
               pointerEvents: "none",
               zIndex: 10,
             }}
