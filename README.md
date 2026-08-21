@@ -193,6 +193,13 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 ### 31. LoRA 加载逻辑深度修复 (v0.3.1 新增)
 - **API 调用链路重构**：针对 `Lora Loader (LoraManager)` 节点在 API 模式下的验证陷阱，引入了特殊的 `__value__` 数据包装器，彻底根治了 `bad_linked_input` 导致的 400 错误。
 - **跨平台路径适配**：强制统一使用反斜杠 `\` 并优化了扩展名剥离逻辑，确保 LoRA 在 Windows 服务器环境下能够被 ComfyUI 100% 正确识别并加载（告别 `0 patches attached`）。
+
+### 32. 全新视觉体验：白昼与黑夜模式 (v0.3.3 新增)
+- **丝滑切换动效**：利用 **View Transition API** 配合**圆形扩散 (Circular Clip-path)** 动效，实现如同原生应用般的明暗主题切换。
+- **性能级优化**：在切换瞬间自动挂起全局过渡动画，确保高帧率的扩散效果，彻底告别掉帧与卡顿。
+- **防闪烁加载**：通过内联脚本实现主题偏好在 DOM 渲染前的优先加载，杜绝“白闪”现象。
+- **进度条与通知重塑**：引入玻璃拟态 (Glassmorphism) 与多层柔和阴影，全面提升界面质感。
+
 - **详尽更新日志**：更多详细的改动记录请参阅 [CHANGELOG.md](file:///f:/demo/comfyui-xyz-demo/CHANGELOG.md)。
 
 ---

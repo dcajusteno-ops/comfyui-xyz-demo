@@ -6,6 +6,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#1c1917" />
     <title>ComfyUI XYZ 控制台</title>
+    <script>
+      (function() {
+        try {
+          var theme = JSON.parse(localStorage.getItem('xyz_theme'));
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

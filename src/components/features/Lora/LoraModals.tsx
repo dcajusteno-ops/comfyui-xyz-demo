@@ -1055,7 +1055,7 @@ export function LoraOperationModal({
             {onShowWelcome && (
               <div 
                 className="toast info" 
-                style={{ cursor: "pointer", border: "1px solid var(--accent)" }}
+                style={{ border: "1px solid var(--accent-soft)" }}
                 onClick={onShowWelcome}
               >
                 <div>
