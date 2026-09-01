@@ -605,7 +605,7 @@ export type NoteItem = {
   updatedAt: number;
 };
 
-export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes";
+export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots";
 
 export type LoraPreviewMedia = {
   url?: string;
@@ -635,6 +635,19 @@ export type XyzRunItem = {
   result?: JobResult;
   error?: string;
   comboIndex?: number;
+};
+
+export type XyzAxisInsight = {
+  fieldLabel: string;
+  bestValue: string;
+  bestAverage: number;
+  averages: Array<{ value: string; average: number; count: number }>;
+};
+
+export type XyzCellScore = {
+  url: string;
+  label: string;
+  score: number;
 };
 
 export type LoraOperation =

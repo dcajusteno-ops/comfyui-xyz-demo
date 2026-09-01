@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   SlidersHorizontal,
   CircleHelp,
@@ -6,10 +6,14 @@ import {
   RefreshCw,
   FileText,
   Grid3X3,
+  Gauge,
+  RotateCw,
 } from "lucide-react";
 import { PanelTitle } from "../../ui";
 import { XyzPreview } from "./XyzPreview";
 import { XyzHelpModal } from "./XyzHelpModal";
+import { XyzReviewBar, XyzCellBadge } from "./XyzReviewOverlay";
+import { useXyzReview } from "../../../hooks/useXyzReview";
 import { xyzStatusLabel } from "../../../lib/app-utils";
 import { templateLabels } from "../../../constants";
 import { fieldLabel } from "../../../lib/xyz";
@@ -22,6 +26,7 @@ import type {
   MultiGenerationParams,
   HighresParams,
   LoraItem,
+  XyzCellScore,
 } from "../../../types";
 
 interface XyzControllerProps {
@@ -66,6 +71,13 @@ export const XyzController = React.memo(({
   params,
   onOutputLightbox,
 }: XyzControllerProps) => {
+  const review = useXyzReview();
+
+  // XYZ 结果数据集发生变化（新运行 / 重跑 / 重试）时，清掉上一轮的复盘状态
+  useEffect(() => {
+    review.clearReview();
+  }, [gen.xyzResults]);
+
   const xyzFields: XyzField[] = useMemo(() => [
     "seed",
     "steps",
@@ -92,6 +104,21 @@ export const XyzController = React.memo(({
       return next;
     });
   };
+
+  const canReview =
+    !review.reviewing &&
+    gen.xyzResults.some((item) => item.status === "success" && item.result?.images?.length);
+
+  const bestCells: XyzCellScore[] = useMemo(() => {
+    if (!review.outcome || !review.outcome.samples.length) return [];
+    const byUrl = new Map(review.outcome.samples.map((sample) => [sample.url, sample]));
+    return review.bestUrls
+      .map((url) => {
+        const sample = byUrl.get(url);
+        return sample ? { url: sample.url, label: sample.item.label, score: sample.score } : null;
+      })
+      .filter((entry): entry is XyzCellScore => entry !== null);
+  }, [review.outcome, review.bestUrls]);
 
   return (
     <section className="panel xyz-panel">
@@ -253,6 +280,17 @@ export const XyzController = React.memo(({
         <button
           type="button"
           className="icon-button"
+          disabled={!canReview || review.reviewing}
+          onClick={() => review.startReview(gen.xyzResults, xyzAxes, lorasOfTarget)}
+        >
+          {review.reviewing ? <RotateCw size={16} className="spin" /> : <Gauge size={16} />}
+          {review.reviewing && review.progress
+            ? `复盘中 ${review.progress.done}/${review.progress.total}`
+            : "智能复盘"}
+        </button>
+        <button
+          type="button"
+          className="icon-button"
           disabled={!gen.xyzResults.some((item) => item.status === "failed")}
           onClick={() =>
             gen.retryFailedXyz(
@@ -282,20 +320,36 @@ export const XyzController = React.memo(({
           <Grid3X3 size={16} /> 导出网格
         </button>
       </div>
+      <XyzReviewBar
+        reviewedAt={review.reviewedAt}
+        overlayOn={review.overlayOn}
+        best={bestCells}
+        insights={review.insights}
+        onToggleOverlay={review.toggleOverlay}
+      />
       <div className="xyz-grid">
-        {gen.xyzResults.map((item) => (
+        {gen.xyzResults.map((item) => {
+          const itemUrl = item.result?.images?.[0]?.url;
+          const cellScore = itemUrl ? review.scoresByUrl[itemUrl] : undefined;
+          const isBestCell = itemUrl ? review.bestUrls.includes(itemUrl) : false;
+          return (
           <div className={`result-card xyz-result ${item.status}`} key={item.id}>
             <div className="xyz-result-head">
               <strong>{item.label}</strong>
               <span>{xyzStatusLabel(item.status)}</span>
             </div>
             {item.result?.images[0] ? (
-              <img
-                src={item.result.images[0].url}
-                alt={item.label}
-                style={{ cursor: "zoom-in" }}
-                onClick={() => onOutputLightbox(item.result!.images[0].url)}
-              />
+              <div className={`xyz-result-media${isBestCell ? " xyz-best" : ""}`}>
+                <img
+                  src={item.result.images[0].url}
+                  alt={item.label}
+                  style={{ cursor: "zoom-in" }}
+                  onClick={() => onOutputLightbox(item.result!.images[0].url)}
+                />
+                {review.overlayOn && cellScore !== undefined && (
+                  <XyzCellBadge score={cellScore} best={isBestCell} />
+                )}
+              </div>
             ) : (
               <div className="xyz-image-placeholder" />
             )}
@@ -318,7 +372,8 @@ export const XyzController = React.memo(({
               </button>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

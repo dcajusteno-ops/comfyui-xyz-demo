@@ -4,6 +4,7 @@ import {
   Boxes,
   CheckCircle2,
   Columns,
+  Dices,
   ExternalLink,
   FileText,
   GalleryHorizontalEnd,
@@ -39,6 +40,7 @@ import { TaggingPanel } from "./components/features/Tagging/TaggingPanel";
 import { NotesManagerPanel } from "./components/features/Notes/NotesManagerPanel";
 import { XyzController } from "./components/features/Xyz";
 import { LoraManagerPanel } from "./components/features/Lora";
+import { SlotMachinePanel } from "./components/features/Slots";
 import { WelcomeModal } from "./components/WelcomeModal";
 
 import { useAppContext } from "./AppContext";
@@ -161,6 +163,30 @@ function App() {
     pushToast("success", "LoRA 已插入", `${selection.displayName} -> ${templateLabels[target]}`);
   }, [loras.loraExampleFilesByHash, params.setDefaultParams, params.setMultiParams, params.setHighresParams, pushToast]);
 
+  const handleSlotsApply = useCallback((tags: string[], target: TemplateKind) => {
+    const clean = tags.map((tag) => tag.trim()).filter(Boolean);
+    if (clean.length === 0) return;
+
+    const updater = (prev: any) => {
+      const key = target === "multi" ? "globalPrompt" : "positivePrompt";
+      const current = (prev[key] || "").trim();
+      const existing = new Set(current.split(/[,，]/).map((part: string) => part.trim().toLowerCase()));
+      const toAdd = clean.filter((tag) => !existing.has(tag.toLowerCase()));
+      if (toAdd.length === 0) return prev;
+      const joined = toAdd.join(", ");
+      return { ...prev, [key]: current ? `${current}, ${joined}` : joined };
+    };
+
+    if (target === "multi") {
+      params.setMultiParams(updater);
+    } else if (target === "highres") {
+      params.setHighresParams(updater);
+    } else {
+      params.setDefaultParams(updater);
+    }
+    pushToast("success", "灵感已应用", `已追加 ${clean.length} 个词条到 ${templateLabels[target]} 正向提示词`);
+  }, [params, pushToast]);
+
   const handleSidebarSelect = useCallback((text: string, target: "positive" | "negative") => {
     const updater = (prev: any) => {
       const key = target === "positive" ? (tab === "multi" ? "globalPrompt" : "positivePrompt") : "negativePrompt";
@@ -208,6 +234,7 @@ function App() {
     { id: "wd14", label: "WD1.4", icon: ScanSearch },
     { id: "text", label: "文字特效", icon: Type },
     { id: "xyz", label: "XYZ 控制器", icon: SlidersHorizontal },
+    { id: "slots", label: "灵感老虎机", icon: Dices },
   ], []);
 
   const toolTabs = useMemo(() => [
@@ -393,6 +420,10 @@ function App() {
                   params={params}
                   onOutputLightbox={ui.setOutputLightbox}
                 />
+              )}
+
+              {tab === "slots" && (
+                <SlotMachinePanel onApplyPrompt={handleSlotsApply} />
               )}
 
               {tab === "loras" && (

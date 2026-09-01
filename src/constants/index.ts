@@ -1,5 +1,6 @@
 import {
   Boxes,
+  Dices,
   FileText,
   ImageUp,
   ScanSearch,
@@ -49,7 +50,9 @@ export const toolTabs: TabConfig[] = [
   { id: "notes", label: "记事本", icon: FileText },
 ];
 
-export const tabs: TabConfig[] = [...generationTabs, ...toolTabs];
+export const slotsTab: TabConfig = { id: "slots", label: "灵感老虎机", icon: Dices };
+
+export const tabs: TabConfig[] = [...generationTabs, slotsTab, ...toolTabs];
 
 export const templateLabels: Record<TemplateKind, string> = {
   default: "默认生图",

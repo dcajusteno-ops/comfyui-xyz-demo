@@ -5207,3 +5207,594 @@ textarea {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ===== 灵感老虎机 (Slot Machine) ===== */
+.slots-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.slots-status {
+  padding: 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  color: var(--muted);
+  background: var(--surface-alt);
+  text-align: center;
+}
+
+.slots-status.is-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--danger);
+  border-color: var(--danger-soft);
+  background: var(--danger-soft);
+}
+
+.slots-row-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.slot-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color 160ms ease, opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.slot-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 9px 9px 0 0;
+  background: var(--slot-accent, var(--accent));
+  opacity: 0.85;
+}
+
+.slot-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+
+.slot-card.is-off {
+  opacity: 0.55;
+}
+
+.slot-card.is-locked {
+  border-color: var(--slot-accent, var(--accent));
+}
+
+.slot-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.slot-card-head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.slot-card-head strong::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--slot-accent, var(--accent));
+  flex: 0 0 auto;
+}
+
+.slot-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--muted);
+  background: var(--surface);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.slot-lock:hover {
+  color: var(--slot-accent, var(--accent));
+  border-color: var(--slot-accent, var(--accent));
+}
+
+.slot-card.is-locked .slot-lock {
+  color: var(--slot-accent, var(--accent));
+  background: var(--accent-soft);
+  border-color: var(--slot-accent, var(--accent));
+}
+
+.slot-window {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-height: 68px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+.slot-window-tag {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.9;
+}
+
+.slot-window-tag-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot-window-tag em {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 11px;
+}
+
+.slot-window-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slot-window-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.slot-window-hint.is-rolling {
+  color: var(--slot-accent, var(--accent));
+}
+
+.slot-hint-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.slot-hint-tag {
+  padding: 1px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 999px;
+  background: var(--row-bg);
+  color: var(--muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.slot-window.is-spinning .slot-window-tag {
+  animation: slotsShimmer 0.6s linear infinite;
+}
+
+@keyframes slotsShimmer {
+  0%, 100% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.35; transform: translateY(3px); }
+}
+
+.slot-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.slot-card-meta span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slots-lever {
+  align-self: center;
+  width: min(100%, 420px);
+  gap: 10px;
+  min-height: 46px;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.slots-lever kbd {
+  padding: 1px 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.slots-lever:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.slots-result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 52px;
+  height: auto;
+  padding: 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-alt);
+  align-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.slots-empty-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  align-self: center;
+  margin: auto;
+}
+
+.slot-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 10px 6px 14px;
+  border: 1px solid var(--slot-accent, var(--accent));
+  border-radius: 999px;
+  color: var(--slot-accent, var(--accent));
+  background: color-mix(in srgb, var(--slot-accent, var(--accent)), transparent 92%);
+  font-size: 12px;
+  user-select: text;
+  -webkit-user-select: text;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+
+.slot-tag-zh {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 11px;
+  opacity: 0.85;
+  margin-right: 2px;
+  font-weight: 400;
+}
+
+.slot-tag-text {
+  min-width: 0;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.slot-tag-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  flex: 0 0 auto;
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.slot-tag-remove:hover {
+  background: var(--danger);
+  color: #fff;
+  opacity: 1;
+}
+
+.slots-apply-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.slots-target {
+  flex: 1;
+  min-width: 160px;
+  max-width: 220px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+}
+
+.slots-target:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.slots-history {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slots-history h4 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.slots-history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  text-align: left;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.slots-history-item:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+  color: var(--accent);
+}
+
+.slots-history-item.is-copied {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.slots-history-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slots-history-meta {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.slots-history-item.is-copied .slots-history-meta {
+  color: var(--success);
+}
+
+.slots-advanced summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.slots-advanced summary:hover,
+.slots-advanced[open] summary {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.slots-adv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.slots-adv-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.slots-adv-name {
+  width: 110px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+}
+
+.slots-adv-cats {
+  flex: 1;
+  min-width: 180px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+}
+
+.slots-adv-count {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+}
+
+.slots-adv-enable {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ===== XYZ 智能复盘 (Review Overlay) ===== */
+.xyz-review-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.xyz-review-bar .icon-button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.xyz-review-best {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 4px 10px;
+  border: 1px solid var(--warning);
+  border-radius: 999px;
+  color: var(--warning);
+  background: var(--warning-soft);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xyz-insights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.xyz-insight-chip {
+  padding: 4px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--surface-alt);
+  font-size: 12px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.xyz-result-media {
+  position: relative;
+  width: 100%;
+}
+
+.xyz-result-media img {
+  display: block;
+  width: 100%;
+}
+
+.xyz-result-media.xyz-best {
+  border-radius: 6px;
+  outline: 2px solid var(--warning);
+  outline-offset: 1px;
+}
+
+.xyz-score-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #fff;
+  background: hsl(var(--cell-hue, 120) 72% 45%);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.xyz-score-badge.is-best {
+  outline: 1px solid rgba(255, 255, 255, 0.8);
+}
