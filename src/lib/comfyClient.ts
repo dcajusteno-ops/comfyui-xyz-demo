@@ -985,7 +985,15 @@ export class ComfyClient {
         }
       }
     }
-    return { promptId, images, texts, rawHistory: history };
+
+    // WD14 节点自身的 tags 输出与 Save Text 节点的 text 输出内容相同，按内容去重（保序）
+    const seen = new Set<string>();
+    const uniqueTexts = texts.filter((t) => {
+      if (seen.has(t)) return false;
+      seen.add(t);
+      return true;
+    });
+    return { promptId, images, texts: uniqueTexts, rawHistory: history };
   }
 
   private openSocket(clientId: string) {

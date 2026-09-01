@@ -399,6 +399,33 @@ export type Wd14Params = {
   device: string;
 };
 
+/** WD14 打标参数（不含 imageName，用于手机上传任务） */
+export type MobileTaskParams = Pick<
+  Wd14Params,
+  "model" | "threshold" | "characterThreshold" | "replaceUnderscore" | "trailingComma" | "excludeTags" | "device"
+>;
+
+export type MobileTaskStatus = "queued" | "running" | "done" | "error";
+
+export type MobileTask = {
+  id: string;
+  imageName: string;
+  mime: string;
+  size: number;
+  status: MobileTaskStatus;
+  params: MobileTaskParams;
+  /** 识别结果（逗号分隔），done 时非空 */
+  tags: string;
+  error?: string;
+  promptId?: string;
+  createdAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+};
+
+/** 图片识别面板的 tab 标识 */
+export type TaggingTabId = "single" | "cl_single" | "cl_batch" | "wd_batch" | "mobile_sync";
+
 export type ClSingleParams = {
   imageName: string;
   modelName: string;

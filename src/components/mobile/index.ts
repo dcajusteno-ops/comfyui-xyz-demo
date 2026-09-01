@@ -1,0 +1,1 @@
+export { MobileTagPage } from "./MobileTagPage";

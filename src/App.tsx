@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Bookmark,
   Boxes,
@@ -53,6 +53,7 @@ import { useParams } from "./hooks/useParams";
 import { useTagging } from "./hooks/useTagging";
 import { useXyz } from "./hooks/useXyz";
 import { useOptions } from "./hooks/useOptions";
+import { useMobileTasks } from "./hooks/useMobileTasks";
 
 import { loraSyntaxName, mergeLora } from "./lib/lora-helper";
 import { pickCardPreviewMedia } from "./lib/lora-media";
@@ -65,7 +66,7 @@ import {
   buildClSinglePrompt,
 } from "./lib/workflowBuilders";
 import { templateLabels } from "./constants";
-import type { LoraSelection, TemplateKind, LoraItem, TabId } from "./types";
+import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus } from "./types";
 
 function App() {
   const { apiBase, setApiBase, client, connection, tab, setTab } = useAppContext();
@@ -79,6 +80,48 @@ function App() {
 
   const gen = useGeneration({ client, pushToast });
   const params = useParams();
+
+  // ===== 手机上传识别（局域网联动）全局同步 =====
+  const mobile = useMobileTasks();
+  const mobilePrevStatus = useRef<Record<string, MobileTaskStatus>>({});
+  const mobileSynced = useRef(false);
+
+  const handleMobileDone = useCallback((task: MobileTask) => {
+    if (!task.tags) return;
+    tagging.setWdTags(task.tags);
+    pushToast("success", "手机识别完成", `${task.imageName} — tags 已同步到「图片识别」输出框`);
+  }, [pushToast, tagging]);
+
+  useEffect(() => {
+    if (mobile.loading) return;
+    const prev = mobilePrevStatus.current;
+    if (!mobileSynced.current) {
+      // 首帧作为基线：历史任务不触发重复提示
+      mobileSynced.current = true;
+      for (const t of mobile.tasks) prev[t.id] = t.status;
+      return;
+    }
+    for (const t of mobile.tasks) {
+      const before = prev[t.id];
+      if (!before) {
+        prev[t.id] = t.status;
+        if (t.status === "done") {
+          if (t.tags) handleMobileDone(t);
+        } else {
+          pushToast("info", "手机上传识别", `手机提交了 ${t.imageName}`);
+        }
+      } else if (before !== "done" && t.status === "done") {
+        prev[t.id] = t.status;
+        if (t.tags) handleMobileDone(t);
+      } else {
+        prev[t.id] = t.status;
+      }
+    }
+    const liveIds = new Set(mobile.tasks.map((t) => t.id));
+    for (const id of Object.keys(prev)) {
+      if (!liveIds.has(id)) delete prev[id];
+    }
+  }, [mobile.loading, mobile.tasks, handleMobileDone]);
 
   const { options, setOptions, loraSettings, setLoraSettings } = useOptions({
     client,
@@ -185,6 +228,31 @@ function App() {
       params.setDefaultParams(updater);
     }
     pushToast("success", "灵感已应用", `已追加 ${clean.length} 个词条到 ${templateLabels[target]} 正向提示词`);
+  }, [params, pushToast]);
+
+  // 手机识图结果应用到工作流（与 handleSlotsApply 相同的追加/去重规则）
+  const handleApplyTags = useCallback((tagsText: string, target: TemplateKind) => {
+    const clean = tagsText.split(/[,，]/).map((tag) => tag.trim()).filter(Boolean);
+    if (clean.length === 0) return;
+
+    const updater = (prev: any) => {
+      const key = target === "multi" ? "globalPrompt" : "positivePrompt";
+      const current = (prev[key] || "").trim();
+      const existing = new Set(current.split(/[,，]/).map((part: string) => part.trim().toLowerCase()));
+      const toAdd = clean.filter((tag) => !existing.has(tag.toLowerCase()));
+      if (toAdd.length === 0) return prev;
+      const joined = toAdd.join(", ");
+      return { ...prev, [key]: current ? `${current}, ${joined}` : joined };
+    };
+
+    if (target === "multi") {
+      params.setMultiParams(updater);
+    } else if (target === "highres") {
+      params.setHighresParams(updater);
+    } else {
+      params.setDefaultParams(updater);
+    }
+    pushToast("success", "标签已应用", `已追加 ${clean.length} 个标签到 ${templateLabels[target]} 正向提示词`);
   }, [params, pushToast]);
 
   const handleSidebarSelect = useCallback((text: string, target: "positive" | "negative") => {
@@ -388,6 +456,10 @@ function App() {
                     return gen.runClSingle(tagging.clSingleParams, tagging.clFile).then(res => tagging.setWdTags(res.texts.join("\n")));
                   }}
                   onRunBatchTagger={(type) => gen.runBatchTagger(type, tagging.clBatchParams, tagging.wdBatchParams)}
+                  onApplyTags={handleApplyTags}
+                  mobileTasks={mobile.tasks}
+                  onRemoveMobileTask={mobile.remove}
+                  onClearMobileTasks={mobile.clear}
                 />
               )}
 

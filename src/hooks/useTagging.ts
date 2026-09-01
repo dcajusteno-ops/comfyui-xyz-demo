@@ -5,7 +5,8 @@ import type {
   Wd14Params, 
   ClSingleParams, 
   ClBatchParams, 
-  WdBatchParams 
+  WdBatchParams,
+  TaggingTabId 
 } from "../types";
 
 export function useTagging() {
@@ -22,7 +23,7 @@ export function useTagging() {
   
   const [wdFile, setWdFile] = useState<File | null>(null);
   const [wdTags, setWdTags] = useLocalStorageState("comfyui_wd_tags", "");
-  const [wd14Tab, setWd14Tab] = useLocalStorageState<"single" | "cl_single" | "cl_batch" | "wd_batch">("comfyui_wd14_tab", "single");
+  const [wd14Tab, setWd14Tab] = useLocalStorageState<TaggingTabId>("comfyui_wd14_tab", "single");
   
   const [clFile, setClFile] = useState<File | null>(null);
   const [clSingleParams, setClSingleParams] = useLocalStorageState<ClSingleParams>("comfyui_cl_single_params", {

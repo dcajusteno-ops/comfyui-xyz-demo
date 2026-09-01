@@ -1,5 +1,5 @@
-import React from "react";
-import { ScanSearch } from "lucide-react";
+import React, { useState } from "react";
+import { ScanSearch, Smartphone } from "lucide-react";
 import { PanelTitle, SelectField, NumberField, CopyableTextarea } from "../../ui";
 import { CONFIG } from "../../../config";
 import type { 
@@ -7,8 +7,13 @@ import type {
   ClSingleParams, 
   ClBatchParams, 
   WdBatchParams,
-  OptionsState
+  OptionsState,
+  TaggingTabId,
+  TemplateKind,
+  MobileTask
 } from "../../../types";
+import { MobileSyncFeed } from "./MobileSyncFeed";
+import { MobileConnectDialog } from "./MobileConnectDialog";
 
 interface TaggingPanelProps {
   wd14: Wd14Params;
@@ -17,8 +22,8 @@ interface TaggingPanelProps {
   setWdFile: (file: File | null) => void;
   wdTags: string;
   setWdTags: (tags: string) => void;
-  wd14Tab: "single" | "cl_single" | "cl_batch" | "wd_batch";
-  setWd14Tab: (tab: "single" | "cl_single" | "cl_batch" | "wd_batch") => void;
+  wd14Tab: TaggingTabId;
+  setWd14Tab: (tab: TaggingTabId) => void;
   clFile: File | null;
   setClFile: (file: File | null) => void;
   clSingleParams: ClSingleParams;
@@ -31,6 +36,12 @@ interface TaggingPanelProps {
   onRunWd14: () => void;
   onRunClSingle: () => void;
   onRunBatchTagger: (type: "cl" | "wd") => void;
+  /** 把手机识别结果追加到指定工作流正向提示词 */
+  onApplyTags: (tags: string, target: TemplateKind) => void;
+  /** 手机上传任务列表（全局订阅，由 App 层提供） */
+  mobileTasks: MobileTask[];
+  onRemoveMobileTask: (id: string) => void;
+  onClearMobileTasks: () => void;
 }
 
 export const TaggingPanel = React.memo(({
@@ -54,7 +65,14 @@ export const TaggingPanel = React.memo(({
   onRunWd14,
   onRunClSingle,
   onRunBatchTagger,
+  onApplyTags,
+  mobileTasks,
+  onRemoveMobileTask,
+  onClearMobileTasks,
 }: TaggingPanelProps) => {
+  const [showConnect, setShowConnect] = useState(false);
+  const mobileCount = mobileTasks.length;
+
   return (
     <section className="panel">
       <div
@@ -62,16 +80,26 @@ export const TaggingPanel = React.memo(({
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
       >
         <PanelTitle icon={ScanSearch} title="图片识别" />
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <button
+            className="secondary-action"
+            onClick={() => setShowConnect(true)}
+            style={{ padding: "4px 10px", height: "28px", fontSize: "12px", display: "flex", alignItems: "center", gap: 4 }}
+            title="手机扫码识图"
+          >
+            <Smartphone size={13} />
+            手机连接
+          </button>
           {[
             { id: "single", label: "WD 单图" },
             { id: "cl_single", label: "CL 单图" },
             { id: "cl_batch", label: "CL 批量" },
             { id: "wd_batch", label: "WD 批量" },
+            { id: "mobile_sync", label: `手机同步${mobileCount > 0 ? ` (${mobileCount})` : ""}` },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setWd14Tab(tab.id as any)}
+              onClick={() => setWd14Tab(tab.id as TaggingTabId)}
               className={wd14Tab === tab.id ? "primary-action" : "secondary-action"}
               style={{
                 padding: "4px 12px",
@@ -84,6 +112,17 @@ export const TaggingPanel = React.memo(({
           ))}
         </div>
       </div>
+
+      {showConnect && <MobileConnectDialog onClose={() => setShowConnect(false)} />}
+
+      {wd14Tab === "mobile_sync" && (
+        <MobileSyncFeed
+          tasks={mobileTasks}
+          onRemove={onRemoveMobileTask}
+          onClear={onClearMobileTasks}
+          onApplyTags={onApplyTags}
+        />
+      )}
 
       {wd14Tab === "single" && (
         <>

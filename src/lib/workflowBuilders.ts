@@ -11,6 +11,7 @@ import type {
   WdBatchParams,
   ClSingleParams,
 } from "../types";
+import { buildWd14Workflow } from "./wd14Workflow";
 
 const MAX_SEED = 2 ** 53 - 1;
 
@@ -230,52 +231,7 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
 }
 
 export function buildWd14Prompt(params: Wd14Params): ComfyPrompt {
-  const inputs: any = {
-    image: ["1", 0],
-    model: params.model,
-    threshold: params.threshold,
-    character_threshold: params.characterThreshold,
-    replace_underscore: params.replaceUnderscore,
-    trailing_comma: params.trailingComma,
-    exclude_tags: params.excludeTags,
-  };
-  
-  if (params.device) {
-    inputs.device = params.device;
-  }
-
-  return {
-    "1": {
-      class_type: "LoadImage",
-      inputs: {
-        image: params.imageName,
-      },
-      _meta: { title: "Load Image" },
-    },
-    "2": {
-      class_type: "WD14Tagger|pysssss",
-      inputs: inputs,
-      _meta: { title: "WD14 Tagger" },
-    },
-    "3": {
-      class_type: "PreviewImage",
-      inputs: {
-        images: ["1", 0],
-      },
-      _meta: { title: "Preview Image" },
-    },
-    // Force execution and return text via Save Text node
-    "4": {
-      class_type: "> Save Text",
-      inputs: {
-        text: ["2", 0],
-        filename_opt: "tag_temp",
-        filename_prefix: "",
-        folder: "tagging",
-      },
-      _meta: { title: "Save Tags" },
-    },
-  };
+  return buildWd14Workflow(params);
 }
 
 export function buildClSinglePrompt(params: ClSingleParams): ComfyPrompt {
