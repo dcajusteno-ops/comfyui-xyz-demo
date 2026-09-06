@@ -632,6 +632,29 @@ export type NoteItem = {
   updatedAt: number;
 };
 
+export type GenerationPreset = {
+  id: string;
+  name: string;
+  target: TemplateKind;
+  createdAt: number;
+  updatedAt: number;
+  /** 该模板的完整参数快照（Base/Multi/Highres 之一），回填时整对象替换 */
+  snapshot: Record<string, unknown>;
+};
+
+export type PromptLintSeverity = "error" | "warning" | "info";
+
+export type PromptLintIssue = {
+  code: string;
+  severity: PromptLintSeverity;
+  message: string;
+  start: number;
+  end: number;
+  fixable: boolean;
+  /** 可修复项的修复函数（输入完整文本，返回修复后文本） */
+  fix?: (text: string) => string;
+};
+
 export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots";
 
 export type LoraPreviewMedia = {

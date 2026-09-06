@@ -54,6 +54,7 @@ import { useTagging } from "./hooks/useTagging";
 import { useXyz } from "./hooks/useXyz";
 import { useOptions } from "./hooks/useOptions";
 import { useMobileTasks } from "./hooks/useMobileTasks";
+import { useNotifier } from "./hooks/useNotifier";
 
 import { loraSyntaxName, mergeLora } from "./lib/lora-helper";
 import { pickCardPreviewMedia } from "./lib/lora-media";
@@ -67,6 +68,8 @@ import {
 } from "./lib/workflowBuilders";
 import { templateLabels } from "./constants";
 import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus } from "./types";
+import { loadWildcards } from "./lib/wildcards";
+import { WILDCARD_FILES } from "./lib/wildcards";
 
 function App() {
   const { apiBase, setApiBase, client, connection, tab, setTab } = useAppContext();
@@ -77,9 +80,15 @@ function App() {
   const tagging = useTagging();
   const xyz = useXyz();
   const notesHook = useNotes({ tab: tab as any, pushToast, confirm: ui.confirm });
+  const notifier = useNotifier();
 
-  const gen = useGeneration({ client, pushToast });
+  const gen = useGeneration({ client, pushToast, notifyComplete: notifier.notifyComplete });
   const params = useParams();
+
+  // 应用启动即惰性加载内置通配符词库到动态提示的模块级注册表
+  useEffect(() => {
+    void loadWildcards();
+  }, []);
 
   // ===== 手机上传识别（局域网联动）全局同步 =====
   const mobile = useMobileTasks();
@@ -90,7 +99,8 @@ function App() {
     if (!task.tags) return;
     tagging.setWdTags(task.tags);
     pushToast("success", "手机识别完成", `${task.imageName} — tags 已同步到「图片识别」输出框`);
-  }, [pushToast, tagging]);
+    notifier.notifyComplete("手机识别完成", `${task.imageName} — tags 已同步`);
+  }, [pushToast, tagging, notifier.notifyComplete]);
 
   useEffect(() => {
     if (mobile.loading) return;
@@ -152,6 +162,15 @@ function App() {
     setLoraSettings,
     tab: tab as TabId,
   });
+
+  const loraNames = useMemo(
+    () =>
+      loras.loraResult.items
+        .map((item) => item.file_name || (item.file_path ? item.file_path.split(/[\\/]/).pop() ?? "" : ""))
+        .filter(Boolean),
+    [loras.loraResult.items],
+  );
+  const wildcardNames = useMemo(() => [...WILDCARD_FILES] as string[], []);
 
   const handleAddCharacter = useCallback(() => {
     params.setMultiParams(prev => ({
@@ -384,6 +403,8 @@ function App() {
                   apiBase={apiBase}
                   loraSettings={loraSettings}
                   loraExampleFilesByHash={loras.loraExampleFilesByHash}
+                  loraNames={loraNames}
+                  wildcardNames={wildcardNames}
                   onRunGeneration={() => gen.runPrompt("默认生图", () => buildDefaultPrompt(params.defaultParams))}
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
@@ -407,6 +428,8 @@ function App() {
                   apiBase={apiBase}
                   loraSettings={loraSettings}
                   loraExampleFilesByHash={loras.loraExampleFilesByHash}
+                  loraNames={loraNames}
+                  wildcardNames={wildcardNames}
                   onRunGeneration={() => gen.runPrompt("多人工作流", () => buildMultiPrompt(params.multiParams))}
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
@@ -422,6 +445,8 @@ function App() {
                   apiBase={apiBase}
                   loraSettings={loraSettings}
                   loraExampleFilesByHash={loras.loraExampleFilesByHash}
+                  loraNames={loraNames}
+                  wildcardNames={wildcardNames}
                   onRunGeneration={() => gen.runPrompt("高清修复", () => buildHighresPrompt(params.highresParams))}
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}

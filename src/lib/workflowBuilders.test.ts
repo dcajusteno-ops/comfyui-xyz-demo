@@ -35,7 +35,7 @@ describe("workflow builders", () => {
     expect(Object.values(prompt).map((node) => node.class_type)).not.toContain("GetNode");
     expect(Object.values(prompt).map((node) => node.class_type)).not.toContain("SetNode");
     expect(prompt["2"].class_type).toBe("Lora Loader (LoraManager)");
-    expect(Array.isArray(prompt["2"].inputs.loras)).toBe(true);
+    expect(prompt["2"].inputs.loras).toMatchObject({ __value__: [{ name: "my_lora_v0.6", strength: 0.8 }] });
     expect(prompt["6"].inputs.seed).toBe(42);
   });
 

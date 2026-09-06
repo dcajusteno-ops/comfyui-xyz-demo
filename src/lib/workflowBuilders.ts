@@ -12,6 +12,7 @@ import type {
   ClSingleParams,
 } from "../types";
 import { buildWd14Workflow } from "./wd14Workflow";
+import { resolveDynamicPrompt } from "./dynamicPrompt";
 
 const MAX_SEED = 2 ** 53 - 1;
 
@@ -163,6 +164,10 @@ function buildLoraList(loras: LoraSelection[]): any {
 }
 
 export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
+  const resolvedSeed = resolveSeed(params.seed, params.randomizeSeed);
+  const positivePrompt = resolveDynamicPrompt(params.positivePrompt, resolvedSeed);
+  const negativePrompt = resolveDynamicPrompt(params.negativePrompt, resolvedSeed);
+
   const prompt: ComfyPrompt = {
     ...baseCheckpoint(params),
     "2": {
@@ -180,7 +185,7 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
       class_type: "CLIPTextEncode",
       inputs: {
         clip: ["2", 1],
-        text: params.positivePrompt,
+        text: positivePrompt,
       },
       _meta: { title: "正向提示词" },
     },
@@ -188,7 +193,7 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
       class_type: "CLIPTextEncode",
       inputs: {
         clip: ["2", 1],
-        text: params.negativePrompt,
+        text: negativePrompt,
       },
       _meta: { title: "反向提示词" },
     },
@@ -203,7 +208,7 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
     },
     "6": {
       class_type: "KSampler",
-      inputs: samplerInputs(params, ["2", 0], ["3", 0], ["4", 0], ["5", 0]),
+      inputs: samplerInputs(params, ["2", 0], ["3", 0], ["4", 0], ["5", 0], resolvedSeed),
       _meta: { title: "KSampler" },
     },
     "7": {
@@ -416,18 +421,26 @@ export function buildWdBatchPrompt(params: WdBatchParams, index: number): ComfyP
 }
 
 export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
+  const resolvedSeed = resolveSeed(params.seed, params.randomizeSeed);
+  const globalPrompt = resolveDynamicPrompt(params.globalPrompt, resolvedSeed);
+  const negativePrompt = resolveDynamicPrompt(params.negativePrompt, resolvedSeed);
+  const characters = params.characters.map((character) => ({
+    ...character,
+    prompt: resolveDynamicPrompt(character.prompt, resolvedSeed),
+  }));
+
   const mceConfig = {
     version: "1.1.0",
     syntax_mode: params.syntaxMode,
     base_prompt: "",
-    global_prompt: joinPrompt(buildLoraSyntax(params.loras), params.globalPrompt),
+    global_prompt: joinPrompt(buildLoraSyntax(params.loras), globalPrompt),
     use_fill: params.useFill,
     global_use_fill: false,
     canvas: {
       width: params.canvasWidth,
       height: params.canvasHeight,
     },
-    characters: params.characters,
+    characters,
     settings: {
       language: "zh-CN",
       theme: {
@@ -474,7 +487,7 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
       class_type: "PCLazyTextEncode",
       inputs: {
         clip: ["1", 1],
-        text: params.negativePrompt || " ",
+        text: negativePrompt || " ",
       },
       _meta: { title: "PC: Schedule Prompt (negative)" },
     },
@@ -497,7 +510,7 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
     },
     "4": {
       class_type: "KSampler",
-      inputs: samplerInputs(params, ["25", 0], ["2", 0], ["7", 0], ["9", 0]),
+      inputs: samplerInputs(params, ["25", 0], ["2", 0], ["7", 0], ["9", 0], resolvedSeed),
       _meta: { title: "K采样器" },
     },
     "10": {
@@ -527,6 +540,8 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
 export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
   const baseResolvedSeed = resolveSeed(params.seed, params.randomizeSeed);
   const highresResolvedSeed = (params.syncHighresSeed ?? true) ? baseResolvedSeed : resolveSeed(params.highresSeed, params.randomizeHighresSeed ?? true);
+  const positivePrompt = resolveDynamicPrompt(params.positivePrompt, baseResolvedSeed);
+  const negativePrompt = resolveDynamicPrompt(params.negativePrompt, baseResolvedSeed);
 
   const prompt: ComfyPrompt = {
     ...baseCheckpoint(params),
@@ -545,7 +560,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
       class_type: "CLIPTextEncode",
       inputs: {
         clip: ["2", 1],
-        text: params.positivePrompt,
+        text: positivePrompt,
       },
       _meta: { title: "正向提示词" },
     },
@@ -553,7 +568,7 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
       class_type: "CLIPTextEncode",
       inputs: {
         clip: ["2", 1],
-        text: params.negativePrompt,
+        text: negativePrompt,
       },
       _meta: { title: "反向提示词" },
     },

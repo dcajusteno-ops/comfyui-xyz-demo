@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
-import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy, Globe2, Upload } from "lucide-react";
+import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy, Globe2, Upload, Braces } from "lucide-react";
 import { handlePromptWeightAdjustment } from "../lib/promptUtils";
 import { PromptTagBlocks } from "./PromptTagBlocks";
+import { PromptLintBadge } from "./ui/PromptLintBadge";
 import { translateText, defaultTranslationSettings } from "../lib/translation";
 import type { TranslationSettings } from "../lib/translation";
+import { WildcardHelper } from "./features/Generation/WildcardHelper";
 
 export type PromptEntry = {
   id: string;
@@ -123,6 +125,7 @@ export function PromptEditorDialog({
   const [positiveParts, setPositiveParts] = useState<EditorPart[]>([]);
   const [negativeParts, setNegativeParts] = useState<EditorPart[]>([]);
   const [quickInput, setQuickInput] = useState("");
+  const [showWildcards, setShowWildcards] = useState(false);
   const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -533,6 +536,14 @@ export function PromptEditorDialog({
     onClose();
   };
 
+  const appendWildcard = (text: string) => {
+    if (activeEditor === "positive") {
+      setPositiveBase((prev) => (prev ? `${prev}, ${text}` : text));
+    } else {
+      setNegativeBase((prev) => (prev ? `${prev}, ${text}` : text));
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard?.writeText(text);
   };
@@ -540,6 +551,7 @@ export function PromptEditorDialog({
   if (!open) return null;
 
   return (
+    <>
     <div className="prompt-editor-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "var(--overlay-dark)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
       <div className="prompt-editor-dialog" style={{ width: "95vw", height: "90vh", maxWidth: "1400px", backgroundColor: "var(--surface)", borderRadius: "12px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)", boxShadow: "var(--shadow)" }}>
         
@@ -553,6 +565,7 @@ export function PromptEditorDialog({
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.75rem" }}>
+            <button className="icon-button" onClick={() => setShowWildcards(true)} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Braces size={16} /> 通配符</button>
             <button className="icon-button" onClick={() => copyToClipboard(finalPositive + "\n" + finalNegative)} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Copy size={16} /> 复制全部</button>
             <button className="primary-action" onClick={handleApply}>完成并应用</button>
             <button className="icon-button" onClick={onClose} style={{ border: "none" }}><X size={20} /></button>
@@ -772,6 +785,11 @@ export function PromptEditorDialog({
                     value={activeEditor === "positive" ? positiveBase : negativeBase}
                     onChange={e => activeEditor === "positive" ? setPositiveBase(e) : setNegativeBase(e)}
                   />
+                  <PromptLintBadge
+                    value={activeEditor === "positive" ? positiveBase : negativeBase}
+                    onChange={(v) => (activeEditor === "positive" ? setPositiveBase(v) : setNegativeBase(v))}
+                    getTextarea={() => textareaRef.current}
+                  />
                 </div>
               </div>
 
@@ -862,5 +880,7 @@ export function PromptEditorDialog({
         </div>
       </div>
     </div>
+    {showWildcards && <WildcardHelper onClose={() => setShowWildcards(false)} onInsert={appendWildcard} />}
+    </>
   );
 }

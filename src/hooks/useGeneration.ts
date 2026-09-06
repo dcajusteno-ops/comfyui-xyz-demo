@@ -33,7 +33,7 @@ import type {
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
 
-export function useGeneration({ client, pushToast }: { client: ComfyClient; pushToast: ToastFn }) {
+export function useGeneration({ client, pushToast, notifyComplete }: { client: ComfyClient; pushToast: ToastFn; notifyComplete?: (title: string, message?: string) => void }) {
   const [progress, setProgress] = useState<ProgressState>({
     running: false,
     value: 0,
@@ -76,6 +76,7 @@ export function useGeneration({ client, pushToast }: { client: ComfyClient; push
       const result = await client.runPrompt(promptFactory(), onProgress);
       setResults((prev) => [result, ...prev].slice(0, 24));
       pushToast("success", `${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : undefined);
+      notifyComplete?.(`${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : "任务已完成");
       return result;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
@@ -84,7 +85,7 @@ export function useGeneration({ client, pushToast }: { client: ComfyClient; push
       pushToast("error", `${label} 失败`, message);
       throw runError;
     }
-  }, [client, pushToast]);
+  }, [client, pushToast, notifyComplete]);
 
   const runBatchTagger = useCallback(async (type: "cl" | "wd", clBatchParams: ClBatchParams, wdBatchParams: WdBatchParams) => {
     setError("");
@@ -125,6 +126,7 @@ export function useGeneration({ client, pushToast }: { client: ComfyClient; push
       const result = await client.runPrompt(buildWd14Prompt({ ...wd14, imageName }), setProgress);
       setResults((prev) => [result, ...prev].slice(0, 24));
       pushToast("success", "WD1.4 识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
+      notifyComplete?.("WD1.4 识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       return result;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
@@ -132,7 +134,7 @@ export function useGeneration({ client, pushToast }: { client: ComfyClient; push
       pushToast("error", "WD1.4 识别失败", message);
       throw runError;
     }
-  }, [client, pushToast]);
+  }, [client, pushToast, notifyComplete]);
 
   const runClSingle = useCallback(async (clSingleParams: ClSingleParams, clFile: File | null) => {
     setError("");
@@ -149,6 +151,7 @@ export function useGeneration({ client, pushToast }: { client: ComfyClient; push
       const result = await client.runPrompt(buildClSinglePrompt({ ...clSingleParams, imageName }), setProgress);
       setResults((prev) => [result, ...prev].slice(0, 24));
       pushToast("success", "CL 单图识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
+      notifyComplete?.("CL 单图识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       return result;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
@@ -156,7 +159,7 @@ export function useGeneration({ client, pushToast }: { client: ComfyClient; push
       pushToast("error", "CL 单图识别失败", message);
       throw runError;
     }
-  }, [client, pushToast]);
+  }, [client, pushToast, notifyComplete]);
 
   const buildXyzPrompt = useCallback((
     combo: Pick<XyzRunItem, "label" | "patch">,
@@ -234,7 +237,8 @@ export function useGeneration({ client, pushToast }: { client: ComfyClient; push
       batch: { current: items.length, total: items.length, itemLabel: "" },
     });
     pushToast("success", "XYZ 执行结束", `已处理 ${items.length} 个组合`);
-  }, [client, pushToast, buildXyzPrompt]);
+    notifyComplete?.("XYZ 执行结束", `已处理 ${items.length} 个组合`);
+  }, [client, pushToast, buildXyzPrompt, notifyComplete]);
 
   const runXyz = useCallback(async (
     xyzAxes: XyzAxis[], 

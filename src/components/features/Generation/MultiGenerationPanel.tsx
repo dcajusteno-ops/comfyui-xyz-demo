@@ -1,7 +1,9 @@
 import React from "react";
 import { UserRound, Plus } from "lucide-react";
-import { PanelTitle, BaseControls, TextAreaField, SelectField, NumberField } from "../../ui";
+import { PanelTitle, BaseControls, TextAreaField, SelectField, NumberField, PromptLintBadge } from "../../ui";
 import { MultiWorkspace } from "./MultiWorkspace";
+import { PresetBar } from "./PresetBar";
+import type { PromptLintContext } from "../../../lib/promptLint";
 import type { 
   MultiGenerationParams, 
   OptionsState, 
@@ -18,6 +20,8 @@ interface MultiGenerationPanelProps {
   apiBase: string;
   loraSettings: LoraManagerSettings;
   loraExampleFilesByHash: Record<string, LoraExampleMedia[]>;
+  loraNames?: string[];
+  wildcardNames?: string[];
   onRunGeneration: () => void;
   onOpenLoraDetail: (item: LoraItem) => void;
   onSetSimpleLoraTarget: (target: "default" | "multi" | "highres") => void;
@@ -31,15 +35,19 @@ export const MultiGenerationPanel = React.memo(({
   apiBase,
   loraSettings,
   loraExampleFilesByHash,
+  loraNames,
+  wildcardNames,
   onRunGeneration,
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
   onAddCharacter,
 }: MultiGenerationPanelProps) => {
+  const lintContext: PromptLintContext = { loraNames, wildcardNames };
   return (
     <section className="panel">
-      <div className="panel-header">
+      <div className="panel-header" style={{ display: "flex", alignItems: "center" }}>
         <PanelTitle icon={UserRound} title="多人工作流" />
+        <PresetBar target="multi" params={params} options={options} setParams={setParams} />
       </div>
       <div className="panel-body">
         <BaseControls
@@ -49,6 +57,8 @@ export const MultiGenerationPanel = React.memo(({
           apiBase={apiBase}
           settings={loraSettings}
           localExampleFilesByHash={loraExampleFilesByHash}
+          loraNames={loraNames}
+          wildcardNames={wildcardNames}
           hidePositive
           disableStickyPrompt
           onLoraDetail={onOpenLoraDetail}
@@ -58,6 +68,11 @@ export const MultiGenerationPanel = React.memo(({
             label="全局 prompt"
             value={params.globalPrompt}
             onChange={(value) => setParams((prev) => ({ ...prev, globalPrompt: value }))}
+          />
+          <PromptLintBadge
+            value={params.globalPrompt}
+            onChange={(value) => setParams((prev) => ({ ...prev, globalPrompt: value }))}
+            context={lintContext}
           />
           <div className="form-grid multi-options">
             <SelectField

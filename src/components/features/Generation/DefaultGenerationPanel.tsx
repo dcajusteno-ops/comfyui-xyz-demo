@@ -1,6 +1,7 @@
 import React from "react";
 import { Wand2, Plus, Send } from "lucide-react";
 import { PanelTitle, BaseControls } from "../../ui";
+import { PresetBar } from "./PresetBar";
 import type { 
   BaseGenerationParams, 
   OptionsState, 
@@ -16,6 +17,8 @@ interface DefaultGenerationPanelProps {
   apiBase: string;
   loraSettings: LoraManagerSettings;
   loraExampleFilesByHash: Record<string, LoraExampleMedia[]>;
+  loraNames?: string[];
+  wildcardNames?: string[];
   onRunGeneration: () => void;
   onOpenLoraDetail: (item: LoraItem) => void;
   onSetSimpleLoraTarget: (target: "default" | "multi" | "highres") => void;
@@ -29,6 +32,8 @@ export const DefaultGenerationPanel = React.memo(({
   apiBase,
   loraSettings,
   loraExampleFilesByHash,
+  loraNames,
+  wildcardNames,
   onRunGeneration,
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
@@ -36,8 +41,9 @@ export const DefaultGenerationPanel = React.memo(({
 }: DefaultGenerationPanelProps) => {
   return (
     <section className="panel">
-      <div className="panel-header">
+      <div className="panel-header" style={{ display: "flex", alignItems: "center" }}>
         <PanelTitle icon={Wand2} title="默认生图" />
+        <PresetBar target="default" params={params} options={options} setParams={setParams} />
       </div>
       <div className="panel-body">
         <BaseControls
@@ -47,6 +53,8 @@ export const DefaultGenerationPanel = React.memo(({
           apiBase={apiBase}
           settings={loraSettings}
           localExampleFilesByHash={loraExampleFilesByHash}
+          loraNames={loraNames}
+          wildcardNames={wildcardNames}
           onLoraDetail={onOpenLoraDetail}
         />
       </div>

@@ -1,0 +1,16 @@
+# 画风词库（用于 __styles__）
+anime style
+semi-realistic
+flat illustration
+watercolor
+pixel art
+chibi style
+oil painting
+retro anime
+cyberpunk style
+steampunk
+ukiyo-e
+manga screentone
+cel shading
+pastel sketch
+line art

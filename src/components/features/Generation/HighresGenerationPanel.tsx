@@ -2,6 +2,7 @@ import React from "react";
 import { ImageUp, Plus } from "lucide-react";
 import { PanelTitle, BaseControls, SelectField, NumberField } from "../../ui";
 import { DetailerControls } from "./DetailerControls";
+import { PresetBar } from "./PresetBar";
 import { makeDetailerParams } from "../../../lib/paramBuilders";
 import type { 
   HighresParams, 
@@ -18,6 +19,8 @@ interface HighresGenerationPanelProps {
   apiBase: string;
   loraSettings: LoraManagerSettings;
   loraExampleFilesByHash: Record<string, LoraExampleMedia[]>;
+  loraNames?: string[];
+  wildcardNames?: string[];
   onRunGeneration: () => void;
   onOpenLoraDetail: (item: LoraItem) => void;
   onSetSimpleLoraTarget: (target: "default" | "multi" | "highres") => void;
@@ -30,14 +33,17 @@ export const HighresGenerationPanel = React.memo(({
   apiBase,
   loraSettings,
   loraExampleFilesByHash,
+  loraNames,
+  wildcardNames,
   onRunGeneration,
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
 }: HighresGenerationPanelProps) => {
   return (
     <section className="panel">
-      <div className="panel-header">
+      <div className="panel-header" style={{ display: "flex", alignItems: "center" }}>
         <PanelTitle icon={ImageUp} title="高清修复" />
+        <PresetBar target="highres" params={params} options={options} setParams={setParams} />
       </div>
       <div className="panel-body">
         <div className="segmented">
@@ -101,6 +107,8 @@ export const HighresGenerationPanel = React.memo(({
           apiBase={apiBase}
           settings={loraSettings}
           localExampleFilesByHash={loraExampleFilesByHash}
+          loraNames={loraNames}
+          wildcardNames={wildcardNames}
           onLoraDetail={onOpenLoraDetail}
         />
         <div className="xyz-fields-grid" style={{ marginBottom: "12px" }}>

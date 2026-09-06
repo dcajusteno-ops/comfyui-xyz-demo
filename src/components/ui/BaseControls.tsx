@@ -1,7 +1,12 @@
-import { RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { RefreshCw, Braces } from "lucide-react";
 import { NumberField, SelectField, TextAreaField } from "./FormFields";
 import { PromptTagBlocks } from "../PromptTagBlocks";
+import { PromptLintBadge } from "./PromptLintBadge";
 import { LoraChips } from "../features/Lora/LoraChips";
+import { WildcardHelper } from "../features/Generation/WildcardHelper";
+import { detectDynamicSyntax } from "../../lib/dynamicPrompt";
+import type { PromptLintContext } from "../../lib/promptLint";
 import {
   resolutionPresets,
   pathPresets,
@@ -27,6 +32,8 @@ export function BaseControls<T extends BaseGenerationParams>({
   apiBase,
   settings,
   localExampleFilesByHash = {},
+  loraNames,
+  wildcardNames,
 }: {
   params: T;
   options: OptionsState;
@@ -37,9 +44,23 @@ export function BaseControls<T extends BaseGenerationParams>({
   apiBase: string;
   settings: LoraManagerSettings;
   localExampleFilesByHash?: Record<string, LoraExampleMedia[]>;
+  loraNames?: string[];
+  wildcardNames?: string[];
 }) {
   const setField = <K extends keyof T>(key: K, value: T[K]) => {
     setParams((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const lintContext: PromptLintContext = { loraNames, wildcardNames };
+
+  const [showWildcards, setShowWildcards] = useState(false);
+  const positiveSyntax = detectDynamicSyntax(params.positivePrompt);
+  const positiveSyntaxCount = positiveSyntax.choices + positiveSyntax.wildcards;
+
+  const appendToPositive = (text: string) => {
+    const current = params.positivePrompt?.trim() ?? "";
+    const next = current ? `${current}, ${text}` : text;
+    setField("positivePrompt", next as T["positivePrompt"]);
   };
 
   return (
@@ -179,6 +200,26 @@ export function BaseControls<T extends BaseGenerationParams>({
           />
         </label>
       </div>
+      {!hidePositive && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+          <button type="button" className="secondary-action" onClick={() => setShowWildcards(true)} title="动态提示词 / 通配符">
+            <Braces size={14} /> 通配符
+          </button>
+          {positiveSyntaxCount > 0 && (
+            <span
+              style={{
+                fontSize: "11px",
+                color: "var(--accent)",
+                background: "var(--accent-soft)",
+                borderRadius: 999,
+                padding: "2px 10px",
+              }}
+            >
+              含 {positiveSyntaxCount} 处动态语法
+            </span>
+          )}
+        </div>
+      )}
       {disableStickyPrompt ? (
         <>
           {!hidePositive && (
@@ -196,11 +237,18 @@ export function BaseControls<T extends BaseGenerationParams>({
             </div>
           )}
           {hidePositive && (
-            <TextAreaField
-              label="反向提示词"
-              value={params.negativePrompt}
-              onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
-            />
+            <>
+              <TextAreaField
+                label="反向提示词"
+                value={params.negativePrompt}
+                onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
+              />
+              <PromptLintBadge
+                value={params.negativePrompt}
+                onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
+                context={lintContext}
+              />
+            </>
           )}
         </>
       ) : (
@@ -243,6 +291,11 @@ export function BaseControls<T extends BaseGenerationParams>({
                     onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])}
                   />
                 )}
+                <PromptLintBadge
+                  value={params.positivePrompt}
+                  onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])}
+                  context={lintContext}
+                />
               </div>
             )}
             <div>
@@ -252,6 +305,11 @@ export function BaseControls<T extends BaseGenerationParams>({
                   onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
                 />
               )}
+              <PromptLintBadge
+                value={params.negativePrompt}
+                onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
+                context={lintContext}
+              />
             </div>
           </div>
         </>
@@ -264,6 +322,9 @@ export function BaseControls<T extends BaseGenerationParams>({
         settings={settings}
         localExampleFilesByHash={localExampleFilesByHash}
       />
+      {showWildcards && (
+        <WildcardHelper onClose={() => setShowWildcards(false)} onInsert={appendToPositive} />
+      )}
     </>
   );
 }

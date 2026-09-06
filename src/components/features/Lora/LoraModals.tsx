@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { NotifierSettingsPanel } from "../../NotifierSettingsPanel";
 import {
   BadgePlus,
   Brain,
@@ -1052,6 +1053,7 @@ export function LoraOperationModal({
         )}
         {operation.type === "notifications" && (
           <div className="notification-log">
+            <NotifierSettingsPanel />
             {onShowWelcome && (
               <div 
                 className="toast info" 

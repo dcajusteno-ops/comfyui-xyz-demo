@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.6] - 2026-09-06
+
+### 💾 参数预设（Presets）
+- **按工作流分组的命名快照**：在 默认生图 / 多人工作流 / 高清修复 面板标题栏直接「保存」当前完整参数为命名预设，选中后一键「应用」回填（checkpoint 失效时自动保留当前模型并提示）。
+- **全生命周期管理**：支持重命名、删除（自定义确认弹窗）、导出/导入 JSON（按模板分组，导出仅含当前模板）。
+- **本地持久化**：复用 `localStorage` 单一 key，刷新/重开均保留，不引入后端依赖。
+
+### 🔔 桌面/手机双端完成提醒（Completion Notifications）
+- **后台才打扰**：生图 / XYZ / WD、CL 识别 / 手机识图完成时，仅在页面切后台时弹系统通知（Notification API），前台沿用现有 Toast。
+- **提示音与开关**：Web Audio 合成提示音（零音频资产）；「通知」弹窗顶部新增 桌面通知 / 提示音 / 仅后台提醒 三个开关。
+- **手机端**：识图完成时震动（Vibration API）+ 提示音，不支持的环境静默降级。
+
+### 🎲 动态提示词 / Wildcard
+- **两种语法**：`{蓝天|星空|黄昏}` 随机多选 + `__styles__` 通配符词库引用，提交前展开，与 LoRA 语法并存。
+- **可复现**：展开以当次生成 seed 为随机种子，同 seed 同输入同词库 → 结果一致（`randomizeSeed` 时自然随机）。
+- **内置 4 个词库**（`public/wildcards/*.txt`）：画风 / 光影 / 镜头构图 / 质量词，`BaseControls` 与提示词编辑器均提供「通配符」入口 + 展开预览。
+
+### 🧪 Prompt Lint / 体检
+- **8 类实时静态检查**：括号配平、权重语法 / 越界、全角逗号、连续逗号 / 空片段、词条重复、未知 LoRA 引用、未知通配符引用、token 数估算。
+- **分级呈现 + 一键修复**：error/warning/info 三级徽标，可修复项（全角逗号、空片段）一键修复，点击问题可定位选中。
+- **上下文感知**：LoRA / 通配符名单由 App 透传，未提供时对应规则自动关闭。
+
+### 🛠️ 修复与打磨
+- **预设 / 通配符弹窗层级修复**：改为 `createPortal` 挂载到 `document.body`，彻底解决面板内 `backdrop-filter` / `transform` 包含块导致的弹窗被遮挡问题；通配符弹窗在提示词编辑器之上用更高 z-index。
+- **陈旧测试断言对齐**：修正 `workflowBuilders.test.ts` 中 LoRA `__value__` 包装器的断言（v0.3.1 引入包装器后遗留）。
+
 ## [v0.3.5] - 2026-09-01
 
 ### 📱 WD1.4 局域网手机联动 (Local Network Mobile Companion)

@@ -1,0 +1,13 @@
+# 质量词库（用于 __quality__）
+masterpiece
+best quality
+ultra detailed
+highly detailed
+8k resolution
+sharp focus
+intricate details
+professional illustration
+polished
+photorealistic
+high resolution
+ultra fine detail

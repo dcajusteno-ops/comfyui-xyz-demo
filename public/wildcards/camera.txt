@@ -1,0 +1,16 @@
+# 镜头与构图词库（用于 __camera__）
+close-up
+portrait framing
+full body shot
+cowboy shot
+wide shot
+low angle
+high angle
+bird's eye view
+worm's eye view
+dutch angle
+over-the-shoulder shot
+extreme close-up
+fisheye lens
+macro shot
+background bokeh

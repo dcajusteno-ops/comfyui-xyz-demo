@@ -1,0 +1,15 @@
+# 光影氛围词库（用于 __lighting__）
+golden hour
+soft rim light
+volumetric light
+cinematic lighting
+dramatic backlight
+neon glow
+moonlight
+overcast soft light
+studio lighting
+candlelight
+bioluminescent glow
+sunset glow
+harsh daylight
+twilight

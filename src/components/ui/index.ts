@@ -4,4 +4,5 @@ export { NumberField, TextField, SelectField, MultiSelectField, TextAreaField, C
 export { ColorAlphaField } from "./ColorAlphaField";
 export { RichTextEditor } from "./RichTextEditor";
 export { BaseControls } from "./BaseControls";
+export { PromptLintBadge } from "./PromptLintBadge";
 export { InfoItem, TagCloud, PromptBlock } from "./Misc";

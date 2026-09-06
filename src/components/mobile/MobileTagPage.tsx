@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScanSearch, Copy, RefreshCw, ImageUp, Loader2 } from "lucide-react";
 import { useMobileTasks } from "../../hooks/useMobileTasks";
+import { beep } from "../../lib/notifier";
 import type { MobileTask, MobileTaskParams, MobileTaskStatus } from "../../types";
 
 const PARAM_KEY = "comfyui_wd14_params";
@@ -73,6 +74,22 @@ export const MobileTagPage = () => {
   const [copied, setCopied] = useState(false);
 
   const current = useMemo(() => (currentId ? tasks.find((t) => t.id === currentId) ?? null : null), [tasks, currentId]);
+
+  const prevStatusRef = useRef<MobileTaskStatus | null>(null);
+  useEffect(() => {
+    const status = current?.status ?? null;
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if (prev !== "done" && status === "done") {
+      // 识图完成：震动提示（iOS 不支持时静默），并播放一声提示音
+      try {
+        navigator.vibrate?.(200);
+      } catch {
+        // 忽略不支持的震动 API
+      }
+      beep();
+    }
+  }, [current?.status]);
 
   useEffect(() => {
     if (!file) return;
