@@ -176,7 +176,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
   const allEntries = useMemo(() => [...customEntries, ...dictionary], [customEntries, dictionary]);
 
   const { filteredItems, totalCount } = useMemo(() => {
-    let list: any[] = [];
+    let list: any[];
     if (activeTab === 'favorites') {
       const favSet = new Set(favorites);
       list = allEntries.filter(e => favSet.has(e.id));

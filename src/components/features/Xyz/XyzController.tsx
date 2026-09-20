@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { PanelTitle } from "../../ui";
 import { XyzPreview } from "./XyzPreview";
-import { XyzHelpModal } from "./XyzHelpModal";
 import { XyzReviewBar, XyzCellBadge } from "./XyzReviewOverlay";
 import { useXyzReview } from "../../../hooks/useXyzReview";
 import { xyzStatusLabel } from "../../../lib/app-utils";
@@ -25,7 +24,6 @@ import type {
   BaseGenerationParams,
   MultiGenerationParams,
   HighresParams,
-  LoraItem,
   XyzCellScore,
 } from "../../../types";
 
@@ -64,7 +62,6 @@ export const XyzController = React.memo(({
   setXyzAxes,
   xyzExcludedIndices,
   onToggleXyzIndex,
-  showXyzHelp,
   setShowXyzHelp,
   lorasOfTarget,
   gen,

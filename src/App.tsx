@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Columns,
   Dices,
-  ExternalLink,
   FileText,
   GalleryHorizontalEnd,
   ImageUp,
@@ -14,7 +13,6 @@ import {
   Loader2,
   PauseCircle,
   RefreshCw,
-  Save,
   ScanSearch,
   Settings,
   SlidersHorizontal,
@@ -22,7 +20,6 @@ import {
   Type,
   UserRound,
   Wand2,
-  X,
 } from "lucide-react";
 
 import { AppSidebar } from "./components/layout/AppSidebar";
@@ -41,7 +38,6 @@ import { NotesManagerPanel } from "./components/features/Notes/NotesManagerPanel
 import { XyzController } from "./components/features/Xyz";
 import { LoraManagerPanel } from "./components/features/Lora";
 import { SlotMachinePanel } from "./components/features/Slots";
-import { WelcomeModal } from "./components/WelcomeModal";
 
 import { useAppContext } from "./AppContext";
 import { useToast } from "./hooks/useToast";
@@ -63,8 +59,6 @@ import {
   buildDefaultPrompt,
   buildHighresPrompt,
   buildMultiPrompt,
-  buildWd14Prompt,
-  buildClSinglePrompt,
 } from "./lib/workflowBuilders";
 import { templateLabels } from "./constants";
 import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus } from "./types";
@@ -171,13 +165,6 @@ function App() {
     [loras.loraResult.items],
   );
   const wildcardNames = useMemo(() => [...WILDCARD_FILES] as string[], []);
-
-  const handleAddCharacter = useCallback(() => {
-    params.setMultiParams(prev => ({
-      ...prev,
-      characters: addCharacter(prev.characters)
-    }));
-  }, [params.setMultiParams]);
 
   const handleOpenLoraDetail = useCallback((lora: LoraSelection | LoraItem) => {
     if ("sha256" in lora && "file_path" in lora) {

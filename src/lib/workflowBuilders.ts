@@ -3,7 +3,6 @@ import type {
   ComfyPrompt,
   DetailerParams,
   HighresParams,
-  HighresVariant,
   LoraSelection,
   MultiGenerationParams,
   Wd14Params,
@@ -90,7 +89,7 @@ function insertDrawTextNode(
 
   const textToDraw = (params.drawText.text && params.drawText.text.trim()) ? params.drawText.text : "测试文本";
 
-  const drawTextId = String(nextId++);
+  const drawTextId = String(nextId);
   prompt[drawTextId] = {
     class_type: "DrawTextAdvanced",
     inputs: {

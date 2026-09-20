@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { X, Columns } from "lucide-react";
 
 export function ImageComparerModal({ imageA, imageB, onClose }: { imageA: string; imageB: string; onClose: () => void }) {

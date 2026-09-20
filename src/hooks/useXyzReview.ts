@@ -53,7 +53,7 @@ export function useXyzReview() {
           reviewedAt: Date.now(),
           outcome,
         }));
-      } catch (error) {
+      } catch {
         if (tokenRef.current !== token) return;
         setState((prev) => ({ ...prev, reviewing: false, progress: null }));
       }

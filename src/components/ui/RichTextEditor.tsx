@@ -1,19 +1,17 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   Clock,
   Copy,
   Download,
   Maximize,
   Minimize,
-  Trash2,
   Type,
   Upload,
   Save,
   CheckCircle2,
   Eraser,
   Sparkles,
-  Zap,
-  AlignLeft
+  Zap
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -32,7 +30,7 @@ const COMMON_SNIPPETS = [
   { label: "负面提示词", value: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, " }
 ];
 
-export function RichTextEditor({ value, onChange, onSave, title, onClear, saving }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, onSave, title, saving }: RichTextEditorProps) {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [zoom, setZoom] = useState(16);
   const [showSnippets, setShowSnippets] = useState(false);

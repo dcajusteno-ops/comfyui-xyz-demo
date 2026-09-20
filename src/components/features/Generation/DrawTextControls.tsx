@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { NumberField, SelectField, TextAreaField, MultiSelectField, ColorAlphaField } from "../../ui";
+import { NumberField, SelectField, MultiSelectField, ColorAlphaField } from "../../ui";
 import { makeBaseParams } from "../../../lib/paramBuilders";
 import type { DrawTextParams, BaseGenerationParams, OptionsState } from "../../../types";
 

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ScanSearch, Copy, RefreshCw, ImageUp, Loader2 } from "lucide-react";
 import { useMobileTasks } from "../../hooks/useMobileTasks";
 import { beep } from "../../lib/notifier";
-import type { MobileTask, MobileTaskParams, MobileTaskStatus } from "../../types";
+import type { MobileTaskParams, MobileTaskStatus } from "../../types";
 
 const PARAM_KEY = "comfyui_wd14_params";
 

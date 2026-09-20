@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.7] - 2026-09-19
+
+### 📁 LoRA 管理侧边栏文件夹折叠 (Collapsible Folder Tree)
+- **全层级折叠**：侧边栏中每个含子文件夹的目录（如 `SDXL`、`动漫`，含深层目录）在行尾显示折叠箭头，一键收起/展开整棵子树；叶子节点不显示箭头。
+- **选择语义零回归**：点击文件夹名仍选中并过滤右侧列表；点击箭头仅切换折叠，不影响查询状态与已加载列表。
+- **祖先自动展开**：通过「全部文件夹」下拉等途径选中位于折叠父级内的深层路径时，侧边栏自动展开其全部祖先并滚动到选中项可见（与「记忆滚动」叠加，`block: nearest` 幂等无跳动）。
+- **折叠状态持久化**：默认全部展开，手动折叠过的目录跨刷新/重开/重进弹窗保留（`localStorage` 单一 key `comfyui_lora_sidebar_collapsed`，LoRA / Embedding 共享，失效路径无害）。
+- **纯前端零新增依赖**：折叠箭头复用 `lucide-react`；改动集中 `FolderSidebar` + `lora-helper` 纯函数 + CSS，`LoraManagerPanel` 与后端 API 零改动；简易弹窗与功能标签页同时生效。
+
+### 🛠️ 构建优化 (Build Optimization)
+- **crypto-js 按需引入**：`translation.ts` 改为按需子模块（`md5` / `hmac-sha1` / `enc-base64`），不再整库拉入主 chunk（整库约 214 KB 源码，实际仅用 MD5 与 HMAC-SHA1 签名），主 chunk 实减约 59 kB。
+- **vendor 分包**：`react-dom`（含 `react-dom/client` 子路径）与 `marked`/`dompurify` 拆为独立 chunk，主 chunk 684 → 402 kB，全部 chunk < 500 kB，消除构建警告；vendor hash 稳定、缓存更友好。
+
+### 🧪 质量基建 (Quality Infrastructure)
+- **组件层测试**：新增 `@testing-library/react` + jsdom 测试基建（`src/test/setup.ts`，滚动 API stub），23 个组件测试覆盖 FolderSidebar 折叠交互、LoraCard NSFW 模糊与遮罩、LoraChips 拖拽控件、PromptTagBlocks 权重胶囊，总计 117 测试全绿。
+- **E2E 冒烟**：新增 Playwright（`npm run test:e2e`），5 个**不依赖 ComfyUI 运行**的冒烟用例（应用加载 / 标签切换 / 折叠持久化 / 简易弹窗 / 主题切换），API 在 Playwright 路由层 mock（`e2e/mocks.ts`）。
+- **ESLint**：flat config（`typescript-eslint` + `react-hooks` + `react-refresh`），`npm run lint`；清理 56 处未用变量/导入、13 处自动修复项、2 处无用赋值、1 处缺失 error cause，删除 287 行完整死 hook `useExampleImages.ts`；`no-explicit-any` 与 react-hooks 新版启发式规则暂降级为 warning 逐个收敛。
+
+### 🧹 修复与打磨
+- **useOptions 解构错位修复**：修复清理 `stats` 未用变量时 `Promise.all` 按位置解构只删绑定、未删对应 `getSystemStats()` 调用，导致 `checkpointInfo` 等全部绑定错位一位、所有下拉选项为空的回归（用户实测发现）；新增 `useOptions` renderHook 单测（`useOptions.test.ts`）与 E2E「下拉选项由 object_info 填充」断言双重防线。
+- **假排序下拉**：LoRA 管理器工具栏的装饰性 `A - Z` 假下拉（`onChange={() => undefined}`）改为非交互排序徽标。
+- **README 版本标记**：31 个特性小节标题去除漂移的版本标记，版本事实源统一由 CHANGELOG 承担。
+- **路径分隔符验证**：验证后端 folders 返回 `/` 分隔符，与侧边栏树路径一致，无失配场景。
+
 ## [v0.3.6] - 2026-09-06
 
 ### 💾 参数预设（Presets）

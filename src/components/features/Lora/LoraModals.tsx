@@ -1,17 +1,15 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { NotifierSettingsPanel } from "../../NotifierSettingsPanel";
 import {
   BadgePlus,
   Brain,
   CheckCircle2,
-  Columns,
   Copy,
   Download,
   FileText,
   Film,
   FolderOpen,
-  GalleryHorizontalEnd,
   Globe2,
   Image as ImageIcon,
   Info,
@@ -49,7 +47,6 @@ import { TranslationProvider } from "../../../lib/translation";
 import { ComfyClient } from "../../../lib/comfyClient";
 import {
   buildLoraCivitaiUrl,
-  extractItemTrainedWords,
   formatStrength,
   loraModelId,
   loraSyntaxName,
@@ -67,7 +64,7 @@ import {
   shouldBlurNsfwLevel,
 } from "../../../lib/nsfw";
 import { validMatureBlurLevels } from "../../../constants";
-import { buildLoraExamples, isLoraVideo, pickCardPreviewMedia } from "../../../lib/lora-media";
+import { buildLoraExamples, isLoraVideo } from "../../../lib/lora-media";
 import { operationTitle } from "../../../lib/app-utils";
 import { ModalFrame, InfoItem, TagCloud, PromptBlock, NumberField } from "../../ui";
 import { LoraMedia } from "./LoraMedia";
@@ -127,7 +124,7 @@ function UpdatesPane({ modelType, records, client, onRefresh, onToast }: { model
     const modelId = updateRecordModelId(record);
     if (!modelId) return;
     try {
-      const result = await client.ignoreManagedModelUpdate(modelType, modelId, !Boolean(record.shouldIgnore ?? record.should_ignore));
+      const result = await client.ignoreManagedModelUpdate(modelType, modelId, !(record.shouldIgnore ?? record.should_ignore));
       if (result.success === false) throw new Error(result.error || "忽略更新失败");
       onToast("success", "更新状态已写回");
       await onRefresh();
@@ -514,7 +511,7 @@ export function LoraDetailModal({
     try {
       await onRename(item, newName.trim());
       setIsRenaming(false);
-    } catch (error) {
+    } catch {
       // Error is handled by onRename/toast
     } finally {
       setRenaming(false);
@@ -553,7 +550,7 @@ export function LoraDetailModal({
               metadataResult = retryResult[0];
             }
           }
-        } catch (e) {
+        } catch {
           // Ignore search error
         }
       }
@@ -739,7 +736,6 @@ export function LoraOperationModal({
   modelType,
   operation,
   client,
-  selectedItems,
   onClose,
   onToast,
   onSettingsSaved,
@@ -766,7 +762,6 @@ export function LoraOperationModal({
   notifications?: Toast[];
   onShowWelcome?: () => void;
 }) {
-  const operationItems = "items" in operation ? operation.items : operation.type === "download" && operation.item ? [operation.item] : selectedItems;
   const [textValue, setTextValue] = useState(() => {
     if (operation.type === "rename") return operation.item.file_name;
     if (operation.type === "download") return String(loraModelId(operation.item) ?? "");

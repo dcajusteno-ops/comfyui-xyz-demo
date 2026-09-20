@@ -16,7 +16,6 @@ import {
 import type {
   BaseGenerationParams,
   OptionsState,
-  LoraSelection,
   LoraItem,
   LoraManagerSettings,
   LoraExampleMedia,

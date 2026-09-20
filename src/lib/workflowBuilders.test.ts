@@ -128,12 +128,12 @@ describe("workflow builders", () => {
     };
     
     let combinations = 0;
-    for (let upscale of [false, true]) {
-      for (let segs of [false, true]) {
-        for (let face of [false, true]) {
-          for (let eyes of [false, true]) {
-            for (let nsfw of [false, true]) {
-              for (let hand of [false, true]) {
+    for (const upscale of [false, true]) {
+      for (const segs of [false, true]) {
+        for (const face of [false, true]) {
+          for (const eyes of [false, true]) {
+            for (const nsfw of [false, true]) {
+              for (const hand of [false, true]) {
                 combinations++;
                 expect(() => buildHighresPrompt({ ...baseHighres, enableUpscale: upscale, enableSegsDetailer: segs, enableFaceDetailer: face, enableEyesDetailer: eyes, enableNsfwDetailer: nsfw, enableHandDetailer: hand })).not.toThrow();
               }

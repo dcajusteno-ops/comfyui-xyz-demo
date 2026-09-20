@@ -3409,6 +3409,16 @@ textarea {
   border-radius: 6px;
 }
 
+/* 非交互排序徽标（后端默认 A-Z，替代原假排序下拉） */
+.lm-sort-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lm-muted);
+  user-select: none;
+  cursor: default;
+}
+
 .lm-plugin-toolbar .plugin-search {
   flex: 1 1 340px;
   margin-left: auto;
@@ -3487,6 +3497,36 @@ textarea {
 .lm-folder-tree {
   overflow: visible;
   padding: 7px 0;
+}
+
+.lm-folder-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.lm-folder-row > button:not(.lm-folder-toggle) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lm-folder-node .lm-folder-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 24px;
+  min-width: 24px;
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--lm-muted);
+  background: transparent;
+}
+
+.lm-folder-node .lm-folder-toggle:hover {
+  color: var(--accent);
+  background: var(--surface-hover);
 }
 
 .lm-folder-node button {

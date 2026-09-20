@@ -26,8 +26,8 @@ export function handlePromptWeightAdjustment(
     }
 
     if (foundMatch) {
-      let newWeight = Math.round((foundMatch.weight + delta) * 100) / 100;
-      let newStr = newWeight === 1.0 ? foundMatch.word : `(${foundMatch.word}:${newWeight})`;
+      const newWeight = Math.round((foundMatch.weight + delta) * 100) / 100;
+      const newStr = newWeight === 1.0 ? foundMatch.word : `(${foundMatch.word}:${newWeight})`;
       const newText = text.slice(0, foundMatch.matchStart) + newStr + text.slice(foundMatch.matchEnd);
       onChange(newText);
       setTimeout(() => {
@@ -56,8 +56,8 @@ export function handlePromptWeightAdjustment(
       selected = selected.slice(1, -1);
     }
 
-    let weight = Math.round((1.0 + delta) * 100) / 100;
-    let newStr = weight === 1.0 ? selected : `(${selected}:${weight})`;
+    const weight = Math.round((1.0 + delta) * 100) / 100;
+    const newStr = weight === 1.0 ? selected : `(${selected}:${weight})`;
     
     const newText = text.slice(0, start) + newStr + text.slice(end);
     onChange(newText);
@@ -137,8 +137,8 @@ function processChunk(chunk: string, offset: number, tags: PromptTag[]) {
 }
 
 export function adjustWeightForTag(text: string, tag: PromptTag, delta: number): string {
-  let newWeight = Math.round((tag.weight + delta) * 100) / 100;
-  let newStr = newWeight === 1.0 ? tag.word : `(${tag.word}:${newWeight})`;
+  const newWeight = Math.round((tag.weight + delta) * 100) / 100;
+  const newStr = newWeight === 1.0 ? tag.word : `(${tag.word}:${newWeight})`;
   return text.slice(0, tag.start) + newStr + text.slice(tag.end);
 }
 

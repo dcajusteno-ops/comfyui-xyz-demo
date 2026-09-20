@@ -27,8 +27,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
     let canceled = false;
     async function load() {
       try {
-        const [stats, checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, drawTextInfo, managerSettings] = await Promise.all([
-          client.getSystemStats(),
+        const [checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, drawTextInfo, managerSettings] = await Promise.all([
           client.getObjectInfo("CheckpointLoaderSimple"),
           client.getObjectInfo("KSampler"),
           client.getObjectInfo("WD14Tagger|pysssss").catch(() => null),

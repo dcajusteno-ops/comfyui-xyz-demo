@@ -1,13 +1,10 @@
 import React from "react";
 import { Type, Sparkles, UserRound, ImageUp } from "lucide-react";
-import { PanelTitle, BaseControls } from "../../ui";
+import { PanelTitle } from "../../ui";
 import { DrawTextControls } from "./DrawTextControls";
-import type { 
-  BaseGenerationParams, 
-  OptionsState, 
-  LoraItem, 
-  LoraExampleMedia,
-  LoraManagerSettings
+import type {
+  BaseGenerationParams,
+  OptionsState
 } from "../../../types";
 
 interface TextGenerationPanelProps {

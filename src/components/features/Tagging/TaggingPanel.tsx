@@ -50,7 +50,6 @@ export const TaggingPanel = React.memo(({
   wdFile,
   setWdFile,
   wdTags,
-  setWdTags,
   wd14Tab,
   setWd14Tab,
   clFile,

@@ -2,7 +2,6 @@ import type {
   ApiResult,
   ComfyPrompt,
   ConnectionInfo,
-  ConnectionStatus,
   DoctorDiagnosticsResult,
   DownloadProgress,
   ExampleImagesPendingResult,
@@ -178,7 +177,7 @@ export class ComfyClient {
               listener(message);
             }
           }
-        } catch (e) {
+        } catch {
           // Ignore parse errors for non-JSON messages
         }
       };
@@ -701,7 +700,6 @@ export class ComfyClient {
       }
     }
 
-    const socket = this.monitorSocket!;
     const clientId = this.clientId;
     let promptId = "";
     let completed = false;

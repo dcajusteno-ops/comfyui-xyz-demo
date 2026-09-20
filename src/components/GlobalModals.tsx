@@ -1,10 +1,8 @@
 import React from "react";
-import { X } from "lucide-react";
 import type {
   LoraItem,
   LoraManagerSettings,
   LoraOperation,
-  ManagedModelType,
   TemplateKind,
   Toast,
   TranslationSettings,
@@ -88,7 +86,6 @@ export function GlobalModals(props: GlobalModalsProps) {
     translationSettings,
     onTranslationSettingsSaved,
     pushToast,
-    toasts,
     notificationLog,
   } = props;
 
@@ -129,7 +126,7 @@ export function GlobalModals(props: GlobalModalsProps) {
           onSettingsSaved={onUpdateSettings}
           translationSettings={translationSettings}
           onTranslationSettingsSaved={onTranslationSettingsSaved}
-          onMutated={(msg) => loras.refreshLoras()}
+          onMutated={() => loras.refreshLoras()}
           notifications={notificationLog}
           onShowWelcome={() => ui.setShowWelcome(true)}
         />

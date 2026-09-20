@@ -1,4 +1,7 @@
-import CryptoJS from "crypto-js";
+// 按需子模块引入：项目仅使用 MD5 与 HMAC-SHA1 签名，避免整库（约 214KB 源码）进入主 chunk
+import MD5 from "crypto-js/md5";
+import HmacSHA1 from "crypto-js/hmac-sha1";
+import Base64 from "crypto-js/enc-base64";
 
 export type TranslationProvider = "mymemory" | "baidu" | "aliyun";
 
@@ -55,7 +58,7 @@ export async function translateText(text: string, settings: TranslationSettings,
         }
       }
     }
-  } catch (err) {
+  } catch {
     // Ignore local dictionary errors and fall back to API
   }
 
@@ -81,7 +84,7 @@ export async function translateText(text: string, settings: TranslationSettings,
     return result;
   } catch (error) {
     console.error("Translation Error:", error);
-    throw new Error(`翻译失败 (${settings.provider}): ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`翻译失败 (${settings.provider}): ${error instanceof Error ? error.message : String(error)}`, { cause: error });
   }
 }
 
@@ -102,7 +105,7 @@ async function translateBaidu(text: string, appId?: string, secret?: string, dir
   }
 
   const salt = Math.random().toString().slice(2);
-  const sign = CryptoJS.MD5(appId + text + salt + secret).toString();
+  const sign = MD5(appId + text + salt + secret).toString();
 
   const url = new URL("https://api.fanyi.baidu.com/api/trans/vip/translate");
   url.searchParams.append("q", text);
@@ -186,7 +189,7 @@ async function translateAliyun(text: string, accessKeyId?: string, accessKeySecr
 
   const stringToSign = "POST&%2F&" + aliyunEncode(sortedParams);
   
-  const signature = CryptoJS.HmacSHA1(stringToSign, accessKeySecret + "&").toString(CryptoJS.enc.Base64);
+  const signature = HmacSHA1(stringToSign, accessKeySecret + "&").toString(Base64);
   params["Signature"] = signature;
 
   const bodyParams = new URLSearchParams();

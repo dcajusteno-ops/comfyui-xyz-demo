@@ -1,12 +1,10 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import type { UIEvent } from "react";
 import {
   Boxes,
   Download,
-  GripVertical,
   Image as ImageIcon,
   RefreshCw,
-  X,
 } from "lucide-react";
 
 import type {
@@ -17,7 +15,6 @@ import type {
   LoraListResult,
   LoraManagerSettings,
   LoraQueryState,
-  LoraSelection,
   ManagedModelType,
   TemplateKind,
 } from "../../../types";
@@ -25,19 +22,16 @@ import type {
 import {
   buildFolderTree,
   extractItemTrainedWords,
-  loraSyntaxName,
 } from "../../../lib/lora-helper";
 import {
   getItemNsfwLevel,
   normalizeMatureBlurLevel,
 } from "../../../lib/nsfw";
-import { isVideoPath, pickCardPreviewMedia } from "../../../lib/lora-media";
+import { pickCardPreviewMedia } from "../../../lib/lora-media";
 import { managedModelLabel } from "../../../constants";
 import { ExampleImagesProgressBar } from "../../ui";
 import { FolderSidebar } from "./FolderSidebar";
-import { LoraChips } from "./LoraChips";
 import { LoraCard } from "./LoraCard";
-import { LoraMedia } from "./LoraMedia";
 
 const EMPTY_ARRAY: any[] = [];
 
@@ -166,9 +160,7 @@ export const LoraManagerPanel = memo(({
         </div>
       </div>
       <div className="lora-plugin-toolbar lm-plugin-toolbar">
-        <select className="az-select" value="az" onChange={() => undefined} title="排序">
-          <option value="az">A - Z</option>
-        </select>
+        <span className="az-select lm-sort-badge" title="列表按名称 A - Z 排序（后端默认）">A - Z</span>
         <button type="button" className="icon-button" onClick={() => onRefresh()}><RefreshCw size={15} /> 刷新</button>
         <button type="button" className="icon-button lm-example-download-btn" disabled={exampleBusy} onClick={() => onPullAllExamples()}>
           <Download size={15} />

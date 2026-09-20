@@ -59,6 +59,18 @@ export function buildFolderTree(folders: string[]) {
   return roots;
 }
 
+export function collectAncestorPaths(path: string) {
+  if (!path) return [];
+  const parts = path.split(/[\\/]/).filter(Boolean);
+  const ancestors: string[] = [];
+  let current = "";
+  for (const part of parts.slice(0, -1)) {
+    current = current ? `${current}/${part}` : part;
+    ancestors.push(current);
+  }
+  return ancestors;
+}
+
 export function extractItemTrainedWords(item: LoraItem) {
   const civitai = item.civitai as LoraMetadata | undefined;
   return uniqueStrings(civitai?.trainedWords ?? []);

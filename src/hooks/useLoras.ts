@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ComfyClient } from "../lib/comfyClient";
-import { 
-  mergeManagedModelItems, 
-  uniqueStrings, 
-  loraSyntaxName, 
-  mergeLora, 
-  normalizeLoraManagerSettings,
-  loraModelId
+import {
+  mergeManagedModelItems,
+  uniqueStrings,
+  loraSyntaxName,
+  mergeLora,
+  normalizeLoraManagerSettings
 } from "../lib/lora-helper";
 import { pickCardPreviewMedia } from "../lib/lora-media";
 import type {
@@ -22,15 +21,13 @@ import type {
   Toast,
   ExampleImagesStatus,
   ExampleImagesPendingResult,
-  LoraExampleMedia,
-  DownloadProgress
+  LoraExampleMedia
 } from "../types";
-import { 
-  defaultLoraQuery, 
-  emptyLoraResult, 
-  templateLabels, 
-  managedModelExampleType,
-  defaultLoraManagerSettings
+import {
+  defaultLoraQuery,
+  emptyLoraResult,
+  templateLabels,
+  managedModelExampleType
 } from "../constants";
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;

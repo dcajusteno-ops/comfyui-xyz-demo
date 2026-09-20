@@ -2,6 +2,7 @@ node_modules/
 dist/
 artifacts/
 data/
+playwright-report/
 .DS_Store
 .env
 .env.local
