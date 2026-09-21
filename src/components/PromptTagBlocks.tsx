@@ -38,36 +38,46 @@ export function PromptTagBlocks({ value, onChange }: PromptTagBlocksProps) {
 
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px', padding: '4px' }}>
-      {tags.map((tag, i) => (
+      {tags.map((tag, i) => {
+        // 动态组（{a|b, c}）与畸形括号块无法用组语法表达单成员权重，隐藏 +/− 只保留翻译
+        const adjustable = !tag.dynamic && !tag.broken;
+        return (
         <div key={`${tag.start}-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'stretch', 
-            backgroundColor: 'var(--surface-alt)', 
-            border: '1px solid var(--border)', 
-            borderRadius: '6px', 
-            overflow: 'hidden' 
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'stretch',
+              backgroundColor: 'var(--surface-alt)',
+              border: '1px solid var(--border)',
+              borderRadius: '6px',
+              overflow: 'hidden',
+            }}
+            title={adjustable ? undefined : "动态提示词组（{a|b}）与括号不完整的词条不支持加权"}
+          >
             <div style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', color: 'var(--text)', display: 'flex', alignItems: 'center' }}>
               {tag.word} {tag.weight !== 1.0 && <span style={{ marginLeft: '4px', color: 'var(--accent)', fontWeight: 600 }}>{tag.weight.toFixed(2)}</span>}
             </div>
             <div style={{ display: 'flex', borderLeft: '1px solid var(--border)' }}>
-              <button 
-                type="button" 
-                onClick={(e) => { e.preventDefault(); handleAdjust(tag, 0.1); }}
-                onMouseDown={(e) => e.preventDefault()}
-                style={{ padding: '0 6px', border: 'none', backgroundColor: 'var(--tag-btn-bg)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
-              >
-                +
-              </button>
-              <button 
-                type="button" 
-                onClick={(e) => { e.preventDefault(); handleAdjust(tag, -0.1); }}
-                onMouseDown={(e) => e.preventDefault()}
-                style={{ padding: '0 6px', border: 'none', backgroundColor: 'var(--tag-btn-bg)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
-              >
-                -
-              </button>
+              {adjustable && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); handleAdjust(tag, 0.1); }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    style={{ padding: '0 6px', border: 'none', backgroundColor: 'var(--tag-btn-bg)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); handleAdjust(tag, -0.1); }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    style={{ padding: '0 6px', border: 'none', backgroundColor: 'var(--tag-btn-bg)', cursor: 'pointer', color: 'var(--text)', borderRight: '1px solid var(--border)' }}
+                  >
+                    -
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); handleTranslateTag(tag, i); }}
@@ -85,7 +95,8 @@ export function PromptTagBlocks({ value, onChange }: PromptTagBlocksProps) {
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lintPrompt } from "./promptLint";
+import { cleanupPromptSeparators, dedupePromptTags, lintPrompt } from "./promptLint";
 
 describe("lintPrompt - 括号配平", () => {
   it("检测未闭合左括号", () => {
@@ -58,9 +58,11 @@ describe("lintPrompt - 逗号与空片段", () => {
 });
 
 describe("lintPrompt - 重复与 token", () => {
-  it("检测重复词条", () => {
+  it("检测重复词条，并标记为可修复", () => {
     const issues = lintPrompt("1girl, 1girl, solo");
-    expect(issues.some((i) => i.code === "duplicate_tokens")).toBe(true);
+    const dup = issues.find((i) => i.code === "duplicate_tokens");
+    expect(dup).toBeTruthy();
+    expect(dup?.fixable).toBe(true);
   });
 
   it("超长文本估算 token 超限", () => {
@@ -89,5 +91,75 @@ describe("lintPrompt - 上下文规则", () => {
   it("未知通配符依赖上下文", () => {
     expect(lintPrompt("__nope__", { wildcardNames: ["styles"] }).some((i) => i.code === "unknown_wildcard")).toBe(true);
     expect(lintPrompt("__nope__").some((i) => i.code === "unknown_wildcard")).toBe(false);
+  });
+});
+
+describe("dedupePromptTags - 重复词条清理", () => {
+  it("保留首次出现，删除后续重复", () => {
+    expect(dedupePromptTags("1girl, 1girl, solo")).toBe("1girl, solo");
+  });
+
+  it("多处重复一并清理，且不残留连续逗号", () => {
+    expect(dedupePromptTags("a, b, a, c, b, a")).toBe("a, b, c");
+  });
+
+  it("删除相邻的多个重复词条后，连续逗号被完全清理（回归：一次只吃两个逗号会残留）", () => {
+    expect(dedupePromptTags("a, b, c, b, c, d, e")).toBe("a, b, c, d, e");
+    expect(dedupePromptTags("a, b, b, c, c, c, d")).toBe("a, b, c, d");
+  });
+
+  it("大小写不敏感，保留首次出现的原始写法", () => {
+    expect(dedupePromptTags("1Girl, 1girl, SOLO, solo")).toBe("1Girl, SOLO");
+  });
+
+  it("保留有效权重最大的那次出现（避免丢掉强化）", () => {
+    expect(dedupePromptTags("text, (text:1.4), solo")).toBe("(text:1.4), solo");
+    expect(dedupePromptTags("(text:1.4), text, solo")).toBe("(text:1.4), solo");
+  });
+
+  it("括号组内只有它自己时，连同括号整体移除", () => {
+    expect(dedupePromptTags("(text:1.4), text")).toBe("(text:1.4)");
+  });
+
+  it("组内词条是幸存者时，删除组外的重复项", () => {
+    // 组内的 a 有效权重 1.1 > 组外裸 a 的 1.0 → 保留组内的
+    expect(dedupePromptTags("(a, b), a")).toBe("(a, b)");
+  });
+
+  it("多成员括号组内的重复不自动删（避免破坏组语义）", () => {
+    const text = "(a, b), (a, c)";
+    expect(dedupePromptTags(text)).toBe(text);
+  });
+
+  it("无重复时原样返回", () => {
+    expect(dedupePromptTags("1girl, solo, long hair")).toBe("1girl, solo, long hair");
+  });
+
+  it("保留多行格式，只清理被挖空处的逗号", () => {
+    const text = "1girl, solo, 1girl,\nlong hair, solo";
+    expect(dedupePromptTags(text)).toBe("1girl, solo,\nlong hair");
+  });
+
+  it("动态提示词组（{a|b}）按整块参与去重", () => {
+    expect(dedupePromptTags("{face|face, detailed face}, {face|face, detailed face}, solo")).toBe(
+      "{face|face, detailed face}, solo",
+    );
+  });
+});
+
+describe("cleanupPromptSeparators", () => {
+  it("任意数量的连续逗号都压成一个", () => {
+    expect(cleanupPromptSeparators("a, , b")).toBe("a, b");
+    expect(cleanupPromptSeparators("a, , , b")).toBe("a, b");
+    expect(cleanupPromptSeparators("a,, ,, b")).toBe("a, b");
+  });
+
+  it("去掉整体首尾的多余逗号（含全角）", () => {
+    expect(cleanupPromptSeparators(", a, b, ")).toBe("a, b");
+    expect(cleanupPromptSeparators("，a, b，")).toBe("a, b");
+  });
+
+  it("无问题时原样返回", () => {
+    expect(cleanupPromptSeparators("a, b, c")).toBe("a, b, c");
   });
 });

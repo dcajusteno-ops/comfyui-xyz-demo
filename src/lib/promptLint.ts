@@ -1,5 +1,5 @@
 import type { PromptLintIssue } from "../types";
-import { parsePromptTags } from "./promptUtils";
+import { parsePromptTags, type PromptTag } from "./promptUtils";
 
 export type PromptLintContext = {
   /** 已安装 LoRA 名（可为含目录 / 带扩展名的路径，内部做归一化比较） */
@@ -50,6 +50,55 @@ function weightFromGroup(inner: string): { word: string; weight: string } | null
 
 function isNumeric(value: string): boolean {
   return /^-?[0-9.]+$/.test(value.trim()) && value.trim() !== "" && value.trim() !== ".";
+}
+
+/**
+ * 清理被挖空的位置残留的分隔逗号（连续逗号压成一个、去掉首尾多余逗号）。
+ *
+ * 注意必须用 `,(\s*,)+` 而不是 `,\s*,+`：后者一次只吃掉「逗号+空白+逗号」，
+ * 遇到 3 个以上连续逗号（删除相邻的多个重复词条时就会出现）会留下残留。
+ */
+export function cleanupPromptSeparators(text: string): string {
+  return text
+    .replace(/,(\s*,)+/g, ",")
+    .replace(/^\s*[,，]+\s*/, "")
+    .replace(/[,，]+\s*$/, "");
+}
+
+/**
+ * 去除重复词条：同一个词条只保留一次出现。
+ *
+ * 规则（三条都是为了让"修复"可预测且不破坏语法）：
+ * 1. 保留**有效权重最大**的那次出现，权重并列时保留最早出现的 ——
+ *    这样 `text, (text:1.4)` 会留下强化过的 `(text:1.4)`，而不是把权重丢掉；
+ * 2. 只移除「组内只有它自己」的标签（裸词，或 `(text:1.4)` 这类单成员括号组），
+ *    多成员括号组（如 `(a, b)`）里的重复词不自动删 —— 从组里抠词会改变整组的权重语义；
+ * 3. 仅做删除，不做任何重排，移除后清理残留的连续逗号。
+ */
+export function dedupePromptTags(text: string): string {
+  const tags = parsePromptTags(text);
+
+  const survivor = new Map<string, PromptTag>();
+  for (const tag of tags) {
+    const key = tag.word.trim().toLowerCase();
+    if (!key) continue;
+    const current = survivor.get(key);
+    if (!current || tag.weight > current.weight) survivor.set(key, tag);
+  }
+
+  const removable = tags.filter((tag) => {
+    const key = tag.word.trim().toLowerCase();
+    if (!key || survivor.get(key) === tag) return false;
+    return tag.members.length === 1;
+  });
+  if (removable.length === 0) return text;
+
+  // 从后往前删，避免前面的删除导致后面的下标位移
+  let next = text;
+  for (const tag of [...removable].sort((a, b) => b.groupStart - a.groupStart)) {
+    next = next.slice(0, tag.groupStart) + next.slice(tag.groupEnd);
+  }
+  return cleanupPromptSeparators(next);
 }
 
 export function lintPrompt(text: string, ctx: PromptLintContext = {}): PromptLintIssue[] {
@@ -156,16 +205,12 @@ export function lintPrompt(text: string, ctx: PromptLintContext = {}): PromptLin
       start: Math.max(0, emptySegIdx),
       end: Math.min(text.length, Math.max(0, emptySegIdx) + 1),
       fixable: true,
-      fix: (t) =>
-        t
-          .replace(/,\s*,+/g, ",")
-          .replace(/^\s*[,，]+\s*/, "")
-          .replace(/[,，]+\s*$/, ""),
+      fix: cleanupPromptSeparators,
     });
   }
 
-  // 6. 词条重复
-  const words = parsePromptTags(text).map((tag) => tag.word.toLowerCase()).filter(Boolean);
+  // 6. 词条重复（可修复：保留权重最高的那次出现，删除其余）
+  const words = parsePromptTags(text).map((tag) => tag.word.trim().toLowerCase()).filter(Boolean);
   const seen = new Set<string>();
   const dups = new Set<string>();
   for (const word of words) {
@@ -179,7 +224,8 @@ export function lintPrompt(text: string, ctx: PromptLintContext = {}): PromptLin
       message: `重复词条：${Array.from(dups).slice(0, 5).join("、")}${dups.size > 5 ? " 等" : ""}`,
       start: 0,
       end: 0,
-      fixable: false,
+      fixable: true,
+      fix: dedupePromptTags,
     });
   }
 
