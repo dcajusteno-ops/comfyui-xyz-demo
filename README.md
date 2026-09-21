@@ -10,6 +10,8 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 目前项目已搭建完毕基础架构，并实现了以下核心标签页功能：
 
+> **🆕 v0.4.0 亮点**：新增第 4 个生图模板「**Anima 生图**」（Qwen-Image 系 · Turbo 三段式模型栈 + 12 个阶段开关 + 5 个档位预设 + 图生图），修复链与高清修复共用；提示词标签块解析重写（括号组逐词拆分、加权不再写坏语法、重复词条一键清理）；详见下方「### 38. Anima 大模型接入与阶段开关」。
+
 ### 1. 默认生图 (Default Generation)
 - 标准的文生图/图生图控制面板。
 - 支持基础模型（Checkpoint）、采样器（Sampler）、调度器（Scheduler）的快捷切换。
@@ -349,7 +351,7 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **参数预设 (Presets)**：✅ 已在 v0.3.6 完成（保存 / 应用 / 导入导出，本地 localStorage 持久化）。
 - **高级记事本功能的拓展**：可以考虑为记事本加入标签系统，或是支持拖拽上传图片进行直接预览。
 - **通配符词库可视化编辑**：当前 `public/wildcards/*.txt` 为静态文件，可补充在线增删改词条并落盘。
-- **图生图 / ControlNet / Inpaint 工作流**：现有生图均为文生图 + 后续修复，可外扩 ControlNet、Inpaint、IP-Adapter 等新面板。
+- **ControlNet / Inpaint / IP-Adapter 工作流**：图生图已随 v0.4.0 的 Anima 模板落地；剩余 ControlNet、Inpaint、IP-Adapter 等新面板可外扩。
 
 ### 2. 后端健壮性与边界处理
 - **更多资产管理**：未来需将 VAE、Embeddings 甚至 Checkpoints 也纳入类似 LoRA 的网格化管理与详情展示中。
