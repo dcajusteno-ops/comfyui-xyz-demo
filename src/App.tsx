@@ -1,25 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Bookmark,
-  Boxes,
   CheckCircle2,
   Columns,
-  Dices,
-  FileText,
   GalleryHorizontalEnd,
-  ImageUp,
   Languages,
   ListFilter,
   Loader2,
   PauseCircle,
   RefreshCw,
-  ScanSearch,
   Settings,
-  SlidersHorizontal,
   Sparkles,
-  Type,
-  UserRound,
-  Wand2,
 } from "lucide-react";
 
 import { AppSidebar } from "./components/layout/AppSidebar";
@@ -31,6 +22,7 @@ import {
   DefaultGenerationPanel,
   MultiGenerationPanel,
   HighresGenerationPanel,
+  AnimaGenerationPanel,
   TextGenerationPanel,
 } from "./components/features/Generation";
 import { TaggingPanel } from "./components/features/Tagging/TaggingPanel";
@@ -59,8 +51,14 @@ import {
   buildDefaultPrompt,
   buildHighresPrompt,
   buildMultiPrompt,
+  buildAnimaPrompt,
 } from "./lib/workflowBuilders";
-import { templateLabels } from "./constants";
+import {
+  generationTabs as generationTabConfig,
+  slotsTab,
+  toolTabs as toolTabConfig,
+  templateLabels,
+} from "./constants";
 import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus } from "./types";
 import { loadWildcards } from "./lib/wildcards";
 import { WILDCARD_FILES } from "./lib/wildcards";
@@ -133,6 +131,7 @@ function App() {
     setDefaultParams: (updater) => params.setDefaultParams(updater as any),
     setMultiParams: (updater) => params.setMultiParams(updater as any),
     setHighresParams: (updater) => params.setHighresParams(updater as any),
+    setAnimaParams: (updater) => params.setAnimaParams(updater as any),
     setWd14: tagging.setWd14,
     setWdBatchParams: tagging.setWdBatchParams,
     setClBatchParams: tagging.setClBatchParams,
@@ -145,8 +144,9 @@ function App() {
     params.defaultParams.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
     params.multiParams.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
     params.highresParams.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
+    params.animaParams.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
     return Array.from(hashes);
-  }, [params.defaultParams.loras, params.multiParams.loras, params.highresParams.loras]);
+  }, [params.defaultParams.loras, params.multiParams.loras, params.highresParams.loras, params.animaParams.loras]);
 
   const loras = useLoras({
     client,
@@ -206,11 +206,13 @@ function App() {
       params.setMultiParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
     } else if (target === "highres") {
       params.setHighresParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
+    } else if (target === "anima") {
+      params.setAnimaParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
     } else {
       params.setDefaultParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
     }
     pushToast("success", "LoRA 已插入", `${selection.displayName} -> ${templateLabels[target]}`);
-  }, [loras.loraExampleFilesByHash, params.setDefaultParams, params.setMultiParams, params.setHighresParams, pushToast]);
+  }, [loras.loraExampleFilesByHash, params.setDefaultParams, params.setMultiParams, params.setHighresParams, params.setAnimaParams, pushToast]);
 
   const handleSlotsApply = useCallback((tags: string[], target: TemplateKind) => {
     const clean = tags.map((tag) => tag.trim()).filter(Boolean);
@@ -230,6 +232,8 @@ function App() {
       params.setMultiParams(updater);
     } else if (target === "highres") {
       params.setHighresParams(updater);
+    } else if (target === "anima") {
+      params.setAnimaParams(updater);
     } else {
       params.setDefaultParams(updater);
     }
@@ -255,6 +259,8 @@ function App() {
       params.setMultiParams(updater);
     } else if (target === "highres") {
       params.setHighresParams(updater);
+    } else if (target === "anima") {
+      params.setAnimaParams(updater);
     } else {
       params.setDefaultParams(updater);
     }
@@ -271,6 +277,8 @@ function App() {
       params.setMultiParams(updater);
     } else if (tab === "highres") {
       params.setHighresParams(updater);
+    } else if (tab === "anima") {
+      params.setAnimaParams(updater);
     } else {
       params.setDefaultParams(updater);
     }
@@ -289,6 +297,8 @@ function App() {
       params.setMultiParams(updater);
     } else if (target === "highres") {
       params.setHighresParams(updater);
+    } else if (target === "anima") {
+      params.setAnimaParams(updater);
     } else {
       params.setDefaultParams(updater);
     }
@@ -298,23 +308,14 @@ function App() {
   const currentPrompts = useMemo(() => {
     if (tab === "multi") return { positive: params.multiParams.globalPrompt, negative: params.multiParams.negativePrompt };
     if (tab === "highres") return { positive: params.highresParams.positivePrompt, negative: params.highresParams.negativePrompt };
+    if (tab === "anima") return { positive: params.animaParams.positivePrompt, negative: params.animaParams.negativePrompt };
     return { positive: params.defaultParams.positivePrompt, negative: params.defaultParams.negativePrompt };
-  }, [tab, params.defaultParams, params.multiParams, params.highresParams]);
+  }, [tab, params.defaultParams, params.multiParams, params.highresParams, params.animaParams]);
 
-  const generationTabs = useMemo(() => [
-    { id: "default", label: "默认生图", icon: Wand2 },
-    { id: "multi", label: "多人工作流", icon: UserRound },
-    { id: "highres", label: "高清修复", icon: ImageUp },
-    { id: "wd14", label: "WD1.4", icon: ScanSearch },
-    { id: "text", label: "文字特效", icon: Type },
-    { id: "xyz", label: "XYZ 控制器", icon: SlidersHorizontal },
-    { id: "slots", label: "灵感老虎机", icon: Dices },
-  ], []);
+  // 侧边栏 tab 定义统一来自 constants（历史上此处另有一份硬编码，导致新增入口时漏改）
+  const generationTabs = useMemo(() => [...generationTabConfig, slotsTab], []);
 
-  const toolTabs = useMemo(() => [
-    { id: "loras", label: "LoRA 管理", icon: Boxes },
-    { id: "notes", label: "记事本", icon: FileText },
-  ], []);
+  const toolTabs = useMemo(() => toolTabConfig, []);
 
   return (
     <>
@@ -440,6 +441,34 @@ function App() {
                 />
               )}
 
+              {tab === "anima" && (
+                <AnimaGenerationPanel
+                  params={params.animaParams}
+                  setParams={params.setAnimaParams}
+                  options={options}
+                  apiBase={apiBase}
+                  loraSettings={loraSettings}
+                  loraExampleFilesByHash={loras.loraExampleFilesByHash}
+                  loraNames={loraNames}
+                  wildcardNames={wildcardNames}
+                  onRunGeneration={() =>
+                    gen.runPrompt("Anima 生图", () =>
+                      // 与多人/高修一致：水印在「文字特效 & 水印」页配置，生成时借用到这里
+                      buildAnimaPrompt(
+                        { ...params.animaParams, drawText: params.defaultParams.drawText },
+                        options.animaCaps,
+                      ),
+                    )
+                  }
+                  onOpenLoraDetail={handleOpenLoraDetail}
+                  onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
+                  onUploadImage={async (file) => {
+                    const uploaded = await client.uploadImage(file);
+                    return uploaded.name;
+                  }}
+                />
+              )}
+
               {tab === "wd14" && (
                 <TaggingPanel
                   wd14={tagging.wd14}
@@ -502,6 +531,7 @@ function App() {
                   lorasOfTarget={xyz.getXyzLoras(params)}
                   gen={gen}
                   params={params}
+                  animaCaps={options.animaCaps}
                   onOutputLightbox={ui.setOutputLightbox}
                 />
               )}
@@ -673,6 +703,8 @@ function App() {
             params.setMultiParams(updater);
           } else if (tab === "highres") {
             params.setHighresParams(updater);
+          } else if (tab === "anima") {
+            params.setAnimaParams(updater);
           } else {
             params.setDefaultParams(updater);
           }

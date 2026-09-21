@@ -14,6 +14,7 @@ const APPLY_TARGETS: Array<{ id: TemplateKind; label: string }> = [
   { id: "default", label: "默认生图" },
   { id: "multi", label: "多人工作流" },
   { id: "highres", label: "高清修复" },
+  { id: "anima", label: "Anima 生图" },
 ];
 
 function timeAgo(iso: string): string {

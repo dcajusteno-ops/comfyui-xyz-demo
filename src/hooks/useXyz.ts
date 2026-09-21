@@ -34,6 +34,8 @@ export function useXyz() {
         return params.multiParams.loras;
       case "highres":
         return params.highresParams.loras;
+      case "anima":
+        return params.animaParams.loras;
       default:
         return [];
     }

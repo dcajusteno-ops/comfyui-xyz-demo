@@ -248,6 +248,7 @@ function TriggerWordsPanel({
               <button type="button" className="lm-text-btn" onClick={() => onInsertWords('default', visibleWords)} title="追加到默认生图正向提示词"><BadgePlus size={14} /> 默认</button>
               <button type="button" className="lm-text-btn" onClick={() => onInsertWords('multi', visibleWords)} title="追加到多人工作流正向提示词"><BadgePlus size={14} /> 多人</button>
               <button type="button" className="lm-text-btn" onClick={() => onInsertWords('highres', visibleWords)} title="追加到高清修复正向提示词"><BadgePlus size={14} /> 高修</button>
+              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('anima', visibleWords)} title="追加到 Anima 生图正向提示词"><BadgePlus size={14} /> Anima</button>
             </div>
           )}
           {!editing && onExtract && <button type="button" className="lm-text-btn" onClick={onExtract} title="从 .safetensors 文件头中提取训练词并保存 (ss_tagger_tags)"><ScanSearch size={14} /> 提取并保存</button>}
@@ -652,6 +653,7 @@ export function LoraDetailModal({
                     <button type="button" className="primary-action" onClick={() => onInsert("default", strength)}><BadgePlus size={16} /> 默认</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("multi", strength)}><BadgePlus size={16} /> 多人</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("highres", strength)}><BadgePlus size={16} /> 高修</button>
+                    <button type="button" className="primary-action" onClick={() => onInsert("anima", strength)}><BadgePlus size={16} /> Anima</button>
                   </div>
                 </div>
               </div>

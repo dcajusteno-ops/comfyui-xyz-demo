@@ -254,6 +254,19 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **E2E 冒烟 (v0.3.7 新增)**：Playwright 驱动真实页面的 6 个冒烟用例（`npm run test:e2e`），API 在路由层 mock，**不依赖 ComfyUI 运行**；另附真实生图手动验证脚本 `e2e/run-generation.mjs`（捕获实际提交的 workflow 并以 ComfyUI history 独立核验）。
 - **ESLint 与构建优化 (v0.3.7 新增)**：flat config（typescript-eslint + react-hooks + react-refresh），`npm run lint`；存量死代码清理（56 处未用变量/导入、287 行死 hook）；构建警告清零——crypto-js 按需引入 + vendor 分包，主 chunk 684 → 402 kB，全部 chunk < 500 kB。
 
+### 38. Anima 大模型接入与阶段开关
+
+- **全新第 4 个生图模板**：侧边栏「生图模板」组新增「Anima 生图」，面向 Qwen-Image 系 · Turbo 底模（`UNETLoader` + `CLIPLoader` + `VAELoader` 三段式模型栈，而非 Checkpoint 单文件）。
+- **12 个阶段开关**：图生图 / CFGZeroStar / 二次精修 / 放大① / 全图修复(SEGS) / 手部 / 脸部 / 眼部 / NSFW / 放大② / 通配符节点 / 保存图像。使用与「高清修复」完全一致的开关组样式，可按需裁掉不需要的环节。
+- **5 个档位预设**：`完整复刻`（默认，1:1 对齐原工作流阶段组合）/ `精修` / `标准` / `极速直出` / `自定义`。切换档位只改阶段开关，**不动提示词、种子与 LoRA**。
+- **输出预览条**：常驻显示预计输出分辨率、放大链摘要（如 `×2 → ×2`）与相对耗时量级；长边超过阈值时转黄色预警（不阻断出图）。注意默认档位会输出 4096×6144，显存不足时优先降低「放大②百分比」或关闭「放大①」——后者会让后续所有阶段的像素量减为 1/4。
+- **图生图（惰性）**：面板上选图上传即可；未选图时自动按文生图出图并给出提示，不会因忘选图而失败。
+- **修复链复用高清修复**：`SEGS 全图 + 手 + 脸 + 眼 + NSFW` 五个阶段与「高清修复」共用同一套实现（`detailerChain`），节点、参数与面板控件完全一致；执行顺序对齐原工作流为 `SEGS → 手 → NSFW → 脸 → 眼`。
+- **XYZ 控制器专属轴**：新增放大倍率、精修步数/CFG/重绘，以及覆盖全部 12 个开关的**布尔轴**（取值支持 `on,off` / `1,0` / `开,关`），可直接批量对比"开/关某个修复阶段"的效果差异。
+- **依赖**：核心 + Impact Pack（项目已依赖）+ 两个可选节点。**不引入任何新的第三方节点依赖**——原工作流的 `ToDetailerPipe` / `EditDetailerPipe` / `FaceDetailerPipe` / `ImpactSwitch` 与十余个常量中转节点（`easy int` / `PrimitiveInt` / `SeedNode` 等）均已消除或改为代码层等价实现。
+- **可选节点降级**：`easy hiresFix`（comfyui-easy-use）与 `ImageResizeKJv2`（KJNodes）缺失时，自动降级为核心节点等价实现（`UpscaleModelLoader` → `ImageUpscaleWithModel` → `ImageScale`，按目标像素尺寸缩放），不会因缺插件而中断。
+- **节点自检**：进入面板时会探测 13 个必需节点，缺失项以黄色横幅列出（含节点名），而不是等 ComfyUI 回 400。
+
 ---
 
 ## 🚀 快速开始 (Quick Start)
@@ -292,6 +305,10 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **was-node-suite-comfyui**：提供 Text Concatenate 文本拼接等基础核心节点。
 - **ComfyUI_yanc**：提供目录读取及图片/文本批量存取扩展节点。
 
+> **Anima 生图模板的插件需求**：仅依赖上表已有的 **ComfyUI-Impact-Pack**（检测器 / SAM / FaceDetailer / DetailerForEach 等）。另外两个节点属于**可选**，缺失时会自动降级为核心节点实现，不会中断生成：
+> - `easy hiresFix`（comfyui-easy-use）—— 缺失时改用 `UpscaleModelLoader` + `ImageUpscaleWithModel` + `ImageScale`
+> - `ImageResizeKJv2`（KJNodes）—— 缺失时改用 `LoadImage` + `ImageScale`
+
 ### 本项目专属自定义节点 (需手动安装)
 - **ComfyUI-DrawText-Advanced**
   - **用处**：专为本项目定制的高级文字绘制节点。彻底重写了底层 PIL 图像渲染逻辑，完美支持高质量的**文字旋转**与基于同色描边的**无级字体加粗**。同时它也与前端的 XYZ 控制器无缝打通，支持文字属性的批量矩阵测试。
@@ -306,6 +323,9 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **SAM模型** (`models/sams/`)：`sam_vit_b_01ec64.pth`
 - **反推模型** (`models/taggers/`)：WD1.4 相关模型 (Moat, ViT, SwinV2, ConvNextV2)
 - **CL Tagger** (`models/onnx/cl_tagger/`)：`cl_tagger_1_02.onnx` 及对应的映射 json 文件。
+- **Anima 底模（三段式）**：UNet 放 `models/unet/`（部分版本为 `models/diffusion_models/`），文本编码器放 `models/clip/`，VAE 放 `models/vae/`。三者都在「Anima 生图」面板的下拉里选择，**不绑定具体文件名**。
+- **Anima 放大模型** (`models/upscale_models/`)：任意 ESRGAN 系列（如 `4x_foolhardy_Remacri.pth`），用于「放大①/②」。
+- **Anima 检测器**：与上表同源，可用 `bbox/face_yolov9c.pt`、`bbox/hand_yolov9c.pt`、`bbox/Eyeful_v2-Individual.pt`、`segm/ntd11_anime_nsfw_segm_v5-variant1.pt`，也可继续用 `yolov8` 系列——面板默认按关键词模糊命中，缺哪个都会回退到列表首项。
 
 ---
 

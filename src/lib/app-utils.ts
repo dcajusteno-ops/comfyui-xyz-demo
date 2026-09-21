@@ -8,6 +8,15 @@ export function initialTabFromUrl(): TabId {
   return match?.id ?? "default";
 }
 
+/**
+ * 校验一个值是否是当前注册过的标签页 id。
+ * localStorage 里的 `comfyui_active_tab` 不做校验的话，遇到历史遗留/被删掉的 tab 值
+ * 会导致所有 `{tab === "xxx" && …}` 分支都不成立 → 主区域空白。
+ */
+export function isValidTabId(value: unknown): value is TabId {
+  return typeof value === "string" && tabs.some((item) => item.id === value);
+}
+
 export function operationTitle(operation: LoraOperation) {
   const titles: Record<LoraOperation["type"], string> = {
     rename: "重命名 LoRA",

@@ -1,0 +1,1010 @@
+{
+  "0": {
+    "inputs": {
+      "image": "load_image.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "1": {
+    "inputs": {
+      "unet_name": "silvermoonmixAnima_v2329BTurbo.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "2": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": {
+        "type": "PowerLoraLoaderHeaderWidget"
+      },
+      "lora_1": {
+        "on": true,
+        "lora": "AnimaLora\\鸣潮\\秧秧\\E7A7A7E7A7A7.NSmw.safetensors",
+        "strength": 1
+      },
+      "➕ Add Lora": "",
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": {
+      "title": "Power Lora Loader (rgthree)"
+    }
+  },
+  "3": {
+    "inputs": {
+      "wildcard_text": "(masterpiece, best quality, good quality, amazing quality, very aesthetic, extremely detailed, intricate details, absurdres, newest, highres, score_9, score_8),photorealistic art photography,alluring,@huafeng,yangyang1,1girl,long hair,multicolored hair,blue hair,ahoge,black hair,dress,tassel,hair ornament,gradient hair,breasts,long sleeves,tassel hair ornament,blue eyes,feathers,parted bangs,cleavage,short dress,colored inner hair,bare legs,collarbone,black dress,very long hair,gradient dress,mole,facial mark,forehead mark, palace candle row foreground, kneeling beyond flames, heat haze distortion, solemn intimate atmosphere, low frontal-oblique angle",
+      "populated_text": "(masterpiece, best quality, good quality, amazing quality, very aesthetic, extremely detailed, intricate details, absurdres, newest, highres, score_9, score_8),photorealistic art photography,alluring,@huafeng,yangyang1,1girl,long hair,multicolored hair,blue hair,ahoge,black hair,dress,tassel,hair ornament,gradient hair,breasts,long sleeves,tassel hair ornament,blue eyes,feathers,parted bangs,cleavage,short dress,colored inner hair,bare legs,collarbone,black dress,very long hair,gradient dress,mole,facial mark,forehead mark, palace candle row foreground, kneeling beyond flames, heat haze distortion, solemn intimate atmosphere, low frontal-oblique angle",
+      "mode": "populate",
+      "seed": [
+        "38",
+        0
+      ],
+      "Select to add Wildcard": "Select the Wildcard to add to the text"
+    },
+    "class_type": "ImpactWildcardProcessor",
+    "_meta": {
+      "title": "POSITIVE"
+    }
+  },
+  "4": {
+    "inputs": {
+      "wildcard_text": "score_1,score_2,score_3,blurry,worst quality,low quality,jpeg artifacts,signature,watermark,username,error,deformed hands,bad anatomy,extra limbs,poorly drawn hands,poorly drawn face,mutation,extra arms,extra legs,malformed limbs,fused fingers,too many fingers,long neck,cross-eyed,bad proportions,missing arms,missing legs,extra digit,fewer digits,cropped,normal quality,",
+      "populated_text": "score_1,score_2,score_3,blurry,worst quality,low quality,jpeg artifacts,signature,watermark,username,error,deformed hands,bad anatomy,extra limbs,poorly drawn hands,poorly drawn face,mutation,extra arms,extra legs,malformed limbs,fused fingers,too many fingers,long neck,cross-eyed,bad proportions,missing arms,missing legs,extra digit,fewer digits,cropped,normal quality,",
+      "mode": "populate",
+      "seed": [
+        "38",
+        0
+      ],
+      "Select to add Wildcard": "Select the Wildcard to add to the text"
+    },
+    "class_type": "ImpactWildcardProcessor",
+    "_meta": {
+      "title": "NEGATIVE"
+    }
+  },
+  "5": {
+    "inputs": {
+      "seed": [
+        "38",
+        0
+      ],
+      "steps": [
+        "39",
+        0
+      ],
+      "cfg": [
+        "41",
+        0
+      ],
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "49",
+        0
+      ],
+      "positive": [
+        "42",
+        0
+      ],
+      "negative": [
+        "45",
+        0
+      ],
+      "latent_image": [
+        "47",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "6": {
+    "inputs": {
+      "model_name": "bbox/face_yolov9c.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "Default DetectorProvider"
+    }
+  },
+  "7": {
+    "inputs": {
+      "model_name": "sam_vit_b_01ec64.pth",
+      "device_mode": "AUTO"
+    },
+    "class_type": "SAMLoader",
+    "_meta": {
+      "title": "SAMLoader (Impact)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "model_name": "bbox/hand_yolov9c.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "9": {
+    "inputs": {
+      "model_name": "segm/ntd11_anime_nsfw_segm_v5-variant1.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "10": {
+    "inputs": {
+      "model_name": "bbox/face_yolov9c.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "11": {
+    "inputs": {
+      "model_name": "bbox/Eyeful_v2-Individual.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "12": {
+    "inputs": {
+      "filename_prefix": "Anima",
+      "images": [
+        "52",
+        1
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "13": {
+    "inputs": {
+      "wildcard": "[CONCAT] hand, perfect hands",
+      "Select to add LoRA": "Select the LoRA to add to the text",
+      "Select to add Wildcard": "Select the Wildcard to add to the text",
+      "detailer_pipe": [
+        "18",
+        0
+      ],
+      "bbox_detector": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "EditDetailerPipe",
+    "_meta": {
+      "title": "Edit DetailerPipe"
+    }
+  },
+  "14": {
+    "inputs": {
+      "wildcard": "[LAB]\n[ALL] nsfw\n[NIPPLES] nsfw, nipples\n[PUSSY] nsfw, pussy\n[ANUS] nsfw, (anus)\n[PENIS] nsfw, penis\n[TESTICLES] nsfw, testicles",
+      "Select to add LoRA": "Select the LoRA to add to the text",
+      "Select to add Wildcard": "Select the Wildcard to add to the text",
+      "detailer_pipe": [
+        "18",
+        0
+      ],
+      "bbox_detector": [
+        "9",
+        0
+      ],
+      "segm_detector": [
+        "9",
+        1
+      ]
+    },
+    "class_type": "EditDetailerPipe",
+    "_meta": {
+      "title": "Edit DetailerPipe"
+    }
+  },
+  "15": {
+    "inputs": {
+      "wildcard": "[CONCAT] {face|face,detailed face}",
+      "Select to add LoRA": "Select the LoRA to add to the text",
+      "Select to add Wildcard": "Select the Wildcard to add to the text",
+      "detailer_pipe": [
+        "18",
+        0
+      ],
+      "bbox_detector": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "EditDetailerPipe",
+    "_meta": {
+      "title": "Edit DetailerPipe"
+    }
+  },
+  "16": {
+    "inputs": {
+      "wildcard": "[CONCAT] {eyes|eyes,detailed eyes}",
+      "Select to add LoRA": "Select the LoRA to add to the text",
+      "Select to add Wildcard": "Select the Wildcard to add to the text",
+      "detailer_pipe": [
+        "18",
+        0
+      ],
+      "bbox_detector": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "EditDetailerPipe",
+    "_meta": {
+      "title": "Edit DetailerPipe"
+    }
+  },
+  "17": {
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "18": {
+    "inputs": {
+      "wildcard": "",
+      "Select to add LoRA": "Select the LoRA to add to the text",
+      "Select to add Wildcard": "Select the Wildcard to add to the text",
+      "model": [
+        "26",
+        0
+      ],
+      "clip": [
+        "2",
+        1
+      ],
+      "vae": [
+        "22",
+        0
+      ],
+      "positive": [
+        "42",
+        0
+      ],
+      "negative": [
+        "45",
+        0
+      ],
+      "bbox_detector": [
+        "6",
+        0
+      ],
+      "sam_model_opt": [
+        "7",
+        0
+      ]
+    },
+    "class_type": "ToDetailerPipe",
+    "_meta": {
+      "title": "ToDetailerPipe"
+    }
+  },
+  "19": {
+    "inputs": {
+      "value": 1,
+      "width": [
+        "23",
+        0
+      ],
+      "height": [
+        "31",
+        0
+      ]
+    },
+    "class_type": "SolidMask",
+    "_meta": {
+      "title": "纯块遮罩"
+    }
+  },
+  "20": {
+    "inputs": {
+      "combined": false,
+      "crop_factor": 1,
+      "bbox_fill": false,
+      "drop_size": 10,
+      "contour_fill": false,
+      "mask": [
+        "19",
+        0
+      ]
+    },
+    "class_type": "MaskToSEGS",
+    "_meta": {
+      "title": "MASK to SEGS"
+    }
+  },
+  "21": {
+    "inputs": {
+      "guide_size": 512,
+      "guide_size_for": true,
+      "max_size": 1024,
+      "seed": [
+        "38",
+        0
+      ],
+      "steps": 18,
+      "cfg": 6,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 0.24,
+      "feather": 5,
+      "noise_mask": true,
+      "force_inpaint": true,
+      "wildcard": "",
+      "cycle": 1,
+      "inpaint_model": false,
+      "noise_mask_feather": 32,
+      "tiled_encode": false,
+      "tiled_decode": false,
+      "image": [
+        "51",
+        1
+      ],
+      "segs": [
+        "20",
+        0
+      ],
+      "model": [
+        "26",
+        0
+      ],
+      "clip": [
+        "2",
+        1
+      ],
+      "vae": [
+        "22",
+        0
+      ],
+      "positive": [
+        "42",
+        0
+      ],
+      "negative": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "DetailerForEach",
+    "_meta": {
+      "title": "Detailer (SEGS)"
+    }
+  },
+  "22": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "23": {
+    "inputs": {
+      "value": 1024
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "Width"
+    }
+  },
+  "25": {
+    "inputs": {
+      "seed": [
+        "38",
+        0
+      ],
+      "steps": 16,
+      "cfg": [
+        "41",
+        0
+      ],
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 0.2,
+      "model": [
+        "49",
+        0
+      ],
+      "positive": [
+        "42",
+        0
+      ],
+      "negative": [
+        "45",
+        0
+      ],
+      "latent_image": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "26": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "49",
+        0
+      ]
+    },
+    "class_type": "DifferentialDiffusion",
+    "_meta": {
+      "title": "差异扩散DifferentialDiffusion"
+    }
+  },
+  "27": {
+    "inputs": {
+      "guide_size": [
+        "40",
+        0
+      ],
+      "guide_size_for": true,
+      "max_size": [
+        "36",
+        0
+      ],
+      "seed": [
+        "38",
+        0
+      ],
+      "steps": 16,
+      "cfg": 6,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 0.4,
+      "feather": 16,
+      "noise_mask": true,
+      "force_inpaint": true,
+      "bbox_threshold": 0.5,
+      "bbox_dilation": 8,
+      "bbox_crop_factor": [
+        "44",
+        0
+      ],
+      "sam_detection_hint": "none",
+      "sam_dilation": 4,
+      "sam_threshold": 0.9000000000000001,
+      "sam_bbox_expansion": 0,
+      "sam_mask_hint_threshold": 0.7,
+      "sam_mask_hint_use_negative": "False",
+      "drop_size": 16,
+      "refiner_ratio": 0.2,
+      "cycle": 1,
+      "inpaint_model": false,
+      "noise_mask_feather": 64,
+      "tiled_encode": [
+        "50",
+        0
+      ],
+      "tiled_decode": [
+        "50",
+        0
+      ],
+      "image": [
+        "21",
+        0
+      ],
+      "detailer_pipe": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "FaceDetailerPipe",
+    "_meta": {
+      "title": "HandDetailer (pipe)"
+    }
+  },
+  "28": {
+    "inputs": {
+      "guide_size": [
+        "40",
+        0
+      ],
+      "guide_size_for": true,
+      "max_size": [
+        "36",
+        0
+      ],
+      "seed": [
+        "38",
+        0
+      ],
+      "steps": 16,
+      "cfg": 6,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 0.3,
+      "feather": 16,
+      "noise_mask": true,
+      "force_inpaint": true,
+      "bbox_threshold": 0.44,
+      "bbox_dilation": 8,
+      "bbox_crop_factor": [
+        "44",
+        0
+      ],
+      "sam_detection_hint": "none",
+      "sam_dilation": 4,
+      "sam_threshold": 0.9000000000000001,
+      "sam_bbox_expansion": 0,
+      "sam_mask_hint_threshold": 0.7,
+      "sam_mask_hint_use_negative": "False",
+      "drop_size": 16,
+      "refiner_ratio": 0.2,
+      "cycle": 1,
+      "inpaint_model": false,
+      "noise_mask_feather": 64,
+      "tiled_encode": [
+        "50",
+        0
+      ],
+      "tiled_decode": [
+        "50",
+        0
+      ],
+      "image": [
+        "27",
+        0
+      ],
+      "detailer_pipe": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "FaceDetailerPipe",
+    "_meta": {
+      "title": "NSFWDetailer (pipe)"
+    }
+  },
+  "29": {
+    "inputs": {
+      "guide_size": [
+        "40",
+        0
+      ],
+      "guide_size_for": true,
+      "max_size": [
+        "36",
+        0
+      ],
+      "seed": [
+        "38",
+        0
+      ],
+      "steps": 16,
+      "cfg": 6,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 0.26,
+      "feather": 16,
+      "noise_mask": true,
+      "force_inpaint": true,
+      "bbox_threshold": 0.4,
+      "bbox_dilation": 8,
+      "bbox_crop_factor": [
+        "44",
+        0
+      ],
+      "sam_detection_hint": "none",
+      "sam_dilation": 4,
+      "sam_threshold": 0.9000000000000001,
+      "sam_bbox_expansion": 0,
+      "sam_mask_hint_threshold": 0.7,
+      "sam_mask_hint_use_negative": "False",
+      "drop_size": 16,
+      "refiner_ratio": 0.2,
+      "cycle": 1,
+      "inpaint_model": false,
+      "noise_mask_feather": 64,
+      "tiled_encode": [
+        "50",
+        0
+      ],
+      "tiled_decode": [
+        "50",
+        0
+      ],
+      "image": [
+        "28",
+        0
+      ],
+      "detailer_pipe": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "FaceDetailerPipe",
+    "_meta": {
+      "title": "FaceDetailer (pipe)"
+    }
+  },
+  "30": {
+    "inputs": {
+      "guide_size": [
+        "40",
+        0
+      ],
+      "guide_size_for": true,
+      "max_size": [
+        "36",
+        0
+      ],
+      "seed": [
+        "38",
+        0
+      ],
+      "steps": 16,
+      "cfg": 6,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 0.24,
+      "feather": 16,
+      "noise_mask": true,
+      "force_inpaint": true,
+      "bbox_threshold": 0.38,
+      "bbox_dilation": 8,
+      "bbox_crop_factor": [
+        "44",
+        0
+      ],
+      "sam_detection_hint": "none",
+      "sam_dilation": 4,
+      "sam_threshold": 0.9000000000000001,
+      "sam_bbox_expansion": 0,
+      "sam_mask_hint_threshold": 0.7,
+      "sam_mask_hint_use_negative": "False",
+      "drop_size": 16,
+      "refiner_ratio": 0.2,
+      "cycle": 1,
+      "inpaint_model": false,
+      "noise_mask_feather": 64,
+      "tiled_encode": [
+        "50",
+        0
+      ],
+      "tiled_decode": [
+        "50",
+        0
+      ],
+      "image": [
+        "29",
+        0
+      ],
+      "detailer_pipe": [
+        "16",
+        0
+      ]
+    },
+    "class_type": "FaceDetailerPipe",
+    "_meta": {
+      "title": "EyesDetailer (pipe)"
+    }
+  },
+  "31": {
+    "inputs": {
+      "value": 1536
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "Height"
+    }
+  },
+  "32": {
+    "inputs": {
+      "width": [
+        "23",
+        0
+      ],
+      "height": [
+        "31",
+        0
+      ],
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "pad_edge",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 1,
+      "device": "cpu",
+      "image": [
+        "0",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "33": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "整数"
+    }
+  },
+  "34": {
+    "inputs": {
+      "pixels": [
+        "32",
+        0
+      ],
+      "vae": [
+        "22",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE编码"
+    }
+  },
+  "35": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "Batch Size"
+    }
+  },
+  "36": {
+    "inputs": {
+      "value": 1536
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Max Size"
+    }
+  },
+  "38": {
+    "inputs": {
+      "seed": 321927716425775
+    },
+    "class_type": "SeedNode",
+    "_meta": {
+      "title": "种子"
+    }
+  },
+  "39": {
+    "inputs": {
+      "value": 8
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "Steps"
+    }
+  },
+  "40": {
+    "inputs": {
+      "value": 512
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Guide Size"
+    }
+  },
+  "41": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "CFG"
+    }
+  },
+  "42": {
+    "inputs": {
+      "text": [
+        "3",
+        0
+      ],
+      "clip": [
+        "2",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "44": {
+    "inputs": {
+      "value": 2.5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "BBOX Crop Factor"
+    }
+  },
+  "45": {
+    "inputs": {
+      "text": [
+        "4",
+        0
+      ],
+      "clip": [
+        "2",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "46": {
+    "inputs": {
+      "width": [
+        "23",
+        0
+      ],
+      "height": [
+        "31",
+        0
+      ],
+      "batch_size": [
+        "35",
+        0
+      ]
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "47": {
+    "inputs": {
+      "select": [
+        "33",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "46",
+        0
+      ],
+      "input2": [
+        "34",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Switch (Any)"
+    }
+  },
+  "48": {
+    "inputs": {
+      "samples": [
+        "25",
+        0
+      ],
+      "vae": [
+        "22",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "49": {
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "CFGZeroStar",
+    "_meta": {
+      "title": "CFGZeroStar"
+    }
+  },
+  "50": {
+    "inputs": {
+      "value": false
+    },
+    "class_type": "PrimitiveBoolean",
+    "_meta": {
+      "title": "Tiled Detailer"
+    }
+  },
+  "51": {
+    "inputs": {
+      "model_name": "4x_foolhardy_Remacri.pth",
+      "rescale_after_model": true,
+      "rescale_method": "lanczos",
+      "rescale": "by percentage",
+      "percent": 50,
+      "width": 1024,
+      "height": 1024,
+      "longer_side": 1024,
+      "crop": "disabled",
+      "image_output": "Hide",
+      "link_id": 0,
+      "save_prefix": "ComfyUI",
+      "image": [
+        "48",
+        0
+      ],
+      "vae": [
+        "22",
+        0
+      ]
+    },
+    "class_type": "easy hiresFix",
+    "_meta": {
+      "title": "高清修复"
+    }
+  },
+  "52": {
+    "inputs": {
+      "model_name": "4x_foolhardy_Remacri.pth",
+      "rescale_after_model": true,
+      "rescale_method": "lanczos",
+      "rescale": "by percentage",
+      "percent": 50,
+      "width": 1024,
+      "height": 1024,
+      "longer_side": 1024,
+      "crop": "disabled",
+      "image_output": "Hide",
+      "link_id": 0,
+      "save_prefix": "ComfyUI",
+      "image": [
+        "30",
+        0
+      ],
+      "vae": [
+        "22",
+        0
+      ]
+    },
+    "class_type": "easy hiresFix",
+    "_meta": {
+      "title": "高清修复"
+    }
+  }
+}

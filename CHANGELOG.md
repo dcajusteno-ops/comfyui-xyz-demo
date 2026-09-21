@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.4.0] - 2026-09-21
+
+### 🎨 Anima 大模型接入 (Anima Generation Template)
+- **全新第 4 个生图模板**：侧边栏「生图模板」组新增「Anima 生图」，与默认生图 / 多人工作流 / 高清修复并列。`TemplateKind` 与 `TabId` 同步扩展（`?tab=anima` 深链可用）。
+- **三段式模型栈**：`UNETLoader` + `CLIPLoader` + `VAELoader`（替代 Checkpoint 单文件栈），UNet / CLIP / CLIP 类型 / VAE / weight_dtype 全部为 `/object_info` 驱动的下拉，**不硬编码任何文件名**。
+- **12 个阶段开关**：图生图 / CFGZeroStar / 二次精修 / 放大① / 全图修复(SEGS) / 手部 / 脸部 / 眼部 / NSFW / 放大② / 通配符节点 / 保存图像，沿用 `.segmented` 开关组（与高清修复同款视觉）。
+- **5 个档位预设**：完整复刻（默认，1:1 对齐原工作流）/ 精修 / 标准 / 极速直出 / 自定义；切换只改阶段开关，不动提示词、种子与 LoRA。
+- **输出预览条**：常驻显示预计输出分辨率、放大链摘要与相对耗时量级，长边超阈值转为预警态（不阻断出图）。
+- **图生图支持**：选图上传 → `LoadImage` → `ImageResizeKJv2` → `VAEEncode`；未选图时自动回落文生图并提示（惰性），补齐了项目 TODO 中「图生图工作流」这一项。
+- **文字水印打通**：与多人/高修一致，在「文字特效 & 水印」页配置的文字/水印会在 Anima 生成时自动应用（`DrawTextAdvanced` 节点接入保存链，`syncWithImage` 跟随 Anima 画布尺寸）；XYZ 打 `drawText` 轴时以轴为准。此前 Anima 的运行入口漏传了该配置，导致水印对 Anima 不生效。
+
+### ♻️ 复用高清修复的修复链 (Shared Detailer Chain)
+- **提取共用模块 `src/lib/detailerChain.ts`**：把 `buildHighresPrompt` 的 SEGS + 4 处局部修复逻辑提取为 `appendDetailerChain()`，高修与 Anima 两条链路共用；**高修的输出逐节点不变**（由既有 64 组合单测 + 新增断言双重兜底）。
+- **不再需要管道节点**：原工作流的 `ToDetailerPipe` / `EditDetailerPipe` / `FaceDetailerPipe` 只是"省连线"写法，与项目既有的逐节点显式输入 `FaceDetailer` 功能等价，故完全不引入；`ImpactSwitch` 同理改为代码层二选一。
+- **常量节点全部内联**：`easy int` / `PrimitiveInt` / `PrimitiveFloat` / `PrimitiveBoolean` / `SeedNode` 等 10 个中转节点全部消除；**新增第三方节点依赖为零**。
+- **细节参数补齐**：`DetailerParams` 新增 `noiseMaskFeather` / `tiledEncode` / `tiledDecode` / `inpaintModel` / `samDetectionHint` / `samDilation` / `samThreshold` / `samMaskHintThreshold` / `samMaskHintUseNegative` / `dropSize` 等可选字段（默认 `undefined` → 不下发，保证高修不变），使 Anima 的修复链参数与原工作流逐项对齐。
+
+### 🔗 与现有基建打通 (Integrations)
+- **XYZ 控制器**：新增 5 个标量轴（放大①/② 百分比、精修步数/CFG/重绘）与 1 个布尔轴模板 `animaStage_<key>`（覆盖全部 12 个开关，支持 `on,off` / `1,0` / `开,关`）。嵌套 patch 按层合并并带**存在性守卫**——给 SD 系参数打 Anima 专属轴不会凭空造出 `stages`/`hires`/`refine` 键。
+- **参数预设**：Anima 独立分组，支持保存 / 应用 / 重命名 / 删除 / 导入导出；`applySnapshot` 泛化为「校验字段名 + 可用列表」可配，Anima 校验 `modelStack.unetName`（对 `options.unets`）而非 checkpoint。
+- **LoRA 链路**：LoRA 管理器、简易弹窗、详情页「添加到…」按钮组（新增 Anima 按钮）、触发词插入、灵感老虎机、手机识图结果应用，全部支持 Anima 目标。
+- **零改动即生效**：Prompt Lint（`<lora:>` / `{}` / `__file__` 已覆盖）、完成提醒、浏览器标签页进度、断线重连均无需改动。
+
+### 🛠️ 公共代码加固 (Infra Hardening)
+- **`readCombo` 兼容新版 COMBO 格式**：原先只认旧格式 `[[...]]`，遇到 `["COMBO", { options: [...] }]`（实测核心 `UpscaleModelLoader.model_name` 即为此格式）会静默返回 fallback 导致下拉为空。现两种格式都支持，并抽出 `parseComboEntry` 配单测。
+- **`BaseControls` 模型选择区参数化**：新增可选 `modelSlot`，默认渲染原「大模型」下拉，非 Checkpoint 系模板可注入自己的模型栈控件；三个现有面板渲染结果不变。
+- **`TabId` 守卫**：持久化的 tab 值不再做无校验直接使用，非法值（改名/删功能后的历史值）回落 `default`，消除主页面空白。
+
+### 🐛 提示词标签块解析修复 (Prompt Tag Parsing Fix)
+- **括号组按 tag 拆分**：`parsePromptTags` 原先按逗号切分时跟踪了圆括号深度，导致 `(masterpiece, best quality, ...)` 整段被当成**一个**标签块（占满三行）。A1111 / ComfyUI 的真实语义里 `(...)` 内的逗号**就是** tag 分隔符（括号负责给组内**每个词**乘 1.1），现已正确展开为逐词块。
+- **修正组内加权的破坏性写入（重要）**：旧实现点 `+` 会生成 `(..., score_8:1.1)`，把权重加到**最后一个词**上——用户以为给整组加权，实际只有末词变成 1.21。现改为「展平」重写：`(a, b, c)` 点 `a` 的 `+` → `(a:1.2), (b:1.1), (c:1.1)`，语义完全等价。⚠️ **这是一处可见的行为变化**：给组内词加权后，该组会由组写法变为逐词权重写法（文本变长，但此后再点各块即可独立调权）。
+- **权重显示修正**：`(a, b, c)` 的实际权重是 1.1，标签块上现在如实显示 `1.10`（此前显示为 1.00，会误导调参）。
+- **保护 `{}` 动态语法**：`{face|face, detailed face}` 曾被逗号拆成 `{face|face` + `detailed face}` 两块，点加减会写出 `({face|face:1.1)` 这类破损语法（Anima 脸部/眼部修复的默认追加词即刻可见）。现 `{...}` 按整块原子处理，且**只显示不加权**——前端展开器 `resolveChoices()` 是纯文本替换、不解析权重，`({a|b,c}:1.1)` 展开后权重仍会错位。
+- **畸形输入只读**：括号不配对（如 `(a, b`）的块不再提供加减按钮，避免把用户文本改坏。
+- **Ctrl/Cmd + ↑/↓ 统一复用**：该快捷键此前是**第三份**独立实现（正则 `[^)]+` 跨逗号匹配，同样会把权重加到末词），现改为复用 `parsePromptTags` + `adjustWeightForTag`，与「+ / −」按钮行为完全一致；光标落在动态组内时保持文本不变。
+- **连带修正 Prompt Lint**：重复词条检测复用同一解析，此前 `(1girl, solo), 1girl` 检测不出重复，现已覆盖。
+- **重复词条支持一键清理**：此前「重复词条」只提示、不能修（`fixable: false`）。现 Lint 面板会显示「修复」按钮与「修复可修复项（N）」，一键去重。规则：① 保留**有效权重最大**的那次出现（权重并列取最早），因此 `text, (text:1.4)` 会留下强化过的 `(text:1.4)` 而非丢掉权重；② 只删除「组内只有它自己」的标签（裸词，或 `(text:1.4)` 这类单成员括号组），多成员括号组（如 `(a, b)`）内的重复词**不**自动删——从组里抠词会改变整组权重语义；③ 只删除、不重排，并保留原有换行格式。⚠️ 该操作为直接改写文本，没有撤销。
+- **连续逗号清理修正**：`empty_segments` 的清理正则原为 `,\s*,+`，一次只能吃掉两个逗号，遇到 3 个以上连续逗号（如删除相邻的多个重复词条后）会残留 `, , ,`。现抽出共用的 `cleanupPromptSeparators()` 并改用 `,(\s*,)+`，任意数量的连续逗号都能压成一个。
+
+### ✅ 验证 (Verification)
+- **实机结构校验**：把生成的 Anima 工作流（完整复刻档 33 个节点 / 极速直出档 / 核心节点降级档）提交给真实 ComfyUI 做校验（注入一处故意错误使其只校验不执行），服务端返回的 `node_errors` **仅包含故意注入的那一个节点**，证明其余全部节点的 `class_type`、输入名与引用关系均符合服务端 schema。
+- **测试**：203 个单测全绿（Anima 工作流 26 项、XYZ×Anima 8 项、`readCombo` 6 项、useOptions 扩展 3 项、提示词标签块解析 24 项、**Lint 去重与分隔符清理 14 项**）；`tsc` 无错误；`eslint` 无 error；生产构建主 chunk 429 kB（< 500 kB）。
+- **提示词块实机验证**：在真实页面填入 `(masterpiece, best quality, score_9, score_8), 1girl, long hair, blue eyes`，确认拆成 **7 个**块（旧版仅 4 个）、前 4 块显示权重 `1.10`；点首块 `+` 后为 `(masterpiece:1.2), (best quality:1.1), (score_9:1.1), (score_8:1.1), 1girl, long hair, blue eyes`；Anima 面板的 `{face|face, detailed face}` 与 `{eyes|eyes, detailed eyes}` 均为单块且只有翻译按钮。既有 `PromptTagBlocks` 的 5 个用例**一行未改**即通过。
+
 ## [v0.3.7] - 2026-09-19
 
 ### 📁 LoRA 管理侧边栏文件夹折叠 (Collapsible Folder Tree)

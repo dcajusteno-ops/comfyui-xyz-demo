@@ -55,11 +55,22 @@ export function PresetBar<T extends Record<string, unknown>>({ target, params, o
       flash("请先在左侧下拉选择要应用的预设");
       return;
     }
-    const { next, checkpointRejected } = applySnapshot(params, selectedPreset.snapshot, options.checkpoints);
+    // Anima 不用 checkpoint，校验的是三段式模型栈里的 UNet
+    const guard =
+      target === "anima"
+        ? { field: "modelStack.unetName", available: options.unets }
+        : undefined;
+    const { next, checkpointRejected } = applySnapshot(
+      params,
+      selectedPreset.snapshot,
+      options.checkpoints,
+      guard,
+    );
     setParams(next);
+    const modelLabel = target === "anima" ? "UNet" : "checkpoint";
     flash(
       checkpointRejected
-        ? `已应用「${selectedPreset.name}」；原 checkpoint 不可用，已保留当前模型`
+        ? `已应用「${selectedPreset.name}」；原 ${modelLabel} 不可用，已保留当前模型`
         : `已应用「${selectedPreset.name}」`,
     );
   };

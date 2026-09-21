@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { RefreshCw, Braces } from "lucide-react";
 import { NumberField, SelectField, TextAreaField } from "./FormFields";
 import { PromptTagBlocks } from "../PromptTagBlocks";
@@ -25,6 +25,7 @@ export function BaseControls<T extends BaseGenerationParams>({
   params,
   options,
   setParams,
+  modelSlot,
   hidePositive = false,
   disableStickyPrompt = false,
   onLoraDetail,
@@ -37,6 +38,12 @@ export function BaseControls<T extends BaseGenerationParams>({
   params: T;
   options: OptionsState;
   setParams: (updater: T | ((prev: T) => T)) => void;
+  /**
+   * 自定义「模型选择」控件，用于替换默认的「大模型」（checkpoint 下拉）。
+   * 不传时行为与改造前完全一致。Anima 等非 Checkpoint 系模板用它注入自己的模型栈控件
+   * （传 Fragment 的多个 `.field` 即可与右侧控件共用一个 `form-grid` 行）。
+   */
+  modelSlot?: ReactNode;
   hidePositive?: boolean;
   disableStickyPrompt?: boolean;
   onLoraDetail?: (item: LoraItem) => void;
@@ -65,12 +72,14 @@ export function BaseControls<T extends BaseGenerationParams>({
   return (
     <>
       <div className="form-grid three">
-        <SelectField
-          label="大模型"
-          value={params.checkpoint}
-          options={options.checkpoints}
-          onChange={(value) => setField("checkpoint", value as T["checkpoint"])}
-        />
+        {modelSlot ?? (
+          <SelectField
+            label="大模型"
+            value={params.checkpoint}
+            options={options.checkpoints}
+            onChange={(value) => setField("checkpoint", value as T["checkpoint"])}
+          />
+        )}
         <label className="field">
           <span>宽高预设</span>
           <select

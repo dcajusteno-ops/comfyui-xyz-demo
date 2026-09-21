@@ -1,4 +1,5 @@
 import type { BaseGenerationParams, XyzAxis, XyzCombination, XyzField } from "../types";
+import { animaStageMeta } from "../constants";
 import { appendPositivePrompt, loraNamePatch, loraStrengthPatch } from "./workflowBuilders";
 
 const numericFields = new Set<string>([
@@ -8,6 +9,11 @@ const numericFields = new Set<string>([
   "width",
   "height",
   "denoise",
+  "animaHiresPrePercent",
+  "animaHiresPostPercent",
+  "animaRefineSteps",
+  "animaRefineCfg",
+  "animaRefineDenoise",
   "drawTextSize",
   "drawTextWidth",
   "drawTextHeight",
@@ -117,16 +123,24 @@ export function buildXyzCombinations(
     const { axis, values } = activeAxes[index];
     for (const value of values) {
       const fp = fieldPatch(axis.field, value);
-      const nextPatch = { ...patch, ...fp };
+      const nextPatch: Record<string, unknown> = { ...patch, ...fp };
       if (patch.loras && fp.loras) {
         nextPatch.loras = [...patch.loras, ...fp.loras];
       }
       if (patch.drawText && fp.drawText) {
         nextPatch.drawText = { ...patch.drawText, ...fp.drawText };
       }
+      // 嵌套层按层合并，使多个 Anima 轴可以叠加（例如同时打「阶段开关轴」与「放大倍率轴」）
+      for (const key of NESTED_PATCH_KEYS) {
+        const a = (patch as Record<string, unknown>)[key];
+        const b = (fp as Record<string, unknown>)[key];
+        if (a && b && typeof a === "object" && typeof b === "object") {
+          nextPatch[key] = { ...(a as object), ...(b as object) };
+        }
+      }
       walk(
         index + 1,
-        nextPatch,
+        nextPatch as Partial<BaseGenerationParams>,
         [...labels, `${fieldLabel(axis.field, lorasOfTarget)}=${String(value)}`],
       );
     }
@@ -135,8 +149,20 @@ export function buildXyzCombinations(
   return combinations;
 }
 
+/** 需要「按层合并」而非整体覆盖的参数键（Anima 等模板的嵌套配置） */
+const NESTED_PATCH_KEYS = ["stages", "hires", "refine", "img2img"] as const;
+
 export function applyXyzPatch<T extends BaseGenerationParams>(params: T, patch: Partial<BaseGenerationParams>): T {
-  let next = { ...params, ...patch };
+  // 先把嵌套层拆出来，扁平层走原来的整体覆盖逻辑
+  const flatPatch = { ...(patch as Record<string, unknown>) };
+  const nestedPatch: Record<string, Record<string, unknown>> = {};
+  for (const key of NESTED_PATCH_KEYS) {
+    const value = flatPatch[key];
+    delete flatPatch[key];
+    if (value && typeof value === "object") nestedPatch[key] = value as Record<string, unknown>;
+  }
+
+  let next = { ...params, ...flatPatch } as T;
   if ("positivePrompt" in patch && patch.positivePrompt) {
     next = {
       ...next,
@@ -151,16 +177,33 @@ export function applyXyzPatch<T extends BaseGenerationParams>(params: T, patch: 
   } else if (patch.drawText) {
     next.drawText = patch.drawText as any;
   }
+
+  // 嵌套层：**存在性守卫**——只有目标参数对象本身就有这一层才合并。
+  // 否则（例如给 SD 系参数打 Anima 专属轴）会凭空造出 stages/hires/refine 键，
+  // 污染其 localStorage 与预设快照。
+  const source = params as unknown as Record<string, unknown>;
+  const target = next as unknown as Record<string, unknown>;
+  for (const key of NESTED_PATCH_KEYS) {
+    const value = nestedPatch[key];
+    if (!value) continue;
+    const currentValue = source[key];
+    if (currentValue && typeof currentValue === "object") {
+      target[key] = { ...(currentValue as Record<string, unknown>), ...value };
+    }
+  }
+
   return next;
 }
 
 function isBooleanField(field: XyzField) {
-  return field === "drawTextSyncWithImage";
+  return field === "drawTextSyncWithImage" || field.startsWith("animaStage_");
 }
+
+const TRUTHY_AXIS_VALUES = new Set(["true", "1", "on", "yes", "开", "是"]);
 
 function parseValue(field: XyzField, value: any) {
   if (isNumericField(field)) return Number(value);
-  if (isBooleanField(field)) return String(value).toLowerCase() === "true" || value === "1" || value === 1;
+  if (isBooleanField(field)) return TRUTHY_AXIS_VALUES.has(String(value).toLowerCase()) || value === 1;
   return String(value);
 }
 
@@ -184,6 +227,27 @@ function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenera
     const idx = parseInt(field.split("_")[1]);
     return { loras: [{ name: `__LORA_APPEND_STRENGTH_${idx}__`, active: true, strength: Number(value), clipStrength: Number(value) } as any] };
   }
+  // ---- Anima 专属轴：返回**嵌套** patch，由 applyXyzPatch / buildXyzCombinations 按层合并 ----
+  if (field === "animaHiresPrePercent") {
+    return { hires: { prePercent: Number(value) } } as unknown as Partial<BaseGenerationParams>;
+  }
+  if (field === "animaHiresPostPercent") {
+    return { hires: { postPercent: Number(value) } } as unknown as Partial<BaseGenerationParams>;
+  }
+  if (field === "animaRefineSteps") {
+    return { refine: { steps: Number(value) } } as unknown as Partial<BaseGenerationParams>;
+  }
+  if (field === "animaRefineCfg") {
+    return { refine: { cfg: Number(value) } } as unknown as Partial<BaseGenerationParams>;
+  }
+  if (field === "animaRefineDenoise") {
+    return { refine: { denoise: Number(value) } } as unknown as Partial<BaseGenerationParams>;
+  }
+  if (field.startsWith("animaStage_")) {
+    const stageKey = field.slice("animaStage_".length);
+    return { stages: { [stageKey]: parseValue(field, value) } } as unknown as Partial<BaseGenerationParams>;
+  }
+
   if (field === "drawTextText") {
     return { drawText: { text: String(value), enabled: true } as any };
   }
@@ -268,6 +332,11 @@ export function fieldLabel(field: XyzField, lorasOfTarget?: { name: string; disp
     const idx = parseInt(field.split("_")[1]);
     return `追加 LoRA ${idx} 强度`;
   }
+  if (field.startsWith("animaStage_")) {
+    const stageKey = field.slice("animaStage_".length);
+    const meta = animaStageMeta.find((item) => item.key === stageKey);
+    return `阶段：${meta?.label ?? stageKey}`;
+  }
   const labels: Record<string, string> = {
     seed: "Seed",
     steps: "Steps",
@@ -278,6 +347,11 @@ export function fieldLabel(field: XyzField, lorasOfTarget?: { name: string; disp
     scheduler: "调度器",
     denoise: "重绘",
     positiveAppend: "正向追加",
+    animaHiresPrePercent: "放大①百分比",
+    animaHiresPostPercent: "放大②百分比",
+    animaRefineSteps: "精修步数",
+    animaRefineCfg: "精修 CFG",
+    animaRefineDenoise: "精修重绘",
     drawTextText: "文字内容",
     drawTextFont: "文字字体",
     drawTextSize: "文字大小",

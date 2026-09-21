@@ -9,12 +9,37 @@ export function mergeLora(loras: LoraSelection[], selection: LoraSelection) {
   return [...loras, selection];
 }
 
+/**
+ * 从 ComfyUI `/object_info` 的 payload 中读取某个下拉枚举的可选值。
+ *
+ * 需要兼容两种格式（实测同一台 ComfyUI 上会同时出现）：
+ *   旧格式：`"unet_name": [["a.safetensors", "b.safetensors"]]`
+ *   新格式：`"model_name": ["COMBO", { "multiselect": false, "options": ["a.pth"] }]`
+ *
+ * 旧实现只认第一种，遇到第二种（例如核心的 `UpscaleModelLoader.model_name`）会静默
+ * 返回 fallback，导致下拉为空。此处两种都支持。
+ */
 export function readCombo(data: unknown, node: string, input: string, fallback: string[]) {
   const nodeData = (data as Record<string, { input?: { required?: Record<string, unknown>; optional?: Record<string, unknown> } }>)[node];
   const entry = nodeData?.input?.required?.[input] || nodeData?.input?.optional?.[input];
-  if (Array.isArray(entry) && Array.isArray(entry[0])) {
+  return parseComboEntry(entry, fallback);
+}
+
+/** 单独抽出便于单测：只处理"一个 input 描述项 → 字符串数组"这一层。 */
+export function parseComboEntry(entry: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(entry)) return fallback;
+
+  // 旧格式：entry[0] 就是选项数组
+  if (Array.isArray(entry[0])) {
     return entry[0].map(String);
   }
+
+  // 新格式：entry = ["COMBO", { options: [...] }]
+  const meta = entry[1];
+  if (meta && typeof meta === "object" && Array.isArray((meta as { options?: unknown }).options)) {
+    return ((meta as { options: unknown[] }).options).map((item) => String(item));
+  }
+
   return fallback;
 }
 

@@ -3,6 +3,7 @@ import { ComfyClient } from "./lib/comfyClient";
 import { ConnectionInfo, TabId } from "./types";
 import { CONFIG } from "./config";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
+import { isValidTabId } from "./lib/app-utils";
 
 export type Theme = "light" | "dark";
 
@@ -35,6 +36,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       root.classList.remove("dark");
     }
   }, [theme]);
+
+  // 持久化的 tab 值来自 localStorage、不做校验；若该 tab 已不存在（改名/删功能），
+  // 所有 `{tab === "xxx"}` 分支都不成立会让主区域一片空白。这里回落默认值。
+  useEffect(() => {
+    if (!isValidTabId(tab)) setTab("default");
+  }, [tab, setTab]);
 
   const toggleTheme = useCallback((event?: React.MouseEvent | MouseEvent) => {
     const nextTheme = theme === "light" ? "dark" : "light";

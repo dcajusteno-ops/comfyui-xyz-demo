@@ -26,7 +26,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function coerceItem(raw: unknown): GenerationPreset | null {
   if (!isRecord(raw)) return null;
   const target = raw.target;
-  if (target !== "default" && target !== "multi" && target !== "highres") return null;
+  if (target !== "default" && target !== "multi" && target !== "highres" && target !== "anima") return null;
   if (typeof raw.name !== "string" || !raw.name.trim()) return null;
   if (!isRecord(raw.snapshot)) return null;
 
@@ -74,28 +74,64 @@ export function exportPresetsJson(presets: GenerationPreset[]): string {
   );
 }
 
+function readPath(source: Record<string, unknown>, path: string): unknown {
+  return path
+    .split(".")
+    .reduce<unknown>(
+      (acc, key) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[key] : undefined),
+      source,
+    );
+}
+
+/** 只在路径已存在时写入，避免给参数对象凭空造出中间层（例如给 SD 系参数加 `stages`）。 */
+function writePath(target: Record<string, unknown>, path: string, value: unknown) {
+  const keys = path.split(".");
+  let cursor: Record<string, unknown> = target;
+  for (let i = 0; i < keys.length - 1; i += 1) {
+    const next = cursor[keys[i]];
+    if (!next || typeof next !== "object") return;
+    cursor = next as Record<string, unknown>;
+  }
+  cursor[keys[keys.length - 1]] = value;
+}
+
+/** 校验「哪一个字段」用「哪一份可用列表」。默认保持 `checkpoint` / 传入的 checkpoint 列表。 */
+export type SnapshotGuard = {
+  /** 参数路径，支持点号（如 `modelStack.unetName`），默认 `checkpoint` */
+  field?: string;
+  /** 该字段的可用取值；空数组或未提供时沿用第三个参数 */
+  available?: string[];
+};
+
 /**
- * 把预设快照整对象替换到当前参数，并做 checkpoint 存活校验：
- * - snapshot 未携带 checkpoint：原样回填；
- * - snapshot.checkpoint 不在可用列表（模型被删除/换机器）：保留用户当前 checkpoint 并标记。
+ * 把预设快照整对象替换到当前参数，并对「模型」类字段做存活校验：
+ * - snapshot 未携带该字段：原样回填；
+ * - snapshot 的值不在可用列表（模型被删除/换机器）：保留用户当前值并在返回值中标记。
+ *
+ * `guard` 用于非 Checkpoint 系模板（例如 Anima 应校验 `modelStack.unetName` 对 `options.unets`）。
+ * 不传时行为与改造前完全一致。
  */
 export function applySnapshot<T extends Record<string, unknown>>(
   current: T,
   snapshot: Record<string, unknown>,
   availableCheckpoints: string[],
-): { next: T; checkpointRejected: boolean } {
-  const snapshotCkpt = snapshot.checkpoint;
-  const rejectCheckpoint =
-    typeof snapshotCkpt === "string" &&
-    snapshotCkpt.length > 0 &&
-    availableCheckpoints.length > 0 &&
-    !availableCheckpoints.includes(snapshotCkpt);
+  guard?: SnapshotGuard,
+): { next: T; checkpointRejected: boolean; rejectedField?: string } {
+  const field = guard?.field ?? "checkpoint";
+  const available = guard?.available ?? availableCheckpoints;
+
+  const snapshotValue = readPath(snapshot, field);
+  const rejectField =
+    typeof snapshotValue === "string" &&
+    snapshotValue.length > 0 &&
+    available.length > 0 &&
+    !available.includes(snapshotValue);
 
   const next: T = { ...current, ...snapshot } as T;
-  if (rejectCheckpoint) {
-    (next as Record<string, unknown>).checkpoint = current.checkpoint;
+  if (rejectField) {
+    writePath(next as Record<string, unknown>, field, readPath(current as Record<string, unknown>, field));
   }
-  return { next, checkpointRejected: rejectCheckpoint };
+  return { next, checkpointRejected: rejectField, rejectedField: rejectField ? field : undefined };
 }
 
 /** 生成一个命名预设（不落库，由调用方负责写回） */

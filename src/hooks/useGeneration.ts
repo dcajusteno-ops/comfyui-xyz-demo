@@ -7,7 +7,8 @@ import {
   buildClSinglePrompt,
   buildDefaultPrompt,
   buildMultiPrompt,
-  buildHighresPrompt
+  buildHighresPrompt,
+  buildAnimaPrompt
 } from "../lib/workflowBuilders";
 import { buildXyzCombinations, applySpecialXyzPatch, fieldLabel, parseAxisValues } from "../lib/xyz";
 import { downloadTextFile } from "../lib/file-helper";
@@ -28,10 +29,15 @@ import type {
   BaseGenerationParams,
   MultiGenerationParams,
   HighresParams,
+  AnimaGenerationParams,
+  OptionsState,
   LoraSelection
 } from "../types";
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
+
+/** Anima 的能力探测结果（决定用原节点还是核心节点降级实现） */
+type AnimaCaps = OptionsState["animaCaps"];
 
 export function useGeneration({ client, pushToast, notifyComplete }: { client: ComfyClient; pushToast: ToastFn; notifyComplete?: (title: string, message?: string) => void }) {
   const [progress, setProgress] = useState<ProgressState>({
@@ -166,8 +172,18 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     xyzTarget: TemplateKind,
     defaultParams: BaseGenerationParams,
     multiParams: MultiGenerationParams,
-    highresParams: HighresParams
+    highresParams: HighresParams,
+    animaParams: AnimaGenerationParams,
+    animaCaps: AnimaCaps
   ) => {
+    if (xyzTarget === "anima") {
+      const patched = applySpecialXyzPatch(animaParams, combo) as AnimaGenerationParams;
+      return buildAnimaPrompt(
+        // 与主界面一致：未打 drawText 轴时借用「文字特效」页的水印配置；打了轴则以轴为准
+        { ...patched, drawText: combo.patch.drawText ?? defaultParams.drawText },
+        animaCaps,
+      );
+    }
     if (xyzTarget === "multi") {
       const patched = applySpecialXyzPatch(multiParams, combo);
       const promptAppend = combo.patch.positivePrompt;
@@ -188,7 +204,9 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     xyzTarget: TemplateKind,
     defaultParams: BaseGenerationParams,
     multiParams: MultiGenerationParams,
-    highresParams: HighresParams
+    highresParams: HighresParams,
+    animaParams: AnimaGenerationParams,
+    animaCaps: AnimaCaps
   ) => {
     setError("");
     setActiveTaskLabel("XYZ 控制器");
@@ -217,7 +235,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
 
       try {
         const result = await client.runPrompt(
-          buildXyzPrompt(item, xyzTarget, defaultParams, multiParams, highresParams),
+          buildXyzPrompt(item, xyzTarget, defaultParams, multiParams, highresParams, animaParams, animaCaps),
           (prog) => setProgress({ ...prog, batch })
         );
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result } : entry));
@@ -247,7 +265,9 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     lorasOfTarget: LoraSelection[],
     defaultParams: BaseGenerationParams,
     multiParams: MultiGenerationParams,
-    highresParams: HighresParams
+    highresParams: HighresParams,
+    animaParams: AnimaGenerationParams,
+    animaCaps: AnimaCaps
   ) => {
     const combos = buildXyzCombinations(xyzAxes, lorasOfTarget, xyzExcludedIndices);
     if (!combos.length) {
@@ -261,7 +281,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       status: "queued" as const,
       comboIndex: combo.originalIndex,
     }));
-    await runXyzItems(items, true, xyzTarget, defaultParams, multiParams, highresParams);
+    await runXyzItems(items, true, xyzTarget, defaultParams, multiParams, highresParams, animaParams, animaCaps);
   }, [pushToast, runXyzItems]);
 
   const stopXyzQueue = useCallback(() => {
@@ -276,7 +296,9 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     xyzTarget: TemplateKind,
     defaultParams: BaseGenerationParams,
     multiParams: MultiGenerationParams,
-    highresParams: HighresParams
+    highresParams: HighresParams,
+    animaParams: AnimaGenerationParams,
+    animaCaps: AnimaCaps
   ) => {
     await runXyzItems(
       [{ ...item, id: crypto.randomUUID(), status: "queued", result: undefined, error: undefined }], 
@@ -284,7 +306,9 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       xyzTarget, 
       defaultParams, 
       multiParams, 
-      highresParams
+      highresParams,
+      animaParams,
+      animaCaps
     );
   }, [runXyzItems]);
 
@@ -292,7 +316,9 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     xyzTarget: TemplateKind,
     defaultParams: BaseGenerationParams,
     multiParams: MultiGenerationParams,
-    highresParams: HighresParams
+    highresParams: HighresParams,
+    animaParams: AnimaGenerationParams,
+    animaCaps: AnimaCaps
   ) => {
     const failed = xyzResults.filter((item) => item.status === "failed");
     if (!failed.length) {
@@ -300,7 +326,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       return;
     }
     const items = failed.map((item) => ({ ...item, id: crypto.randomUUID(), status: "queued" as const, result: undefined, error: undefined }));
-    await runXyzItems(items, true, xyzTarget, defaultParams, multiParams, highresParams);
+    await runXyzItems(items, true, xyzTarget, defaultParams, multiParams, highresParams, animaParams, animaCaps);
   }, [xyzResults, pushToast, runXyzItems]);
 
   const exportXyzResults = useCallback((xyzTarget: TemplateKind, xyzAxes: XyzAxis[]) => {

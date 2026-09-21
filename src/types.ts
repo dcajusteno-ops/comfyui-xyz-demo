@@ -486,6 +486,19 @@ export type DetailerParams = {
   samplerName: string;
   scheduler: string;
   prompt?: string;
+  // 以下为 FaceDetailer / DetailerForEach 的可选输入，Anima 原工作流用到而高修未用。
+  // 保持可选且默认 undefined → 不下发，以保证 buildHighresPrompt 输出逐节点不变。
+  noiseMaskFeather?: number;
+  tiledEncode?: boolean;
+  tiledDecode?: boolean;
+  inpaintModel?: boolean;
+  /** 以下 sam_* / drop_size 在高修里是硬编码值，此处置为可选以便 Anima 对齐原工作流 */
+  samDetectionHint?: string;
+  samDilation?: number;
+  samThreshold?: number;
+  samMaskHintThreshold?: number;
+  samMaskHintUseNegative?: string;
+  dropSize?: number;
 };
 
 export type HighresParams = BaseGenerationParams & {
@@ -514,6 +527,86 @@ export type HighresParams = BaseGenerationParams & {
   eyesDetailer: DetailerParams;
   nsfwDetailer: DetailerParams;
   segsDetailer: DetailerParams;
+};
+
+/* ------------------------------------------------------------------ *
+ * Anima（Qwen-Image 系 · Turbo）模板
+ * 字段集刻意与 HighresParams 同构（基础参数 + 5 个 DetailerParams + 4 个检测器），
+ * 以便 DetailerControls 与 detailerChain 原样复用。
+ * ------------------------------------------------------------------ */
+
+/** 模型栈：UNET + CLIP + VAE 三段式 */
+export type AnimaModelStack = {
+  unetName: string; // UNETLoader.unet_name
+  weightDtype: string; // UNETLoader.weight_dtype，取值取自 /object_info
+  clipName: string; // CLIPLoader.clip_name
+  clipType: string; // CLIPLoader.type，取值取自 /object_info
+  vaeName: string; // VAELoader.vae_name
+};
+
+/** 阶段开关的 key；XyzField 的布尔轴模板要用，故独立导出 */
+export type AnimaStageKey =
+  | "img2img"
+  | "cfgZeroStar"
+  | "refinePass"
+  | "hiresFixPre"
+  | "segsDetailer"
+  | "handDetailer"
+  | "nsfwDetailer"
+  | "faceDetailer"
+  | "eyesDetailer"
+  | "hiresFixPost"
+  | "wildcardNode"
+  | "saveImage";
+
+/** 12 个阶段开关（初始值 = 「完整复刻」档，除 wildcardNode 外全开） */
+export type AnimaStageToggles = Record<AnimaStageKey, boolean>;
+
+export type AnimaImg2ImgParams = {
+  /** 经 client.uploadImage() 上传后的文件名；空 = 未选图（此时回落文生图） */
+  imageName: string;
+  keepProportion: string; // 取自 /object_info
+  upscaleMethod: string; // 取自 /object_info
+  cropPosition: string; // 取自 /object_info
+  // 不设 denoise：基础采样的重绘一律读 BaseGenerationParams.denoise
+};
+
+export type AnimaHiresParams = {
+  modelName: string; // 取自 /object_info，模糊命中 Remacri
+  rescaleMethod: string; // 取自 /object_info
+  prePercent: number; // 放大①（精修后、detailer 前），直传 easy hiresFix.percent
+  postPercent: number; // 放大②（最终输出前），同上
+};
+
+/** 二次精修是普通 KSampler，用不着 DetailerParams 的 bbox/guide/feather/prompt 等字段 */
+export type AnimaRefineParams = {
+  steps: number;
+  cfg: number;
+  denoise: number;
+  samplerName: string;
+  scheduler: string;
+  /** 是否与基础采样共用 seed（原工作流共用） */
+  syncSeedWithBase: boolean;
+};
+
+export type AnimaGenerationParams = BaseGenerationParams & {
+  /** 收窄为字面量空串：Anima 不用 checkpoint，从类型上杜绝误用与预设校验误报 */
+  checkpoint: "";
+  modelStack: AnimaModelStack;
+  stages: AnimaStageToggles;
+  img2img: AnimaImg2ImgParams;
+  hires: AnimaHiresParams;
+  refine: AnimaRefineParams;
+  handDetailer: DetailerParams;
+  faceDetailer: DetailerParams;
+  eyesDetailer: DetailerParams;
+  nsfwDetailer: DetailerParams;
+  segsDetailer: DetailerParams;
+  handDetector: string;
+  faceDetector: string;
+  eyesDetector: string;
+  nsfwDetector: string;
+  // 每阶段的追加词直接用各自 DetailerParams.prompt（面板上叫「独立正向提示词」）
 };
 
 export type OutputImage = {
@@ -550,7 +643,7 @@ export type ProgressState = {
   texts?: string[];
 };
 
-export type TemplateKind = "default" | "multi" | "highres";
+export type TemplateKind = "default" | "multi" | "highres" | "anima";
 
 export type XyzField =
   | "seed"
@@ -593,7 +686,14 @@ export type XyzField =
   | "drawTextDecoration"
   | "drawTextSyncWithImage"
   | "drawTextSyncMode"
-  | "drawTextGradientAngle";
+  | "drawTextGradientAngle"
+  // ---- Anima 专属轴（仅当 xyzTarget === "anima" 时在控制器里列出）----
+  | "animaHiresPrePercent"
+  | "animaHiresPostPercent"
+  | "animaRefineSteps"
+  | "animaRefineCfg"
+  | "animaRefineDenoise"
+  | `animaStage_${AnimaStageKey}`;
 
 export type XyzAxis = {
   enabled: boolean;
@@ -655,7 +755,7 @@ export type PromptLintIssue = {
   fix?: (text: string) => string;
 };
 
-export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots";
+export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima";
 
 export type LoraPreviewMedia = {
   url?: string;
@@ -675,6 +775,20 @@ export type OptionsState = {
   upscaleMethods: string[];
   fonts: string[];
   translation: TranslationSettings;
+  // ---- Anima: UNET + CLIP + VAE 三段式模型栈 ----
+  unets: string[];
+  clips: string[];
+  clipTypes: string[];
+  vaes: string[];
+  /** ESRGAN 放大模型列表（UpscaleModelLoader / easy hiresFix 的 model_name） */
+  upscaleModels: string[];
+  /** Anima 可选能力的探测结果：是否装了原工作流用的第三方节点 */
+  animaCaps: {
+    useEasyHiresFix: boolean;
+    useImageResizeKJv2: boolean;
+  };
+  /** Anima 链路必需但本机未安装的节点（用于面板顶部提示），空数组表示齐全 */
+  animaMissingNodes: string[];
 };
 
 export type XyzRunItem = {

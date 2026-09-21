@@ -14,7 +14,7 @@ import { XyzPreview } from "./XyzPreview";
 import { XyzReviewBar, XyzCellBadge } from "./XyzReviewOverlay";
 import { useXyzReview } from "../../../hooks/useXyzReview";
 import { xyzStatusLabel } from "../../../lib/app-utils";
-import { templateLabels } from "../../../constants";
+import { animaStageMeta, templateLabels } from "../../../constants";
 import { fieldLabel } from "../../../lib/xyz";
 import { buildXyzCombinations } from "../../../lib/xyz";
 import type {
@@ -24,6 +24,8 @@ import type {
   BaseGenerationParams,
   MultiGenerationParams,
   HighresParams,
+  AnimaGenerationParams,
+  OptionsState,
   XyzCellScore,
 } from "../../../types";
 
@@ -38,12 +40,12 @@ interface XyzControllerProps {
   setShowXyzHelp: (show: boolean) => void;
   lorasOfTarget: { name: string; displayName?: string }[];
   gen: {
-    runXyz: (axes: XyzAxis[], excluded: Set<number>, target: TemplateKind, loras: any, def: any, multi: any, high: any) => void;
+    runXyz: (axes: XyzAxis[], excluded: Set<number>, target: TemplateKind, loras: any, def: any, multi: any, high: any, anima: any, animaCaps: any) => void;
     stopXyzQueue: () => void;
-    retryFailedXyz: (target: TemplateKind, def: any, multi: any, high: any) => void;
+    retryFailedXyz: (target: TemplateKind, def: any, multi: any, high: any, anima: any, animaCaps: any) => void;
     exportXyzResults: (target: TemplateKind, axes: XyzAxis[]) => void;
     exportXyzGrid: (target: TemplateKind, axes: XyzAxis[], loras: any) => void;
-    rerunXyzItem: (item: any, target: TemplateKind, def: any, multi: any, high: any) => void;
+    rerunXyzItem: (item: any, target: TemplateKind, def: any, multi: any, high: any, anima: any, animaCaps: any) => void;
     xyzResults: any[];
     progress: { running: boolean };
   };
@@ -51,7 +53,10 @@ interface XyzControllerProps {
     defaultParams: BaseGenerationParams;
     multiParams: MultiGenerationParams;
     highresParams: HighresParams;
+    animaParams: AnimaGenerationParams;
   };
+  /** Anima 的能力探测结果（重绘时透传给 builder） */
+  animaCaps: OptionsState["animaCaps"];
   onOutputLightbox: (url: string) => void;
 }
 
@@ -66,6 +71,7 @@ export const XyzController = React.memo(({
   lorasOfTarget,
   gen,
   params,
+  animaCaps,
   onOutputLightbox,
 }: XyzControllerProps) => {
   const review = useXyzReview();
@@ -75,24 +81,37 @@ export const XyzController = React.memo(({
     review.clearReview();
   }, [gen.xyzResults]);
 
-  const xyzFields: XyzField[] = useMemo(() => [
-    "seed",
-    "steps",
-    "cfg",
-    "width",
-    "height",
-    "samplerName",
-    "scheduler",
-    "denoise",
-    "positiveAppend",
-    ...lorasOfTarget.flatMap((_, i) => [`loraName_${i}` as const, `loraStrength_${i}` as const]),
-    "loraAppendName_1",
-    "loraAppendStrength_1",
-    "loraAppendName_2",
-    "loraAppendStrength_2",
-    "drawTextText",
-    "drawTextFont",
-  ], [lorasOfTarget]);
+  const xyzFields: XyzField[] = useMemo(() => {
+    const common: XyzField[] = [
+      "seed",
+      "steps",
+      "cfg",
+      "width",
+      "height",
+      "samplerName",
+      "scheduler",
+      "denoise",
+      "positiveAppend",
+      ...lorasOfTarget.flatMap((_, i) => [`loraName_${i}` as const, `loraStrength_${i}` as const]),
+      "loraAppendName_1",
+      "loraAppendStrength_1",
+      "loraAppendName_2",
+      "loraAppendStrength_2",
+      "drawTextText",
+      "drawTextFont",
+    ];
+    if (xyzTarget !== "anima") return common;
+    // Anima 专属轴：放大倍率 / 精修参数 / 12 个阶段开关（布尔）
+    return [
+      ...common,
+      "animaHiresPrePercent",
+      "animaHiresPostPercent",
+      "animaRefineSteps",
+      "animaRefineCfg",
+      "animaRefineDenoise",
+      ...animaStageMeta.map(({ key }) => `animaStage_${key}` as XyzField),
+    ];
+  }, [lorasOfTarget, xyzTarget]);
 
   const updateAxis = (index: number, patch: Partial<XyzAxis>) => {
     setXyzAxes((prev) => {
@@ -258,7 +277,9 @@ export const XyzController = React.memo(({
             lorasOfTarget,
             params.defaultParams,
             params.multiParams,
-            params.highresParams
+            params.highresParams,
+            params.animaParams,
+            animaCaps
           )
         }
       >
@@ -294,7 +315,9 @@ export const XyzController = React.memo(({
               xyzTarget,
               params.defaultParams,
               params.multiParams,
-              params.highresParams
+              params.highresParams,
+              params.animaParams,
+              animaCaps
             )
           }
         >
@@ -361,7 +384,9 @@ export const XyzController = React.memo(({
                     xyzTarget,
                     params.defaultParams,
                     params.multiParams,
-                    params.highresParams
+                    params.highresParams,
+                    params.animaParams,
+                    animaCaps
                   )
                 }
               >
