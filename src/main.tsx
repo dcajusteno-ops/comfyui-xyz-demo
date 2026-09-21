@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { AppProvider } from "./AppContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MobileTagPage } from "./components/mobile";
 import "./styles.css";
 
@@ -10,12 +11,14 @@ const isMobileTagPage = window.location.hash.startsWith("#/mobile-tag");
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {isMobileTagPage ? (
-      <MobileTagPage />
-    ) : (
-      <AppProvider>
-        <App />
-      </AppProvider>
-    )}
+    <ErrorBoundary>
+      {isMobileTagPage ? (
+        <MobileTagPage />
+      ) : (
+        <AppProvider>
+          <App />
+        </AppProvider>
+      )}
+    </ErrorBoundary>
   </React.StrictMode>,
 );

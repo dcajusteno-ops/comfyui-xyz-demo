@@ -184,6 +184,8 @@ export const HighresGenerationPanel = React.memo(({
         <div className="detailer-grid">
           {params.enableSegsDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="全图修复参数"
               params={
                 params.segsDetailer ?? {
@@ -199,6 +201,8 @@ export const HighresGenerationPanel = React.memo(({
           )}
           {params.enableHandDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="手部修复参数"
               detector={params.handDetector}
               detectors={options.detectors}
@@ -209,6 +213,8 @@ export const HighresGenerationPanel = React.memo(({
           )}
           {params.enableFaceDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="脸部修复参数"
               detector={params.faceDetector}
               detectors={options.detectors}
@@ -219,6 +225,8 @@ export const HighresGenerationPanel = React.memo(({
           )}
           {params.enableEyesDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="眼部修复参数"
               detector={params.eyesDetector}
               detectors={options.detectors}
@@ -229,6 +237,8 @@ export const HighresGenerationPanel = React.memo(({
           )}
           {params.enableNsfwDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="NSFW修复参数"
               detector={params.nsfwDetector}
               detectors={options.detectors}

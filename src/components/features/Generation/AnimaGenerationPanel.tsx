@@ -351,6 +351,8 @@ export const AnimaGenerationPanel = React.memo(({
         <div className="detailer-grid">
           {params.stages.segsDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="全图修复参数"
               params={params.segsDetailer ?? makeAnimaDetailerParams(0.24)}
               onChange={(detailer) => setParams((prev) => ({ ...prev, segsDetailer: detailer }))}
@@ -358,6 +360,8 @@ export const AnimaGenerationPanel = React.memo(({
           )}
           {params.stages.handDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="手部修复参数"
               detector={params.handDetector}
               detectors={options.detectors}
@@ -368,6 +372,8 @@ export const AnimaGenerationPanel = React.memo(({
           )}
           {params.stages.faceDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="脸部修复参数"
               detector={params.faceDetector}
               detectors={options.detectors}
@@ -378,6 +384,8 @@ export const AnimaGenerationPanel = React.memo(({
           )}
           {params.stages.eyesDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="眼部修复参数"
               detector={params.eyesDetector}
               detectors={options.detectors}
@@ -388,6 +396,8 @@ export const AnimaGenerationPanel = React.memo(({
           )}
           {params.stages.nsfwDetailer && (
             <DetailerControls
+              samplers={options.samplers}
+              schedulers={options.schedulers}
               title="NSFW修复参数"
               detector={params.nsfwDetector}
               detectors={options.detectors}

@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
 - **`readCombo` 兼容新版 COMBO 格式**：原先只认旧格式 `[[...]]`，遇到 `["COMBO", { options: [...] }]`（实测核心 `UpscaleModelLoader.model_name` 即为此格式）会静默返回 fallback 导致下拉为空。现两种格式都支持，并抽出 `parseComboEntry` 配单测。
 - **`BaseControls` 模型选择区参数化**：新增可选 `modelSlot`，默认渲染原「大模型」下拉，非 Checkpoint 系模板可注入自己的模型栈控件；三个现有面板渲染结果不变。
 - **`TabId` 守卫**：持久化的 tab 值不再做无校验直接使用，非法值（改名/删功能后的历史值）回落 `default`，消除主页面空白。
+- **全局 ErrorBoundary**：渲染期异常不再白屏——显示错误摘要与「重置本地配置并刷新」入口（清除本应用写入的全部 `comfyui_*` / `xyz_*` localStorage 后重载），用于兜住「旧持久化数据 vs 新参数结构」这类兼容性崩溃。
+- **`DetailerControls` 参数补全**：新增「羽化（feather）/ 裁剪系数（bboxCropFactor）/ 采样器 / 调度器」四个字段的 UI 入口（此前仅存在于参数模型、UI 改不了）；高清修复与 Anima 的全部修复阶段同时受益。
 
 ### 🐛 提示词标签块解析修复 (Prompt Tag Parsing Fix)
 - **括号组按 tag 拆分**：`parsePromptTags` 原先按逗号切分时跟踪了圆括号深度，导致 `(masterpiece, best quality, ...)` 整段被当成**一个**标签块（占满三行）。A1111 / ComfyUI 的真实语义里 `(...)` 内的逗号**就是** tag 分隔符（括号负责给组内**每个词**乘 1.1），现已正确展开为逐词块。
@@ -43,7 +45,7 @@ All notable changes to this project will be documented in this file.
 
 ### ✅ 验证 (Verification)
 - **实机结构校验**：把生成的 Anima 工作流（完整复刻档 33 个节点 / 极速直出档 / 核心节点降级档）提交给真实 ComfyUI 做校验（注入一处故意错误使其只校验不执行），服务端返回的 `node_errors` **仅包含故意注入的那一个节点**，证明其余全部节点的 `class_type`、输入名与引用关系均符合服务端 schema。
-- **测试**：203 个单测全绿（Anima 工作流 26 项、XYZ×Anima 8 项、`readCombo` 6 项、useOptions 扩展 3 项、提示词标签块解析 24 项、**Lint 去重与分隔符清理 14 项**）；`tsc` 无错误；`eslint` 无 error；生产构建主 chunk 429 kB（< 500 kB）。
+- **测试**：208 个单测全绿（Anima 工作流 26 项、XYZ×Anima 8 项、`readCombo` 6 项、useOptions 扩展 3 项、提示词标签块解析 24 项、**Lint 去重与分隔符清理 14 项**、**ErrorBoundary 3 项**）；`tsc` 无错误；`eslint` 无 error；生产构建主 chunk 433 kB（< 500 kB）。
 - **提示词块实机验证**：在真实页面填入 `(masterpiece, best quality, score_9, score_8), 1girl, long hair, blue eyes`，确认拆成 **7 个**块（旧版仅 4 个）、前 4 块显示权重 `1.10`；点首块 `+` 后为 `(masterpiece:1.2), (best quality:1.1), (score_9:1.1), (score_8:1.1), 1girl, long hair, blue eyes`；Anima 面板的 `{face|face, detailed face}` 与 `{eyes|eyes, detailed eyes}` 均为单块且只有翻译按钮。既有 `PromptTagBlocks` 的 5 个用例**一行未改**即通过。
 
 ## [v0.3.7] - 2026-09-19

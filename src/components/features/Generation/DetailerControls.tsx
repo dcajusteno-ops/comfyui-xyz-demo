@@ -8,6 +8,8 @@ export function DetailerControls({
   params,
   onDetector,
   onChange,
+  samplers,
+  schedulers,
 }: {
   title: string;
   detector?: string;
@@ -15,6 +17,9 @@ export function DetailerControls({
   params: DetailerParams;
   onDetector?: (detector: string) => void;
   onChange: (params: DetailerParams) => void;
+  /** 提供时显示采样器/调度器下拉（取自 /object_info 的全局列表） */
+  samplers?: string[];
+  schedulers?: string[];
 }) {
   const set = <K extends keyof DetailerParams>(key: K, value: DetailerParams[K]) =>
     onChange({ ...params, [key]: value });
@@ -84,6 +89,36 @@ export function DetailerControls({
           step={1}
           onChange={(value) => set("bboxDilation", value)}
         />
+        <NumberField
+          label="羽化"
+          value={params.feather}
+          step={1}
+          min={0}
+          onChange={(value) => set("feather", value)}
+        />
+        <NumberField
+          label="裁剪系数"
+          value={params.bboxCropFactor}
+          step={0.1}
+          min={1}
+          onChange={(value) => set("bboxCropFactor", value)}
+        />
+        {samplers !== undefined && samplers.length > 0 && (
+          <SelectField
+            label="采样器"
+            value={params.samplerName}
+            options={samplers}
+            onChange={(value) => set("samplerName", value)}
+          />
+        )}
+        {schedulers !== undefined && schedulers.length > 0 && (
+          <SelectField
+            label="调度器"
+            value={params.scheduler}
+            options={schedulers}
+            onChange={(value) => set("scheduler", value)}
+          />
+        )}
         <div style={{ gridColumn: "1 / -1" }}>
           <TextAreaField
             label="独立正向提示词"
