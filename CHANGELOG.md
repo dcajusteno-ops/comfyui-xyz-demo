@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.4.1] - 2026-09-22
+
+### 🔒 服务端安全加固 (Server Security)
+- **修复任意文件读取**：`/xyz/lora/extract-metadata` 此前对请求体 `file_path` 零校验，可探测/读取任意文件。现强制解析后扩展名为 `.safetensors`（非 safetensors 文件解析结果恒为空），并支持 `XYZ_LORA_ALLOWED_ROOTS` 环境变量进一步限定根目录；非法路径返回 403。
+- **SSRF 双层防护**：示例图下载链路的媒体 URL（payload 中 metadata/civitai 可自带任意地址）增加私网/回环/链路本地 IP 黑名单校验；域名在 fetch 前做 DNS 解析复查（`dns.lookup all`），任一解析结果落在内网即拒绝。
+- **请求体上限**：`readJsonBody` 收口到 `server/utils.ts` 统一实现并加 2MB 上限，超限返回 413（排干请求体后正常响应，连接可复用；超过 32 倍上限才强制断开）；exampleImages 的本地复制实现删除。
+
+### 💾 数据完整性 (Data Integrity)
+- **notes / prompts 乐观并发检测**：存储增加 `revision` 版本号，GET 返回、POST 携带 `baseRevision`，过期版本返回 409 并附最新数据（不带 baseRevision 的旧客户端保持 last-writer-wins 兼容）；写入按文件串行化 + 原子写（临时文件 + rename），杜绝并发交错写坏文件。
+- **前端接入**：笔记保存携带 baseRevision（409 时对齐版本号 + 限流提示，下次保存以本窗口为准）；PromptSidebar / PromptEditorDialog 同步接入。
+- **笔记防抖防丢**：离开笔记页立即落盘、`beforeunload` 用 `sendBeacon` 兜底——2 秒防抖窗口内的末次编辑不再丢失。
+- **`package.json` 依赖清理**：移除死依赖 `marked`（全仓无引用却被 manualChunks 打包成孤儿 chunk）及 `@types/marked`、`@types/dompurify`（dompurify v3 自带类型）；`vite`、`@types/crypto-js` 归位 devDependencies。
+
+### 🐛 功能修复 (Bug Fixes)
+- **XYZ 重跑/重试失败不再清空其余结果**：`rerunXyzItem` / `retryFailedXyz` 原先以 `reset=true` 整体替换结果列表，重跑 1 条后其余组合（含成功图与网格导出数据）全部消失；现改为原位替换 + `reset=false`。
+- **Anima 打 drawText 轴不再丢失水印配置**：轴值是只含部分字段的对象，原实现整体覆盖已合并的完整水印配置（字体/颜色全丢）；现以借用到的完整配置为基底按层合并。
+- **Anima 耗时估算修正**：预估耗时原先无条件累加全部 12 个阶段，「极速直出」档显示约 4×；现只累加实际开启的阶段。
+- **笔记「清空内容」按钮修复**：`RichTextEditor` 声明了 `onClear` 且调用方已传确认逻辑，但组件解构遗漏导致界面无入口——已补上按钮；顺带 `ToolbarButton` 提升到模块顶层（消除每次渲染子树重挂载）。
+- **剪贴板降级**：`navigator.clipboard` 在局域网 HTTP（非安全上下文）下不存在，复制提示词改为自动回退 `execCommand`；HTML 剥标签改用惰性 `DOMParser`（不执行脚本、不加载图片）。
+- **提示词仓库 / 编辑器接入版本号**（见上），另修复 `PromptLintBadge`、`ImageCompare` 依赖缺失告警。
+
+### ♻️ 键名迁移与 lint 收敛 (Cleanup)
+- **localStorage 键名统一**：`xyz_theme` / `xyz_welcome_seen` → `comfyui_xyz_theme` / `comfyui_xyz_welcome_seen`，`useLocalStorageState` 内置旧键一次性迁移（读新键缺失时自动搬旧值并删除），老用户无感升级。
+- **字体 fallback 校正**：`fallbackOptions.fonts` 的占位值 "default" 对真实 DrawTextAdvanced 节点无效（节点校验 27 个真实字体文件）；`useOptions` 新增 `pickFont()`——object_info 字体清单中无当前字体时按「模糊命中优先、否则取首项」自动纠正，接入四组参数同步。
+- **Anima 面板新增两条非阻断提示**：Anima 系模型（16 通道 latent）配 `sdxl_vae` 会解码失败（建议 qwen_image_vae）；放大档已开启但未选择放大模型时提交会被校验拒绝。
+- **mobileSync**：DELETE 单任务/全清同步从待执行队列移除；SSE 心跳定时器在 dev server 关闭时清理。
+- **lint**：新增 `no-unused-vars` 下划线前缀忽略惯例；修复 ImageLightbox 快捷键 effect 引用声明前变量、useNotes 全 handler useCallback 化、useUiState 懒初始化、MobileTagPage 事件驱动 objectURL 等——warning 152 → 129，error 0。
+
+### 🛠️ 工程 (Engineering)
+- **server/ 纳入检查范围**：`tsconfig.json` include 加入 `server`（首次检查即暴露并修复 4 个既有类型错误），lint 脚本改为 `eslint src server`。
+- **pre-commit 质量门**：`scripts/githooks/pre-commit` 自动运行 `tsc --noEmit` + `eslint src server`（error 阻断、warning 放行），启用方式见 README「快速开始」第 4 步。
+
+### ✅ 验证 (Verification)
+- **全功能实机测试 18/18 通过**（ComfyUI 0.36.0 / RTX 5060 9GB，测试驱动见 `.workbuddy/gen-test/`）：默认生图 13.6s、**Anima 真机首跑 13.8s**（JANIMA_v10 + qwen_3_06b_base + qwen_image_vae，1024×1536 / 8 步 turbo）、Anima+水印、XYZ 双组合、多人 24.2s、高修 42.3s（双 KSampler denoise 1.0/0.58 逐项正确）、WD14 手机联动全流程 5.0s。
+- 质量门：`tsc --noEmit`（含 server）0 错误 / `eslint src server` 0 error（129 warnings，均为已知技术债）/ `vite build` 成功（主 chunk 462.67 kB，marked 孤儿 chunk 消失）。
+
 ## [v0.4.0] - 2026-09-21
 
 ### 🎨 Anima 大模型接入 (Anima Generation Template)
