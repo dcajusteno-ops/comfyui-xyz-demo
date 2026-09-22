@@ -178,9 +178,15 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
   ) => {
     if (xyzTarget === "anima") {
       const patched = applySpecialXyzPatch(animaParams, combo) as AnimaGenerationParams;
+      // 与主界面一致：未打 drawText 轴时借用「文字特效」页的水印配置。
+      // 注意 combo.patch.drawText 是只含轴字段的部分对象，必须以借用到的完整配置为基底按层合并，
+      // 不能直接整体覆盖（否则字体/颜色等全部丢失）。
+      const baseDrawText = defaultParams.drawText ?? patched.drawText;
+      const drawText = combo.patch.drawText
+        ? { ...baseDrawText, ...combo.patch.drawText }
+        : baseDrawText;
       return buildAnimaPrompt(
-        // 与主界面一致：未打 drawText 轴时借用「文字特效」页的水印配置；打了轴则以轴为准
-        { ...patched, drawText: combo.patch.drawText ?? defaultParams.drawText },
+        { ...patched, drawText },
         animaCaps,
       );
     }
@@ -300,12 +306,15 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     animaParams: AnimaGenerationParams,
     animaCaps: AnimaCaps
   ) => {
+    const rerun: XyzRunItem = { ...item, id: crypto.randomUUID(), status: "queued", result: undefined, error: undefined };
+    // 原位替换旧条目后以 reset=false 执行，保留其余组合的结果
+    setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...rerun } : entry));
     await runXyzItems(
-      [{ ...item, id: crypto.randomUUID(), status: "queued", result: undefined, error: undefined }], 
-      true, 
-      xyzTarget, 
-      defaultParams, 
-      multiParams, 
+      [rerun],
+      false,
+      xyzTarget,
+      defaultParams,
+      multiParams,
       highresParams,
       animaParams,
       animaCaps
@@ -325,8 +334,25 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       pushToast("info", "没有失败组合", "当前 XYZ 结果里没有需要重试的组合");
       return;
     }
-    const items = failed.map((item) => ({ ...item, id: crypto.randomUUID(), status: "queued" as const, result: undefined, error: undefined }));
-    await runXyzItems(items, true, xyzTarget, defaultParams, multiParams, highresParams, animaParams, animaCaps);
+    const retries = failed.map((item) => ({
+      oldId: item.id,
+      retry: { ...item, id: crypto.randomUUID(), status: "queued" as const, result: undefined, error: undefined },
+    }));
+    // 原位替换失败条目后以 reset=false 执行，保留成功组合的结果
+    setXyzResults((prev) => prev.map((entry) => {
+      const match = retries.find((r) => r.oldId === entry.id);
+      return match ? { ...match.retry } : entry;
+    }));
+    await runXyzItems(
+      retries.map((r) => r.retry),
+      false,
+      xyzTarget,
+      defaultParams,
+      multiParams,
+      highresParams,
+      animaParams,
+      animaCaps
+    );
   }, [xyzResults, pushToast, runXyzItems]);
 
   const exportXyzResults = useCallback((xyzTarget: TemplateKind, xyzAxes: XyzAxis[]) => {

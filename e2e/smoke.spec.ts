@@ -17,7 +17,7 @@ const NAV_LABELS = [
 test.beforeEach(async ({ page }) => {
   // 预置「已看过欢迎页」标记：首次访问会弹出欢迎弹窗，其遮罩会拦截全部指针事件
   await page.addInitScript(() => {
-    localStorage.setItem("xyz_welcome_seen", "true");
+    localStorage.setItem("comfyui_xyz_welcome_seen", "true");
   });
   await installApiMocks(page);
 });

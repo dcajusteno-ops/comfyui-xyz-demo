@@ -26,7 +26,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const client = useMemo(() => new ComfyClient(apiBase), [apiBase]);
   const [connection, setConnection] = useState<ConnectionInfo>({ status: "checking" });
   const [tab, setTab] = useLocalStorageState<TabId>("comfyui_active_tab", "default");
-  const [theme, setTheme] = useLocalStorageState<Theme>("xyz_theme", "light");
+  const [theme, setTheme] = useLocalStorageState<Theme>("comfyui_xyz_theme", "light");
 
   useEffect(() => {
     const root = window.document.documentElement;

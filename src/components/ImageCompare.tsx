@@ -1,29 +1,27 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
 export function ImageCompare({ leftImage, rightImage }: { leftImage: string; rightImage: string }) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleMove = (clientX: number) => {
+  const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
     const percent = Math.max(0, Math.min((x / rect.width) * 100, 100));
     setSliderPosition(percent);
-  };
+  }, []);
 
-  const onMouseMove = (e: MouseEvent) => {
-    if (!isDragging) return;
+  const onMouseMove = useCallback((e: MouseEvent) => {
     handleMove(e.clientX);
-  };
+  }, [handleMove]);
 
-  const onTouchMove = (e: TouchEvent) => {
-    if (!isDragging) return;
+  const onTouchMove = useCallback((e: TouchEvent) => {
     handleMove(e.touches[0].clientX);
-  };
+  }, [handleMove]);
 
-  const onMouseUp = () => setIsDragging(false);
+  const onMouseUp = useCallback(() => setIsDragging(false), []);
 
   useEffect(() => {
     if (isDragging) {
@@ -43,7 +41,7 @@ export function ImageCompare({ leftImage, rightImage }: { leftImage: string; rig
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, onMouseMove, onMouseUp, onTouchMove]);
 
   return (
     <div 

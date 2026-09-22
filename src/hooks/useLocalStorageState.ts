@@ -20,10 +20,33 @@ function deepMerge<T>(target: any, source: any): T {
   return result as T;
 }
 
+/**
+ * 读取 localStorage，并对历史遗留的无前缀 xyz_* 键做一次性迁移：
+ * 新键（comfyui_xyz_*）不存在而旧键存在时，把旧值迁移到新键并删除旧键。
+ */
+function readWithLegacyMigration(key: string): string | null {
+  const value = localStorage.getItem(key);
+  if (value !== null) return value;
+  if (key.startsWith("comfyui_xyz_")) {
+    const legacyKey = key.replace(/^comfyui_/, "");
+    try {
+      const legacy = localStorage.getItem(legacyKey);
+      if (legacy !== null) {
+        localStorage.setItem(key, legacy);
+        localStorage.removeItem(legacyKey);
+        return legacy;
+      }
+    } catch {
+      // 迁移失败不影响读取流程
+    }
+  }
+  return null;
+}
+
 export function useLocalStorageState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
     try {
-      const item = localStorage.getItem(key);
+      const item = readWithLegacyMigration(key);
       if (item !== null) {
         return deepMerge(defaultValue, JSON.parse(item));
       }

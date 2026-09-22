@@ -14,7 +14,8 @@ describe("ErrorBoundary", () => {
     localStorage.clear();
     localStorage.setItem("comfyui_default_params", "{}");
     localStorage.setItem("comfyui_anima_params", "{}");
-    localStorage.setItem("xyz_theme", "dark");
+    localStorage.setItem("comfyui_xyz_theme", "dark");
+    localStorage.setItem("xyz_welcome_seen", "old value");
     localStorage.setItem("unrelated_key", "keep me");
   });
 
@@ -56,7 +57,8 @@ describe("ErrorBoundary", () => {
     fireEvent.click(screen.getByText("重置本地配置并刷新"));
     expect(localStorage.getItem("comfyui_default_params")).toBeNull();
     expect(localStorage.getItem("comfyui_anima_params")).toBeNull();
-    expect(localStorage.getItem("xyz_theme")).toBeNull();
+    expect(localStorage.getItem("comfyui_xyz_theme")).toBeNull();
+    expect(localStorage.getItem("xyz_welcome_seen")).toBeNull();
     expect(localStorage.getItem("unrelated_key")).toBe("keep me");
   });
 });

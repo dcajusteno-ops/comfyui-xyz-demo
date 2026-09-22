@@ -60,8 +60,11 @@ function useAnimaPreview(params: AnimaGenerationParams) {
       chain.push(`×${Number(ratio(params.hires.postPercent).toFixed(2))}`);
     }
 
+    // 只累加当前实际开启的阶段，未开启的阶段不贡献耗时
     let cost = 1;
-    for (const { key } of animaStageMeta) cost += ANIMA_STAGE_COST[key] ?? 0;
+    for (const { key } of animaStageMeta) {
+      if (stages[key]) cost += ANIMA_STAGE_COST[key] ?? 0;
+    }
 
     return {
       width,
@@ -94,6 +97,12 @@ export const AnimaGenerationPanel = React.memo(({
   // 这套参数会明显欠采样——这里给一条非阻断提示（空模型名不提示，那是"还没选"而非"选错"）。
   const unetName = params.modelStack.unetName;
   const showTurboHint = Boolean(unetName) && !unetName.toLowerCase().includes("turbo");
+  // Anima 系模型是 16 通道 latent，配 sdxl_vae 会在 VAEDecode 报通道数错误——给非阻断提示
+  const showVaePairingHint =
+    /anima|janima/i.test(unetName) && /sdxl/i.test(params.modelStack.vaeName);
+  // 放大档依赖放大模型；未装模型（列表为空/未选）时提交会被校验拒绝
+  const showUpscaleModelHint =
+    (params.stages.hiresFixPre || params.stages.hiresFixPost) && !params.hires.modelName;
 
   const setStage = (key: AnimaStageKey, value: boolean) =>
     setParams((prev) => ({ ...prev, stages: { ...prev.stages, [key]: value } }));
@@ -211,6 +220,16 @@ export const AnimaGenerationPanel = React.memo(({
             {showTurboHint && (
               <span style={{ color: "var(--warning)" }}>
                 当前 UNet 可能不是 Turbo 蒸馏版，默认 {params.steps} 步 / CFG {params.cfg} 容易出废图；建议改 20+ 步 / CFG 4–7，或换用文件名含 Turbo 的模型
+              </span>
+            )}
+            {showVaePairingHint && (
+              <span style={{ color: "var(--warning)" }}>
+                Anima 系模型是 16 通道 latent，当前 VAE（sdxl_vae）会解码失败；建议选择 qwen_image_vae
+              </span>
+            )}
+            {showUpscaleModelHint && (
+              <span style={{ color: "var(--warning)" }}>
+                放大阶段已开启，但未选择放大模型（本机可能未安装 upscale 模型），生成会被校验拒绝；请在上方选择或关闭放大阶段
               </span>
             )}
           </div>

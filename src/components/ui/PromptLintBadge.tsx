@@ -29,7 +29,7 @@ export function PromptLintBadge({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  const issues = useMemo(() => lintPrompt(value, context), [value, context?.loraNames, context?.wildcardNames]);
+  const issues = useMemo(() => lintPrompt(value, context), [value, context]);
 
   if (!value.trim()) return null;
 

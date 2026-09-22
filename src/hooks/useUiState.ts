@@ -1,26 +1,46 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type ConfirmDialog = { title: string; message: string; onConfirm: () => void };
 
-export function useUiState() {
-  const [showWelcome, setShowWelcome] = useState(false);
-
-  useEffect(() => {
-    if (!localStorage.getItem("xyz_welcome_seen")) {
-      setShowWelcome(true);
+/** 欢迎弹窗已读标记：懒初始化时顺带把无前缀的旧键迁移过来，避免用 effect 同步 setState */
+function readWelcomeSeen(): boolean {
+  try {
+    if (localStorage.getItem("comfyui_xyz_welcome_seen")) return true;
+    const legacy = localStorage.getItem("xyz_welcome_seen");
+    if (legacy !== null) {
+      localStorage.setItem("comfyui_xyz_welcome_seen", legacy);
+      localStorage.removeItem("xyz_welcome_seen");
+      return true;
     }
-  }, []);
+  } catch {
+    // localStorage 不可用时视为未读过
+  }
+  return false;
+}
 
-  const handleCloseWelcome = () => {
-    localStorage.setItem("xyz_welcome_seen", "true");
+export function useUiState() {
+  const [showWelcome, setShowWelcome] = useState<boolean>(() => !readWelcomeSeen());
+
+  const handleCloseWelcome = useCallback(() => {
+    try {
+      localStorage.setItem("comfyui_xyz_welcome_seen", "true");
+    } catch {
+      // 写失败时仅本次会话内不再弹出
+    }
     setShowWelcome(false);
-  };
+  }, []);
 
   const [outputLightbox, setOutputLightbox] = useState<string | null>(null);
   const [compareLightbox, setCompareLightbox] = useState<[string, string] | null>(null);
-  const [isAppSidebarCollapsed, setIsAppSidebarCollapsed] = useState(false);
+  const [isAppSidebarCollapsed, setIsAppSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return window.innerWidth < 1024;
+    } catch {
+      return false;
+    }
+  });
 
-  // Global responsive collapse
+  // Global responsive collapse（初始值已在懒初始化里处理，这里只响应后续变化）
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -28,7 +48,6 @@ export function useUiState() {
       }
     };
     window.addEventListener("resize", handleResize);
-    handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 

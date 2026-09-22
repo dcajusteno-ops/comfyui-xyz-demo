@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { X, ZoomIn, ZoomOut, Download, Copy, RefreshCw } from "lucide-react";
 
 interface ImageLightboxProps {
@@ -13,6 +13,13 @@ export function ImageLightbox({ url, onClose }: ImageLightboxProps) {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imgRef = useRef<HTMLImageElement>(null);
 
+  const handleZoomIn = useCallback(() => setScale(s => Math.min(s + 0.2, 5)), []);
+  const handleZoomOut = useCallback(() => setScale(s => Math.max(s - 0.2, 0.5)), []);
+  const handleReset = useCallback(() => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -23,14 +30,7 @@ export function ImageLightbox({ url, onClose }: ImageLightboxProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  const handleZoomIn = () => setScale(s => Math.min(s + 0.2, 5));
-  const handleZoomOut = () => setScale(s => Math.max(s - 0.2, 0.5));
-  const handleReset = () => {
-    setScale(1);
-    setPosition({ x: 0, y: 0 });
-  };
+  }, [onClose, handleZoomIn, handleZoomOut, handleReset]);
 
   const handleWheel = (e: React.WheelEvent) => {
     // Zoom relative to mouse position would be better but let's keep it simple for now

@@ -5,13 +5,15 @@ import {
   Download,
   Maximize,
   Minimize,
+  Trash2,
   Type,
   Upload,
   Save,
   CheckCircle2,
   Eraser,
   Sparkles,
-  Zap
+  Zap,
+  type LucideIcon,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -30,7 +32,42 @@ const COMMON_SNIPPETS = [
   { label: "负面提示词", value: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, " }
 ];
 
-export function RichTextEditor({ value, onChange, onSave, title, saving }: RichTextEditorProps) {
+type ToolbarButtonProps = {
+  icon: LucideIcon;
+  title: string;
+  onClick: () => void;
+  active?: boolean;
+  color?: string;
+};
+
+/** 必须放在模块顶层：渲染期创建组件会导致每次渲染子树重挂载（react-hooks/static-components） */
+function ToolbarButton({ icon: Icon, title, onClick, active, color }: ToolbarButtonProps) {
+  return (
+    <button
+      type="button"
+      className={`lm-text-btn ${active ? "active" : ""}`}
+      onClick={onClick}
+      title={title}
+      style={{
+        padding: "6px 10px",
+        background: active ? "var(--accent-soft)" : "transparent",
+        color: active ? "var(--accent)" : (color || "var(--muted)"),
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        fontSize: "12px",
+        border: active ? "1px solid var(--accent)" : "1px solid transparent",
+      }}
+    >
+      <Icon size={16} />
+      {title && <span className="btn-label">{title}</span>}
+    </button>
+  );
+}
+
+export function RichTextEditor({ value, onChange, onSave, title, onClear, saving }: RichTextEditorProps) {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [zoom, setZoom] = useState(16);
   const [showSnippets, setShowSnippets] = useState(false);
@@ -60,16 +97,32 @@ export function RichTextEditor({ value, onChange, onSave, title, saving }: RichT
     }, 0);
   };
 
-  const handleCopyPrompt = () => {
+  const handleCopyPrompt = async () => {
     // Clean up text for ComfyUI: strip HTML tags if any, collapse multiple spaces/newlines
-    const div = document.createElement("div");
-    div.innerHTML = value;
-    let cleanText = div.innerText || div.textContent || value;
-    
+    // DOMParser 解析出的文档是惰性的（不执行脚本、不加载图片），比 innerHTML 赋值安全
+    const doc = new DOMParser().parseFromString(value, "text/html");
+    let cleanText = doc.body.innerText || doc.body.textContent || value;
+
     // Remove multiple newlines and spaces that might break prompts
     cleanText = cleanText.replace(/\n\s*\n/g, "\n").trim();
-    
-    navigator.clipboard.writeText(cleanText);
+
+    // 局域网 HTTP 访问时 navigator.clipboard 不存在（非安全上下文），回退到 execCommand
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(cleanText);
+      } else {
+        const helper = document.createElement("textarea");
+        helper.value = cleanText;
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+      }
+    } catch {
+      // 复制失败不阻断编辑（例如浏览器拒绝授权）
+    }
   };
 
   const handleDownload = () => {
@@ -95,35 +148,10 @@ export function RichTextEditor({ value, onChange, onSave, title, saving }: RichT
   };
 
   const cleanupHtml = () => {
-    const div = document.createElement("div");
-    div.innerHTML = value;
-    const plainText = div.innerText || div.textContent || "";
+    const doc = new DOMParser().parseFromString(value, "text/html");
+    const plainText = doc.body.innerText || doc.body.textContent || "";
     onChange(plainText.replace(/&nbsp;/g, " ").trim());
   };
-
-  const ToolbarButton = ({ icon: Icon, title, onClick, active, color }: any) => (
-    <button 
-      type="button" 
-      className={`lm-text-btn ${active ? "active" : ""}`} 
-      onClick={onClick} 
-      title={title} 
-      style={{ 
-        padding: "6px 10px",
-        background: active ? "var(--accent-soft)" : "transparent",
-        color: active ? "var(--accent)" : (color || "var(--muted)"),
-        borderRadius: "6px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "6px",
-        fontSize: "12px",
-        border: active ? "1px solid var(--accent)" : "1px solid transparent",
-      }}
-    >
-      <Icon size={16} />
-      {title && <span className="btn-label">{title}</span>}
-    </button>
-  );
 
   return (
     <div className={`rich-editor-container ${isFullScreen ? "fullscreen" : ""}`} style={{
@@ -213,6 +241,7 @@ export function RichTextEditor({ value, onChange, onSave, title, saving }: RichT
 
         <ToolbarButton icon={Clock} title="时间戳" onClick={() => insertText(`\n[${new Date().toLocaleString()}]\n`)} />
         <ToolbarButton icon={Eraser} title="清理格式" onClick={cleanupHtml} />
+        <ToolbarButton icon={Trash2} title="清空内容" onClick={onClear} color="var(--danger, #e05252)" />
         
         <div style={{ width: "1px", height: "20px", background: "var(--border)", margin: "0 4px" }} />
         

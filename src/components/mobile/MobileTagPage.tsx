@@ -91,23 +91,25 @@ export const MobileTagPage = () => {
     }
   }, [current?.status]);
 
-  useEffect(() => {
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+  /** 选中文件时同步创建预览 URL 并释放上一张的 object URL（替代 effect + setState 模式） */
+  const applyPickedFile = useCallback((picked: File | null) => {
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return picked ? URL.createObjectURL(picked) : null;
+    });
+    setFile(picked);
+  }, []);
 
   const handlePick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const picked = event.target.files?.[0] ?? null;
     if (picked) {
-      setFile(picked);
+      applyPickedFile(picked);
       setSubmitError("");
       // 换图后若上一任务已结束，回到待提交状态
       if (currentId) setCurrentId(null);
     }
     event.target.value = "";
-  }, [currentId]);
+  }, [applyPickedFile, currentId]);
 
   const handleSubmit = useCallback(async () => {
     if (!file) return;
@@ -125,12 +127,11 @@ export const MobileTagPage = () => {
   }, [file, params, submit]);
 
   const handleReset = useCallback(() => {
-    setFile(null);
-    setPreviewUrl(null);
+    applyPickedFile(null);
     setCurrentId(null);
     setSubmitError("");
     setCopied(false);
-  }, []);
+  }, [applyPickedFile]);
 
   const handleCopy = useCallback(async () => {
     if (!current?.tags) return;
