@@ -10,6 +10,10 @@ import { sendJson } from "./utils";
 
 type MobileTaskRecord = import("../src/types").MobileTask & { image: Buffer };
 
+type MiddlewareHandler = (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
+type MiddlewareInstaller = { use: (handler: MiddlewareHandler) => void };
+type CloseableServer = { once: (event: "close", listener: () => void) => unknown };
+
 const MAX_TASKS = CONFIG.MOBILE.MAX_TASKS;
 const MAX_IMAGE_BYTES = CONFIG.MOBILE.MAX_IMAGE_BYTES;
 const MAX_QUEUE = CONFIG.MOBILE.MAX_QUEUE;
@@ -39,6 +43,12 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
     for (const client of sseClients) {
       client.write(payload);
     }
+  }
+
+  /** 从待执行队列移除任务（已开始执行的任务无法撤销，只能等它结束） */
+  function removeFromQueue(id: string) {
+    const index = queue.findIndex((task) => task.id === id);
+    if (index !== -1) queue.splice(index, 1);
   }
 
   function getLanIp(): string | null {
@@ -88,7 +98,7 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
 
       // 2. 上传图片
       const form = new FormData();
-      form.set("image", new Blob([task.image], { type: task.mime }), task.imageName);
+      form.set("image", new Blob([task.image as unknown as BlobPart], { type: task.mime }), task.imageName);
       form.set("type", "input");
       form.set("overwrite", "true");
       const uploadRes = await fetch(`${comfyBase}/api/upload/image`, { method: "POST", body: form });
@@ -256,6 +266,7 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
         return;
       }
       if (method === "DELETE") {
+        for (const id of tasks.keys()) removeFromQueue(id);
         tasks.clear();
         sendJson(res, 200, { success: true });
         return;
@@ -282,6 +293,7 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
         return;
       }
       if (method === "DELETE") {
+        removeFromQueue(id);
         tasks.delete(id);
         sendJson(res, 200, { success: true });
         return;
@@ -293,7 +305,7 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
 
   let heartbeat: NodeJS.Timeout | null = null;
 
-  function install(middlewares: { use: (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void }) {
+  function install(middlewares: MiddlewareInstaller, httpServer?: CloseableServer) {
     middlewares.use((req, res, next) => {
       const requestUrl = new URL(req.url ?? "/", "http://localhost");
       if (!requestUrl.pathname.startsWith("/api/mobile")) {
@@ -317,15 +329,23 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
         }
       }, HEARTBEAT_MS);
     }
+    // dev server 关闭时清理心跳定时器，避免句柄悬挂
+    httpServer?.once("close", () => {
+      if (heartbeat) {
+        clearInterval(heartbeat);
+        heartbeat = null;
+      }
+      sseClients.clear();
+    });
   }
 
   return {
     name: "xyz-mobile-sync",
     configureServer(server) {
-      install(server.middlewares);
+      install(server.middlewares, server.httpServer ?? undefined);
     },
     configurePreviewServer(server) {
-      install(server.middlewares);
+      install(server.middlewares, server.httpServer ?? undefined);
     },
   };
 }

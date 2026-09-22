@@ -1,11 +1,14 @@
 import { spawn } from "node:child_process";
+import { lookup } from "node:dns/promises";
 import { createReadStream, createWriteStream } from "node:fs";
 import { access, mkdir, readdir, rename, stat, unlink } from "node:fs/promises";
+import { isIP } from "node:net";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import { readJsonBody, sendError } from "./utils";
 
 type ManagedModelType = "loras" | "embeddings";
 
@@ -126,7 +129,7 @@ function installExampleImagesMiddleware(middlewares: { use: (handler: (req: Inco
     }
 
     void handleExampleImagesRequest(req, res, requestUrl, comfyBaseUrl).catch((error) => {
-      sendJson(res, 500, { success: false, error: errorMessage(error) });
+      sendError(res, error);
     });
   });
 }
@@ -320,8 +323,7 @@ async function listAllModels(comfyBaseUrl: string, modelTypes: ManagedModelType[
   for (const modelType of modelTypes) {
     const pageSize = 100;
     let page = 1;
-    let totalPages = 1;
-    do {
+    for (;;) {
       const query = new URLSearchParams({
         page: String(page),
         page_size: String(pageSize),
@@ -334,10 +336,10 @@ async function listAllModels(comfyBaseUrl: string, modelTypes: ManagedModelType[
           allItems.push(normalizeDownloadItem(item as Record<string, unknown>, modelType));
         }
       }
-      totalPages = Number(data.total_pages ?? 1) || 1;
+      const totalPages = Number(data.total_pages ?? 1) || 1;
       page += 1;
-      if (items.length === 0) break;
-    } while (page <= totalPages);
+      if (items.length === 0 || page > totalPages) break;
+    }
   }
   return dedupeDownloadItems(allItems);
 }
@@ -518,7 +520,20 @@ async function downloadExamplesForItem(comfyBaseUrl: string, root: string, item:
   };
 }
 
+/** 域名形态的媒体 URL 在 fetch 前做 DNS 解析复查：任何一条解析结果落在私网/回环即拒绝（防域名绕过网段校验） */
+async function assertPublicMediaHost(url: string) {
+  const parsed = new URL(url);
+  const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (isIP(host)) return; // IP 字面量已在 isAllowedMediaUrl 校验过
+  const addresses = await lookup(host, { all: true });
+  const privateHit = addresses.find((entry) => isPrivateIp(entry.address));
+  if (privateHit) {
+    throw new Error(`Blocked media host resolving to a private address: ${host} → ${privateHit.address}`);
+  }
+}
+
 async function downloadMediaFile(media: DownloadMedia, folder: string, stem: string) {
+  await assertPublicMediaHost(media.url);
   const response = await fetch(media.url, {
     headers: {
       Accept: "image/avif,image/webp,image/apng,image/*,video/*,*/*;q=0.8",
@@ -555,7 +570,7 @@ async function downloadMediaFile(media: DownloadMedia, folder: string, stem: str
 
   const tempFile = `${targetFile}.download-${Date.now()}.tmp`;
   try {
-    await pipeline(Readable.fromWeb(response.body as unknown as ReadableStream), createWriteStream(tempFile));
+    await pipeline(Readable.fromWeb(response.body as unknown as import("node:stream/web").ReadableStream), createWriteStream(tempFile));
     await unlink(targetFile).catch(() => undefined); // Delete existing file first to avoid EPERM on Windows
     try {
       await rename(tempFile, targetFile);
@@ -612,6 +627,8 @@ function parseRemoteMedia(value: unknown, index: number, source: "image" | "cust
   const media = value as Record<string, unknown>;
   const url = firstHttpUrl([media.url, media.path, media.image_url, media.imageUrl, media.video_url, media.videoUrl]);
   if (!url) return null;
+  // payload 里的 metadata/civitai 可自带任意 URL；拒绝私网/回环目标，防止被用来做内网探测（SSRF）
+  if (!isAllowedMediaUrl(url)) return null;
   return {
     url,
     index,
@@ -619,6 +636,40 @@ function parseRemoteMedia(value: unknown, index: number, source: "image" | "cust
     source,
     type: stringValue(media.type),
   };
+}
+
+function isAllowedMediaUrl(value: string) {
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+    if (!host) return false;
+    if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) return false;
+    if (!isIP(host)) return true; // 域名交由 DNS；合法来源均为 civitai 等公网 CDN
+    return !isPrivateIp(host);
+  } catch {
+    return false;
+  }
+}
+
+function isPrivateIp(ip: string): boolean {
+  if (ip.includes(":")) {
+    const lower = ip.toLowerCase();
+    if (lower === "::" || lower === "::1") return true;
+    if (lower.startsWith("fe80")) return true; // link-local
+    if (lower.startsWith("fc") || lower.startsWith("fd")) return true; // unique local
+    const mapped = lower.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
+    return mapped ? isPrivateIp(mapped[1]) : false;
+  }
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return true;
+  const [a, b] = parts;
+  if (a === 0 || a === 10 || a === 127) return true;
+  if (a === 169 && b === 254) return true; // link-local
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+  return false;
 }
 
 function dedupeRemoteMedia(items: DownloadMedia[]) {
@@ -897,17 +948,6 @@ function delay(ms: number) {
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
-}
-
-async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknown>> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  const body = Buffer.concat(chunks).toString("utf8").trim();
-  if (!body) return {};
-  const parsed = JSON.parse(body);
-  return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : {};
 }
 
 function sendJson(res: ServerResponse, status: number, payload: unknown) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Search, Heart, Clock, Bookmark, ChevronRight, ChevronLeft, Layout, Tag, Plus, Trash2, X } from 'lucide-react';
 
 export type PromptEntry = {
@@ -53,6 +53,31 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
     type: 'entry'
   });
 
+  // 服务端数据版本号：乐观并发检测（过期 baseRevision → 409 → 对齐后下次保存覆盖）
+  const promptsRevisionRef = useRef(0);
+
+  async function persistPrompts(next: { favorites: string[]; recents: string[]; customEntries: PromptEntry[]; templates: PromptTemplate[] }) {
+    try {
+      const res = await fetch("/api/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...next, baseRevision: promptsRevisionRef.current }),
+      });
+      if (res.status === 409) {
+        const data = await res.json().catch(() => ({}) as { revision?: number });
+        if (typeof data.revision === "number") promptsRevisionRef.current = data.revision;
+        console.warn("提示词仓库已在其他窗口被修改，已对齐版本号；下次保存将以本窗口内容为准");
+        return false;
+      }
+      const data = await res.json();
+      if (typeof data.revision === "number") promptsRevisionRef.current = data.revision;
+      return true;
+    } catch (e) {
+      console.error("Failed to save prompts state", e);
+      return false;
+    }
+  }
+
   const handleSaveCurrent = async (target: 'positive' | 'negative') => {
     const text = target === 'positive' ? currentPositive : currentNegative;
     if (!text.trim()) return;
@@ -70,17 +95,9 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
     const nextCustomEntries = [newEntry, ...customEntries];
     setCustomEntries(nextCustomEntries);
     setFavorites(prev => [newEntry.id, ...prev]);
-    
-    try {
-      await fetch("/api/prompts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ favorites: [newEntry.id, ...favorites], recents, customEntries: nextCustomEntries, templates })
-      });
-      setActiveTab('favorites');
-    } catch (e) {
-      console.error("Failed to save prompt", e);
-    }
+
+    const ok = await persistPrompts({ favorites: [newEntry.id, ...favorites], recents, customEntries: nextCustomEntries, templates });
+    if (ok) setActiveTab('favorites');
   };
 
   const handleSaveManual = async () => {
@@ -99,18 +116,12 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
     const nextCustomEntries = [newEntry, ...customEntries];
     setCustomEntries(nextCustomEntries);
     setFavorites(prev => [newEntry.id, ...prev]);
-    
-    try {
-      await fetch("/api/prompts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ favorites: [newEntry.id, ...favorites], recents, customEntries: nextCustomEntries, templates })
-      });
+
+    const ok = await persistPrompts({ favorites: [newEntry.id, ...favorites], recents, customEntries: nextCustomEntries, templates });
+    if (ok) {
       setCustomForm({ text_en: '', text_zh: '' });
       setShowAddForm(false);
       setActiveTab('favorites');
-    } catch (e) {
-      console.error("Failed to save custom prompt", e);
     }
   };
 
@@ -136,13 +147,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
     setFavorites(nextFavorites);
 
     try {
-      await fetch("/api/prompts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ favorites: nextFavorites, recents, customEntries: nextCustomEntries, templates: nextTemplates })
-      });
-    } catch (e) {
-      console.error("Failed to delete prompt", e);
+      await persistPrompts({ favorites: nextFavorites, recents, customEntries: nextCustomEntries, templates: nextTemplates });
     } finally {
       setConfirmState(prev => ({ ...prev, isOpen: false }));
     }
@@ -159,6 +164,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
             setRecents(res.data.recents || []);
             setCustomEntries(res.data.customEntries || []);
             setTemplates(res.data.templates || []);
+            if (typeof res.data.revision === "number") promptsRevisionRef.current = res.data.revision;
           }
         })
         .catch(e => console.error("Failed to load prompts state", e))

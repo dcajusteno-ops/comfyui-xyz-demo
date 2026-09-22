@@ -1,11 +1,20 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { randomUUID } from "node:crypto";
+import {
+  atomicWriteJson,
+  enqueueFileWrite,
+  readJsonBody,
+  readJsonFile,
+  sendError,
+  sendJson,
+} from "./utils";
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
 const NOTES_FILE = path.resolve(DATA_DIR, "notes.json");
+
+type NotesStore = { revision?: number; notes?: unknown[] };
 
 export function xyzNotesPlugin(): Plugin {
   return {
@@ -27,65 +36,59 @@ function installNotesMiddleware(middlewares: { use: (handler: (req: IncomingMess
       return;
     }
 
-    void handleNotesRequest(req, res, requestUrl).catch((error) => {
-      sendJson(res, 500, { success: false, error: error instanceof Error ? error.message : String(error) });
+    void handleNotesRequest(req, res).catch((error) => {
+      sendError(res, error);
     });
   });
 }
 
-async function handleNotesRequest(req: IncomingMessage, res: ServerResponse, requestUrl: URL) {
+async function handleNotesRequest(req: IncomingMessage, res: ServerResponse) {
   const method = (req.method ?? "GET").toUpperCase();
 
   if (method === "GET") {
-    try {
-      const content = await readFile(NOTES_FILE, "utf-8");
-      sendJson(res, 200, { success: true, data: JSON.parse(content) });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-        sendJson(res, 200, { success: true, data: { notes: [] } });
-      } else {
-        throw error;
-      }
+    const existing = await readJsonFile<NotesStore>(NOTES_FILE);
+    if (existing) {
+      sendJson(res, 200, { success: true, data: existing });
+    } else {
+      sendJson(res, 200, { success: true, data: { revision: 0, notes: [] } });
     }
     return;
   }
 
   if (method === "POST") {
     const payload = await readJsonBody(req);
-    await mkdir(DATA_DIR, { recursive: true });
-    
-    // Read existing to merge or replace
-    let data = { notes: [] };
-    if (payload.notes && Array.isArray(payload.notes)) {
-      data.notes = payload.notes;
+    if (!Array.isArray(payload.notes)) {
+      sendJson(res, 400, { success: false, error: "payload.notes must be an array" });
+      return;
     }
-    
-    await writeFile(NOTES_FILE, JSON.stringify(data, null, 2), "utf-8");
-    sendJson(res, 200, { success: true });
+    const incomingNotes = payload.notes;
+    // baseRevision 缺省时保持旧的 last-writer-wins 行为（向后兼容）；携带时做乐观并发检测
+    const baseRevision = typeof payload.baseRevision === "number" ? payload.baseRevision : null;
+    await mkdir(DATA_DIR, { recursive: true });
+
+    const outcome = await enqueueFileWrite(NOTES_FILE, async () => {
+      const existing = await readJsonFile<NotesStore>(NOTES_FILE);
+      const currentRevision = typeof existing?.revision === "number" ? existing.revision : 0;
+      if (baseRevision !== null && baseRevision !== currentRevision) {
+        return { conflict: true as const, currentRevision, data: existing };
+      }
+      const next = { revision: currentRevision + 1, notes: incomingNotes };
+      await atomicWriteJson(NOTES_FILE, next);
+      return { conflict: false as const, currentRevision: currentRevision + 1 };
+    });
+
+    if (outcome.conflict) {
+      sendJson(res, 409, {
+        success: false,
+        error: "Notes were modified in another window",
+        revision: outcome.currentRevision,
+        data: outcome.data,
+      });
+      return;
+    }
+    sendJson(res, 200, { success: true, revision: outcome.currentRevision });
     return;
   }
 
   sendJson(res, 404, { success: false, error: "Unknown notes endpoint" });
-}
-
-function sendJson(res: ServerResponse, statusCode: number, payload: unknown) {
-  res.statusCode = statusCode;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.end(JSON.stringify(payload));
-}
-
-function readJsonBody(req: IncomingMessage): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer) => chunks.push(chunk));
-    req.on("end", () => {
-      try {
-        const body = Buffer.concat(chunks).toString("utf-8");
-        resolve(body ? JSON.parse(body) : {});
-      } catch (err) {
-        reject(err);
-      }
-    });
-    req.on("error", reject);
-  });
 }

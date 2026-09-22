@@ -71,6 +71,8 @@ export function PromptEditorDialog({
   const [customEntries, setCustomEntries] = useState<PromptEntry[]>([]);
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
+  // 服务端数据版本号：乐观并发检测（过期 baseRevision → 409 → 对齐后下次保存覆盖）
+  const promptsRevisionRef = useRef(0);
 
   useEffect(() => {
     fetch("/api/prompts")
@@ -81,6 +83,7 @@ export function PromptEditorDialog({
           setRecents(res.data.recents || []);
           setCustomEntries(res.data.customEntries || []);
           setTemplates(res.data.templates || []);
+          if (typeof res.data.revision === "number") promptsRevisionRef.current = res.data.revision;
         }
       })
       .catch(e => console.error("Failed to load prompts state", e))
@@ -94,12 +97,24 @@ export function PromptEditorDialog({
       firstLoadRef.current = false;
       return;
     }
-    const timer = setTimeout(() => {
-      fetch("/api/prompts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ favorites, recents, customEntries, templates })
-      }).catch(e => console.error("Failed to save state", e));
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/prompts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ favorites, recents, customEntries, templates, baseRevision: promptsRevisionRef.current }),
+        });
+        if (res.status === 409) {
+          const data = await res.json().catch(() => ({}) as { revision?: number });
+          if (typeof data.revision === "number") promptsRevisionRef.current = data.revision;
+          console.warn("提示词仓库已在其他窗口被修改，已对齐版本号；下次保存将以本窗口内容为准");
+          return;
+        }
+        const data = await res.json();
+        if (typeof data.revision === "number") promptsRevisionRef.current = data.revision;
+      } catch (e) {
+        console.error("Failed to save state", e);
+      }
     }, 500);
     return () => clearTimeout(timer);
   }, [favorites, recents, customEntries, templates, dataLoaded]);

@@ -1,7 +1,8 @@
 import { open } from "node:fs/promises";
+import path from "node:path";
 import type { Plugin } from "vite";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { readJsonBody, sendJson } from "./utils";
+import { readJsonBody, sendError, sendJson } from "./utils";
 
 export function xyzLoraPlugin(): Plugin {
   return {
@@ -20,7 +21,7 @@ function installLoraMiddleware(middlewares: { use: (handler: (req: IncomingMessa
     const requestUrl = new URL(req.url ?? "/", "http://localhost");
     if (req.method === "POST" && requestUrl.pathname === "/xyz/lora/extract-metadata") {
       void handleExtractMetadata(req, res).catch((error) => {
-        sendJson(res, 500, { success: false, error: error instanceof Error ? error.message : String(error) });
+        sendError(res, error);
       });
       return;
     }
@@ -35,6 +36,10 @@ async function handleExtractMetadata(req: IncomingMessage, res: ServerResponse) 
     sendJson(res, 400, { success: false, error: "Missing file_path" });
     return;
   }
+  if (!isAllowedSafetensorsPath(filePath)) {
+    sendJson(res, 403, { success: false, error: "file_path is not an allowed .safetensors path" });
+    return;
+  }
 
   try {
     const metadata = await extractSafetensorsMetadata(filePath);
@@ -42,6 +47,30 @@ async function handleExtractMetadata(req: IncomingMessage, res: ServerResponse) 
   } catch (error) {
     sendJson(res, 500, { success: false, error: `Failed to extract metadata: ${error instanceof Error ? error.message : String(error)}` });
   }
+}
+
+/**
+ * 路径白名单：只允许读取 .safetensors 文件的头部元数据。
+ * - 硬约束：解析后的扩展名必须是 .safetensors（非 safetensors 文件解析结果恒为空/报错，杜绝任意文件读取）；
+ * - 可选约束：设置环境变量 XYZ_LORA_ALLOWED_ROOTS（Windows 分号、其余冒号分隔）后，
+ *   进一步要求路径必须落在这些根目录（通常是 ComfyUI models 目录）内。
+ */
+function isAllowedSafetensorsPath(filePath: string): boolean {
+  if (!filePath || filePath.includes("\0")) return false;
+  const resolved = path.resolve(filePath);
+  if (path.extname(resolved).toLowerCase() !== ".safetensors") return false;
+
+  const roots = (process.env.XYZ_LORA_ALLOWED_ROOTS ?? "")
+    .split(process.platform === "win32" ? ";" : ":")
+    .map((root) => root.trim())
+    .filter(Boolean)
+    .map((root) => path.resolve(root));
+  if (!roots.length) return true;
+
+  return roots.some((root) => {
+    const rel = path.relative(root, resolved);
+    return rel === "" || (!rel.startsWith("..") && !path.isAbsolute(rel));
+  });
 }
 
 async function extractSafetensorsMetadata(filePath: string) {
