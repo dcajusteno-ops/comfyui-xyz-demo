@@ -292,6 +292,12 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
    ```
    *(注：在 Windows 环境下也可以直接双击 `run.bat`，它会自动处理端口冲突并自动在浏览器中打开页面)*
 
+4. **启用提交前质量门（推荐）**：
+   ```bash
+   git config core.hooksPath scripts/githooks
+   ```
+   之后每次 `git commit` 会自动运行 `tsc --noEmit` 与 `eslint src server`（约 15 秒），存在 error 时中止提交；紧急情况可用 `git commit --no-verify` 跳过单次校验。
+
 ## 🧩 核心插件与模型依赖
 
 本项目深度依赖部分 ComfyUI 原生及第三方节点，请确保您的 ComfyUI 环境中已安装以下插件与模型：

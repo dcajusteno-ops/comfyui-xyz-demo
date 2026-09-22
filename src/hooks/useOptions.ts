@@ -136,8 +136,8 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
         const firstCheckpoint = nextOptions.checkpoints[0] ?? "";
 
         // Sync params with loaded options
-        setDefaultParams((prev: BaseGenerationParams) => ({ ...prev, checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint }));
-        setMultiParams((prev: HighresParams & { checkpoint: string }) => ({ ...prev, checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint }));
+        setDefaultParams((prev: BaseGenerationParams) => ({ ...prev, checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint, drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText, }));
+        setMultiParams((prev: HighresParams & { checkpoint: string }) => ({ ...prev, checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint, drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText, }));
         setHighresParams((prev: HighresParams & { handDetector: string; faceDetector: string; eyesDetector: string; nsfwDetector: string }) => ({
           ...prev,
           checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint,
@@ -145,6 +145,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           faceDetector: detList.includes(prev.faceDetector) ? prev.faceDetector : (detList.find((item) => item.includes("face")) ?? ""),
           eyesDetector: detList.includes(prev.eyesDetector) ? prev.eyesDetector : (detList.find((item) => item.includes("Eye") || item.includes("eye")) ?? (prev.eyesDetector || "")),
           nsfwDetector: detList.includes(prev.nsfwDetector) ? prev.nsfwDetector : (detList.find((item) => item.includes("nsfw")) ?? (prev.nsfwDetector || "")),
+          drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText,
         }));
 
         // Anima 模型栈与参数：模糊命中优先（按关键词优先级），否则回退列表首项。
@@ -155,6 +156,15 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
             if (hit) return hit;
           }
           return list[0] ?? "";
+        };
+        // 水印字体：默认参数里的 "default" 只是占位，真实节点校验的是字体文件清单——
+        // 不在清单里时按「模糊命中优先、否则取首项」纠正（清单为空说明节点未装，保持原值）
+        const pickFont = (font: string) => {
+          if (fontList.includes(font)) return font;
+          const hit = font !== "default"
+            ? fontList.find((item) => item.toLowerCase().includes(font.toLowerCase()))
+            : undefined;
+          return hit ?? fontList[0] ?? font;
         };
         /**
          * UNet 选择：面板默认是 Turbo 蒸馏参数（steps 8 / cfg 1），配非蒸馏模型会直接出废图。
@@ -215,6 +225,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           nsfwDetector: detList.includes(prev.nsfwDetector)
             ? prev.nsfwDetector
             : pickBy(detList, ["nsfw"]),
+          drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText,
         }));
 
         setWd14((prev: Record<string, unknown>) => ({
