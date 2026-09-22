@@ -1,4 +1,5 @@
-import { readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 export function sendJson(res: ServerResponse, statusCode: number, payload: unknown) {
@@ -65,8 +66,41 @@ export async function readJsonFile<T>(filePath: string): Promise<T | null> {
   }
 }
 
-/** 原子写 JSON：先写临时文件再 rename，避免写一半崩溃/并发留下损坏文件 */
+const BACKUP_KEEP = 30;
+const BACKUP_MIN_INTERVAL_MS = 5 * 60 * 1000;
+
+/** 历史版本留档：写入前把上一版快照到同目录 backups/ 下；同文件 5 分钟内只留档一次（防抖保存频繁触发时避免互相挤掉），保留最近 BACKUP_KEEP 份 */
+async function backupPreviousFile(filePath: string) {
+  const prev = await readFile(filePath, "utf-8").catch(() => null);
+  if (prev === null) return;
+  try {
+    const dir = path.join(path.dirname(filePath), "backups");
+    const base = path.basename(filePath);
+    await mkdir(dir, { recursive: true });
+    const existing = (await readdir(dir))
+      .filter((f) => f.startsWith(`${base}.`) && f.endsWith(".bak"))
+      .sort();
+    if (existing.length > 0) {
+      const newest = existing[existing.length - 1];
+      const info = await stat(path.join(dir, newest)).catch(() => null);
+      if (info && Date.now() - info.mtimeMs < BACKUP_MIN_INTERVAL_MS) return;
+    }
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    await writeFile(path.join(dir, `${base}.${stamp}.bak`), prev, "utf-8");
+    const all = (await readdir(dir))
+      .filter((f) => f.startsWith(`${base}.`) && f.endsWith(".bak"))
+      .sort();
+    for (const old of all.slice(0, Math.max(0, all.length - BACKUP_KEEP))) {
+      await unlink(path.join(dir, old)).catch(() => undefined);
+    }
+  } catch {
+    // 备份失败不阻断写入主流程
+  }
+}
+
+/** 原子写 JSON：先写临时文件再 rename，避免写一半崩溃/并发留下损坏文件；写前自动留档上一版 */
 export async function atomicWriteJson(filePath: string, data: unknown) {
+  await backupPreviousFile(filePath);
   const tmp = `${filePath}.${process.pid}.tmp`;
   await writeFile(tmp, JSON.stringify(data, null, 2), "utf-8");
   await rename(tmp, filePath);
