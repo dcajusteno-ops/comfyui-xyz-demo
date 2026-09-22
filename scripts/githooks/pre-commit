@@ -1,0 +1,21 @@
+#!/bin/sh
+# Pre-commit 质量门：类型检查 + Lint（提交前自动运行）
+# 启用方式：git config core.hooksPath scripts/githooks（本仓库已配置）
+# 想跳过单次校验：git commit --no-verify（不建议）
+
+echo "[pre-commit] tsc --noEmit ..."
+node node_modules/typescript/bin/tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "[pre-commit] ✗ 类型检查未通过，提交已中止"
+  exit 1
+fi
+
+echo "[pre-commit] eslint src server ..."
+node node_modules/eslint/bin/eslint.js src server
+if [ $? -ne 0 ]; then
+  echo "[pre-commit] ✗ ESLint 存在 error，提交已中止"
+  exit 1
+fi
+
+echo "[pre-commit] ✓ 质量门通过"
+exit 0

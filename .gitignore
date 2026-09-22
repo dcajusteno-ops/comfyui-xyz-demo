@@ -29,6 +29,7 @@ test-results/
 # session artifacts
 .zcode/
 .playwright-mcp/
+.workbuddy/
 
 # backups & temp files
 backup_*/

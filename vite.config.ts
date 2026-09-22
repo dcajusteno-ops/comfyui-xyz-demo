@@ -13,10 +13,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // 主 chunk 瘦身：react-dom 与 markdown 渲染库拆为独立 chunk（同步加载、行为零变化，稳定缓存并消除 500kB chunk 警告）
+        // 主 chunk 瘦身：react-dom 与 sanitizer 拆为独立 chunk（同步加载、行为零变化，稳定缓存并消除 500kB chunk 警告）
         manualChunks: {
           react: ["react", "react-dom", "react-dom/client"],
-          markdown: ["marked", "dompurify"],
+          dompurify: ["dompurify"],
         },
       },
     },

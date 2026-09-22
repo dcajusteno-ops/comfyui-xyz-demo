@@ -19,6 +19,8 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // 惯例：下划线前缀的变量/参数视为有意忽略（如解构剔除字段）
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       // 存量收敛项：修复需要重构 effect / 类型体系（会改行为），先降级为提示，逐个收敛
       "@typescript-eslint/no-explicit-any": "warn",
       "react-hooks/set-state-in-effect": "warn",
