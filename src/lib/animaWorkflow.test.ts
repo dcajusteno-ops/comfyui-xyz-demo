@@ -208,7 +208,7 @@ describe("buildAnimaPrompt", () => {
 
     const withImage = buildAnimaPrompt({
       ...withStages({ img2img: true }),
-      img2img: { imageName: "ref.png", keepProportion: "pad_edge", upscaleMethod: "nearest-exact", cropPosition: "center" },
+      img2img: { enabled: true, fit: "stretch", imageName: "ref.png", keepProportion: "pad_edge", upscaleMethod: "nearest-exact", cropPosition: "center" },
     });
     expect(countType(withImage, "LoadImage")).toBe(1);
     expect(countType(withImage, "ImageResizeKJv2")).toBe(1);

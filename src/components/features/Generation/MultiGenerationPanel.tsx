@@ -3,6 +3,8 @@ import { UserRound, Plus } from "lucide-react";
 import { PanelTitle, BaseControls, TextAreaField, SelectField, NumberField, PromptLintBadge } from "../../ui";
 import { MultiWorkspace } from "./MultiWorkspace";
 import { PresetBar } from "./PresetBar";
+import { Img2ImgControls } from "./Img2ImgControls";
+import { img2imgUpdater } from "../../../lib/paramBuilders";
 import type { PromptLintContext } from "../../../lib/promptLint";
 import type { 
   MultiGenerationParams, 
@@ -26,6 +28,7 @@ interface MultiGenerationPanelProps {
   onOpenLoraDetail: (item: LoraItem) => void;
   onSetSimpleLoraTarget: (target: "default" | "multi" | "highres") => void;
   onAddCharacter: (characters: CanvasCharacter[]) => CanvasCharacter[];
+  onUploadImage: (file: File) => Promise<string>;
 }
 
 export const MultiGenerationPanel = React.memo(({
@@ -41,6 +44,7 @@ export const MultiGenerationPanel = React.memo(({
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
   onAddCharacter,
+  onUploadImage,
 }: MultiGenerationPanelProps) => {
   const lintContext: PromptLintContext = { loraNames, wildcardNames };
   return (
@@ -50,6 +54,16 @@ export const MultiGenerationPanel = React.memo(({
         <PresetBar target="multi" params={params} options={options} setParams={setParams} />
       </div>
       <div className="panel-body">
+        <Img2ImgControls
+          img2img={params.img2img}
+          onToggle={(enabled) => setParams(img2imgUpdater<MultiGenerationParams>({ enabled }))}
+          onChange={(patch) => setParams(img2imgUpdater<MultiGenerationParams>(patch))}
+          denoise={params.denoise}
+          onDenoiseChange={(value) => setParams((prev) => ({ ...prev, denoise: value }))}
+          batchSize={params.batchSize}
+          onUploadImage={onUploadImage}
+          upscaleMethods={options.imageScaleMethods}
+        />
         <BaseControls
           params={params}
           options={options}

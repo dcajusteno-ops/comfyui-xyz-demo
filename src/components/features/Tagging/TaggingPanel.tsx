@@ -179,6 +179,20 @@ export const TaggingPanel = React.memo(({
                     >
                       {wdFile.name}
                     </div>
+                  ) : wd14.imageName ? (
+                    <div
+                      style={{
+                        color: "var(--text)",
+                        fontSize: "13px",
+                        textAlign: "center",
+                        wordBreak: "break-all",
+                      }}
+                    >
+                      已选：{wd14.imageName}
+                      <div style={{ color: "var(--muted)", fontSize: "12px", marginTop: "4px" }}>
+                        来自输出面板「作为输入图」；点击或拖入本地图片可改用它
+                      </div>
+                    </div>
                   ) : (
                     <div style={{ color: "var(--muted)", fontSize: "13px" }}>
                       点击或拖拽图片到此处

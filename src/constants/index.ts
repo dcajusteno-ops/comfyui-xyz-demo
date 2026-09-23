@@ -33,6 +33,8 @@ export const fallbackOptions: OptionsState = {
   clModels: ["cl_tagger/cl_tagger_1_02.onnx"],
   detectors: ["bbox/hand_yolov8s.pt", "bbox/face_yolov8m.pt"],
   upscaleMethods: ["nearest-exact", "bilinear", "bicubic"],
+  // 图生图缩放用：ImageScale 独有 lanczos（LatentUpscaleBy 的 bislerp 对 ImageScale 非法）
+  imageScaleMethods: ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"],
   fonts: ["default"],
   translation: defaultTranslationSettings,
   unets: [],

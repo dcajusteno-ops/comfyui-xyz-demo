@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BookmarkPlus, Download, Pencil, Play, Trash2, Upload } from "lucide-react";
 import { usePresets } from "../../../hooks/usePresets";
-import { applySnapshot, exportPresetsJson } from "../../../lib/generationPresets";
+import { applySnapshot, exportPresetsJson, snapshotForSave } from "../../../lib/generationPresets";
 import { downloadTextFile } from "../../../lib/file-helper";
 import { ModalFrame } from "../../ui/Modal";
 import type { OptionsState, TemplateKind } from "../../../types";
@@ -96,7 +96,7 @@ export function PresetBar<T extends Record<string, unknown>>({ target, params, o
       return;
     }
     if (modal?.mode === "save") {
-      const preset = add(name, target, { ...params });
+      const preset = add(name, target, snapshotForSave({ ...params }));
       setSelectedId(preset.id);
       flash(`已保存预设「${name}」`);
     } else if (modal?.mode === "rename" && modal.id) {

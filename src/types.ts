@@ -315,6 +315,32 @@ export type DrawTextParams = {
   syncMode?: 'default' | 'multi' | 'highres' | 'manual';
 };
 
+/** 图生图的缩放方式：stretch = 拉伸填满（ImageScale.crop=disabled），crop = 缩放裁剪（crop=center） */
+export type Img2ImgFit = "stretch" | "crop";
+
+/**
+ * 图生图（参考图）参数：默认/多人/高修与 Anima 共用同一类型。
+ *
+ * 可选字段 `keepProportion` / `cropPosition` 只有 Anima 用（它的缩放节点是 ImageResizeKJv2，
+ * 语义与核心 ImageScale 的 `fit` 不同），三个新模板不渲染、不下发。
+ * 保留原字段名是刻意的：useLocalStorageState 的 deepMerge 只补新键、不会搬迁旧路径，
+ * 改名会让老用户已保存的值静默回落默认。
+ */
+export type Img2ImgParams = {
+  /** 显式开关：关闭时一律按文生图生成，即使已选参考图 */
+  enabled: boolean;
+  /** 经 client.uploadImage() 上传后的文件名；空 = 未选图 → 回落文生图 */
+  imageName: string;
+  /** 仅新模板使用：映射到核心 ImageScale 的 crop */
+  fit: Img2ImgFit;
+  /** 仅新模板使用：ImageScale.upscale_method，取值来自 /object_info */
+  upscaleMethod: string;
+  /** 仅 Anima（ImageResizeKJv2）使用 */
+  keepProportion?: string;
+  /** 仅 Anima（ImageResizeKJv2）使用 */
+  cropPosition?: string;
+};
+
 export type BaseGenerationParams = {
   checkpoint: string;
   positivePrompt: string;
@@ -333,6 +359,11 @@ export type BaseGenerationParams = {
   filenameSuffix?: string;
   loras: LoraSelection[];
   drawText?: DrawTextParams;
+  /**
+   * 图生图（参考图）。可选：既有测试夹具与纯函数调用方可能不带该键，
+   * 消费方需判空（与 `drawText?` 同款约定）。应用内由 makeBaseParams() 保证存在。
+   */
+  img2img?: Img2ImgParams;
 };
 
 export type MultiCharacterMask = {
@@ -562,14 +593,12 @@ export type AnimaStageKey =
 /** 12 个阶段开关（初始值 = 「完整复刻」档，除 wildcardNode 外全开） */
 export type AnimaStageToggles = Record<AnimaStageKey, boolean>;
 
-export type AnimaImg2ImgParams = {
-  /** 经 client.uploadImage() 上传后的文件名；空 = 未选图（此时回落文生图） */
-  imageName: string;
-  keepProportion: string; // 取自 /object_info
-  upscaleMethod: string; // 取自 /object_info
-  cropPosition: string; // 取自 /object_info
-  // 不设 denoise：基础采样的重绘一律读 BaseGenerationParams.denoise
-};
+/**
+ * Anima 的图生图参数已并入共用的 `Img2ImgParams`（它额外用到其中的
+ * `keepProportion` / `cropPosition`），此处不再单独定义类型。
+ * 注意：`enabled` / `fit` 对 Anima 无意义——Anima 的开关是 `stages.img2img`，
+ * 缩放方式由 `keepProportion` 表达；两者都保留是为了形状统一。
+ */
 
 export type AnimaHiresParams = {
   modelName: string; // 取自 /object_info，模糊命中 Remacri
@@ -594,7 +623,8 @@ export type AnimaGenerationParams = BaseGenerationParams & {
   checkpoint: "";
   modelStack: AnimaModelStack;
   stages: AnimaStageToggles;
-  img2img: AnimaImg2ImgParams;
+  /** 交叉类型下这里会被收窄为必需（Base 上是可选），故 Anima 侧无需可选链 */
+  img2img: Img2ImgParams;
   hires: AnimaHiresParams;
   refine: AnimaRefineParams;
   handDetailer: DetailerParams;
@@ -773,6 +803,11 @@ export type OptionsState = {
   clModels: string[];
   detectors: string[];
   upscaleMethods: string[];
+  /**
+   * 图生图缩放用的 ImageScale.upscale_method。**不可与 upscaleMethods 混用**：
+   * 后者取自 LatentUpscaleBy，含 `bislerp` 而无 `lanczos`；ImageScale 恰好相反。
+   */
+  imageScaleMethods: string[];
   fonts: string[];
   translation: TranslationSettings;
   // ---- Anima: UNET + CLIP + VAE 三段式模型栈 ----

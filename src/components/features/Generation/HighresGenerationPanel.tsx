@@ -3,7 +3,8 @@ import { ImageUp, Plus } from "lucide-react";
 import { PanelTitle, BaseControls, SelectField, NumberField } from "../../ui";
 import { DetailerControls } from "./DetailerControls";
 import { PresetBar } from "./PresetBar";
-import { makeDetailerParams } from "../../../lib/paramBuilders";
+import { Img2ImgControls } from "./Img2ImgControls";
+import { img2imgUpdater, makeDetailerParams } from "../../../lib/paramBuilders";
 import type { 
   HighresParams, 
   OptionsState, 
@@ -24,6 +25,7 @@ interface HighresGenerationPanelProps {
   onRunGeneration: () => void;
   onOpenLoraDetail: (item: LoraItem) => void;
   onSetSimpleLoraTarget: (target: "default" | "multi" | "highres") => void;
+  onUploadImage: (file: File) => Promise<string>;
 }
 
 export const HighresGenerationPanel = React.memo(({
@@ -38,6 +40,7 @@ export const HighresGenerationPanel = React.memo(({
   onRunGeneration,
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
+  onUploadImage,
 }: HighresGenerationPanelProps) => {
   return (
     <section className="panel">
@@ -100,6 +103,16 @@ export const HighresGenerationPanel = React.memo(({
             手部修复
           </button>
         </div>
+        <Img2ImgControls
+          img2img={params.img2img}
+          onToggle={(enabled) => setParams(img2imgUpdater<HighresParams>({ enabled }))}
+          onChange={(patch) => setParams(img2imgUpdater<HighresParams>(patch))}
+          denoise={params.denoise}
+          onDenoiseChange={(value) => setParams((prev) => ({ ...prev, denoise: value }))}
+          batchSize={params.batchSize}
+          onUploadImage={onUploadImage}
+          upscaleMethods={options.imageScaleMethods}
+        />
         <BaseControls
           params={params}
           options={options}

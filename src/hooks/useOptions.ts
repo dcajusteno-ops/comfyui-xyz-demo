@@ -28,7 +28,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
     let canceled = false;
     async function load() {
       try {
-        const [checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, drawTextInfo, managerSettings, unetInfo, clipInfo, vaeInfo, easyHiresInfo, resizeInfo, upscaleLoaderInfo, cfgZeroInfo, diffDiffInfo, faceDetailerInfo, detailerForEachInfo, maskToSegsInfo, solidMaskInfo, samLoaderInfo] = await Promise.all([
+        const [checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, drawTextInfo, managerSettings, unetInfo, clipInfo, vaeInfo, easyHiresInfo, resizeInfo, upscaleLoaderInfo, cfgZeroInfo, diffDiffInfo, faceDetailerInfo, detailerForEachInfo, maskToSegsInfo, solidMaskInfo, samLoaderInfo, imageScaleInfo] = await Promise.all([
           client.getObjectInfo("CheckpointLoaderSimple"),
           client.getObjectInfo("KSampler"),
           client.getObjectInfo("WD14Tagger|pysssss").catch(() => null),
@@ -50,6 +50,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           client.getObjectInfo("MaskToSEGS").catch(() => null),
           client.getObjectInfo("SolidMask").catch(() => null),
           client.getObjectInfo("SAMLoader").catch(() => null),
+          client.getObjectInfo("ImageScale").catch(() => null),
         ]);
         if (canceled) return;
 
@@ -61,6 +62,9 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
         const clModelList: string[] = clInfo ? readCombo(clInfo, "cl_tagger_mira", "model_name", []) : [];
         const detList: string[] = detectorInfo ? readCombo(detectorInfo, "UltralyticsDetectorProvider", "model_name", []) : [];
         const upScaleList: string[] = upscaleInfo ? readCombo(upscaleInfo, "LatentUpscaleBy", "upscale_method", []) : [];
+        // 图生图缩放用。**不能复用 upScaleList**：ImageScale 的枚举含 lanczos 而不含 bislerp，
+        // 与 LatentUpscaleBy 恰好不同，混用会把非法值送进工作流。
+        const imageScaleList: string[] = imageScaleInfo ? readCombo(imageScaleInfo, "ImageScale", "upscale_method", []) : [];
         const fontList: string[] = drawTextInfo ? readCombo(drawTextInfo, "DrawTextAdvanced", "font", []) : [];
 
         // Anima：UNET / CLIP / VAE 三段式模型栈
@@ -110,6 +114,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           clModels: clModelList,
           detectors: detList,
           upscaleMethods: upScaleList,
+          imageScaleMethods: imageScaleList,
           fonts: fontList,
           translation: defaultTranslationSettings,
           unets: unetList,

@@ -134,6 +134,22 @@ export function applySnapshot<T extends Record<string, unknown>>(
   return { next, checkpointRejected: rejectField, rejectedField: rejectField ? field : undefined };
 }
 
+/**
+ * 生成要落库的预设快照：剥掉 `img2img.imageName`（存空串，其余图生图字段照常保留）。
+ *
+ * 原因：`imageName` 指向 ComfyUI `input/` 里的具体文件，换机器或清理 input 后必然失效，
+ * 随预设回填会让提交被校验拒绝（bad image name），且报错时机在生成时、很难定位。
+ * 语义上预设管参数、参考图每次自选，更干净。
+ */
+export function snapshotForSave(params: Record<string, unknown>): Record<string, unknown> {
+  const snapshot = { ...params };
+  const img2img = snapshot.img2img;
+  if (isRecord(img2img) && img2img.imageName) {
+    snapshot.img2img = { ...img2img, imageName: "" };
+  }
+  return snapshot;
+}
+
 /** 生成一个命名预设（不落库，由调用方负责写回） */
 export function makePreset(
   name: string,

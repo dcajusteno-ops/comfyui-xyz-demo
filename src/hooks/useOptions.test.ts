@@ -12,6 +12,8 @@ function makeMockClient() {
     cl_tagger_mira: { input: { required: { model_name: [["cl_tagger/cl_tagger_1_02.onnx"]] } } },
     UltralyticsDetectorProvider: { input: { required: { model_name: [["bbox/hand_yolov8s.pt", "bbox/face_yolov8m.pt"]] } } },
     LatentUpscaleBy: { input: { required: { upscale_method: [["nearest-exact", "bilinear"]] } } },
+    // 图生图缩放用：枚举刻意与 LatentUpscaleBy 不同（有 lanczos、无 bislerp）
+    ImageScale: { input: { required: { upscale_method: [["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]] } } },
     DrawTextAdvanced: { input: { required: { font: [["default"]] } } },
     // Anima：三段式模型栈 + 放大模型（含新版 COMBO 格式，防 readCombo 回归）
     UNETLoader: { input: { required: { unet_name: [["other.safetensors", "silvermoonmixAnima_v2329BTurbo.safetensors"]] } } },
@@ -59,6 +61,9 @@ describe("useOptions", () => {
     expect(result.current.options.clModels).toEqual(["cl_tagger/cl_tagger_1_02.onnx"]);
     expect(result.current.options.detectors).toEqual(["bbox/hand_yolov8s.pt", "bbox/face_yolov8m.pt"]);
     expect(result.current.options.upscaleMethods).toEqual(["nearest-exact", "bilinear"]);
+    // 图生图缩放必须取 ImageScale 自己的枚举：LatentUpscaleBy 的 bislerp 对 ImageScale 非法
+    expect(result.current.options.imageScaleMethods).toEqual(["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]);
+    expect(result.current.options.imageScaleMethods).not.toContain("bislerp");
     expect(result.current.options.fonts).toEqual(["default"]);
   });
 

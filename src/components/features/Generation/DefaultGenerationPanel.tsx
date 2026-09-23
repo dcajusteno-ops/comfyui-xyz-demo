@@ -2,6 +2,8 @@ import React from "react";
 import { Wand2, Plus, Send } from "lucide-react";
 import { PanelTitle, BaseControls } from "../../ui";
 import { PresetBar } from "./PresetBar";
+import { Img2ImgControls } from "./Img2ImgControls";
+import { img2imgUpdater } from "../../../lib/paramBuilders";
 import type { 
   BaseGenerationParams, 
   OptionsState, 
@@ -23,6 +25,7 @@ interface DefaultGenerationPanelProps {
   onOpenLoraDetail: (item: LoraItem) => void;
   onSetSimpleLoraTarget: (target: "default" | "multi" | "highres") => void;
   onSendToHighres: () => void;
+  onUploadImage: (file: File) => Promise<string>;
 }
 
 export const DefaultGenerationPanel = React.memo(({
@@ -38,6 +41,7 @@ export const DefaultGenerationPanel = React.memo(({
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
   onSendToHighres,
+  onUploadImage,
 }: DefaultGenerationPanelProps) => {
   return (
     <section className="panel">
@@ -46,6 +50,16 @@ export const DefaultGenerationPanel = React.memo(({
         <PresetBar target="default" params={params} options={options} setParams={setParams} />
       </div>
       <div className="panel-body">
+        <Img2ImgControls
+          img2img={params.img2img}
+          onToggle={(enabled) => setParams(img2imgUpdater<BaseGenerationParams>({ enabled }))}
+          onChange={(patch) => setParams(img2imgUpdater<BaseGenerationParams>(patch))}
+          denoise={params.denoise}
+          onDenoiseChange={(value) => setParams((prev) => ({ ...prev, denoise: value }))}
+          batchSize={params.batchSize}
+          onUploadImage={onUploadImage}
+          upscaleMethods={options.imageScaleMethods}
+        />
         <BaseControls
           params={params}
           options={options}

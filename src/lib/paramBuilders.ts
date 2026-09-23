@@ -5,9 +5,31 @@ import type {
   BaseGenerationParams,
   DetailerParams,
   HighresParams,
+  Img2ImgParams,
   MultiGenerationParams,
 } from "../types";
 import { ANIMA_FULL_STAGES, fallbackOptions } from "../constants";
+
+/** 图生图参数的默认值（默认**关闭**，保证既有用户行为零变化） */
+export function makeImg2ImgParams(): Img2ImgParams {
+  return {
+    enabled: false,
+    imageName: "",
+    fit: "stretch",
+    upscaleMethod: "lanczos",
+  };
+}
+
+/**
+ * 三个面板共用的 img2img 更新器：对 `img2img` 做按层合并，字段缺失时用默认值兜底。
+ * 泛型让各面板的 `setParams` 保持自己的参数类型（Base / Multi / Highres）。
+ */
+export function img2imgUpdater<T extends BaseGenerationParams>(patch: Partial<Img2ImgParams>) {
+  return (prev: T): T => ({
+    ...prev,
+    img2img: { ...(prev.img2img ?? makeImg2ImgParams()), ...patch },
+  });
+}
 
 export function makeBaseParams(checkpoint = fallbackOptions.checkpoints[0]): BaseGenerationParams {
   return {
@@ -26,6 +48,7 @@ export function makeBaseParams(checkpoint = fallbackOptions.checkpoints[0]): Bas
     denoise: 1,
     filenamePrefix: "默认生图/%date:yyyy-MM-dd%/ComfyUI",
     loras: [],
+    img2img: makeImg2ImgParams(),
     drawText: {
       enabled: false,
       text: "测试文本",
@@ -210,7 +233,11 @@ export function makeAnimaParams(): AnimaGenerationParams {
     },
     stages: { ...ANIMA_FULL_STAGES },
     img2img: {
+      // Anima 的图生图开关是 stages.img2img；这里的 enabled 只是共用的形状占位
+      enabled: true,
       imageName: "",
+      // fit 对 Anima 无效（它用 ImageResizeKJv2 的 keepProportion）
+      fit: "stretch",
       keepProportion: "pad_edge",
       upscaleMethod: "nearest-exact",
       cropPosition: "center",

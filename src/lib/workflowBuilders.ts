@@ -126,6 +126,80 @@ function insertDrawTextNode(
   return [drawTextId, 0];
 }
 
+/**
+ * 图生图 latent：LoadImage → ImageScale → VAEEncode（batchSize > 1 时再 RepeatLatentBatch）。
+ *
+ * 未开启开关或未选参考图时返回 `null`，调用方保留原有 EmptyLatentImage 分支
+ * ——关闭时该函数不写入任何节点，工作流与改造前逐节点一致。
+ *
+ * 节点键一律用非数字字符串：高修的 detailerChain 用 `nextId` 递增占号（`workflowBuilders.ts:639`），
+ * 默认生图的 drawText 又固定占 `"8"`，数字键有碰撞风险。
+ * （先例：`base_vae_decode`、`999_save`，均在本项目实机验证可用。）
+ *
+ * `size` 允许传节点引用：多人工作流的分辨率由 ResolutionMasterSimplify 决定，
+ * 必须沿用它的输出，否则会绕过分辨率对齐逻辑。
+ */
+function img2imgLatent(
+  prompt: ComfyPrompt,
+  params: BaseGenerationParams,
+  vae: [string, number],
+  size: { width: number | [string, number]; height: number | [string, number] },
+): [string, number] | null {
+  const img2img = params.img2img;
+  if (!img2img?.enabled || !img2img.imageName) return null;
+
+  prompt["i2i_load"] = {
+    class_type: "LoadImage",
+    inputs: { image: img2img.imageName },
+    _meta: { title: "加载参考图" },
+  };
+  prompt["i2i_scale"] = {
+    class_type: "ImageScale",
+    inputs: {
+      image: ["i2i_load", 0],
+      upscale_method: img2img.upscaleMethod,
+      width: size.width,
+      height: size.height,
+      crop: img2img.fit === "crop" ? "center" : "disabled",
+    },
+    _meta: { title: "缩放参考图" },
+  };
+  prompt["i2i_encode"] = {
+    class_type: "VAEEncode",
+    inputs: { pixels: ["i2i_scale", 0], vae },
+    _meta: { title: "参考图 VAE 编码" },
+  };
+
+  let latent: [string, number] = ["i2i_encode", 0];
+  // VAEEncode 输出恒为 1 张，要保住「批量」语义只能显式复制 latent。
+  // 注意 RepeatLatentBatch.amount 上限是 64，而 EmptyLatentImage.batch_size 可到 4096。
+  if (params.batchSize > 1) {
+    prompt["i2i_repeat"] = {
+      class_type: "RepeatLatentBatch",
+      inputs: { samples: latent, amount: Math.min(params.batchSize, 64) },
+      _meta: { title: "复制参考图 latent（批量）" },
+    };
+    latent = ["i2i_repeat", 0];
+  }
+  return latent;
+}
+
+/** 把 KSampler 的 latent 来源换成图生图链路；未启用时原样返回 false，调用方保持不动 */
+function applyImg2ImgLatent(
+  prompt: ComfyPrompt,
+  params: BaseGenerationParams,
+  vae: [string, number],
+  size: { width: number | [string, number]; height: number | [string, number] },
+  ksamplerId: string,
+  emptyLatentId: string,
+): boolean {
+  const latent = img2imgLatent(prompt, params, vae, size);
+  if (!latent) return false;
+  delete prompt[emptyLatentId];
+  (prompt[ksamplerId].inputs as Record<string, unknown>).latent_image = latent;
+  return true;
+}
+
 function baseCheckpoint(params: BaseGenerationParams): ComfyPrompt {
   return {
     "1": {
@@ -215,6 +289,10 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
       _meta: { title: "VAE Decode" },
     },
   };
+
+  // 图生图：开关开启且选了参考图时，用 LoadImage → ImageScale → VAEEncode 取代空 latent；
+  // 未启用时本行为空操作，工作流与改造前逐节点一致。
+  applyImg2ImgLatent(prompt, params, ["1", 2], { width: params.width, height: params.height }, "6", "5");
 
   const finalImage = insertDrawTextNode(prompt, params, ["7", 0], 8);
 
@@ -518,6 +596,16 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
     },
   };
 
+  // 图生图：分辨率必须沿用 ResolutionMasterSimplify("22") 的输出，否则会绕过分辨率对齐逻辑
+  applyImg2ImgLatent(
+    prompt,
+    params,
+    ["1", 2],
+    { width: ["22", 0], height: ["22", 1] },
+    "4",
+    "9",
+  );
+
   const finalImage = insertDrawTextNode(prompt, params, ["10", 0], 28);
 
   prompt["999_save"] = {
@@ -590,6 +678,9 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
       _meta: { title: "基础图像解码" },
     },
   };
+
+  // 图生图：只替换基础采样的 latent 来源，后面的放大链走 KSampler 输出，不受影响
+  applyImg2ImgLatent(prompt, params, ["1", 2], { width: params.width, height: params.height }, "6", "5");
 
   // Handle backward compatibility for legacy variant
   const enableUpscale = params.enableUpscale ?? true;

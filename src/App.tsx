@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   CheckCircle2,
@@ -59,7 +59,8 @@ import {
   toolTabs as toolTabConfig,
   templateLabels,
 } from "./constants";
-import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus } from "./types";
+import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, BaseGenerationParams, MultiGenerationParams, HighresParams } from "./types";
+import { img2imgUpdater } from "./lib/paramBuilders";
 import { loadWildcards } from "./lib/wildcards";
 import { WILDCARD_FILES } from "./lib/wildcards";
 
@@ -305,6 +306,67 @@ function App() {
     pushToast("success", "触发词已应用", `已追加到 ${templateLabels[target]} 正向提示词`);
   }
 
+  /** 上传任意图片到 ComfyUI input/（Anima 面板与三个新面板共用同一条通道） */
+  const uploadImage = useCallback(async (file: File) => {
+    const uploaded = await client.uploadImage(file);
+    return uploaded.name;
+  }, [client]);
+
+  /**
+   * 把一张输出图复制进 input/ 后返回文件名。
+   * 输出图存放在 ComfyUI 的 output/，而 LoadImage 只读 input/，故必须重新上传一份。
+   */
+  const promoteOutputToInput = useCallback(async (image: OutputImage) => {
+    const response = await fetch(image.url);
+    if (!response.ok) throw new Error(`读取图像失败：${response.status}`);
+    const blob = await response.blob();
+    const file = new File([blob], image.filename, { type: blob.type || "image/png" });
+    return uploadImage(file);
+  }, [uploadImage]);
+
+  const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null);
+
+  /**
+   * 输出图回流：把输出面板里的图变成某个面板的参考图。
+   * 两个「只说一半就会静默失效」的点必须一并处理：
+   * - Anima：惰性条件是 `stages.img2img && imageName`，只填图不开阶段开关不生效；
+   * - 图片识别：runWd14 里 `wdFile` 优先于 `imageName`，不清掉本地文件会被顶替。
+   */
+  const handleSendImageTo = useCallback(async (image: OutputImage, target: TemplateKind | "wd14") => {
+    try {
+      const imageName = await promoteOutputToInput(image);
+      if (target === "wd14") {
+        tagging.setWdFile(null);
+        tagging.setWd14((prev) => ({ ...prev, imageName }));
+        setTab("wd14");
+      } else if (target === "anima") {
+        params.setAnimaParams((prev) => ({
+          ...prev,
+          img2img: { ...prev.img2img, imageName },
+          stages: { ...prev.stages, img2img: true },
+        }));
+        setTab("anima");
+      } else if (target === "multi") {
+        // 三个新模板：开启图生图开关并填入参考图（开关关闭时即使有图也不会走图生图）
+        params.setMultiParams(img2imgUpdater<MultiGenerationParams>({ enabled: true, imageName }));
+        setTab("multi");
+      } else if (target === "highres") {
+        params.setHighresParams(img2imgUpdater<HighresParams>({ enabled: true, imageName }));
+        setTab("highres");
+      } else {
+        params.setDefaultParams(img2imgUpdater<BaseGenerationParams>({ enabled: true, imageName }));
+        setTab("default");
+      }
+      pushToast(
+        "success",
+        "已作为输入图",
+        `${image.filename} → ${target === "wd14" ? "图片识别" : templateLabels[target]}`,
+      );
+    } catch (error) {
+      pushToast("error", "作为输入图失败", error instanceof Error ? error.message : String(error));
+    }
+  }, [promoteOutputToInput, tagging, params, setTab, pushToast]);
+
   const currentPrompts = useMemo(() => {
     if (tab === "multi") return { positive: params.multiParams.globalPrompt, negative: params.multiParams.negativePrompt };
     if (tab === "highres") return { positive: params.highresParams.positivePrompt, negative: params.highresParams.negativePrompt };
@@ -314,7 +376,6 @@ function App() {
 
   // 侧边栏 tab 定义统一来自 constants（历史上此处另有一份硬编码，导致新增入口时漏改）
   const generationTabs = useMemo(() => [...generationTabConfig, slotsTab], []);
-
   const toolTabs = useMemo(() => toolTabConfig, []);
 
   return (
@@ -405,6 +466,7 @@ function App() {
                     }));
                     setTab("highres");
                   }}
+                  onUploadImage={uploadImage}
                 />
               )}
 
@@ -422,6 +484,7 @@ function App() {
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
                   onAddCharacter={addCharacter}
+                  onUploadImage={uploadImage}
                 />
               )}
 
@@ -438,6 +501,7 @@ function App() {
                   onRunGeneration={() => gen.runPrompt("高清修复", () => buildHighresPrompt(params.highresParams))}
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
+                  onUploadImage={uploadImage}
                 />
               )}
 
@@ -462,10 +526,7 @@ function App() {
                   }
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
-                  onUploadImage={async (file) => {
-                    const uploaded = await client.uploadImage(file);
-                    return uploaded.name;
-                  }}
+                  onUploadImage={uploadImage}
                 />
               )}
 
@@ -638,6 +699,31 @@ function App() {
                                 <Columns size={14} /> 对比基础图像
                               </button>
                             )}
+                            {(() => {
+                              const key = `${result.promptId}-${image.filename}`;
+                              const busy = uploadingImageKey === key;
+                              return (
+                                <select
+                                  value=""
+                                  disabled={busy}
+                                  title="把这张图作为其它面板的参考图"
+                                  style={{ width: "100%" }}
+                                  onChange={(event) => {
+                                    const target = event.target.value as TemplateKind | "wd14";
+                                    if (!target) return;
+                                    setUploadingImageKey(key);
+                                    void handleSendImageTo(image, target).finally(() => setUploadingImageKey(null));
+                                  }}
+                                >
+                                  <option value="">{busy ? "上传中…" : "作为输入图 ▾"}</option>
+                                  <option value="default">→ 默认生图</option>
+                                  <option value="multi">→ 多人工作流</option>
+                                  <option value="highres">→ 高清修复</option>
+                                  <option value="anima">→ Anima 生图</option>
+                                  <option value="wd14">→ 图片识别（反推）</option>
+                                </select>
+                              );
+                            })()}
                           </div>
                         ));
                       })()}

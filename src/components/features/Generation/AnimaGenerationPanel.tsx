@@ -289,7 +289,7 @@ export const AnimaGenerationPanel = React.memo(({
               </div>
               <SelectField
                 label="缩放策略"
-                value={params.img2img.keepProportion}
+                value={params.img2img.keepProportion ?? "pad_edge"}
                 options={["stretch", "resize", "pad", "pad_edge", "pad_edge_pixel", "crop", "pillarbox_blur", "total_pixels"]}
                 onChange={(value) =>
                   setParams((prev) => ({ ...prev, img2img: { ...prev.img2img, keepProportion: value } }))
@@ -297,7 +297,7 @@ export const AnimaGenerationPanel = React.memo(({
               />
               <SelectField
                 label="裁剪位置"
-                value={params.img2img.cropPosition}
+                value={params.img2img.cropPosition ?? "center"}
                 options={["center", "top", "bottom", "left", "right"]}
                 onChange={(value) =>
                   setParams((prev) => ({ ...prev, img2img: { ...prev.img2img, cropPosition: value } }))
