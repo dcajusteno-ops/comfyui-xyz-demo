@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   CheckCircle2,
@@ -6,6 +6,7 @@ import {
   GalleryHorizontalEnd,
   Languages,
   ListFilter,
+  ListOrdered,
   Loader2,
   PauseCircle,
   RefreshCw,
@@ -16,20 +17,94 @@ import {
 import { AppSidebar } from "./components/layout/AppSidebar";
 import { GlobalModals } from "./components/GlobalModals";
 import { PromptSidebar } from "./components/PromptSidebar";
-import { ToastViewport, RunProgressStrip } from "./components/ui";
+import { QueuePanel } from "./components/QueuePanel";
+import { ToastViewport, RunProgressStrip, VramBadge } from "./components/ui";
 
-import {
-  DefaultGenerationPanel,
-  MultiGenerationPanel,
-  HighresGenerationPanel,
-  AnimaGenerationPanel,
-  TextGenerationPanel,
-} from "./components/features/Generation";
-import { TaggingPanel } from "./components/features/Tagging/TaggingPanel";
-import { NotesManagerPanel } from "./components/features/Notes/NotesManagerPanel";
-import { XyzController } from "./components/features/Xyz";
-import { LoraManagerPanel } from "./components/features/Lora";
-import { SlotMachinePanel } from "./components/features/Slots";
+// 首屏必需，随主包同步加载；**必须从具体文件引**，走 `features/Generation` 的
+// barrel 会把下面所有懒加载面板的依赖（MultiWorkspace / DrawTextControls 等）
+// 一并拉进主 chunk，分包就白做了。
+import { DefaultGenerationPanel } from "./components/features/Generation/DefaultGenerationPanel";
+
+/**
+ * 非首屏面板一律动态加载。
+ * 这些面板的 barrel（`features/Xxx/index.ts`）没有 default 导出，故统一走
+ * `.then(m => ({ default: m.Xxx }))`——这样 props 类型仍由真实组件推导，无需 `any`。
+ */
+const MultiGenerationPanel = lazy(() =>
+  import("./components/features/Generation/MultiGenerationPanel").then((m) => ({ default: m.MultiGenerationPanel })),
+);
+const HighresGenerationPanel = lazy(() =>
+  import("./components/features/Generation/HighresGenerationPanel").then((m) => ({ default: m.HighresGenerationPanel })),
+);
+const AnimaGenerationPanel = lazy(() =>
+  import("./components/features/Generation/AnimaGenerationPanel").then((m) => ({ default: m.AnimaGenerationPanel })),
+);
+const TextGenerationPanel = lazy(() =>
+  import("./components/features/Generation/TextGenerationPanel").then((m) => ({ default: m.TextGenerationPanel })),
+);
+const TaggingPanel = lazy(() =>
+  import("./components/features/Tagging/TaggingPanel").then((m) => ({ default: m.TaggingPanel })),
+);
+const NotesManagerPanel = lazy(() =>
+  import("./components/features/Notes/NotesManagerPanel").then((m) => ({ default: m.NotesManagerPanel })),
+);
+const XyzController = lazy(() =>
+  import("./components/features/Xyz").then((m) => ({ default: m.XyzController })),
+);
+const LoraManagerPanel = lazy(() =>
+  import("./components/features/Lora").then((m) => ({ default: m.LoraManagerPanel })),
+);
+const SlotMachinePanel = lazy(() =>
+  import("./components/features/Slots").then((m) => ({ default: m.SlotMachinePanel })),
+);
+
+/** 懒加载占位：复用现有 `.panel` + `.empty-state`，`styles.css` 零新增 */
+const PanelFallback = () => (
+  <div className="panel">
+    <div className="empty-state">加载中…</div>
+  </div>
+);
+
+/**
+ * 输出面板的一行标题摘要。
+ * 以前只显示 `promptId.slice(0,8)`，出几张图后就分不清哪张是哪张了。
+ * 元信息来自 useGeneration 在提交时从**实际工作流**里读出的参数；缺失时逐级降级。
+ */
+function jobTitle(result: JobResult) {
+  const meta = result.meta;
+  if (!meta) return result.promptId.slice(0, 8);
+  const parts: string[] = [meta.label];
+  if (meta.width && meta.height) parts.push(`${meta.width}×${meta.height}`);
+  if (meta.steps !== undefined) parts.push(`${meta.steps} 步`);
+  if (meta.seed !== undefined) parts.push(`seed ${meta.seed}`);
+  return parts.join(" · ");
+}
+
+/**
+ * 「追加词条到目标模板正向提示词」的 updater。
+ * multi 用 globalPrompt，其余模板用 positivePrompt；dedupe=true 时按逗号切分去重
+ * （灵感老虎机 / 手机标签），false 时原样追加（触发词 / 提示词仓库）。
+ */
+function appendPromptUpdater<T extends BaseGenerationParams | MultiGenerationParams>(
+  text: string,
+  options: { useGlobal: boolean; dedupe: boolean },
+) {
+  return (prev: T): T => {
+    const key = options.useGlobal ? "globalPrompt" : "positivePrompt";
+    const current = String((prev as unknown as Record<string, unknown>)[key] ?? "").trim();
+    let addition = text;
+    if (options.dedupe) {
+      const existing = new Set(current.split(/[,，]/).map((part) => part.trim().toLowerCase()));
+      const toAdd = text
+        .split(/[,，]/)
+        .map((part) => part.trim())
+        .filter((part) => part && !existing.has(part.toLowerCase()));
+      if (toAdd.length === 0) return prev;
+      addition = toAdd.join(", ");
+    }
+    return { ...prev, [key]: current ? `${current}, ${addition}` : addition } as T;
+  };
+}
 
 import { useAppContext } from "./AppContext";
 import { useToast } from "./hooks/useToast";
@@ -59,7 +134,8 @@ import {
   toolTabs as toolTabConfig,
   templateLabels,
 } from "./constants";
-import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, BaseGenerationParams, MultiGenerationParams, HighresParams } from "./types";
+import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, JobResult, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams } from "./types";
+import { applySpecialXyzPatch } from "./lib/xyz";
 import { img2imgUpdater } from "./lib/paramBuilders";
 import { loadWildcards } from "./lib/wildcards";
 import { WILDCARD_FILES } from "./lib/wildcards";
@@ -72,7 +148,7 @@ function App() {
   const ui = useUiState();
   const tagging = useTagging();
   const xyz = useXyz();
-  const notesHook = useNotes({ tab: tab as any, pushToast, confirm: ui.confirm });
+  const notesHook = useNotes({ tab, pushToast, confirm: ui.confirm });
   const notifier = useNotifier();
 
   const gen = useGeneration({ client, pushToast, notifyComplete: notifier.notifyComplete });
@@ -129,10 +205,10 @@ function App() {
   const { options, setOptions, loraSettings, setLoraSettings } = useOptions({
     client,
     pushToast,
-    setDefaultParams: (updater) => params.setDefaultParams(updater as any),
-    setMultiParams: (updater) => params.setMultiParams(updater as any),
-    setHighresParams: (updater) => params.setHighresParams(updater as any),
-    setAnimaParams: (updater) => params.setAnimaParams(updater as any),
+    setDefaultParams: (updater) => params.setDefaultParams(updater),
+    setMultiParams: (updater) => params.setMultiParams(updater),
+    setHighresParams: (updater) => params.setHighresParams(updater),
+    setAnimaParams: (updater) => params.setAnimaParams(updater),
     setWd14: tagging.setWd14,
     setWdBatchParams: tagging.setWdBatchParams,
     setClBatchParams: tagging.setClBatchParams,
@@ -218,25 +294,17 @@ function App() {
   const handleSlotsApply = useCallback((tags: string[], target: TemplateKind) => {
     const clean = tags.map((tag) => tag.trim()).filter(Boolean);
     if (clean.length === 0) return;
-
-    const updater = (prev: any) => {
-      const key = target === "multi" ? "globalPrompt" : "positivePrompt";
-      const current = (prev[key] || "").trim();
-      const existing = new Set(current.split(/[,，]/).map((part: string) => part.trim().toLowerCase()));
-      const toAdd = clean.filter((tag) => !existing.has(tag.toLowerCase()));
-      if (toAdd.length === 0) return prev;
-      const joined = toAdd.join(", ");
-      return { ...prev, [key]: current ? `${current}, ${joined}` : joined };
-    };
+    const text = clean.join(", ");
+    const updater = appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: target === "multi", dedupe: true });
 
     if (target === "multi") {
       params.setMultiParams(updater);
     } else if (target === "highres") {
-      params.setHighresParams(updater);
+      params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: false, dedupe: true }));
     } else if (target === "anima") {
-      params.setAnimaParams(updater);
+      params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: false, dedupe: true }));
     } else {
-      params.setDefaultParams(updater);
+      params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: false, dedupe: true }));
     }
     pushToast("success", "灵感已应用", `已追加 ${clean.length} 个词条到 ${templateLabels[target]} 正向提示词`);
   }, [params, pushToast]);
@@ -245,43 +313,66 @@ function App() {
   const handleApplyTags = useCallback((tagsText: string, target: TemplateKind) => {
     const clean = tagsText.split(/[,，]/).map((tag) => tag.trim()).filter(Boolean);
     if (clean.length === 0) return;
-
-    const updater = (prev: any) => {
-      const key = target === "multi" ? "globalPrompt" : "positivePrompt";
-      const current = (prev[key] || "").trim();
-      const existing = new Set(current.split(/[,，]/).map((part: string) => part.trim().toLowerCase()));
-      const toAdd = clean.filter((tag) => !existing.has(tag.toLowerCase()));
-      if (toAdd.length === 0) return prev;
-      const joined = toAdd.join(", ");
-      return { ...prev, [key]: current ? `${current}, ${joined}` : joined };
-    };
+    const text = clean.join(", ");
 
     if (target === "multi") {
-      params.setMultiParams(updater);
+      params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: true, dedupe: true }));
     } else if (target === "highres") {
-      params.setHighresParams(updater);
+      params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: false, dedupe: true }));
     } else if (target === "anima") {
-      params.setAnimaParams(updater);
+      params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: false, dedupe: true }));
     } else {
-      params.setDefaultParams(updater);
+      params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: false, dedupe: true }));
     }
     pushToast("success", "标签已应用", `已追加 ${clean.length} 个标签到 ${templateLabels[target]} 正向提示词`);
   }, [params, pushToast]);
 
-  const handleSidebarSelect = useCallback((text: string, target: "positive" | "negative") => {
-    const updater = (prev: any) => {
-      const key = target === "positive" ? (tab === "multi" ? "globalPrompt" : "positivePrompt") : "negativePrompt";
-      return { ...prev, [key]: (prev[key] || "") + (prev[key] ? ", " : "") + text };
-    };
-
-    if (tab === "multi") {
-      params.setMultiParams(updater);
-    } else if (tab === "highres") {
-      params.setHighresParams(updater);
-    } else if (tab === "anima") {
-      params.setAnimaParams(updater);
+  /**
+   * T8：XYZ 复盘 → 最优组合一键回填。
+   * 复盘的结论原本只是文字（「CFG=9 均值最高」），现在可以直接把**最优那张图对应的
+   * 完整组合 patch** 应用到目标模板面板，闭合「批量试 → 选最优 → 回单张微调」。
+   * 合并语义与 `buildXyzPrompt` 保持一致（positivePrompt 追加而非覆盖）。
+   */
+  const handleXyzApplyCombo = useCallback((combo: XyzCombination) => {
+    const target = xyz.xyzTarget;
+    if (target === "multi") {
+      params.setMultiParams((prev) => {
+        const patched = applySpecialXyzPatch(prev, combo);
+        const promptAppend = combo.patch.positivePrompt;
+        return promptAppend
+          ? { ...patched, globalPrompt: [prev.globalPrompt, promptAppend].filter(Boolean).join("\n") }
+          : patched;
+      });
+    } else if (target === "highres") {
+      params.setHighresParams((prev) => applySpecialXyzPatch(prev, combo));
+    } else if (target === "anima") {
+      params.setAnimaParams((prev) => applySpecialXyzPatch(prev, combo));
     } else {
-      params.setDefaultParams(updater);
+      params.setDefaultParams((prev) => applySpecialXyzPatch(prev, combo));
+    }
+    pushToast("success", "最优组合已回填", `${templateLabels[target]} ← ${combo.label}`);
+    setTab(target);
+  }, [xyz.xyzTarget, params, pushToast, setTab]);
+
+  const handleSidebarSelect = useCallback((text: string, target: "positive" | "negative") => {
+    const opts = { useGlobal: tab === "multi", dedupe: false };
+    // negative 侧始终写 negativePrompt（multi 也没有单独的负向 globalPrompt），按 tab 落到对应面板
+    if (target === "negative") {
+      if (tab === "multi") params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: false, dedupe: false }));
+      else if (tab === "highres") params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: false, dedupe: false }));
+      else if (tab === "anima") params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: false, dedupe: false }));
+      else params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: false, dedupe: false }));
+      pushToast("info", "提示词已添加", `${text.slice(0, 20)}...`);
+      return;
+    }
+    if (tab === "multi") {
+      params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, opts));
+    } else if (tab === "highres") {
+      params.setHighresParams(appendPromptUpdater<HighresParams>(text, opts));
+    } else if (tab === "anima") {
+      params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, opts));
+    } else {
+      params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, opts));
     }
     pushToast("info", "提示词已添加", `${text.slice(0, 20)}...`);
   }, [tab, params, pushToast]);
@@ -289,19 +380,17 @@ function App() {
   function addTriggerWords(words: string[], target = loras.loraTarget) {
     if (!words || words.length === 0) return;
     const text = words.join(", ");
-    const updater = (prev: any) => {
-      const key = tab === "multi" ? "globalPrompt" : "positivePrompt";
-      return { ...prev, [key]: (prev[key] || "") + (prev[key] ? ", " : "") + text };
-    };
+    // 注意：追加键取**当前 tab**（multi→globalPrompt），而落点是 loraTarget——与历史行为保持一致
+    const updater = appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: tab === "multi", dedupe: false });
 
     if (target === "multi") {
       params.setMultiParams(updater);
     } else if (target === "highres") {
-      params.setHighresParams(updater);
+      params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: tab === "multi", dedupe: false }));
     } else if (target === "anima") {
-      params.setAnimaParams(updater);
+      params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: tab === "multi", dedupe: false }));
     } else {
-      params.setDefaultParams(updater);
+      params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: tab === "multi", dedupe: false }));
     }
     pushToast("success", "触发词已应用", `已追加到 ${templateLabels[target]} 正向提示词`);
   }
@@ -325,6 +414,7 @@ function App() {
   }, [uploadImage]);
 
   const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null);
+  const [queueOpen, setQueueOpen] = useState(false);
 
   /**
    * 输出图回流：把输出面板里的图变成某个面板的参考图。
@@ -378,16 +468,71 @@ function App() {
   const generationTabs = useMemo(() => [...generationTabConfig, slotsTab], []);
   const toolTabs = useMemo(() => toolTabConfig, []);
 
+  /** 当前 tab 的「生成」动作（Ctrl+Enter 触发；与面板按钮完全同源） */
+  const runCurrentTab = useCallback(() => {
+    if (tab === "default") return gen.runPrompt("默认生图", () => buildDefaultPrompt(params.defaultParams));
+    if (tab === "multi") return gen.runPrompt("多人工作流", () => buildMultiPrompt(params.multiParams));
+    if (tab === "highres") return gen.runPrompt("高清修复", () => buildHighresPrompt(params.highresParams));
+    if (tab === "anima")
+      return gen.runPrompt("Anima 生图", () =>
+        buildAnimaPrompt(
+          { ...params.animaParams, drawText: params.defaultParams.drawText },
+          options.animaCaps,
+        ),
+      );
+    return undefined;
+  }, [tab, gen, params, options.animaCaps]);
+
+  // 全局快捷键（T10-②）：Ctrl+Enter 生成 · Ctrl+S 存预设 · 数字键切 tab
+  useEffect(() => {
+    const digitTabs = [...generationTabConfig, slotsTab, ...toolTabConfig];
+    const isTypingTarget = (element: EventTarget | null) =>
+      element instanceof HTMLElement &&
+      (element.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName));
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing) return;
+
+      // 数字键切 tab（1..n 与侧边栏顺序一致）；输入框内不抢
+      if (!event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey && !isTypingTarget(event.target)) {
+        const index = Number(event.key) - 1;
+        if (Number.isInteger(index) && index >= 0 && index < digitTabs.length) {
+          setTab(digitTabs[index].id);
+          return;
+        }
+      }
+
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const key = event.key.toLowerCase();
+      if (key === "enter" && !event.shiftKey) {
+        const task = runCurrentTab();
+        if (task) {
+          event.preventDefault();
+          void task.catch(() => undefined);
+        }
+        return;
+      }
+      if (key === "s" && ["default", "multi", "highres", "anima"].includes(tab)) {
+        // PresetBar 监听该事件打开保存弹窗（避免为快捷键新增全局状态）
+        event.preventDefault();
+        window.dispatchEvent(new CustomEvent("dsh:save-preset"));
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [tab, setTab, runCurrentTab]);
+
   return (
     <>
       <div className="app-shell">
       <AppSidebar
         isCollapsed={ui.isAppSidebarCollapsed}
         onToggle={() => ui.setIsAppSidebarCollapsed(!ui.isAppSidebarCollapsed)}
-        activeTab={tab as any}
-        onTabChange={(id) => setTab(id as any)}
-        generationTabs={generationTabs as any}
-        toolTabs={toolTabs as any}
+        activeTab={tab}
+        onTabChange={setTab}
+        generationTabs={generationTabs}
+        toolTabs={toolTabs}
       />
       
       <div className="app-main">
@@ -396,15 +541,17 @@ function App() {
             <div className={`connection-status ${connection.status}`} title={connection.message}>
               <div className="status-dot" />
               <span>
-                {connection.status === "online" 
-                  ? `在线 ${connection.version || ""}` 
-                  : connection.status === "offline" 
-                  ? "离线" 
-                  : connection.status === "checking" 
-                  ? "正在连接..." 
+                {connection.status === "online"
+                  ? `在线 ${connection.version || ""}`
+                  : connection.status === "offline"
+                  ? "离线"
+                  : connection.status === "checking"
+                  ? "正在连接..."
                   : "连接错误"}
               </span>
             </div>
+            {/* T10-③：显存占用指示（/system_stats 轮询，空闲过低时预警） */}
+            <VramBadge client={client} />
           </div>
           <div className="top-actions">
             <div className="action-group">
@@ -424,6 +571,10 @@ function App() {
             <div className="action-divider" />
             
             <div className="action-group">
+              <button type="button" className="icon-button" onClick={() => setQueueOpen(true)} title="任务队列（查看 / 移除 / 清空）">
+                <ListOrdered size={18} />
+                <span>队列</span>
+              </button>
               <button type="button" className="icon-button" onClick={() => loras.setLoraOperation({ type: "notifications" })} title="通知">
                 <ListFilter size={18} />
               </button>
@@ -444,6 +595,7 @@ function App() {
         <div className="layout-with-sidebar">
           <div className={["layout", gen.results.length > 0 ? "has-output" : "no-output", tab === "loras" ? "lora-full" : ""].filter(Boolean).join(" ")}>
             <main className="workspace">
+              <Suspense fallback={<PanelFallback />}>
               {tab === "default" && (
                 <DefaultGenerationPanel
                   params={params.defaultParams}
@@ -594,6 +746,7 @@ function App() {
                   params={params}
                   animaCaps={options.animaCaps}
                   onOutputLightbox={ui.setOutputLightbox}
+                  onApplyCombo={handleXyzApplyCombo}
                 />
               )}
 
@@ -647,6 +800,7 @@ function App() {
                   onConfirmClear={() => ui.confirm("清空内容", "确定要清空当前笔记的所有内容吗？此操作无法撤销。", () => notesHook.updateActiveNote({ content: "" }))}
                 />
               )}
+              </Suspense>
             </main>
 
             {tab !== "loras" && !(tab === "notes" && notesHook.isNotesWide) && (
@@ -675,7 +829,12 @@ function App() {
                     <div className="gallery-item" key={result.promptId}>
                       <div className="gallery-meta">
                         <CheckCircle2 size={16} />
-                        <span>{result.promptId.slice(0, 8)}</span>
+                        <span
+                          title={result.promptId + (result.meta ? ` | ${jobTitle(result)}` : "")}
+                          style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}
+                        >
+                          {jobTitle(result)}
+                        </span>
                       </div>
                       {result.images.length > 0 && (() => {
                         const lastImg = result.images[result.images.length - 1];
@@ -738,7 +897,7 @@ function App() {
           <PromptSidebar 
             isOpen={ui.showPromptSidebar} 
             onClose={() => ui.setShowPromptSidebar(false)} 
-            onSelect={(text, target) => handleSidebarSelect(text, target as any)} 
+            onSelect={(text, type) => handleSidebarSelect(text, type === 'positive' ? 'positive' : 'negative')} 
             currentPositive={currentPrompts.positive}
             currentNegative={currentPrompts.negative}
           />
@@ -746,8 +905,18 @@ function App() {
       </div>
     </div>
 
-      <GlobalModals 
-        loraOperation={loras.loraOperation} 
+      {/* T11：任务队列面板（查看运行中 / 等待中，单独移除或清空） */}
+      {queueOpen && (
+        <QueuePanel
+          client={client}
+          runningPromptId={gen.progress.promptId}
+          onClose={() => setQueueOpen(false)}
+          onToast={pushToast}
+        />
+      )}
+
+      <GlobalModals
+        loraOperation={loras.loraOperation}
         setLoraOperation={loras.setLoraOperation}
         loraDetail={loras.loraDetail}
         setLoraDetail={loras.setLoraDetail}
@@ -776,13 +945,13 @@ function App() {
             return trimmed + sep + addition.trim();
           };
 
-          const updater = (prev: any) => {
+          const updater = <T extends BaseGenerationParams | MultiGenerationParams>(prev: T): T => {
             const posKey = tab === "multi" ? "globalPrompt" : "positivePrompt";
             return {
               ...prev,
-              [posKey]: append(prev[posKey] || "", pos),
-              negativePrompt: append(prev.negativePrompt || "", neg)
-            };
+              [posKey]: append(String((prev as unknown as Record<string, unknown>)[posKey] ?? ""), pos),
+              negativePrompt: append(prev.negativePrompt ?? "", neg)
+            } as T;
           };
 
           if (tab === "multi") {
@@ -802,7 +971,7 @@ function App() {
         onResumeDownloads={loras.resumeExampleDownloads}
         onStopDownloads={loras.stopExampleDownloads}
         onUpdateSettings={async (s) => { loras.updateLoraSettings(s); }}
-        onDoctorAction={async (action) => { loras.doctorAction(action as any); }}
+        onDoctorAction={loras.doctorAction}
         loras={loras}
         apiBase={apiBase}
         setApiBase={setApiBase}

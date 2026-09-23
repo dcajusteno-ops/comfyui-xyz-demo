@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, type LucideIcon } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
 export function ModalFrame({ title, children, onClose, className, style }: { title: string; children: ReactNode; onClose: () => void; className?: string; style?: CSSProperties }) {
@@ -15,7 +15,7 @@ export function ModalFrame({ title, children, onClose, className, style }: { tit
   );
 }
 
-export function PanelTitle({ icon: Icon, title }: { icon: any; title: string }) {
+export function PanelTitle({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
   return (
     <div className="panel-title">
       <Icon size={20} />

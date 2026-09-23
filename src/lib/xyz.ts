@@ -1,4 +1,4 @@
-import type { BaseGenerationParams, XyzAxis, XyzCombination, XyzField } from "../types";
+import type { BaseGenerationParams, DrawTextParams, LoraSelection, XyzAxis, XyzCombination, XyzField } from "../types";
 import { animaStageMeta } from "../constants";
 import { appendPositivePrompt, loraNamePatch, loraStrengthPatch } from "./workflowBuilders";
 
@@ -32,7 +32,7 @@ const numericFields = new Set<string>([
 function isNumericField(field: XyzField) {
   if (field.startsWith("loraStrength_") || field.startsWith("loraAppendStrength_")) return true;
   if (field.startsWith("loraName_") || field.startsWith("loraAppendName_")) return false;
-  return numericFields.has(field as any);
+  return numericFields.has(field);
 }
 
 export function parseAxisValues(raw: string, field: XyzField): Array<string | number> {
@@ -175,7 +175,7 @@ export function applyXyzPatch<T extends BaseGenerationParams>(params: T, patch: 
   if (patch.drawText && params.drawText) {
     next.drawText = { ...params.drawText, ...patch.drawText };
   } else if (patch.drawText) {
-    next.drawText = patch.drawText as any;
+    next.drawText = patch.drawText;
   }
 
   // 嵌套层：**存在性守卫**——只有目标参数对象本身就有这一层才合并。
@@ -201,7 +201,7 @@ function isBooleanField(field: XyzField) {
 
 const TRUTHY_AXIS_VALUES = new Set(["true", "1", "on", "yes", "开", "是"]);
 
-function parseValue(field: XyzField, value: any) {
+function parseValue(field: XyzField, value: string | number) {
   if (isNumericField(field)) return Number(value);
   if (isBooleanField(field)) return TRUTHY_AXIS_VALUES.has(String(value).toLowerCase()) || value === 1;
   return String(value);
@@ -217,15 +217,15 @@ function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenera
   }
   if (field.startsWith("loraName_")) {
     const idx = parseInt(field.split("_")[1]);
-    return { loras: [{ name: `__LORA_NAME_${idx}__`, active: true, strength: 0, clipStrength: 0, patchName: String(value) } as any] };
+    return { loras: [{ name: `__LORA_NAME_${idx}__`, active: true, strength: 0, clipStrength: 0, patchName: String(value) } as unknown as LoraSelection] };
   }
   if (field.startsWith("loraAppendName_")) {
     const idx = parseInt(field.split("_")[1]);
-    return { loras: [{ name: `__LORA_APPEND_NAME_${idx}__`, active: true, strength: 0, clipStrength: 0, patchName: String(value) } as any] };
+    return { loras: [{ name: `__LORA_APPEND_NAME_${idx}__`, active: true, strength: 0, clipStrength: 0, patchName: String(value) } as unknown as LoraSelection] };
   }
   if (field.startsWith("loraAppendStrength_")) {
     const idx = parseInt(field.split("_")[1]);
-    return { loras: [{ name: `__LORA_APPEND_STRENGTH_${idx}__`, active: true, strength: Number(value), clipStrength: Number(value) } as any] };
+    return { loras: [{ name: `__LORA_APPEND_STRENGTH_${idx}__`, active: true, strength: Number(value), clipStrength: Number(value) } as unknown as LoraSelection] };
   }
   // ---- Anima 专属轴：返回**嵌套** patch，由 applyXyzPatch / buildXyzCombinations 按层合并 ----
   if (field === "animaHiresPrePercent") {
@@ -249,15 +249,15 @@ function fieldPatch(field: XyzField, value: string | number): Partial<BaseGenera
   }
 
   if (field === "drawTextText") {
-    return { drawText: { text: String(value), enabled: true } as any };
+    return { drawText: { text: String(value), enabled: true } as unknown as DrawTextParams };
   }
   if (field === "drawTextFont") {
-    return { drawText: { font: String(value), enabled: true } as any };
+    return { drawText: { font: String(value), enabled: true } as unknown as DrawTextParams };
   }
   if (field.startsWith("drawText")) {
     const subField = field.slice(8);
     const camelSubField = subField.charAt(0).toLowerCase() + subField.slice(1);
-    return { drawText: { [camelSubField]: parseValue(field, value), enabled: true } as any };
+    return { drawText: { [camelSubField]: parseValue(field, value), enabled: true } as unknown as DrawTextParams };
   }
   return { [field]: parseValue(field, value) } as Partial<BaseGenerationParams>;
 }
@@ -282,15 +282,15 @@ export function applySpecialXyzPatch<T extends BaseGenerationParams>(params: T, 
     for (const lora of nameLoras) {
       const match = lora.name.match(/\d+/);
       const idx = match ? parseInt(match[0], 10) : 0;
-      next = loraNamePatch(next, idx, (lora as any).patchName);
+      next = loraNamePatch(next, idx, lora.patchName ?? "");
     }
   }
   
-  const appendedLoras: Record<number, any> = {};
+  const appendedLoras: Record<number, LoraSelection> = {};
   if (appendNameLoras) {
     for (const lora of appendNameLoras) {
       const match = lora.name.match(/\d+/);
-      if (match) appendedLoras[parseInt(match[0], 10)] = { name: (lora as any).patchName, strength: 1.0, clipStrength: 1.0, active: true };
+      if (match) appendedLoras[parseInt(match[0], 10)] = { name: lora.patchName ?? "", strength: 1.0, clipStrength: 1.0, active: true };
     }
   }
   if (appendStrengthLoras) {

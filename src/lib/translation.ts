@@ -14,12 +14,16 @@ export interface TranslationSettings {
 
 }
 
+export type DictionaryEntry = { text_en?: string; text_zh?: string; [key: string]: unknown };
+
+type JsonPayload = { error_code?: unknown; error_msg?: unknown; trans_result?: Array<{ dst?: unknown }> };
+
 export const defaultTranslationSettings: TranslationSettings = {
   provider: "mymemory",
 };
 
-let localDictionary: any[] | null = null;
-let dictionaryPromise: Promise<any[]> | null = null;
+let localDictionary: DictionaryEntry[] | null = null;
+let dictionaryPromise: Promise<DictionaryEntry[]> | null = null;
 
 async function getLocalDictionary() {
   if (localDictionary) return localDictionary;
@@ -123,7 +127,7 @@ async function translateBaidu(text: string, appId?: string, secret?: string, dir
     script.src = url.toString();
 
     const cleanup = () => {
-      delete (window as any)[callbackName];
+      delete (window as unknown as Record<string, unknown>)[callbackName];
       if (document.body.contains(script)) {
         document.body.removeChild(script);
       }
@@ -134,7 +138,7 @@ async function translateBaidu(text: string, appId?: string, secret?: string, dir
       reject(new Error("百度翻译请求超时"));
     }, 10000);
 
-    (window as any)[callbackName] = (data: any) => {
+    (window as unknown as Record<string, unknown>)[callbackName] = (data: JsonPayload) => {
       clearTimeout(timeout);
       cleanup();
       
@@ -143,7 +147,7 @@ async function translateBaidu(text: string, appId?: string, secret?: string, dir
         return;
       }
       if (data.trans_result && data.trans_result.length > 0) {
-        resolve(data.trans_result.map((item: any) => item.dst).join("\n"));
+        resolve(data.trans_result.map((item) => String(item.dst)).join("\n"));
         return;
       }
       reject(new Error("百度翻译API返回格式异常"));

@@ -638,7 +638,7 @@ function parseRemoteMedia(value: unknown, index: number, source: "image" | "cust
   };
 }
 
-function isAllowedMediaUrl(value: string) {
+export function isAllowedMediaUrl(value: string) {
   try {
     const parsed = new URL(value);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
@@ -652,7 +652,7 @@ function isAllowedMediaUrl(value: string) {
   }
 }
 
-function isPrivateIp(ip: string): boolean {
+export function isPrivateIp(ip: string): boolean {
   if (ip.includes(":")) {
     const lower = ip.toLowerCase();
     if (lower === "::" || lower === "::1") return true;

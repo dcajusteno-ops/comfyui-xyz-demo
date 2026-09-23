@@ -14,6 +14,7 @@ import type {
 } from "../../../types";
 import { MobileSyncFeed } from "./MobileSyncFeed";
 import { MobileConnectDialog } from "./MobileConnectDialog";
+import { FolderField } from "./FolderField";
 
 interface TaggingPanelProps {
   wd14: Wd14Params;
@@ -410,26 +411,22 @@ export const TaggingPanel = React.memo(({
         <>
           <div className="panel-body">
             <div className="form-grid two">
-              <label className="field">
-                <span>图片目录</span>
-                <input
-                  value={clBatchParams.imageFolder}
-                  onChange={(e) =>
-                    setClBatchParams((prev) => ({ ...prev, imageFolder: e.target.value }))
-                  }
-                  placeholder={`例如: ${CONFIG.DEFAULT_TAG_IMAGE_FOLDER}`}
-                />
-              </label>
-              <label className="field">
-                <span>输出目录</span>
-                <input
-                  value={clBatchParams.outputFolder}
-                  onChange={(e) =>
-                    setClBatchParams((prev) => ({ ...prev, outputFolder: e.target.value }))
-                  }
-                  placeholder="例如: ./ComfyUI-tag/cs"
-                />
-              </label>
+              <FolderField
+                label="图片目录"
+                value={clBatchParams.imageFolder}
+                onChange={(value) =>
+                  setClBatchParams((prev) => ({ ...prev, imageFolder: value }))
+                }
+                placeholder={`例如: ${CONFIG.DEFAULT_TAG_IMAGE_FOLDER}`}
+              />
+              <FolderField
+                label="输出目录"
+                value={clBatchParams.outputFolder}
+                onChange={(value) =>
+                  setClBatchParams((prev) => ({ ...prev, outputFolder: value }))
+                }
+                placeholder="例如: ./ComfyUI-tag/cs"
+              />
               <label className="field">
                 <span>前置提示词</span>
                 <input
@@ -523,26 +520,22 @@ export const TaggingPanel = React.memo(({
         <>
           <div className="panel-body">
             <div className="form-grid two">
-              <label className="field">
-                <span>图片目录</span>
-                <input
-                  value={wdBatchParams.imageFolder}
-                  onChange={(e) =>
-                    setWdBatchParams((prev) => ({ ...prev, imageFolder: e.target.value }))
-                  }
-                  placeholder={`例如: ${CONFIG.DEFAULT_TAG_IMAGE_FOLDER}`}
-                />
-              </label>
-              <label className="field">
-                <span>输出目录</span>
-                <input
-                  value={wdBatchParams.outputFolder}
-                  onChange={(e) =>
-                    setWdBatchParams((prev) => ({ ...prev, outputFolder: e.target.value }))
-                  }
-                  placeholder="例如: ./ComfyUI-tag/cs"
-                />
-              </label>
+              <FolderField
+                label="图片目录"
+                value={wdBatchParams.imageFolder}
+                onChange={(value) =>
+                  setWdBatchParams((prev) => ({ ...prev, imageFolder: value }))
+                }
+                placeholder={`例如: ${CONFIG.DEFAULT_TAG_IMAGE_FOLDER}`}
+              />
+              <FolderField
+                label="输出目录"
+                value={wdBatchParams.outputFolder}
+                onChange={(value) =>
+                  setWdBatchParams((prev) => ({ ...prev, outputFolder: value }))
+                }
+                placeholder="例如: ./ComfyUI-tag/cs"
+              />
               <label className="field">
                 <span>前置提示词</span>
                 <input

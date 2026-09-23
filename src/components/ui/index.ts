@@ -6,3 +6,4 @@ export { RichTextEditor } from "./RichTextEditor";
 export { BaseControls } from "./BaseControls";
 export { PromptLintBadge } from "./PromptLintBadge";
 export { InfoItem, TagCloud, PromptBlock } from "./Misc";
+export { VramBadge } from "./VramBadge";

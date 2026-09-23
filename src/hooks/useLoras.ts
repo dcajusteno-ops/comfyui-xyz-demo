@@ -737,7 +737,7 @@ export function useLoras({
 
 export type UseLorasResult = ReturnType<typeof useLoras>;
 
-export function makeLoraSelection(item: LoraItem, localFiles: LoraItem[] | any[], strength = 1): LoraSelection {
+export function makeLoraSelection(item: LoraItem, localFiles: LoraItem[], strength = 1): LoraSelection {
   const previewMedia = pickCardPreviewMedia(item, localFiles);
   return {
     name: loraSyntaxName(item),

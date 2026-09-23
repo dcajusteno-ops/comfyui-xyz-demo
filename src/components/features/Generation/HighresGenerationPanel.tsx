@@ -112,6 +112,9 @@ export const HighresGenerationPanel = React.memo(({
           batchSize={params.batchSize}
           onUploadImage={onUploadImage}
           upscaleMethods={options.imageScaleMethods}
+          apiBase={apiBase}
+          width={params.width}
+          height={params.height}
         />
         <BaseControls
           params={params}

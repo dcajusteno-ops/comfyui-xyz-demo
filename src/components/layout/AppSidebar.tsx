@@ -1,9 +1,9 @@
 import { memo } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, Moon, Sun } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, Moon, Sun, type LucideIcon } from "lucide-react";
 import type { TabId } from "../../types";
 import { useAppContext } from "../../AppContext";
 
-type TabConfig = { id: TabId; label: string; icon: any };
+type TabConfig = { id: TabId; label: string; icon: LucideIcon };
 
 export const AppSidebar = memo(({
   isCollapsed,

@@ -1,5 +1,5 @@
 import { tabs } from "../constants";
-import type { LoraOperation, XyzRunItem, TabId } from "../types";
+import type { ComfyPrompt, JobMeta, LoraOperation, XyzRunItem, TabId } from "../types";
 
 export function initialTabFromUrl(): TabId {
   if (typeof window === "undefined") return "default";
@@ -32,6 +32,37 @@ export function operationTitle(operation: LoraOperation) {
     translator: "翻译工具",
   };
   return titles[operation.type];
+}
+
+const asFiniteNumber = (value: unknown): number | undefined =>
+  typeof value === "number" && Number.isFinite(value) ? value : undefined;
+
+/**
+ * 从**已构造好的工作流**里读出展示用的关键参数（尺寸 / 步数 / seed）。
+ *
+ * 为什么从 prompt 里读而不是从面板参数读：`runPrompt` 是所有模板（含 XYZ 打补丁后的
+ * 组合、Anima 的多段链路）的唯一汇合点，从这里读才能保证标题与**实际提交的图**一致。
+ * 找不到对应节点时返回 undefined，由调用方决定怎么降级展示。
+ */
+export function describePrompt(prompt: ComfyPrompt, label: string): JobMeta {
+  const nodes = Object.values(prompt ?? {});
+  const meta: JobMeta = { label };
+
+  // 尺寸：基础 latent（图生图模式下会由 ImageScale 对齐，但尺寸仍写在 EmptyLatentImage 上）
+  const latent = nodes.find((node) => node.class_type === "EmptyLatentImage");
+  if (latent) {
+    meta.width = asFiniteNumber(latent.inputs?.width);
+    meta.height = asFiniteNumber(latent.inputs?.height);
+  }
+
+  // 采样：Anima 等多段链路会叠多个 KSampler，取**第一个**（即基础采样，决定全局观感）
+  const sampler = nodes.find((node) => node.class_type === "KSampler");
+  if (sampler) {
+    meta.steps = asFiniteNumber(sampler.inputs?.steps);
+    meta.seed = asFiniteNumber(sampler.inputs?.seed);
+  }
+
+  return meta;
 }
 
 export function xyzStatusLabel(status: XyzRunItem["status"]) {

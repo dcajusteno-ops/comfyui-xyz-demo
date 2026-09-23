@@ -13,6 +13,7 @@ import { PanelTitle } from "../../ui";
 import { XyzPreview } from "./XyzPreview";
 import { XyzReviewBar, XyzCellBadge } from "./XyzReviewOverlay";
 import { useXyzReview } from "../../../hooks/useXyzReview";
+import type { useGeneration } from "../../../hooks/useGeneration";
 import { xyzStatusLabel } from "../../../lib/app-utils";
 import { animaStageMeta, templateLabels } from "../../../constants";
 import { fieldLabel } from "../../../lib/xyz";
@@ -21,12 +22,14 @@ import type {
   XyzAxis,
   TemplateKind,
   XyzField,
+  LoraSelection,
   BaseGenerationParams,
   MultiGenerationParams,
   HighresParams,
   AnimaGenerationParams,
   OptionsState,
   XyzCellScore,
+  XyzCombination,
 } from "../../../types";
 
 interface XyzControllerProps {
@@ -38,17 +41,9 @@ interface XyzControllerProps {
   onToggleXyzIndex: (index: number) => void;
   showXyzHelp: boolean;
   setShowXyzHelp: (show: boolean) => void;
-  lorasOfTarget: { name: string; displayName?: string }[];
-  gen: {
-    runXyz: (axes: XyzAxis[], excluded: Set<number>, target: TemplateKind, loras: any, def: any, multi: any, high: any, anima: any, animaCaps: any) => void;
-    stopXyzQueue: () => void;
-    retryFailedXyz: (target: TemplateKind, def: any, multi: any, high: any, anima: any, animaCaps: any) => void;
-    exportXyzResults: (target: TemplateKind, axes: XyzAxis[]) => void;
-    exportXyzGrid: (target: TemplateKind, axes: XyzAxis[], loras: any) => void;
-    rerunXyzItem: (item: any, target: TemplateKind, def: any, multi: any, high: any, anima: any, animaCaps: any) => void;
-    xyzResults: any[];
-    progress: { running: boolean };
-  };
+  lorasOfTarget: LoraSelection[];
+  /** useGeneration 的返回值（类型化取自 hook 本体，避免手写接口漂移） */
+  gen: ReturnType<typeof useGeneration>;
   params: {
     defaultParams: BaseGenerationParams;
     multiParams: MultiGenerationParams;
@@ -58,6 +53,8 @@ interface XyzControllerProps {
   /** Anima 的能力探测结果（重绘时透传给 builder） */
   animaCaps: OptionsState["animaCaps"];
   onOutputLightbox: (url: string) => void;
+  /** 把某个组合的 patch 回填到目标模板面板（T8：批量试 → 选最优 → 回单张微调） */
+  onApplyCombo?: (combo: XyzCombination) => void;
 }
 
 export const XyzController = React.memo(({
@@ -73,6 +70,7 @@ export const XyzController = React.memo(({
   params,
   animaCaps,
   onOutputLightbox,
+  onApplyCombo,
 }: XyzControllerProps) => {
   const review = useXyzReview();
 
@@ -129,9 +127,9 @@ export const XyzController = React.memo(({
     if (!review.outcome || !review.outcome.samples.length) return [];
     const byUrl = new Map(review.outcome.samples.map((sample) => [sample.url, sample]));
     return review.bestUrls
-      .map((url) => {
+      .map((url): XyzCellScore | null => {
         const sample = byUrl.get(url);
-        return sample ? { url: sample.url, label: sample.item.label, score: sample.score } : null;
+        return sample ? { url: sample.url, label: sample.item.label, score: sample.score, patch: sample.item.patch } : null;
       })
       .filter((entry): entry is XyzCellScore => entry !== null);
   }, [review.outcome, review.bestUrls]);
@@ -346,6 +344,15 @@ export const XyzController = React.memo(({
         best={bestCells}
         insights={review.insights}
         onToggleOverlay={review.toggleOverlay}
+        onApplyBest={
+          onApplyCombo && bestCells.length > 0 && bestCells[0].patch
+            ? () => {
+                const best = bestCells[0];
+                if (!best.patch) return;
+                onApplyCombo({ label: best.label, patch: best.patch });
+              }
+            : undefined
+        }
       />
       <div className="xyz-grid">
         {gen.xyzResults.map((item) => {

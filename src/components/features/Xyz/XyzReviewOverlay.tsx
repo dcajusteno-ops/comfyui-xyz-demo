@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye, EyeOff, Star } from "lucide-react";
+import { ClipboardPaste, Eye, EyeOff, Star } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { XyzAxisInsight, XyzCellScore } from "../../../types";
 
@@ -9,6 +9,8 @@ interface XyzReviewBarProps {
   best: XyzCellScore[];
   insights: XyzAxisInsight[];
   onToggleOverlay: () => void;
+  /** 一键把最优组合的参数回填到目标模板面板；未提供时不显示按钮 */
+  onApplyBest?: () => void;
 }
 
 /** 复盘结果的控制条（热度层开关 + 最优组合），复盘完成前隐藏。 */
@@ -18,6 +20,7 @@ export const XyzReviewBar = React.memo(({
   best,
   insights,
   onToggleOverlay,
+  onApplyBest,
 }: XyzReviewBarProps) => {
   if (reviewedAt === 0) return null;
   return (
@@ -32,9 +35,21 @@ export const XyzReviewBar = React.memo(({
           {overlayOn ? <Eye size={16} /> : <EyeOff size={16} />} 热度层
         </button>
         {best.length > 0 && (
-          <span className="xyz-review-best" title="本批次综合得分最高的组合">
-            <Star size={13} /> 最优 {best[0].label} · {best[0].score.toFixed(1)} 分
-          </span>
+          <>
+            <span className="xyz-review-best" title="本批次综合得分最高的组合">
+              <Star size={13} /> 最优 {best[0].label} · {best[0].score.toFixed(1)} 分
+            </span>
+            {onApplyBest && (
+              <button
+                type="button"
+                className="icon-button"
+                onClick={onApplyBest}
+                title={`把「${best[0].label}」的参数回填到目标模板面板`}
+              >
+                <ClipboardPaste size={16} /> 回填到面板
+              </button>
+            )}
+          </>
         )}
       </div>
       {insights.length > 0 && (

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScanSearch, Copy, RefreshCw, ImageUp, Loader2 } from "lucide-react";
+import { ScanSearch, Copy, RefreshCw, ImageUp, Loader2, Sparkles } from "lucide-react";
 import { useMobileTasks } from "../../hooks/useMobileTasks";
 import { beep } from "../../lib/notifier";
+import { MobileGenPanel } from "./MobileGenPanel";
 import type { MobileTaskParams, MobileTaskStatus } from "../../types";
 
 const PARAM_KEY = "comfyui_wd14_params";
@@ -64,6 +65,8 @@ const cardStyle: React.CSSProperties = {
 export const MobileTagPage = () => {
   const { tasks, submit } = useMobileTasks();
   const inputRef = useRef<HTMLInputElement>(null);
+  /** T13：同一手机页扩展出「生图」标签页（识图 / 生图） */
+  const [view, setView] = useState<"tag" | "gen">("tag");
 
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -146,15 +149,37 @@ export const MobileTagPage = () => {
 
   return (
     <div style={{ minHeight: "100dvh", background: "var(--bg)", color: "var(--text)", maxWidth: 520, margin: "0 auto", padding: "16px 16px 48px" }}>
-      <header style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+      <header style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
         <ScanSearch size={22} color="var(--accent)" />
         <div>
-          <div style={{ fontSize: 18, fontWeight: 600 }}>手机识图</div>
-          <div style={{ fontSize: 12, color: "var(--muted)" }}>图片上传到电脑，由 WD1.4 识别返回 tags</div>
+          <div style={{ fontSize: 18, fontWeight: 600 }}>手机联动</div>
+          <div style={{ fontSize: 12, color: "var(--muted)" }}>识图返回 tags · 生图在电脑上跑完回传成图</div>
         </div>
       </header>
 
-      {!current && (
+      {/* 识图 / 生图 切换（T13） */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 4, border: "1px solid var(--border)", borderRadius: 10, background: "var(--surface)", marginBottom: 14 }}>
+        <button
+          type="button"
+          className={view === "tag" ? "primary-action" : "secondary-action"}
+          style={{ justifyContent: "center", display: "flex", alignItems: "center", gap: 6, padding: "9px 0" }}
+          onClick={() => setView("tag")}
+        >
+          <ScanSearch size={15} /> 识图
+        </button>
+        <button
+          type="button"
+          className={view === "gen" ? "primary-action" : "secondary-action"}
+          style={{ justifyContent: "center", display: "flex", alignItems: "center", gap: 6, padding: "9px 0" }}
+          onClick={() => setView("gen")}
+        >
+          <Sparkles size={15} /> 生图
+        </button>
+      </div>
+
+      {view === "gen" && <MobileGenPanel />}
+
+      {view === "tag" && !current && (
         <section style={cardStyle}>
           <input
             ref={inputRef}
@@ -264,7 +289,7 @@ export const MobileTagPage = () => {
         </section>
       )}
 
-      {current && status && (
+      {view === "tag" && current && status && (
         <section style={cardStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <span style={{ width: 10, height: 10, borderRadius: "50%", background: status.color, flexShrink: 0 }} />
@@ -311,8 +336,9 @@ export const MobileTagPage = () => {
         </section>
       )}
 
-      <section style={{ marginTop: 8 }}>
-        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8, fontWeight: 600 }}>最近记录</div>
+      {view === "tag" && (
+        <section style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8, fontWeight: 600 }}>最近记录</div>
         {tasks.length === 0 ? (
           <div style={{ fontSize: 12, color: "var(--muted)", background: "var(--surface)", border: "1px dashed var(--border)", borderRadius: 10, padding: "16px", textAlign: "center" }}>
             还没有识别记录
@@ -336,7 +362,8 @@ export const MobileTagPage = () => {
             </div>
           ))
         )}
-      </section>
+        </section>
+      )}
     </div>
   );
 };

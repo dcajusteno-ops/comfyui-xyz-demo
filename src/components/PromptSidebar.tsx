@@ -182,7 +182,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
   const allEntries = useMemo(() => [...customEntries, ...dictionary], [customEntries, dictionary]);
 
   const { filteredItems, totalCount } = useMemo(() => {
-    let list: any[];
+    let list: Array<PromptEntry | PromptTemplate>;
     if (activeTab === 'favorites') {
       const favSet = new Set(favorites);
       list = allEntries.filter(e => favSet.has(e.id));
@@ -365,7 +365,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as "favorites" | "recents" | "templates" | "library")}
             style={{
               flex: 1,
               padding: '0.6rem 0.2rem',

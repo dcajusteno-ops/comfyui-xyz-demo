@@ -1,5 +1,6 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import type {
+  LoraExampleMedia,
   LoraItem,
   LoraManagerSettings,
   LoraOperation,
@@ -8,15 +9,22 @@ import type {
   TranslationSettings,
 } from "../types";
 import { ComfyClient } from "../lib/comfyClient";
-import { LoraDetailModal, LoraOperationModal } from "./features/Lora/LoraModals";
-import { LoraManagerPanel } from "./features/Lora";
+import type { useLoras } from "../hooks/useLoras";
+import type { useUiState } from "../hooks/useUiState";
 import { WelcomeModal } from "./WelcomeModal";
-import { TranslationToolDialog } from "./TranslationToolDialog";
-import { PromptEditorDialog } from "./PromptEditorDialog";
 import { ImageComparerModal } from "./ImageComparerModal";
 import { ImageLightbox } from "./ImageLightbox";
-import { XyzHelpModal } from "./features/Xyz/XyzHelpModal";
 import { ModalFrame, FeatureModal } from "./ui";
+
+// 弹窗类里体量最大的几个改为按需加载（PromptEditorDialog / LoraModals 都是 50 KB 级）。
+// 注意：LoraManagerPanel 必须与 App.tsx 保持一致走 lazy——只要有一处静态引用，
+// 它就会被并入主 chunk，分包失效。
+const LoraManagerPanel = lazy(() => import("./features/Lora").then((m) => ({ default: m.LoraManagerPanel })));
+const LoraDetailModal = lazy(() => import("./features/Lora/LoraModals").then((m) => ({ default: m.LoraDetailModal })));
+const LoraOperationModal = lazy(() => import("./features/Lora/LoraModals").then((m) => ({ default: m.LoraOperationModal })));
+const PromptEditorDialog = lazy(() => import("./PromptEditorDialog").then((m) => ({ default: m.PromptEditorDialog })));
+const TranslationToolDialog = lazy(() => import("./TranslationToolDialog").then((m) => ({ default: m.TranslationToolDialog })));
+const XyzHelpModal = lazy(() => import("./features/Xyz/XyzHelpModal").then((m) => ({ default: m.XyzHelpModal })));
 
 interface GlobalModalsProps {
   loraOperation: LoraOperation | null;
@@ -41,17 +49,19 @@ interface GlobalModalsProps {
   onTriggerWordsRead: (item: LoraItem) => Promise<string[]>;
   onPromptApply?: (positive: string, negative: string) => void;
   onOpenLoraFolder: (item: LoraItem) => Promise<void>;
-  onPullLoraExamples: (item: LoraItem) => Promise<any>;
+  onPullLoraExamples: (item: LoraItem) => Promise<LoraExampleMedia[] | undefined>;
   onPauseDownloads: () => void;
   onResumeDownloads: () => void;
   onStopDownloads: () => void;
   onUpdateSettings: (settings: LoraManagerSettings) => Promise<void>;
-  onDoctorAction: (action: string) => Promise<void>;
-  loras: any; // The result of useLoras hook
+  onDoctorAction: (action: "repair" | "resolve" | "export") => Promise<unknown>;
+  /** useLoras 的返回值（类型化取自 hook 本体，避免手写接口漂移） */
+  loras: ReturnType<typeof useLoras>;
   apiBase: string;
   setApiBase: (base: string) => void;
-  
-  ui: any;
+
+  /** useUiState 的返回值（同上） */
+  ui: ReturnType<typeof useUiState>;
   client: ComfyClient;
   translationSettings: TranslationSettings;
   onTranslationSettingsSaved: (settings: TranslationSettings) => void;
@@ -90,7 +100,7 @@ export function GlobalModals(props: GlobalModalsProps) {
   } = props;
 
   return (
-    <>
+    <Suspense fallback={null}>
       {ui.showWelcome && <WelcomeModal onClose={ui.handleCloseWelcome} />}
       
       {ui.showPromptEditor && (
@@ -235,7 +245,7 @@ export function GlobalModals(props: GlobalModalsProps) {
                 className="primary-action"
                 style={{ background: "var(--danger)", border: "1px solid var(--danger)", padding: "8px 16px" }}
                 onClick={() => {
-                  ui.confirmDialog.onConfirm();
+                  ui.confirmDialog?.onConfirm();
                   ui.setConfirmDialog(null);
                 }}
               >
@@ -245,6 +255,6 @@ export function GlobalModals(props: GlobalModalsProps) {
           </div>
         </ModalFrame>
       )}
-    </>
+    </Suspense>
   );
 }

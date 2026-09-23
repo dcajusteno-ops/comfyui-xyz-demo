@@ -178,7 +178,7 @@ export function LoraChips({
             onDragEnd={handleDragEnd}
             onDrop={(e) => e.preventDefault()}
           >
-            <div className="lora-card-preview" onClick={() => onDetail?.(lora as any)}>
+            <div className="lora-card-preview" onClick={() => onDetail?.(lora as unknown as LoraItem)}>
               {previewUrl ? (
                 <LoraMedia
                   media={{

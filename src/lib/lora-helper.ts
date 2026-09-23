@@ -231,7 +231,8 @@ export function buildLoraCivitaiUrl(item: LoraItem, metadata?: LoraMetadata | nu
 }
 
 export function updateRecordModelId(record: LoraUpdateRecord) {
-  const value = (record as any).modelId ?? (record as any).model_id;
+  const entry = record as Record<string, unknown>;
+  const value = entry.modelId ?? entry.model_id;
   return Number.isFinite(Number(value)) ? Number(value) : undefined;
 }
 

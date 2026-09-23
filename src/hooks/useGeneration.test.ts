@@ -108,18 +108,25 @@ beforeEach(() => {
  * ------------------------------------------------------------------ */
 
 describe("runPrompt", () => {
-  it("B1 成功：结果入列、toast 提交与完成、通知完成、原样返回结果", async () => {
+  it("B1 成功：结果入列、toast 提交与完成、通知完成，并附带来自实际工作流的标题元信息", async () => {
     const hook = setup();
     const job = makeJob("job-b1");
     hook.runPrompt.mockResolvedValueOnce(job);
 
+    const promptWithParams: ComfyPrompt = {
+      "5": { class_type: "EmptyLatentImage", inputs: { width: 832, height: 1216, batch_size: 1 } },
+      "3": { class_type: "KSampler", inputs: { seed: 42, steps: 20, cfg: 7, sampler_name: "euler_ancestral", scheduler: "simple", denoise: 1 } },
+    };
+
     let returned: JobResult | undefined;
     await act(async () => {
-      returned = await hook.result.current.runPrompt("默认生图", emptyPrompt);
+      returned = await hook.result.current.runPrompt("默认生图", () => promptWithParams);
     });
 
-    expect(returned).toBe(job);
-    expect(hook.result.current.results[0]).toBe(job);
+    // 返回值是 client 结果 + meta 的新对象（meta 用于输出面板标题摘要）
+    expect(returned?.promptId).toBe("job-b1");
+    expect(returned?.meta).toEqual({ label: "默认生图", width: 832, height: 1216, steps: 20, seed: 42 });
+    expect(hook.result.current.results[0]?.meta?.label).toBe("默认生图");
     expect(hook.pushToast).toHaveBeenCalledWith("info", "默认生图 已提交", "正在等待 ComfyUI 执行");
     expect(hook.pushToast).toHaveBeenCalledWith("success", "默认生图 完成", "输出 1 张图片");
     expect(hook.notifyComplete).toHaveBeenCalledWith("默认生图 完成", "输出 1 张图片");
@@ -489,6 +496,73 @@ describe("XYZ 轴 patch 的合并方式", () => {
     expect(prompt).toContain("#ABCDEF"); // 轴的值生效
     expect(prompt).toContain("FONT_BASE_ABC"); // 借用的基底字体没被整体覆盖冲掉
     expect(prompt).toContain("WATERMARK_TEXT");
+  });
+
+  // 2026-09-23 修复遗留：此前 XYZ 的 multi/highres 分支不借用水印，与主界面行为不一致
+  it("C2b multi：与主界面一致借用「文字特效」页水印，drawText 轴按层合并", async () => {
+    const hook = setup();
+    const base = makeBaseParams();
+    if (!base.drawText) throw new Error("夹具应自带完整 drawText 配置");
+    const withWatermark: BaseGenerationParams = {
+      ...base,
+      drawText: {
+        ...base.drawText,
+        enabled: true,
+        text: "WATERMARK_TEXT",
+        font: "FONT_BASE_ABC",
+        color: "#123456",
+      },
+    };
+
+    await act(async () => {
+      await hook.result.current.runXyzItems(
+        [
+          {
+            ...xyzItem("a"),
+            patch: { drawText: { color: "#ABCDEF" } } as XyzRunItem["patch"],
+          },
+        ],
+        true,
+        "multi",
+        withWatermark,
+        multiParams,
+        highresParams,
+        animaParams,
+        ANIMA_CAPS,
+      );
+    });
+
+    const prompt = serialized(sentPrompt(hook.runPrompt));
+    expect(prompt).toContain("#ABCDEF"); // 轴的值生效
+    expect(prompt).toContain("FONT_BASE_ABC"); // 借用的基底字体没被整体覆盖冲掉
+    expect(prompt).toContain("WATERMARK_TEXT");
+  });
+
+  it("C2c highres：同样借用「文字特效」页水印", async () => {
+    const hook = setup();
+    const base = makeBaseParams();
+    if (!base.drawText) throw new Error("夹具应自带完整 drawText 配置");
+    const withWatermark: BaseGenerationParams = {
+      ...base,
+      drawText: { ...base.drawText, enabled: true, text: "WATERMARK_TEXT", font: "FONT_BASE_ABC" },
+    };
+
+    await act(async () => {
+      await hook.result.current.runXyzItems(
+        [xyzItem("a", { steps: 21 })],
+        true,
+        "highres",
+        withWatermark,
+        multiParams,
+        highresParams,
+        animaParams,
+        ANIMA_CAPS,
+      );
+    });
+
+    const prompt = serialized(sentPrompt(hook.runPrompt));
+    expect(prompt).toContain("WATERMARK_TEXT");
+    expect(prompt).toContain("FONT_BASE_ABC");
   });
 
   it("C3 default：patch 的关键参数确实落到 KSampler 上", async () => {

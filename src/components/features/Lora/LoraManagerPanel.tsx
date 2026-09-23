@@ -33,7 +33,7 @@ import { ExampleImagesProgressBar } from "../../ui";
 import { FolderSidebar } from "./FolderSidebar";
 import { LoraCard } from "./LoraCard";
 
-const EMPTY_ARRAY: any[] = [];
+const EMPTY_ARRAY: LoraItem[] = [];
 
 export const LoraManagerPanel = memo(({
   modelType,

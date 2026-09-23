@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
-import { Loader2, Upload, X } from "lucide-react";
+import { Brush, Loader2, Upload, X } from "lucide-react";
 import { NumberField, SelectField } from "../../ui/FormFields";
+import { MaskEditorModal } from "./MaskEditorModal";
 import type { Img2ImgParams } from "../../../types";
 
 /**
@@ -12,6 +13,7 @@ import type { Img2ImgParams } from "../../../types";
  * - 缩放只用核心 `ImageScale`（零第三方节点依赖）；采样方法必须取 ImageScale 的
  *   专属枚举（含 lanczos、不含 bislerp），不可与「放大方法」的 LatentUpscaleBy 列表混用。
  * - 重绘强度直接绑定 `BaseGenerationParams.denoise`，与面板顶部「重绘」是同一字段。
+ * - 遮罩（T12）：非空时走 VAEEncodeForInpaint 局部重绘；遮罩由 MaskEditorModal 生成。
  * - 本组件不渲染 Anima 专用的 `keepProportion` / `cropPosition`（Anima 面板自有一套控件）。
  */
 
@@ -33,6 +35,9 @@ export function Img2ImgControls({
   batchSize,
   onUploadImage,
   upscaleMethods,
+  apiBase,
+  width,
+  height,
 }: {
   img2img?: Img2ImgParams;
   onToggle: (enabled: boolean) => void;
@@ -42,13 +47,19 @@ export function Img2ImgControls({
   batchSize: number;
   onUploadImage: (file: File) => Promise<string>;
   upscaleMethods: string[];
+  /** ComfyUI 代理前缀（/comfy），用于取参考图做遮罩底图 */
+  apiBase: string;
+  width: number;
+  height: number;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [maskEditorOpen, setMaskEditorOpen] = useState(false);
 
   const enabled = Boolean(img2img?.enabled);
   const imageName = img2img?.imageName ?? "";
+  const maskName = img2img?.maskName ?? "";
   const active = enabled && imageName !== "";
 
   const pickImage = async (file?: File | null) => {
@@ -57,7 +68,7 @@ export function Img2ImgControls({
     setUploadError("");
     try {
       const name = await onUploadImage(file);
-      onChange({ imageName: name });
+      onChange({ imageName: name, maskName: "" });
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : String(error));
     } finally {
@@ -65,9 +76,17 @@ export function Img2ImgControls({
     }
   };
 
+  const saveMask = async (blob: Blob) => {
+    const file = new File([blob], `inpaint-mask-${Date.now()}.png`, { type: "image/png" });
+    const name = await onUploadImage(file);
+    onChange({ maskName: name });
+    setMaskEditorOpen(false);
+  };
+
   const hints: string[] = [];
   if (enabled && !imageName) hints.push("未选参考图，本次将按文生图出图");
   if (active && denoise > 0.95) hints.push("重绘强度接近 1，参考图几乎不起作用，建议 0.4–0.7");
+  if (active && denoise <= 0.2 && maskName) hints.push("遮罩重绘建议强度 ≥ 0.5，过低则几乎看不出改动");
   if (active && batchSize > BATCH_LIMIT) hints.push(`参考图模式批量上限 ${BATCH_LIMIT}，已按 ${BATCH_LIMIT} 执行`);
   if (uploadError) hints.push(`上传失败：${uploadError}`);
 
@@ -107,7 +126,7 @@ export function Img2ImgControls({
                     type="button"
                     className="secondary-action"
                     title="清除参考图"
-                    onClick={() => onChange({ imageName: "" })}
+                    onClick={() => onChange({ imageName: "", maskName: "" })}
                   >
                     <X size={14} />
                   </button>
@@ -139,6 +158,38 @@ export function Img2ImgControls({
                 {imageName ? `已选：${imageName}` : "未选参考图"}
               </span>
             </div>
+            <div className="field" style={{ gridColumn: "span 3" }}>
+              <span>局部重绘遮罩</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="secondary-action"
+                  disabled={!imageName}
+                  title={imageName ? "在参考图上涂抹要重绘的区域" : "先选择参考图"}
+                  onClick={() => setMaskEditorOpen(true)}
+                >
+                  <Brush size={14} /> {maskName ? "重新涂抹" : "涂抹遮罩"}
+                </button>
+                {maskName && (
+                  <>
+                    <span style={{ fontSize: "12px", color: "var(--muted)", wordBreak: "break-all" }}>
+                      遮罩：{maskName}
+                    </span>
+                    <button
+                      type="button"
+                      className="secondary-action"
+                      title="清除遮罩，回到整图重绘"
+                      onClick={() => onChange({ maskName: "" })}
+                    >
+                      <X size={14} />
+                    </button>
+                  </>
+                )}
+                {!maskName && (
+                  <span style={{ fontSize: "12px", color: "var(--muted)" }}>未设置（整图重绘）</span>
+                )}
+              </div>
+            </div>
           </div>
           {hints.length > 0 && (
             <p style={{ margin: "8px 0 0", fontSize: "12px", color: "var(--muted)" }}>
@@ -146,6 +197,17 @@ export function Img2ImgControls({
             </p>
           )}
         </div>
+      )}
+
+      {maskEditorOpen && imageName && (
+        <MaskEditorModal
+          imageUrl={`${apiBase}/api/view?filename=${encodeURIComponent(imageName)}&type=input`}
+          width={width}
+          height={height}
+          fit={img2img?.fit ?? "stretch"}
+          onClose={() => setMaskEditorOpen(false)}
+          onSave={saveMask}
+        />
       )}
 
       <input

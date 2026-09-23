@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useLocalStorageState } from "./useLocalStorageState";
-import type { XyzAxis, TemplateKind } from "../types";
+import type { AnimaGenerationParams, BaseGenerationParams, HighresParams, LoraSelection, MultiGenerationParams, XyzAxis, TemplateKind } from "../types";
+
+/** XYZ 需要读取的四个模板参数集合（与 useParams 的返回对齐） */
+export type XyzParamsBundle = {
+  defaultParams: BaseGenerationParams;
+  multiParams: MultiGenerationParams;
+  highresParams: HighresParams;
+  animaParams: AnimaGenerationParams;
+};
 
 export function useXyz() {
   const [xyzTarget, setXyzTarget] = useLocalStorageState<TemplateKind>("comfyui_xyz_target", "default");
@@ -26,7 +34,7 @@ export function useXyz() {
     });
   };
 
-  const getXyzLoras = (params: any) => {
+  const getXyzLoras = (params: XyzParamsBundle): LoraSelection[] => {
     switch (xyzTarget) {
       case "default":
         return params.defaultParams.loras;

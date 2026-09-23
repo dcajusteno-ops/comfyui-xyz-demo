@@ -76,7 +76,7 @@ export const LoraCard = memo(({
         <div className="card-footer lm-card-footer">
           <div className="lora-info model-info">
             <strong className="model-name">{key}</strong>
-            <span className="version-name">{(item.civitai as any)?.name || item.folder || "local"}</span>
+            <span className="version-name">{(item.civitai as unknown as { name?: string })?.name || item.folder || "local"}</span>
             <span>{item.folder || "root"} · {formatBytes(item.file_size)}</span>
             {words.length > 0 && <p>{words.slice(0, 2).join(" / ")}</p>}
           </div>

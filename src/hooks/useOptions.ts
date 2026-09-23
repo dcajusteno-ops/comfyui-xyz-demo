@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ComfyClient } from "../lib/comfyClient";
-import type { AnimaGenerationParams, BaseGenerationParams, HighresParams, OptionsState, Toast } from "../types";
+import type { AnimaGenerationParams, BaseGenerationParams, ClBatchParams, ClSingleParams, HighresParams, MultiGenerationParams, OptionsState, Toast, Wd14Params, WdBatchParams } from "../types";
 import { defaultLoraManagerSettings, fallbackOptions as globalFallbackOptions } from "../constants";
 import { normalizeLoraManagerSettings, readCombo } from "../lib/lora-helper";
 import { defaultTranslationSettings } from "../lib/translation";
@@ -12,13 +12,13 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
   client: ComfyClient;
   pushToast: ToastFn;
   setDefaultParams: React.Dispatch<React.SetStateAction<BaseGenerationParams>>;
-  setMultiParams: React.Dispatch<React.SetStateAction<any>>;
-  setHighresParams: React.Dispatch<React.SetStateAction<any>>;
+  setMultiParams: React.Dispatch<React.SetStateAction<MultiGenerationParams>>;
+  setHighresParams: React.Dispatch<React.SetStateAction<HighresParams>>;
   setAnimaParams: React.Dispatch<React.SetStateAction<AnimaGenerationParams>>;
-  setWd14: React.Dispatch<React.SetStateAction<any>>;
-  setWdBatchParams: React.Dispatch<React.SetStateAction<any>>;
-  setClBatchParams: React.Dispatch<React.SetStateAction<any>>;
-  setClSingleParams: React.Dispatch<React.SetStateAction<any>>;
+  setWd14: React.Dispatch<React.SetStateAction<Wd14Params>>;
+  setWdBatchParams: React.Dispatch<React.SetStateAction<WdBatchParams>>;
+  setClBatchParams: React.Dispatch<React.SetStateAction<ClBatchParams>>;
+  setClSingleParams: React.Dispatch<React.SetStateAction<ClSingleParams>>;
 }) {
   const [options, setOptions] = useState<OptionsState>(globalFallbackOptions);
   const [loraSettings, setLoraSettings] = useState<typeof defaultLoraManagerSettings>(defaultLoraManagerSettings);
@@ -142,8 +142,8 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
 
         // Sync params with loaded options
         setDefaultParams((prev: BaseGenerationParams) => ({ ...prev, checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint, drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText, }));
-        setMultiParams((prev: HighresParams & { checkpoint: string }) => ({ ...prev, checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint, drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText, }));
-        setHighresParams((prev: HighresParams & { handDetector: string; faceDetector: string; eyesDetector: string; nsfwDetector: string }) => ({
+        setMultiParams((prev: MultiGenerationParams) => ({ ...prev, checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint, drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText, }));
+        setHighresParams((prev: HighresParams) => ({
           ...prev,
           checkpoint: chkList.includes(prev.checkpoint) ? prev.checkpoint : firstCheckpoint,
           handDetector: detList.includes(prev.handDetector) ? prev.handDetector : (detList.find((item) => item.includes("hand")) ?? ""),
@@ -233,22 +233,22 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           drawText: prev.drawText ? { ...prev.drawText, font: pickFont(prev.drawText.font) } : prev.drawText,
         }));
 
-        setWd14((prev: Record<string, unknown>) => ({
+        setWd14((prev: Wd14Params) => ({
           ...prev,
           model: wdModelList.includes(String(prev.model)) ? String(prev.model) : (wdModelList[0] ?? ""),
           device: wdDeviceList.includes(String(prev.device)) ? String(prev.device) : (wdDeviceList[0] ?? prev.device)
         }));
-        setWdBatchParams((prev: Record<string, unknown>) => ({
+        setWdBatchParams((prev: WdBatchParams) => ({
           ...prev,
           model: wdModelList.includes(String(prev.model)) ? String(prev.model) : (wdModelList[0] ?? ""),
           device: wdDeviceList.includes(String(prev.device)) ? String(prev.device) : (wdDeviceList[0] ?? prev.device)
         }));
-        setClBatchParams((prev: Record<string, unknown>) => ({
+        setClBatchParams((prev: ClBatchParams) => ({
           ...prev,
           modelName: clModelList.includes(String(prev.modelName)) ? String(prev.modelName) : (clModelList[0] ?? ""),
           sessionMethod: wdDeviceList.includes(String(prev.sessionMethod)) ? String(prev.sessionMethod) : (wdDeviceList[0] ?? prev.sessionMethod)
         }));
-        setClSingleParams((prev: Record<string, unknown>) => ({
+        setClSingleParams((prev: ClSingleParams) => ({
           ...prev,
           modelName: clModelList.includes(String(prev.modelName)) ? String(prev.modelName) : (clModelList[0] ?? ""),
           sessionMethod: wdDeviceList.includes(String(prev.sessionMethod)) ? String(prev.sessionMethod) : (wdDeviceList[0] ?? prev.sessionMethod)

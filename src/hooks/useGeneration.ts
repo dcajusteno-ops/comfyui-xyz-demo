@@ -12,7 +12,7 @@ import {
 } from "../lib/workflowBuilders";
 import { buildXyzCombinations, applySpecialXyzPatch, fieldLabel, parseAxisValues } from "../lib/xyz";
 import { downloadTextFile } from "../lib/file-helper";
-import { xyzStatusLabel } from "../lib/app-utils";
+import { describePrompt, xyzStatusLabel } from "../lib/app-utils";
 import { templateLabels } from "../constants";
 import type {
   ClBatchParams,
@@ -79,11 +79,15 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     try {
       onProgress({ running: true, value: 0, max: 1, label: `${label} 准备中` });
       pushToast("info", `${label} 已提交`, "正在等待 ComfyUI 执行");
-      const result = await client.runPrompt(promptFactory(), onProgress);
-      setResults((prev) => [result, ...prev].slice(0, 24));
+      // 先拿到 prompt 再提交：输出面板的标题摘要取自**实际提交的工作流**，
+      // 这样 XYZ 打了补丁的组合、Anima 的多段链路都不会与标题不一致。
+      const prompt = promptFactory();
+      const result = await client.runPrompt(prompt, onProgress);
+      const job: JobResult = { ...result, meta: describePrompt(prompt, label) };
+      setResults((prev) => [job, ...prev].slice(0, 24));
       pushToast("success", `${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : undefined);
       notifyComplete?.(`${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : "任务已完成");
-      return result;
+      return job;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
       setError(message);
@@ -129,11 +133,13 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
         const uploaded = await client.uploadImage(wdFile);
         imageName = uploaded.name;
       }
-      const result = await client.runPrompt(buildWd14Prompt({ ...wd14, imageName }), setProgress);
-      setResults((prev) => [result, ...prev].slice(0, 24));
+      const prompt = buildWd14Prompt({ ...wd14, imageName });
+      const result = await client.runPrompt(prompt, setProgress);
+      const job: JobResult = { ...result, meta: describePrompt(prompt, "WD1.4 识别") };
+      setResults((prev) => [job, ...prev].slice(0, 24));
       pushToast("success", "WD1.4 识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       notifyComplete?.("WD1.4 识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
-      return result;
+      return job;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
       setError(message);
@@ -154,11 +160,13 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
         const uploaded = await client.uploadImage(clFile);
         imageName = uploaded.name;
       }
-      const result = await client.runPrompt(buildClSinglePrompt({ ...clSingleParams, imageName }), setProgress);
-      setResults((prev) => [result, ...prev].slice(0, 24));
+      const prompt = buildClSinglePrompt({ ...clSingleParams, imageName });
+      const result = await client.runPrompt(prompt, setProgress);
+      const job: JobResult = { ...result, meta: describePrompt(prompt, "CL 单图识别") };
+      setResults((prev) => [job, ...prev].slice(0, 24));
       pushToast("success", "CL 单图识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       notifyComplete?.("CL 单图识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
-      return result;
+      return job;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
       setError(message);
@@ -176,32 +184,35 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     animaParams: AnimaGenerationParams,
     animaCaps: AnimaCaps
   ) => {
-    if (xyzTarget === "anima") {
-      const patched = applySpecialXyzPatch(animaParams, combo) as AnimaGenerationParams;
-      // 与主界面一致：未打 drawText 轴时借用「文字特效」页的水印配置。
-      // 注意 combo.patch.drawText 是只含轴字段的部分对象，必须以借用到的完整配置为基底按层合并，
-      // 不能直接整体覆盖（否则字体/颜色等全部丢失）。
+    // 与主界面一致：未打 drawText 轴时借用「文字特效」页的水印配置（四个 target 统一借用）。
+    // combo.patch.drawText 是只含轴字段的部分对象，必须以借用到的完整配置为基底按层合并，
+    // 不能直接整体覆盖（否则字体/颜色等全部丢失）。
+    const withBorrowedDrawText = <T extends BaseGenerationParams>(patched: T): T => {
       const baseDrawText = defaultParams.drawText ?? patched.drawText;
       const drawText = combo.patch.drawText
         ? { ...baseDrawText, ...combo.patch.drawText }
         : baseDrawText;
+      return { ...patched, drawText };
+    };
+    if (xyzTarget === "anima") {
+      const patched = applySpecialXyzPatch(animaParams, combo) as AnimaGenerationParams;
       return buildAnimaPrompt(
-        { ...patched, drawText },
+        withBorrowedDrawText(patched),
         animaCaps,
       );
     }
     if (xyzTarget === "multi") {
       const patched = applySpecialXyzPatch(multiParams, combo);
       const promptAppend = combo.patch.positivePrompt;
-      return buildMultiPrompt({
+      return buildMultiPrompt(withBorrowedDrawText({
         ...patched,
         globalPrompt: promptAppend ? [multiParams.globalPrompt, promptAppend].filter(Boolean).join("\n") : patched.globalPrompt,
-      });
+      }));
     }
     if (xyzTarget === "highres") {
-      return buildHighresPrompt(applySpecialXyzPatch(highresParams, combo));
+      return buildHighresPrompt(withBorrowedDrawText(applySpecialXyzPatch(highresParams, combo)));
     }
-    return buildDefaultPrompt(applySpecialXyzPatch(defaultParams, combo));
+    return buildDefaultPrompt(withBorrowedDrawText(applySpecialXyzPatch(defaultParams, combo)));
   }, []);
 
   const runXyzItems = useCallback(async (
@@ -240,12 +251,11 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "running", error: undefined } : entry));
 
       try {
-        const result = await client.runPrompt(
-          buildXyzPrompt(item, xyzTarget, defaultParams, multiParams, highresParams, animaParams, animaCaps),
-          (prog) => setProgress({ ...prog, batch })
-        );
-        setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result } : entry));
-        setResults((prev) => [result, ...prev].slice(0, 24));
+        const prompt = buildXyzPrompt(item, xyzTarget, defaultParams, multiParams, highresParams, animaParams, animaCaps);
+        const result = await client.runPrompt(prompt, (prog) => setProgress({ ...prog, batch }));
+        const job: JobResult = { ...result, meta: describePrompt(prompt, item.label) };
+        setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result: job } : entry));
+        setResults((prev) => [job, ...prev].slice(0, 24));
       } catch (runError) {
         const message = runError instanceof Error ? runError.message : String(runError);
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "failed", error: message } : entry));

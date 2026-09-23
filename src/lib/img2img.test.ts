@@ -137,8 +137,40 @@ describe("图生图（默认 / 多人 / 高修）", () => {
   });
 });
 
-describe("图生图与预设 / 枚举", () => {
-  it("保存预设时剥掉参考图文件名，其余图生图字段保留", () => {
+describe("T12 局部重绘遮罩", () => {
+  it("未设遮罩：走 VAEEncode 整图重绘，无 mask 节点（既有路径零变化）", () => {
+    const prompt = buildDefaultPrompt(withImg2Img(makeBaseParams()));
+    expect(prompt.i2i_encode.class_type).toBe("VAEEncode");
+    expect(Object.values(prompt).some((n) => n.class_type === "VAEEncodeForInpaint" || n.class_type === "LoadImageMask")).toBe(false);
+  });
+
+  it("设置遮罩：LoadImageMask(channel=red) + VAEEncodeForInpaint(grow_mask_by=6)，latent 接到 KSampler", () => {
+    const prompt = buildDefaultPrompt(withImg2Img(makeBaseParams(), { maskName: "mask.png" }));
+    expect(prompt.i2i_mask_load.class_type).toBe("LoadImageMask");
+    expect(prompt.i2i_mask_load.inputs.image).toBe("mask.png");
+    expect(prompt.i2i_mask_load.inputs.channel).toBe("red");
+    expect(prompt.i2i_encode.class_type).toBe("VAEEncodeForInpaint");
+    expect(prompt.i2i_encode.inputs.pixels).toEqual(["i2i_scale", 0]);
+    expect(prompt.i2i_encode.inputs.mask).toEqual(["i2i_mask_load", 0]);
+    expect(prompt.i2i_encode.inputs.grow_mask_by).toBe(6);
+    expect(prompt["6"].inputs.latent_image).toEqual(["i2i_encode", 0]);
+  });
+
+  it("遮罩重绘同样尊重批量 clamp（RepeatLatentBatch）与高修模板", () => {
+    const prompt = buildHighresPrompt(withImg2Img({ ...makeHighresParams(), batchSize: 2 }, { maskName: "m.png" }));
+    expect(prompt.i2i_repeat).toBeDefined();
+    expect(prompt.i2i_repeat.inputs.samples).toEqual(["i2i_encode", 0]);
+  });
+
+  it("清除参考图时遮罩一并失效（enabled 关闭 → 不写任何 i2i 节点）", () => {
+    const prompt = buildDefaultPrompt(withImg2Img(makeBaseParams(), { enabled: false, maskName: "m.png" }));
+    expect(countType(prompt, "LoadImageMask")).toBe(0);
+    expect(countType(prompt, "VAEEncodeForInpaint")).toBe(0);
+    expect(countType(prompt, "EmptyLatentImage")).toBe(1);
+  });
+});
+
+describe("图生图与预设 / 枚举", () => {  it("保存预设时剥掉参考图文件名，其余图生图字段保留", () => {
     const snapshot = snapshotForSave(withImg2Img(makeBaseParams(), { fit: "crop" }) as Record<string, unknown>);
     const img2img = snapshot.img2img as Record<string, unknown>;
     expect(img2img.imageName).toBe("");

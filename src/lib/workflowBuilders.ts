@@ -164,11 +164,33 @@ function img2imgLatent(
     },
     _meta: { title: "缩放参考图" },
   };
-  prompt["i2i_encode"] = {
-    class_type: "VAEEncode",
-    inputs: { pixels: ["i2i_scale", 0], vae },
-    _meta: { title: "参考图 VAE 编码" },
-  };
+
+  if (img2img.maskName) {
+    // 局部重绘（T12）：遮罩由 MaskEditorModal 按目标宽高导出（黑底白笔、红通道），
+    // 与缩放后的图像天然对齐，无需再过 ImageScale。
+    // 节点与参数已在 /object_info 实探：LoadImageMask(channel=red) + VAEEncodeForInpaint(grow_mask_by)。
+    prompt["i2i_mask_load"] = {
+      class_type: "LoadImageMask",
+      inputs: { image: img2img.maskName, channel: "red" },
+      _meta: { title: "加载重绘遮罩" },
+    };
+    prompt["i2i_encode"] = {
+      class_type: "VAEEncodeForInpaint",
+      inputs: {
+        pixels: ["i2i_scale", 0],
+        mask: ["i2i_mask_load", 0],
+        vae,
+        grow_mask_by: 6,
+      },
+      _meta: { title: "局部重绘 VAE 编码" },
+    };
+  } else {
+    prompt["i2i_encode"] = {
+      class_type: "VAEEncode",
+      inputs: { pixels: ["i2i_scale", 0], vae },
+      _meta: { title: "参考图 VAE 编码" },
+    };
+  }
 
   let latent: [string, number] = ["i2i_encode", 0];
   // VAEEncode 输出恒为 1 张，要保住「批量」语义只能显式复制 latent。
@@ -216,7 +238,7 @@ function loraAwarePrompt(params: BaseGenerationParams) {
   return joinPrompt(buildLoraSyntax(params.loras), params.positivePrompt);
 }
 
-function buildLoraList(loras: LoraSelection[]): any {
+function buildLoraList(loras: LoraSelection[]): Record<string, unknown> {
   const list = loras
     .filter((l) => l.active && l.name.trim())
     .map((l) => ({

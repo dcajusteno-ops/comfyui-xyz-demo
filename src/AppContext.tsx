@@ -44,15 +44,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [tab, setTab]);
 
   const toggleTheme = useCallback((event?: React.MouseEvent | MouseEvent) => {
+    // View Transitions API 的 lib.dom 版本较旧未收录，这里给出最小结构类型
+    const docWithTransition = document as Document & {
+      startViewTransition?: (callback: () => void | Promise<void>) => { ready: Promise<unknown>; finished: Promise<unknown> };
+    };
     const nextTheme = theme === "light" ? "dark" : "light";
     
-    if (typeof document === "undefined" || !(document as any).startViewTransition) {
+    if (typeof document === "undefined" || !docWithTransition.startViewTransition) {
       setTheme(nextTheme);
       return;
     }
 
-    const x = event ? (event as any).clientX : window.innerWidth / 2;
-    const y = event ? (event as any).clientY : window.innerHeight / 2;
+    const x = event ? event.clientX : window.innerWidth / 2;
+    const y = event ? event.clientY : window.innerHeight / 2;
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
@@ -61,7 +65,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Add class to disable standard CSS transitions during the view transition
     document.documentElement.classList.add("switching-theme");
 
-    const transition = (document as any).startViewTransition(async () => {
+    const transition = docWithTransition.startViewTransition!(async () => {
       setTheme(nextTheme);
       // Wait for React to finish rendering if possible (startViewTransition waits for the promise)
       await new Promise(resolve => setTimeout(resolve, 0));

@@ -55,7 +55,7 @@ async function handleExtractMetadata(req: IncomingMessage, res: ServerResponse) 
  * - 可选约束：设置环境变量 XYZ_LORA_ALLOWED_ROOTS（Windows 分号、其余冒号分隔）后，
  *   进一步要求路径必须落在这些根目录（通常是 ComfyUI models 目录）内。
  */
-function isAllowedSafetensorsPath(filePath: string): boolean {
+export function isAllowedSafetensorsPath(filePath: string): boolean {
   if (!filePath || filePath.includes("\0")) return false;
   const resolved = path.resolve(filePath);
   if (path.extname(resolved).toLowerCase() !== ".safetensors") return false;

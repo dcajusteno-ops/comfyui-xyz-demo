@@ -1,25 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import type { KeyboardEvent } from "react";
 import { NotifierSettingsPanel } from "../../NotifierSettingsPanel";
 import {
   BadgePlus,
-  Brain,
   CheckCircle2,
   Copy,
   Download,
-  FileText,
-  Film,
   FolderOpen,
   Globe2,
-  Image as ImageIcon,
-  Info,
   Loader2,
-  Maximize2,
   PauseCircle,
   PlayCircle,
-  Plus,
-  RefreshCw,
-  ScanSearch,
   Settings,
   Trash2,
   X,
@@ -33,7 +23,6 @@ import type {
   LoraExampleMedia,
   LoraItem,
   LoraManagerSettings,
-  LoraMediaMeta,
   LoraMetadata,
   LoraOperation,
   LoraUpdateRecord,
@@ -51,367 +40,21 @@ import {
   loraModelId,
   loraSyntaxName,
   normalizeLoraManagerSettings,
-  normalizePreview,
-  parseTriggerWordsInput,
   uniqueStrings,
-  updateRecordModelId,
 } from "../../../lib/lora-helper";
 import { formatBytes } from "../../../lib/file-helper";
 import {
   getItemNsfwLevel,
-  getMediaNsfwLevel,
   normalizeMatureBlurLevel,
-  shouldBlurNsfwLevel,
 } from "../../../lib/nsfw";
 import { validMatureBlurLevels } from "../../../constants";
-import { buildLoraExamples, isLoraVideo } from "../../../lib/lora-media";
+import { buildLoraExamples } from "../../../lib/lora-media";
 import { operationTitle } from "../../../lib/app-utils";
-import { ModalFrame, InfoItem, TagCloud, PromptBlock, NumberField } from "../../ui";
-import { LoraMedia } from "./LoraMedia";
+import { ModalFrame, InfoItem, TagCloud, NumberField } from "../../ui";
+import { LoraRecipesPanel } from "./LoraRecipesPanel";
 
-// --- Sub Components ---
-
-function TextInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
-  return (
-    <label className="field text-field">
-      <span>{label}</span>
-      <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
-    </label>
-  );
-}
-
-function ItemList({ items }: { items: LoraItem[] }) {
-  return (
-    <div className="operation-list">
-      {items.map((item) => (
-        <div className="lm-list-row" key={loraModelId(item)}>
-          <div className="lm-list-row-main">
-            <div className="lm-list-row-name">{item.file_name}</div>
-            <div className="lm-list-row-path">{item.file_path}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DuplicatePane({ duplicates, filenameConflicts, onDeleteCopies }: { duplicates: LoraDuplicateGroup[]; filenameConflicts: LoraDuplicateGroup[]; onDeleteCopies: (items: LoraItem[]) => void }) {
-  const groups = [...duplicates, ...filenameConflicts];
-  return (
-    <div className="lm-list-pane">
-      <div className="section-toolbar">
-        <strong>重复组 {groups.length}</strong>
-      </div>
-      {groups.length === 0 && <div className="empty-strip">没有发现重复项或文件名冲突</div>}
-      {groups.map((group, index) => {
-        const copies = group.models.slice(1);
-        return (
-          <div className="duplicate-group" key={`${group.hash ?? group.filename ?? index}`}>
-            <div className="section-toolbar">
-              <strong>{group.hash ?? group.filename ?? `重复组 ${index + 1}`}</strong>
-              <button type="button" className="lm-text-btn danger" disabled={!copies.length} onClick={() => onDeleteCopies(copies)}><Trash2 size={13} /> 删除副本</button>
-            </div>
-            <ItemList items={group.models} />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function UpdatesPane({ modelType, records, client, onRefresh, onToast }: { modelType: ManagedModelType; records: LoraUpdateRecord[]; client: ComfyClient; onRefresh: () => void | Promise<void>; onToast: (type: Toast["type"], title: string, message?: string) => void }) {
-  async function ignore(record: LoraUpdateRecord) {
-    const modelId = updateRecordModelId(record);
-    if (!modelId) return;
-    try {
-      const result = await client.ignoreManagedModelUpdate(modelType, modelId, !(record.shouldIgnore ?? record.should_ignore));
-      if (result.success === false) throw new Error(result.error || "忽略更新失败");
-      onToast("success", "更新状态已写回");
-      await onRefresh();
-    } catch (error) {
-      onToast("error", "忽略更新失败", error instanceof Error ? error.message : String(error));
-    }
-  }
-
-  return (
-    <div className="lm-list-pane">
-      <div className="section-toolbar">
-        <strong>可更新 LoRA {records.length}</strong>
-        <button type="button" className="lm-text-btn" onClick={() => onRefresh()}><RefreshCw size={13} /> 重新检查</button>
-      </div>
-      {records.length === 0 && <div className="empty-strip">没有发现可更新版本</div>}
-      {records.map((record) => (
-        <div className="lm-list-row" key={updateRecordModelId(record) ?? JSON.stringify(record).slice(0, 48)}>
-          <div>
-            <strong>{String(record.modelName ?? record.model_name ?? updateRecordModelId(record) ?? "未知模型")}</strong>
-            <span>{String(record.latest_version_id ?? record.latestVersionId ?? "")}</span>
-          </div>
-          <button type="button" className="lm-text-btn" onClick={() => ignore(record)}>
-            {record.shouldIgnore || record.should_ignore ? "恢复更新" : "忽略更新"}
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DoctorPane({ diagnostics, rawData, onAction }: { diagnostics: DoctorDiagnostic[]; rawData: unknown; onAction: (action: "repair" | "resolve" | "export") => void | Promise<void> }) {
-  return (
-    <div className="lm-list-pane">
-      <div className="operation-actions">
-        <button type="button" className="primary-action" onClick={() => onAction("repair")}><RefreshCw size={16} /> 修复缓存</button>
-        <button type="button" className="icon-button" onClick={() => onAction("resolve")}><Copy size={16} /> 解决文件名冲突</button>
-        <button type="button" className="icon-button" onClick={() => onAction("export")}><FileText size={16} /> 导出诊断包</button>
-      </div>
-      {diagnostics.length === 0 && <pre className="json-preview">{JSON.stringify(rawData, null, 2)}</pre>}
-      {diagnostics.map((item, index) => (
-        <div className={`doctor-row ${String(item.status ?? item.severity ?? "info").toLowerCase()}`} key={item.key ?? item.label ?? index}>
-          <strong>{String(item.label ?? item.title ?? item.key ?? `检查 ${index + 1}`)}</strong>
-          <span>{String(item.status ?? item.severity ?? "")}</span>
-          <p>{String(item.message ?? item.details ?? "")}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function TriggerWordsPanel({
-  words,
-  onRead,
-  onExtract,
-  onSave,
-  onCopy,
-  onInsertWords,
-}: {
-  words: string[];
-  onRead: () => void;
-  onExtract?: () => void;
-  onSave: (words: string[]) => Promise<string[]>;
-  onCopy: (text: string) => void;
-  onInsertWords?: (target: TemplateKind, words: string[]) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draftWords, setDraftWords] = useState<string[]>(words);
-  const [draftInput, setDraftInput] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!editing) {
-      setDraftWords(words);
-    }
-  }, [editing, words]);
-
-  function startEditing() {
-    setDraftWords(words);
-    setDraftInput("");
-    setEditing(true);
-  }
-
-  function addDraftWords(value = draftInput) {
-    const nextWords = parseTriggerWordsInput(value);
-    if (nextWords.length === 0) return;
-    setDraftWords((current) => uniqueStrings([...current, ...nextWords]));
-    setDraftInput("");
-  }
-
-  function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addDraftWords();
-    }
-    if (event.key === "Escape") {
-      setDraftInput("");
-    }
-  }
-
-  async function saveDraftWords() {
-    setSaving(true);
-    try {
-      const savedWords = await onSave(uniqueStrings([...draftWords, ...parseTriggerWordsInput(draftInput)]));
-      setDraftWords(savedWords);
-      setDraftInput("");
-      setEditing(false);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const visibleWords = editing ? draftWords : words;
-
-  return (
-    <div className={editing ? "lm-info-item lm-trigger-words editing" : "lm-info-item lm-trigger-words"}>
-      <div className="lm-section-head">
-        <label>触发词</label>
-        <div className="lm-trigger-actions">
-          {!editing && visibleWords.length > 0 && onInsertWords && (
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginRight: '8px', paddingRight: '8px', borderRight: '1px solid var(--border-color)' }}>
-              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('default', visibleWords)} title="追加到默认生图正向提示词"><BadgePlus size={14} /> 默认</button>
-              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('multi', visibleWords)} title="追加到多人工作流正向提示词"><BadgePlus size={14} /> 多人</button>
-              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('highres', visibleWords)} title="追加到高清修复正向提示词"><BadgePlus size={14} /> 高修</button>
-              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('anima', visibleWords)} title="追加到 Anima 生图正向提示词"><BadgePlus size={14} /> Anima</button>
-            </div>
-          )}
-          {!editing && onExtract && <button type="button" className="lm-text-btn" onClick={onExtract} title="从 .safetensors 文件头中提取训练词并保存 (ss_tagger_tags)"><ScanSearch size={14} /> 提取并保存</button>}
-          {!editing && <button type="button" className="lm-text-btn" onClick={onRead}><Brain size={14} /> 读取</button>}
-          {!editing && <button type="button" className="lm-text-btn" onClick={startEditing}><Plus size={14} /> 编辑</button>}
-          {editing && <button type="button" className="lm-text-btn" disabled={saving} onClick={saveDraftWords}><CheckCircle2 size={14} /> 保存</button>}
-          {editing && <button type="button" className="lm-text-btn" disabled={saving} onClick={() => { setDraftWords(words); setDraftInput(""); setEditing(false); }}><X size={14} /> 取消</button>}
-        </div>
-      </div>
-      {editing && (
-        <div className="lm-trigger-editor">
-          <input
-            value={draftInput}
-            placeholder="添加触发词，回车确认"
-            onChange={(event) => setDraftInput(event.target.value)}
-            onKeyDown={handleInputKeyDown}
-          />
-          <button type="button" className="lm-text-btn" onClick={() => addDraftWords()}><Plus size={14} /> 添加</button>
-        </div>
-      )}
-      <div className="lm-trigger-tags">
-        {visibleWords.length === 0 && <span className="muted-text">暂无触发词</span>}
-        {visibleWords.map((word) => (
-          <button type="button" key={word} onClick={() => editing ? undefined : onCopy(word)}>
-            <span>{word}</span>
-            {editing ? (
-              <X
-                size={13}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setDraftWords((current) => current.filter((item) => item !== word));
-                }}
-              />
-            ) : (
-              <Copy size={13} />
-            )}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LoraExampleMetadata({ meta, onToast }: { meta: LoraMediaMeta; onToast: (type: Toast["type"], title: string, message?: string) => void }) {
-  const prompt = String(meta.prompt ?? "");
-  const negative = String(meta.negativePrompt ?? meta.negative_prompt ?? "");
-  const params = [
-    ["Size", meta.Size],
-    ["Seed", meta.seed],
-    ["Steps", meta.steps],
-    ["Sampler", meta.sampler],
-    ["CFG", meta.cfgScale],
-    ["Clip Skip", meta.clipSkip],
-    ["Model", meta.Model],
-  ].filter(([, value]) => value !== undefined && value !== "");
-  const hasMeta = params.length > 0 || prompt || negative;
-  if (!hasMeta) {
-    return <div className="lm-metadata-panel no-meta"><Info size={15} /> 没有生成参数</div>;
-  }
-  const copy = (title: string, text: string) => {
-    navigator.clipboard?.writeText(text);
-    onToast("success", `${title} 已复制`);
-  };
-  return (
-    <div className="lm-metadata-panel">
-      {params.length > 0 && (
-        <div className="lm-param-tags">
-          {params.map(([name, value]) => (
-            <span key={name}><strong>{name}:</strong> {String(value)}</span>
-          ))}
-        </div>
-      )}
-      {prompt && <PromptBlock label="Prompt" value={prompt} onCopy={() => copy("Prompt", prompt)} />}
-      {negative && <PromptBlock label="Negative Prompt" value={negative} onCopy={() => copy("Negative Prompt", negative)} />}
-    </div>
-  );
-}
-
-function LoraExampleCard({
-  media,
-  apiBase,
-  index,
-  onToast,
-  settings,
-  fallbackNsfwLevel = 0,
-  onOpenMedia,
-}: {
-  media: LoraExampleMedia;
-  apiBase: string;
-  index: number;
-  onToast: (type: Toast["type"], title: string, message?: string) => void;
-  settings: LoraManagerSettings;
-  fallbackNsfwLevel?: number;
-  onOpenMedia?: (media: LoraExampleMedia, index: number) => void;
-}) {
-  const src = normalizePreview(apiBase, media.path || media.url);
-  const meta = media.meta ?? {};
-  const label = media.source === "local" ? "Local" : media.source === "preview" ? "Preview" : src ? "Civitai" : "Missing";
-  const nsfwLevel = getMediaNsfwLevel(media, fallbackNsfwLevel);
-  const canOpenMedia = Boolean(src) && !isLoraVideo(media, src);
-  return (
-    <article className={shouldBlurNsfwLevel(nsfwLevel, settings) ? "lm-example-card nsfw-content" : "lm-example-card"} data-nsfw-level={nsfwLevel}>
-      <div className="lm-example-media">
-        <div className="lm-media-badge">{isLoraVideo(media, src) ? <Film size={14} /> : <ImageIcon size={14} />} {label} #{index + 1}</div>
-        {canOpenMedia && (
-          <button type="button" className="lm-media-open-btn" title="查看大图" onClick={() => onOpenMedia?.(media, index)}>
-            <Maximize2 size={15} />
-          </button>
-        )}
-        <LoraMedia
-          media={media}
-          apiBase={apiBase}
-          alt={`示例 ${index + 1}`}
-          controls
-          settings={settings}
-          fallbackNsfwLevel={fallbackNsfwLevel}
-          onOpen={canOpenMedia ? () => onOpenMedia?.(media, index) : undefined}
-        />
-      </div>
-      <LoraExampleMetadata meta={meta} onToast={onToast} />
-    </article>
-  );
-}
-
-function MediaLightbox({
-  media,
-  apiBase,
-  alt,
-  settings,
-  fallbackNsfwLevel,
-  onClose,
-}: {
-  media: LoraExampleMedia;
-  apiBase: string;
-  alt: string;
-  settings: LoraManagerSettings;
-  fallbackNsfwLevel: number;
-  onClose: () => void;
-}) {
-  return (
-    <div className="lm-lightbox" role="dialog" aria-modal="true" aria-label="查看大图" onMouseDown={onClose}>
-      <div className="lm-lightbox-content" onMouseDown={(event) => event.stopPropagation()}>
-        <button type="button" className="lm-lightbox-close" title="关闭" onClick={onClose}><X size={18} /></button>
-        <LoraMedia media={media} apiBase={apiBase} alt={alt} controls settings={settings} fallbackNsfwLevel={fallbackNsfwLevel} />
-      </div>
-    </div>
-  );
-}
-
-function ExampleImagesProgressBar({ status, pullingCount }: { status: ExampleImagesStatus | null; pullingCount: number }) {
-  if (!status || status.is_downloading === false && pullingCount === 0) return null;
-  const progress = status.status;
-  const percent = progress ? Math.round((progress.completed / progress.total) * 100) : 0;
-  return (
-    <div className="lm-progress-strip">
-      <div className="lm-progress-bar" style={{ width: `${percent}%` }} />
-      <span className="lm-progress-text">
-        {status.is_downloading ? `正在从 Civitai 拉取: ${percent}% (${progress?.completed}/${progress?.total})` : `正在拉取本地示例图: ${pullingCount} 个`}
-      </span>
-    </div>
-  );
-}
-
+import { DoctorPane, DuplicatePane, ItemList, TextInput, UpdatesPane } from "./LoraModalsPanes";
+import { ExampleImagesProgressBar, LoraExampleCard, MediaLightbox, TriggerWordsPanel } from "./LoraExampleParts";
 // --- Main Components ---
 
 export function LoraDetailModal({
@@ -682,6 +325,16 @@ export function LoraDetailModal({
                 }}
                 onInsertWords={onInsertWords}
               />
+
+              {/* T7：配方区块——comfyClient 的 recipes 接口早已就绪，这里只补 UI */}
+              {isLora && (
+                <LoraRecipesPanel
+                  client={client}
+                  hash={item.sha256}
+                  onInsertWords={onInsertWords}
+                  onToast={onToast}
+                />
+              )}
 
               <InfoItem 
                 label="版本说明" 

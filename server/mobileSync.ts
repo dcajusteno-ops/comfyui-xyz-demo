@@ -76,6 +76,7 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ComfyUI 返回的动态 JSON，收窄会在多处调用点引入连锁 unknown 断言
   async function fetchJson(url: string, init: RequestInit = {}, timeoutMs = 10000): Promise<any> {
     const ac = new AbortController();
     const timer = setTimeout(() => ac.abort(), timeoutMs);
@@ -122,7 +123,8 @@ export function xyzMobileSyncPlugin(comfyTarget: string): Plugin {
       task.promptId = promptId;
 
       // 4. 轮询 history 直到有输出（上限 180s）
-      let history: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 同上：history 条目结构由 ComfyUI 决定
+    let history: Record<string, any> = {};
       let foundOutput = false;
       for (let i = 0; i < 180; i++) {
         await sleep(1000);

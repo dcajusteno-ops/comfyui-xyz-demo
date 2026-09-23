@@ -32,6 +32,8 @@ export type LoraSelection = {
   filePath?: string;
   sha256?: string;
   previewUrl?: string;
+  /** XYZ 的 LoRA 替换/追加轴占位标记：记录要替换成/追加的目标模型名（applySpecialXyzPatch 消费） */
+  patchName?: string;
 };
 
 export type ManagedModelType = "loras" | "embeddings";
@@ -339,6 +341,11 @@ export type Img2ImgParams = {
   keepProportion?: string;
   /** 仅 Anima（ImageResizeKJv2）使用 */
   cropPosition?: string;
+  /**
+   * 局部重绘遮罩（T12）：上传后的遮罩文件名；空 = 整图重绘。
+   * 非空且开关开启时，builder 用 VAEEncodeForInpaint 替代 VAEEncode。
+   */
+  maskName?: string;
 };
 
 export type BaseGenerationParams = {
@@ -647,11 +654,27 @@ export type OutputImage = {
   nodeTitle?: string;
 };
 
+/**
+ * 一次生成任务的展示元信息（仅内存，不落 localStorage、不落服务端）。
+ * 用途：输出面板标题从「promptId 前 8 位」换成可辨认的一行摘要。
+ * 字段全部可选——WD14/CL 这类打标任务没有尺寸与采样参数。
+ */
+export type JobMeta = {
+  /** 提交时传入的任务名（模板名 / WD1.4 / CL 单图 等） */
+  label: string;
+  width?: number;
+  height?: number;
+  steps?: number;
+  seed?: number;
+};
+
 export type JobResult = {
   promptId: string;
   images: OutputImage[];
   texts: string[];
   rawHistory: unknown;
+  /** 可选：老调用方与既有测试夹具不传，故必须可选 */
+  meta?: JobMeta;
 };
 
 export type ProgressBatchState = {
@@ -760,6 +783,10 @@ export type NoteItem = {
   title: string;
   content: string;
   updatedAt: number;
+  /** 标签（T10-④）：仅内存与 notes.json 持久化，服务端透传存储 */
+  tags?: string[];
+  /** 附件图（T10-④）：压缩后的 data URL（最长边 400px JPEG），上限 6 张防 notes.json 膨胀 */
+  images?: string[];
 };
 
 export type GenerationPreset = {
@@ -847,6 +874,8 @@ export type XyzCellScore = {
   url: string;
   label: string;
   score: number;
+  /** 产生该分数的组合 patch，供「最优组合回填到面板」使用（T8） */
+  patch?: Partial<BaseGenerationParams>;
 };
 
 export type LoraOperation =

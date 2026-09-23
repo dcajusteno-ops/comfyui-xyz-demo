@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 
-function deepMerge<T>(target: any, source: any): T {
+function deepMerge<T>(target: unknown, source: unknown): T {
   if (source === null || typeof source !== "object" || Array.isArray(source)) {
     return source as T;
   }
   if (target === null || typeof target !== "object" || Array.isArray(target)) {
     return source as T;
   }
-  const result = { ...target };
-  for (const key of Object.keys(source)) {
-    if (source[key] !== undefined) {
-      if (typeof source[key] === "object" && source[key] !== null && !Array.isArray(source[key])) {
-        result[key] = deepMerge(result[key] || {}, source[key]);
+  const result = { ...(target as Record<string, unknown>) };
+  const src = source as Record<string, unknown>;
+  for (const key of Object.keys(src)) {
+    if (src[key] !== undefined) {
+      if (typeof src[key] === "object" && src[key] !== null && !Array.isArray(src[key])) {
+        result[key] = deepMerge<unknown>(result[key] ?? {}, src[key]);
       } else {
-        result[key] = source[key];
+        result[key] = src[key];
       }
     }
   }

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BookmarkPlus, Download, Pencil, Play, Trash2, Upload } from "lucide-react";
 import { usePresets } from "../../../hooks/usePresets";
@@ -79,6 +79,14 @@ export function PresetBar<T extends Record<string, unknown>>({ target, params, o
     setDraft("");
     setModal({ mode: "save" });
   };
+
+  // Ctrl+S 存预设（App.tsx 的全局快捷键派发该事件；仅生成模板页挂了 PresetBar，天然不越界）
+  useEffect(() => {
+    const onSavePreset = () => openSave();
+    window.addEventListener("dsh:save-preset", onSavePreset);
+    return () => window.removeEventListener("dsh:save-preset", onSavePreset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openRename = () => {
     if (!selectedPreset) {

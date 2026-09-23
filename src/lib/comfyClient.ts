@@ -56,6 +56,10 @@ type ManagedModelListParams = {
   pageSize?: number;
 };
 
+/** /api/queue 的展示条目（只保留 promptId 与序号，完整图在工作流侧不需要） */
+export type QueueItem = { promptId: string; number: number };
+export type QueueState = { running: QueueItem[]; pending: QueueItem[] };
+
 function managedModelPayloadType(modelType: ManagedModelType) {
   return modelType === "embeddings" ? "embedding" : "lora";
 }
@@ -126,7 +130,7 @@ export class ComfyClient {
     
     try {
       // First check if the server is alive via HTTP
-      const stats = await this.getSystemStats() as any;
+      const stats = await this.getSystemStats() as { system?: { comfyui_version?: string }; devices?: Array<{ name?: string; vram_total?: number; vram_free?: number }> };
       const version = stats?.system?.comfyui_version || "未知版本";
       
       const socket = this.openSocket(this.clientId);
@@ -543,6 +547,12 @@ export class ComfyClient {
     return this.postLocalJson("/xyz/example-images/open-folder", { model_hash: modelHash });
   }
 
+  /** 列出某目录下的一层子目录（T10-① 目录选择器用；只读、不含文件） */
+  async listLocalFolders(dir: string): Promise<{ success: boolean; path: string; parent: string | null; folders: string[]; error?: string }> {
+    const query = new URLSearchParams({ path: dir });
+    return this.getJson(`/xyz/fs/folders?${query}`);
+  }
+
   async pauseExampleImages(): Promise<ExampleImagesStartResult> {
     return this.postLocalJson<ExampleImagesStartResult>("/xyz/example-images/pause", {});
   }
@@ -671,6 +681,33 @@ export class ComfyClient {
     return this.postJson("/api/interrupt", promptId ? { prompt_id: promptId } : {});
   }
 
+  /**
+   * 任务队列（T11）。ComfyUI 的 /queue 返回 `queue_running` / `queue_pending` 两组，
+   * 每项是 `[number, prompt_id, prompt, ...]` 数组——只取展示需要的 prompt_id。
+   */
+  async getQueue(): Promise<QueueState> {
+    const raw = await this.getJson<{ queue_running?: unknown[]; queue_pending?: unknown[] }>("/api/queue");
+    const parse = (entries?: unknown[]): QueueItem[] =>
+      (entries ?? [])
+        .map((entry) => {
+          const promptId = Array.isArray(entry) && typeof entry[1] === "string" ? entry[1] : "";
+          const number = Array.isArray(entry) && typeof entry[0] === "number" ? entry[0] : 0;
+          return { promptId, number };
+        })
+        .filter((item) => item.promptId);
+    return { running: parse(raw.queue_running), pending: parse(raw.queue_pending) };
+  }
+
+  /** 从队列移除指定 pending 任务（ComfyUI 约定：DELETE /queue + { delete: [promptId] }） */
+  async deleteFromQueue(promptIds: string[]): Promise<unknown> {
+    return this.deleteJson("/api/queue", { delete: promptIds });
+  }
+
+  /** 清空整个队列（ComfyUI 约定：POST /queue + 空的两组列表） */
+  async clearQueue(): Promise<unknown> {
+    return this.postJson("/api/queue", { queue_running: [], queue_pending: [] });
+  }
+
   async getHistory(promptId: string): Promise<Record<string, HistoryEntry>> {
     return this.getJson(`/api/history/${encodeURIComponent(promptId)}`);
   }
@@ -721,6 +758,13 @@ export class ComfyClient {
       label: "已进入队列",
     };
 
+    /** 预览帧的对象 URL 缓冲：延迟 revoke，避免 <img> 还在加载就被吊销而闪裂图 */
+    const previewUrlBacklog: string[] = [];
+    const releasePreviewUrls = () => {
+      for (const url of previewUrlBacklog.splice(0)) URL.revokeObjectURL(url);
+      if (lastProgress.previewUrl) URL.revokeObjectURL(lastProgress.previewUrl);
+    };
+
     const updateProgress = (patch: Partial<ProgressState>) => {
       lastProgress = { ...lastProgress, ...patch };
       onProgress(lastProgress);
@@ -756,6 +800,7 @@ export class ComfyClient {
           const entry = history[promptId];
           if (entry?.outputs && Object.keys(entry.outputs).length > 0) {
             window.clearInterval(fallbackTimer);
+            releasePreviewUrls();
             resolve(await finishFromHistory());
           }
         } catch {
@@ -769,18 +814,32 @@ export class ComfyClient {
           const data = message.data ?? {};
           
           if (message.type === "preview") {
-            let blob: Blob;
+            // 二进制帧结构：8 字节头（[事件类型 u32][图片类型 u32]，图片类型 1=JPEG / 2=PNG / 3=WEBP）+ 图片字节。
+            // 必须显式设置 MIME：WS 帧 slice 出的 Blob type 为空，blob: URL 无嗅探，<img> 会直接裂图。
+            let buffer: ArrayBuffer | null = null;
             if (data instanceof Blob) {
-              blob = data.slice(8);
+              buffer = await data.arrayBuffer();
             } else if (data instanceof ArrayBuffer) {
-              blob = new Blob([data.slice(8)]);
+              buffer = data;
             } else {
               return;
             }
-            if (lastProgress.previewUrl) {
-              URL.revokeObjectURL(lastProgress.previewUrl);
+            if (buffer.byteLength <= 8) return;
+            const imageType = new DataView(buffer).getUint32(4, true);
+            const mime = imageType === 2 ? "image/png" : imageType === 3 ? "image/webp" : "image/jpeg";
+            const blob = new Blob([buffer.slice(8)], { type: mime });
+            const url = URL.createObjectURL(blob);
+            // 旧 URL 不能立即 revoke：<img> 可能还在加载它，立即吊销会闪裂图。
+            // 保留 3 帧缓冲，延迟到第 4 帧才回收。
+            const previous = lastProgress.previewUrl;
+            updateProgress({ previewUrl: url });
+            if (previous) {
+              previewUrlBacklog.push(previous);
+              while (previewUrlBacklog.length > 3) {
+                const stale = previewUrlBacklog.shift();
+                if (stale) URL.revokeObjectURL(stale);
+              }
             }
-            updateProgress({ previewUrl: URL.createObjectURL(blob) });
             return;
           }
 
@@ -811,6 +870,7 @@ export class ComfyClient {
             });
             if (data.node === null) {
               window.clearInterval(fallbackTimer);
+              releasePreviewUrls();
               if (resultsFromExecuted) {
                 completed = true;
                 this.promptListeners.delete(promptId);
@@ -823,6 +883,7 @@ export class ComfyClient {
           }
           if (message.type === "execution_error" && data.prompt_id === promptId) {
             window.clearInterval(fallbackTimer);
+            releasePreviewUrls();
             this.promptListeners.delete(promptId);
             reject(new Error(data.exception_message || "ComfyUI 执行失败"));
           }
@@ -876,7 +937,7 @@ export class ComfyClient {
     const entry = history[promptId];
 
     // Optional chaining because TS types for history might not include prompt
-    const promptDefs = (entry as any)?.prompt?.[2] ?? {};
+    const promptDefs = (entry as unknown as { prompt?: [unknown, unknown, Record<string, Record<string, unknown> & { _meta?: { title?: string } }> ] })?.prompt?.[2] ?? {};
 
     let merged: JobResult | null = null;
     for (const [nodeId, output] of Object.entries(entry?.outputs ?? {})) {
@@ -915,6 +976,19 @@ export class ComfyClient {
   private async postJson<T = unknown>(path: string, payload: unknown): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`${path} ${response.status}: ${body}`);
+    }
+    return response.json() as Promise<T>;
+  }
+
+  private async deleteJson<T = unknown>(path: string, payload: unknown): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });

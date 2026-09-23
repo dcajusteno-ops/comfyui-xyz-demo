@@ -1,15 +1,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { xyzExampleImagesPlugin } from "./server/exampleImages";
+import { xyzFsBrowsePlugin } from "./server/fsBrowse";
 import { xyzLoraPlugin } from "./server/lora";
+import { xyzMobileGenPlugin } from "./server/mobileGen";
 import { xyzMobileSyncPlugin } from "./server/mobileSync";
 import { xyzNotesPlugin } from "./server/notes";
 import { xyzPromptsPlugin } from "./server/prompts";
+import { xyzWildcardsPlugin } from "./server/wildcards";
 
 const comfyTarget = process.env.COMFYUI_URL ?? "http://127.0.0.1:8188";
 
 export default defineConfig({
-  plugins: [xyzNotesPlugin(), xyzPromptsPlugin(), xyzExampleImagesPlugin(comfyTarget), xyzLoraPlugin(), xyzMobileSyncPlugin(comfyTarget), react()],
+  // 注意：mobileGen 必须注册在 mobileSync **之前**——mobileSync 的中间件拦截所有 /api/mobile/*，
+  // 若它先注册，/api/mobile/gen 永远到不了 mobileGen，只会得到 404。
+  plugins: [xyzNotesPlugin(), xyzPromptsPlugin(), xyzWildcardsPlugin(), xyzFsBrowsePlugin(), xyzExampleImagesPlugin(comfyTarget), xyzLoraPlugin(), xyzMobileGenPlugin(comfyTarget), xyzMobileSyncPlugin(comfyTarget), react()],
   build: {
     rollupOptions: {
       output: {

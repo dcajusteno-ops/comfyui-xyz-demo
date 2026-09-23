@@ -8,48 +8,6 @@ import { translateText, defaultTranslationSettings } from "../lib/translation";
 import type { TranslationSettings } from "../lib/translation";
 import { WildcardHelper } from "./features/Generation/WildcardHelper";
 
-export type PromptEntry = {
-  id: string;
-  source: string;
-  category: string;
-  subcategory: string;
-  scope: string;
-  text_en: string;
-  text_zh: string;
-  search_text?: string;
-};
-
-export type PromptTemplate = {
-  id: string;
-  name: string;
-  category: string;
-  positive: string;
-  negative: string;
-};
-
-export type EditorPart = {
-  key: string;
-  entryId: string;
-  text: string;
-  textZh: string;
-  source: string;
-  category: string;
-};
-
-const positivePresetPacks = [
-  { id: 'portrait', name: '人物基础', terms: ['masterpiece', 'best quality', '1girl', 'detailed face', 'soft lighting'] },
-  { id: 'cinematic', name: '电影感', terms: ['cinematic lighting', 'dramatic shadows', 'depth of field', 'film grain', 'high contrast'] },
-  { id: 'camera', name: '镜头语言', terms: ['close-up', '85mm lens', 'bokeh', 'dynamic composition', 'sharp focus'] },
-  { id: 'illustration', name: '插画细节', terms: ['highly detailed', 'clean lineart', 'delicate texture', 'rich colors', 'beautiful composition'] },
-];
-
-const negativePresetPacks = [
-  { id: 'common', name: '通用负面', terms: ['low quality', 'worst quality', 'blurry', 'bad anatomy', 'text', 'watermark'] },
-  { id: 'handfix', name: '手部修正', terms: ['bad hands', 'extra fingers', 'missing fingers', 'mutated hands', 'poorly drawn hands'] },
-  { id: 'facefix', name: '面部修正', terms: ['deformed face', 'bad eyes', 'cross-eyed', 'extra eyes', 'poorly drawn face'] },
-  { id: 'artifact', name: '杂项瑕疵', terms: ['jpeg artifacts', 'cropped', 'duplicate', 'out of frame', 'extra limbs'] },
-];
-
 export function PromptEditorDialog({ 
   open, 
   onClose,
@@ -457,19 +415,19 @@ export function PromptEditorDialog({
         try {
           const data = JSON.parse(content);
           if (!Array.isArray(data)) throw new Error("JSON must be an array");
-          const newCustoms = data.map((item: any) => ({
+          const newCustoms = data.map((item: Record<string, unknown>) => ({
              id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-             source: item.source || "本地文件",
-             category: item.category || "未分类",
-             subcategory: item.subcategory || "",
-             scope: item.scope || "default",
-             text_en: item.text_en || "",
-             text_zh: item.text_zh || item.name || ""
-          })).filter((x: any) => x.text_en || x.text_zh);
+             source: typeof item.source === "string" && item.source ? item.source : "本地文件",
+             category: typeof item.category === "string" && item.category ? item.category : "未分类",
+             subcategory: typeof item.subcategory === "string" ? item.subcategory : "",
+             scope: typeof item.scope === "string" && item.scope ? item.scope : "default",
+             text_en: typeof item.text_en === "string" ? item.text_en : "",
+             text_zh: typeof item.text_zh === "string" && item.text_zh ? item.text_zh : (typeof item.name === "string" ? item.name : "")
+          })).filter((x) => x.text_en || x.text_zh);
           setCustomEntries(prev => [...newCustoms, ...prev]);
           alert(`成功导入 ${newCustoms.length} 条词条`);
-        } catch (err: any) {
-          alert("JSON 解析失败: " + err.message);
+        } catch (err) {
+          alert("JSON 解析失败: " + (err instanceof Error ? err.message : String(err)));
         }
       } else {
         const lines = content.split('\n').filter(Boolean);
@@ -525,20 +483,20 @@ export function PromptEditorDialog({
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error("JSON format must be an array");
-      const newCustoms: PromptEntry[] = data.map((item: any) => ({
+      const newCustoms: PromptEntry[] = data.map((item: Record<string, unknown>) => ({
         id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        source: item.source || "网络导入",
-        category: item.category || "未分类",
-        subcategory: item.subcategory || "",
-        scope: item.scope || "default",
-        text_en: item.text_en || "",
-        text_zh: item.text_zh || item.name || ""
+        source: typeof item.source === "string" && item.source ? item.source : "网络导入",
+        category: typeof item.category === "string" && item.category ? item.category : "未分类",
+        subcategory: typeof item.subcategory === "string" ? item.subcategory : "",
+        scope: typeof item.scope === "string" && item.scope ? item.scope : "default",
+        text_en: typeof item.text_en === "string" ? item.text_en : "",
+        text_zh: typeof item.text_zh === "string" && item.text_zh ? item.text_zh : (typeof item.name === "string" ? item.name : "")
       })).filter(x => x.text_en || x.text_zh);
       setCustomEntries(prev => [...newCustoms, ...prev]);
       alert(`成功导入 ${newCustoms.length} 条网络词条`);
       setImportUrl("");
-    } catch (err: any) {
-      alert("网络导入失败: " + err.message);
+    } catch (err) {
+      alert("网络导入失败: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setImportingNetwork(false);
     }
@@ -899,3 +857,4 @@ export function PromptEditorDialog({
     </>
   );
 }
+import { EditorPart, negativePresetPacks, positivePresetPacks, PromptEntry, PromptTemplate } from "./PromptEditorData";
