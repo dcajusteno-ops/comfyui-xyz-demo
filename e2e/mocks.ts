@@ -57,6 +57,7 @@ const OBJECT_INFO = {
   cl_tagger_mira: { input: { required: { model_name: [["cl_tagger/cl_tagger_1_02.onnx"]] } } },
   UltralyticsDetectorProvider: { input: { required: {} } },
   LatentUpscaleBy: { input: { required: { upscale_method: [["nearest-exact", "bilinear"]] } } },
+  ImageScale: { input: { required: { upscale_method: [["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]] } } },
   DrawTextAdvanced: { input: { required: { font: [["default"]] } } },
 };
 
@@ -82,4 +83,14 @@ export async function installApiMocks(page: Page) {
   await page.route(/\/comfy\/api\/lm\/embeddings\/check-example-images-needed/, (route) => route.fulfill(json({ success: true, data: { pending: [], failed: [] } })));
   await page.route(/\/comfy\/api\/object_info/, (route) => route.fulfill(json(OBJECT_INFO)));
   await page.route(/\/comfy\/(api\/)?system_stats/, (route) => route.fulfill(json(stats)));
+
+  // 断连覆盖层的显隐由 WebSocket 的 open/close 驱动，而 page.route 拦不住 WebSocket：
+  // ComfyUI 不在运行时 onclose 会把状态置为 offline，全屏 .connection-overlay 随即拦截所有点击
+  // （表现为 4 个需要点击的用例统一超时）。这里接管 /comfy/ws，握手成功即让状态回到 online；
+  // 不调用 connectToServer()，故不会真的连到本机 ComfyUI。
+  await page.routeWebSocket(/\/comfy\/ws/, (ws) => {
+    ws.onMessage((message) => {
+      if (typeof message === "string" && message.includes("ping")) ws.send("pong");
+    });
+  });
 }

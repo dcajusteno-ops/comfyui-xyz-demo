@@ -6,7 +6,8 @@ export default defineConfig({
   timeout: 30_000,
   retries: 0,
   webServer: {
-    command: "npm run dev -- --port 5199 --strictPort",
+    // 直接调 vite 二进制，不经 npm：本机 `npm run` 被安全策略拦截，原命令会让 webServer 起不来
+    command: "node node_modules/vite/bin/vite.js --port 5199 --strictPort",
     url: "http://127.0.0.1:5199",
     reuseExistingServer: true,
     env: { DSH_E2E: "1" },
