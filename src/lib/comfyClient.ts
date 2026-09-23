@@ -19,7 +19,6 @@ import type {
   LoraRecipe,
   LoraUpdateRecord,
   ManagedModelType,
-  OutputImage,
   ProgressState,
 } from "../types";
 
@@ -29,6 +28,9 @@ type ObjectInfo = Record<string, {
     optional?: Record<string, unknown>;
   };
 }>;
+
+// 结果解析与归并的纯逻辑（原先在本文件里重复写了两份，且行为不一致）
+import { collectNodeImages, collectNodeTexts, mergeJobResult } from "./comfyResult";
 
 type QueueResponse = {
   prompt_id: string;
@@ -826,74 +828,15 @@ export class ComfyClient {
           }
           if (message.type === "executed" && data.prompt_id === promptId) {
             const outputs = data.output ?? {};
-            const images: OutputImage[] = [];
-            const texts: string[] = [];
             const nodeId = data.node;
             const nodeDef = prompt[nodeId];
             const nodeTitle = String(nodeDef?._meta?.title || nodeId);
 
-            if (outputs.images) {
-              for (const img of outputs.images) {
-                images.push({
-                  url: this.viewUrl(img),
-                  filename: img.filename,
-                  subfolder: img.subfolder,
-                  type: img.type,
-                  nodeTitle,
-                });
-              }
-            }
+            const images = collectNodeImages(outputs, nodeTitle, (image) => this.viewUrl(image));
+            const texts = collectNodeTexts(outputs);
 
-            const processTextValue = (value: any) => {
-              if (Array.isArray(value)) {
-                // Filter out any objects, keep only strings/numbers
-                const validValues = value.filter(v => typeof v === 'string' || typeof v === 'number');
-                if (validValues.length === 0) return;
-
-                // If it's an array of single characters, join them
-                if (validValues.length > 1 && validValues.every(v => typeof v === 'string' && v.length === 1)) {
-                  texts.push(validValues.join(''));
-                } else {
-                  texts.push(...validValues.map(String));
-                }
-              } else if (typeof value === "string" || typeof value === "number") {
-                const strValue = String(value);
-                if (strValue.trim().length > 0) {
-                  texts.push(strValue);
-                }
-              }
-            };
-
-            for (const key of ["text", "texts", "STRING", "string", "tags", "csv"]) {
-              processTextValue(outputs[key]);
-            }
-
-            // Fallback: if no text found by common keys, look for any string/string-array output
-            if (texts.length === 0) {
-              for (const value of Object.values(outputs)) {
-                processTextValue(value);
-              }
-            }
-            
             if (images.length > 0 || texts.length > 0) {
-              if (!resultsFromExecuted) {
-                resultsFromExecuted = { promptId, images: [], texts: [], rawHistory: {} };
-              }
-              
-              // Add unique images
-              for (const img of images) {
-                if (!resultsFromExecuted.images.some(existing => existing.url === img.url)) {
-                  resultsFromExecuted.images.push(img);
-                }
-              }
-
-              // Add unique texts
-              for (const t of texts) {
-                if (!resultsFromExecuted.texts.includes(t)) {
-                  resultsFromExecuted.texts.push(t);
-                }
-              }
-
+              resultsFromExecuted = mergeJobResult(resultsFromExecuted, promptId, images, texts);
               updateProgress({
                 running: true,
                 promptId,
@@ -931,67 +874,26 @@ export class ComfyClient {
 
   private extractHistory(promptId: string, history: Record<string, HistoryEntry>): JobResult {
     const entry = history[promptId];
-    const images: OutputImage[] = [];
-    const texts: string[] = [];
-    
+
     // Optional chaining because TS types for history might not include prompt
     const promptDefs = (entry as any)?.prompt?.[2] ?? {};
 
+    let merged: JobResult | null = null;
     for (const [nodeId, output] of Object.entries(entry?.outputs ?? {})) {
       const nodeTitle = promptDefs[nodeId]?._meta?.title;
-      const imageList = output.images;
-      if (Array.isArray(imageList)) {
-        for (const image of imageList) {
-          if (typeof image === "object" && image && "filename" in image) {
-            const normalized = image as { filename: string; subfolder?: string; type?: string };
-            images.push({
-              filename: normalized.filename,
-              subfolder: normalized.subfolder,
-              type: normalized.type,
-              url: this.viewUrl(normalized),
-              nodeTitle,
-            });
-          }
-        }
-      }
-      const processTextValue = (value: any) => {
-        if (Array.isArray(value)) {
-          const validValues = value.filter(v => typeof v === 'string' || typeof v === 'number');
-          if (validValues.length === 0) return;
-          if (validValues.length > 1 && validValues.every(v => typeof v === 'string' && v.length === 1)) {
-            texts.push(validValues.join(''));
-          } else {
-            texts.push(...validValues.map(String));
-          }
-        } else if (typeof value === "string" || typeof value === "number") {
-          const strValue = String(value);
-          if (strValue.trim().length > 0) {
-            texts.push(strValue);
-          }
-        }
-      };
-
-      for (const key of ["text", "texts", "STRING", "string", "tags", "csv"]) {
-        processTextValue(output[key]);
-      }
-      
-      // Fallback in history too
-      const foundCount = texts.length;
-      if (foundCount === 0) {
-        for (const value of Object.values(output)) {
-          processTextValue(value);
-        }
-      }
+      const outputs = output as Record<string, unknown>;
+      const images = collectNodeImages(outputs, nodeTitle, (image) => this.viewUrl(image));
+      const texts = collectNodeTexts(outputs);
+      if (images.length === 0 && texts.length === 0) continue;
+      merged = mergeJobResult(merged, promptId, images, texts);
     }
 
-    // WD14 节点自身的 tags 输出与 Save Text 节点的 text 输出内容相同，按内容去重（保序）
-    const seen = new Set<string>();
-    const uniqueTexts = texts.filter((t) => {
-      if (seen.has(t)) return false;
-      seen.add(t);
-      return true;
-    });
-    return { promptId, images, texts: uniqueTexts, rawHistory: history };
+    return {
+      promptId,
+      images: merged?.images ?? [],
+      texts: merged?.texts ?? [],
+      rawHistory: history,
+    };
   }
 
   private openSocket(clientId: string) {
