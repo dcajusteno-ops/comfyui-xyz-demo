@@ -10,11 +10,14 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 目前项目已搭建完毕基础架构，并实现了以下核心标签页功能：
 
+> **🆕 v0.4.2 亮点**：默认生图 / 多人工作流 / 高清修复三大模板**补齐图生图**（开关式，默认关闭），并新增「输出图一键作为输入图 / 送去反推」——把「出图 → 改图 → 再出图」串成闭环。详见下方「### 39. 图生图闭环」。
+>
 > **🆕 v0.4.0 亮点**：新增第 4 个生图模板「**Anima 生图**」（Qwen-Image 系 · Turbo 三段式模型栈 + 12 个阶段开关 + 5 个档位预设 + 图生图），修复链与高清修复共用；提示词标签块解析重写（括号组逐词拆分、加权不再写坏语法、重复词条一键清理）；详见下方「### 38. Anima 大模型接入与阶段开关」。
 
 ### 1. 默认生图 (Default Generation)
 - 标准的文生图/图生图控制面板。
 - 支持基础模型（Checkpoint）、采样器（Sampler）、调度器（Scheduler）的快捷切换。
+- **图生图（v0.4.2 新增）**：面板顶部「图生图」开关（默认关闭），开启后可选参考图、按面板宽高缩放（拉伸填满 / 缩放裁剪）后 VAE 编码作为 latent，重绘强度复用「重绘」参数；另两条路径见「### 39. 图生图闭环」。
 
 ### 2. WD1.4 提示词反推 (WD14 Tagger)
 - 深度集成 WD1.4 图像反推逻辑。
@@ -252,8 +255,9 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **详尽更新日志**：更多详细的改动记录请参阅 [CHANGELOG.md](file:///f:/demo/comfyui-xyz-demo/CHANGELOG.md)。
 
 ### 37. 工程质量基建：组件测试 · E2E 冒烟 · ESLint
-- **组件层测试 (v0.3.7 新增)**：`@testing-library/react` + jsdom 测试基建（滚动 API stub），23 个组件测试覆盖 LoRA 侧边栏折叠交互、卡片 NSFW 模糊与遮罩、拖拽控件与权重胶囊；连同 `useOptions` 选项映射防线，`npm run test` 总计 120 个测试。
-- **E2E 冒烟 (v0.3.7 新增)**：Playwright 驱动真实页面的 6 个冒烟用例（`npm run test:e2e`），API 在路由层 mock，**不依赖 ComfyUI 运行**；另附真实生图手动验证脚本 `e2e/run-generation.mjs`（捕获实际提交的 workflow 并以 ComfyUI history 独立核验）。
+- **组件层测试 (v0.3.7 新增)**：`@testing-library/react` + jsdom 测试基建（滚动 API stub），23 个组件测试覆盖 LoRA 侧边栏折叠交互、卡片 NSFW 模糊与遮罩、拖拽控件与权重胶囊；连同 `useOptions` 选项映射防线，`npm run test` 总计 **224 个测试**（v0.4.2 更新；v0.3.7 时为 120 个）。
+- **E2E 冒烟 (v0.3.7 新增，v0.4.2 修复)**：Playwright 驱动真实页面的 6 个冒烟用例（`npm run test:e2e`，约 4 秒），API **与 WebSocket** 均在路由层 mock（`page.route` + `page.routeWebSocket`），**不依赖 ComfyUI 运行**；另附真实生图手动验证脚本 `e2e/run-generation.mjs`（捕获实际提交的 workflow 并以 ComfyUI history 独立核验）。
+  - 若 `npm` 不可用（如被安全策略拦截的环境），可直接调二进制：`node node_modules/@playwright/test/cli.js test`。
 - **ESLint 与构建优化 (v0.3.7 新增)**：flat config（typescript-eslint + react-hooks + react-refresh），`npm run lint`；存量死代码清理（56 处未用变量/导入、287 行死 hook）；构建警告清零——crypto-js 按需引入 + vendor 分包，主 chunk 684 → 402 kB，全部 chunk < 500 kB。
 
 ### 38. Anima 大模型接入与阶段开关
@@ -268,6 +272,19 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **依赖**：核心 + Impact Pack（项目已依赖）+ 两个可选节点。**不引入任何新的第三方节点依赖**——原工作流的 `ToDetailerPipe` / `EditDetailerPipe` / `FaceDetailerPipe` / `ImpactSwitch` 与十余个常量中转节点（`easy int` / `PrimitiveInt` / `SeedNode` 等）均已消除或改为代码层等价实现。
 - **可选节点降级**：`easy hiresFix`（comfyui-easy-use）与 `ImageResizeKJv2`（KJNodes）缺失时，自动降级为核心节点等价实现（`UpscaleModelLoader` → `ImageUpscaleWithModel` → `ImageScale`，按目标像素尺寸缩放），不会因缺插件而中断。
 - **节点自检**：进入面板时会探测 13 个必需节点，缺失项以黄色横幅列出（含节点名），而不是等 ComfyUI 回 400。
+
+### 39. 图生图闭环：三模板补齐图生图 + 输出图回流
+
+- **三个模板补齐图生图**：默认生图 / 多人工作流 / 高清修复面板顶部新增「图生图」**开关**（默认**关闭**，保证既有行为不变）。开启后可选参考图，链路为 `LoadImage → ImageScale → VAEEncode → KSampler`，重绘强度复用面板既有的「重绘」参数。
+- **缩放只用核心节点**：零新增第三方依赖（`ImageScale` 是 ComfyUI 核心节点），无需安装 KJNodes；Anima 仍使用它自己的 `ImageResizeKJv2`，两套互不影响。
+- **多人工作流保留分辨率对齐**：缩放节点的宽高接 `ResolutionMasterSimplify` 的输出，不绕过分辨率对齐逻辑。
+- **批量语义不丢**：`batchSize > 1` 时插入核心 `RepeatLatentBatch` 复制 latent（上限 64，超出会在面板上给出提示）。
+- **两条非阻断提示**：未选参考图时提示「本次将按文生图出图」；重绘强度 > 0.95 时提示「参考图几乎不起作用」——默认值 1 最容易踩这个坑。
+- **输出图一键回流**：输出面板每张图新增「作为输入图 ▾」下拉，可直接送往 默认生图 / 多人工作流 / 高清修复 / Anima 生图 / 图片识别（WD1.4）。实现上把 `output/` 的图重新上传为 `input/` 资源（`LoadImage` 只读 `input/`）。
+- **两处「只说一半就静默失效」的坑已堵**：送往 Anima 时会一并打开 `stages.img2img`（它的惰性条件是「开关 && 有图」）；送往图片识别时会清掉此前的本地文件（`runWd14` 里 `wdFile` 优先于 `imageName`），并在拖拽区显示「已选：xxx」。
+- **预设不携带参考图**：保存参数预设时会剥离 `img2img.imageName`（它指向 `input/` 里的具体文件，换机器后必然失效，回填会被校验拒绝）。
+- **枚举隔离**：图生图缩放的采样方法独立拉取 `ImageScale.upscale_method`。**不可复用**「放大方法」那份——后者来自 `LatentUpscaleBy`，含 `bislerp` 而无 `lanczos`，对 `ImageScale` 非法。
+- **Anima 零回归**：Anima 的图生图实现与其 `keepProportion` / `cropPosition` 字段语义未变，设置值不丢。
 
 ---
 

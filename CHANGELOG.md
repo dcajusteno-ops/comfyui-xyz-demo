@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.4.2] - 2026-09-22
+
+### 🎨 图生图闭环 (Img2Img Round-Trip)
+
+- **三个模板补齐图生图**：默认生图 / 多人工作流 / 高清修复新增「图生图」开关（**默认关闭**，既有行为零变化）。仅用核心节点：`LoadImage → ImageScale → VAEEncode → KSampler`，重绘强度复用面板既有的「重绘」参数，零新增第三方节点依赖。
+- **多人工作流保留分辨率对齐**：`ImageScale` 的宽高接 `ResolutionMasterSimplify` 的输出，不绕过原有分辨率对齐逻辑。
+- **批量语义**：`batchSize > 1` 时用核心 `RepeatLatentBatch` 复制 latent；超出其上限 64 时按 64 执行并在面板给出提示（与非图生图的 `batch_size` 上限 4096 区分）。
+- **节点键用非数字字符串**（`i2i_load` / `i2i_scale` / `i2i_encode` / `i2i_repeat`）：高修的 `detailerChain` 按 `nextId` 递增占号、默认生图的 drawText 固定占 `"8"`，数字键有碰撞风险。
+- **输出图一键回流**：输出面板每张图新增「作为输入图 ▾」，可送往 默认生图 / 多人工作流 / 高清修复 / Anima 生图 / 图片识别（WD1.4）。
+  - 送往 **Anima** 时一并打开 `stages.img2img`——它的触发条件是「阶段开关 && 有图」，只填图不会生效。
+  - 送往 **图片识别** 时一并清空 `wdFile` 并在拖拽区显示「已选：xxx」——`runWd14` 里 `wdFile` 优先于 `imageName`，只设 `imageName` 会被静默顶替。
+- **预设剥离参考图**：保存参数预设时把 `img2img.imageName` 置空（它指向 `input/` 内的具体文件，换机器/清理后必然失效，回填会被 ComfyUI 校验拒绝）。
+- **枚举隔离**：图生图缩放的采样方法独立拉取 `ImageScale.upscale_method`。**不可复用**「放大方法」那份——后者取自 `LatentUpscaleBy`，含 `bislerp` 而无 `lanczos`，对 `ImageScale` 是非法值。
+- **两条非阻断提示**：未选参考图时提示「本次将按文生图出图」；重绘强度 > 0.95 时提示「参考图几乎不起作用，建议 0.4–0.7」。
+- **Anima 零回归**：`keepProportion` / `cropPosition` 保留原字段名（`deepMerge` 只补新键、不搬迁旧路径，改名会让老用户设置静默丢失）；Anima 的 builder 段逐节点未变。
+
+### 🧪 测试与验证
+- **E2E 恢复可用（6 用例全绿，约 4s）**：此前 E2E 一直跑不起来，真实根因有两条——① `playwright.config.ts` 的 `webServer.command` 用的是 `npm run dev` 而非 vite 二进制；② 即使起得来，ComfyUI 不在跑时 WebSocket `onclose` 会把状态置为 offline，全屏 `.connection-overlay` 拦截全部点击（`page.route` **拦不住 WebSocket**，原有 API mock 覆盖不到这条路径）。修法：`webServer.command` 改调 `node node_modules/vite/bin/vite.js`；`e2e/mocks.ts` 增加 `page.routeWebSocket(/\/comfy\/ws/)` 接管握手。README 中「E2E 不依赖 ComfyUI 运行」的说法至此才真正成立。
+- 新增 `src/lib/img2img.test.ts`（16 条断言）：开关关闭时三个 builder 的 latent 仍指向原 `EmptyLatentImage`（零回归硬门槛）、命中链路、多人分辨率对齐、批量 clamp、`fit → crop` 映射、预设剥离、枚举不含 `bislerp`、字段缺失不抛错、Anima 逐节点零回归。
+- 测试总数 208 → **224**（28 个文件全绿）；`tsc --noEmit` 0 错误、`eslint src server` 0 error / 129 warning（与改动前基线持平）、`vite build` 成功。
+- 新增实机浏览器验证脚本 `.workbuddy/verify-all.cjs`（Playwright + 真实 dev server，单进程内起停）：确认三个面板开关默认关闭、点击后参数区展开、采样方法枚举不含 `bislerp`、控制台零错误。
+- 环境更正：**vitest 在本机可运行**（`node node_modules/vitest/vitest.mjs run`），此前「破损 shell shim 下必然失败」的结论不成立。
+
 ## [v0.4.1] - 2026-09-22
 
 ### 🔒 服务端安全加固 (Server Security)
