@@ -6,22 +6,84 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 修复 (Bug Fixes)
 
-- **history 兜底路径会丢掉后续节点的文本输出**：`extractHistory` 用**函数级累积数组**判断「本节点有没有文本」，导致只有第一个产出文本的节点会走「扫描全部输出」的兜底，第二个及之后的节点若用自定义输出键名，其文本被静默丢弃。WebSocket 的 `executed` 路径用的是每条消息的局部数组、没有这个问题——两条路径本该等价却不等价。现统一为**按节点**判定。
-- **图片去重口径统一**：`extractHistory` 原先不对图片去重（同一 `url` 会重复列出），现与 `executed` 路径一致按 `url` 去重。
+- **生成中的实时预览裂图（“预览中...”显示失败）**：WS 二进制预览帧切片后 Blob 的 MIME type 为空，而 `blob:` URL 无内容嗅探，`<img>` 直接裂图（成品图走 `/view` HTTP 有正确响应头所以一直正常——这也是为什么只有预览坏）。现按帧头声明的图片类型（1=JPEG / 2=PNG / 3=WEBP）显式设置 MIME；顺带把旧预览 URL 从「立即 revoke」改为保留 3 帧缓冲延迟回收（原实现会在 `<img>` 还在加载时吊销 URL，造成裂图闪烁），并在完成/出错时统一释放。
+- **XYZ multi/highres 目标补齐水印借用**：主界面跑多人/高清修复时会借用「文字特效」页的水印配置（App.tsx 一直如此），但 XYZ 跑这两个目标时不借——同一组合两条路径出图不一致。现四个 target 统一借用，且 drawText 轴仍按层合并（未打轴的字体/颜色不丢）。补 2 条回归测试（C2b/C2c）。
 
-### ♻️ 重构 (Refactor)
+## [v0.5.0] - 2026-09-23
 
-- **结果解析逻辑消除重复实现**：`processTextValue` 与文本优先键列表 `["text","texts","STRING","string","tags","csv"]` 原先在 `runPrompt` 与 `extractHistory` 里**各写一份**，现抽到新模块 `src/lib/comfyResult.ts`（`collectNodeTexts` / `collectNodeImages` / `mergeJobResult`），两条路径共用同一实现。`comfyClient.ts` 由 1062 行降至 958 行。
-- 顺带消掉 2 处 `any`，lint warning 129 → 127（业务行为除上述两个修复点外逐字不变）。
+> 本版一次性落地 `任务清单-下个迭代.md` 的全部 12 项工程任务（T2 / T4–T14），并纳入此前已推送未发版的「核心链路单测」批次（T1）。
+
+### 🐛 修复 (Bug Fixes)
+
+- **history 兜底路径会丢掉后续节点的文本输出**：`extractHistory` 用**函数级累积数组**判断「本节点有没有文本」，导致只有第一个产出文本的节点会走「扫描全部输出」的兜底，第二个及之后的节点若用自定义输出键名，其文本被静默丢弃。WebSocket 的 `executed` 路径用的是每条消息的局部数组、没有这个问题——两条路径本该等价却不等价。现统一为**按节点**判定（T1）。
+- **图片去重口径统一**：`extractHistory` 原先不对图片去重（同一 `url` 会重复列出），现与 `executed` 路径一致按 `url` 去重（T1）。
+
+### ✨ 新功能 (Features)
+
+- **T12 局部重绘（Inpaint）**：图生图开启且已选参考图时，可「涂抹遮罩」指定重绘区域。
+  涂抹编辑器（`MaskEditorModal`）为双画布实现：底图按面板的缩放方式（拉伸/居中裁剪）铺底、
+  笔刷画在上层透明画布；导出 = 黑底 + 白笔（红通道即遮罩），按面板宽高导出，与缩放后的参考图天然对齐。
+  工作流用核心节点 `LoadImageMask(channel=red) → VAEEncodeForInpaint(grow_mask_by=6)`（节点与参数已在 /object_info 实探确认）；
+  未设遮罩时仍走原 `VAEEncode` 整图重绘路径。
+- **T13 手机端远程生图**：手机页（`#/mobile-tag`）新增「生图」标签页。手机提交提示词 →
+  服务端（`server/mobileGen.ts`）排队、按 /object_info 解析 checkpoint、构造极简 SD 工作流提交 ComfyUI →
+  轮询 history → 手机直接看图（成图经服务端代理 `/api/mobile/gen/tasks/:id/image/:i`，手机无需直连 ComfyUI）。
+  桌面端不参与，服务端自洽闭环；参数白名单校验（尺寸 256–2048 且 64 对齐、步数 ≤100 等）。
+- **T11 任务队列面板**：顶栏新增「队列」入口，接上 ComfyUI `/api/queue`——查看运行中/等待中任务、
+  单独移除 pending 任务、清空等待队列（此前只能「全杀当前」）。
+- **T10 体验四件套**：
+  1. 批量打标目录选择器：`FolderField` 文本输入 + 一键列出子目录（新只读接口 `/xyz/fs/folders`，server/fsBrowse.ts）；
+  2. 全局快捷键：Ctrl+Enter 生成 / Ctrl+S 存预设 / 数字键切 tab（侧边栏顺序 1..10）；
+  3. 显存预警：顶栏显存徽标（复用 /system_stats，30s 轮询 + 空闲 <15% 变红）；
+  4. 记事本拓展：标签系统（增删/搜索过滤/侧栏聚合）+ 拖拽附加图片预览（压缩至最长边 400px JPEG、每条上限 6 张，防 notes.json 超限）。
+- **T7 LoRA 配方（Recipes）界面**：LoRA 详情弹窗新增「配方」区块，展示该 LoRA 的配方列表，
+  一键把配方语法插入正向提示词（复用既有 `onInsertWords` 通道；`comfyClient` 的 recipes 接口此前零引用，纯补 UI）。
+- **T8 XYZ 最优组合一键回填**：复盘控制条新增「回填到面板」——把最优格子对应的完整组合 patch
+  应用到目标模板（合并语义与 `buildXyzPrompt` 一致），闭合「批量试 → 选最优 → 回单张微调」。
+- **T9 通配符词库在线编辑**：`/xyz/wildcards` 服务端插件（2MB 请求上限 + temp+rename 原子写 +
+  侧车 revision 乐观并发，词库名白名单）+ 通配符弹窗内的在线编辑器；保存后重新加载注册表，`__name__` 引用即时生效。
+- **T6 输出面板标题可辨认**：从 `promptId.slice(0,8)` 换成「任务名 · 尺寸 · 步数 · seed」一行摘要
+  （元信息在提交时从**实际工作流**读出，XYZ 打补丁的组合、Anima 多段链路都不会与标题不一致），悬停可看完整 promptId。
+
+### ⚡ 性能 (Performance)
+
+- **T2 面板级代码分割**：非首屏面板（多人/高修/Anima/文字特效/WD1.4/XYZ/LoRA/记事本/老虎机）
+  全部改 `React.lazy` + `Suspense`，GlobalModals 的大弹窗（PromptEditorDialog / LoraModals）一并按需加载；
+  DefaultGenerationPanel 改从具体文件引入（走 barrel 会把懒加载面板的依赖一并拉回主 chunk，分包失效）。
+  主 chunk **442.66 kB → 255.76 kB（-42%）**，全部 chunk < 500 kB。
+
+### 🔧 工程与质量 (Engineering)
+
+- **T4 `server/` 单测破零**：新增 56 项测试（3 个文件）——SSRF 防护契约（`isPrivateIp` / `isAllowedMediaUrl`，
+  覆盖私网段、IPv6、IPv4-mapped、非法 IPv4）、LoRA 路径白名单（扩展名约束、白名单根、路径段级校验防前缀绕过）、
+  `utils`（原子写 + 留档、写队列串行化与失败隔离、2MB 请求体上限、sendError 尊重 status）。全部使用临时目录，**不触碰仓库 data/**。
+- **T5 lint 收敛**：`no-explicit-any` 96 → 12（`XyzController.gen` / `GlobalModals.loras` / `ui` 用
+  `ReturnType<typeof useXxx>` 真类型化；`useOptions` setter 逐个类型化；`deepMerge` 改 unknown 收窄；
+  追加提示词的动态键 updater 重构为类型化的 `appendPromptUpdater`）；2 处未用导入清除。
+  warning **135 → 42**，error 恒为 0。仅 ComfyUI 动态 JSON 边界（server 3 处）保留带注释的豁免。
+- **T14 巨型文件拆分**：`DrawTextControls.tsx` 995 → 610 行（抽出 `DrawTextCanvas` 390 行）、
+  `LoraModals.tsx` 1213 → 872 行（抽出 `LoraModalsPanes` / `LoraExampleParts` 共 372 行）、
+  `PromptEditorDialog.tsx` 902 → 861 行（类型与预设包抽至 `PromptEditorData`）；导出面与逻辑逐字不变。
+  `workflowBuilders.ts` / `comfyClient.ts` 按 SSOT 约定保持单文件不动。
 
 ### 🧪 测试 (Tests)
 
-- **核心链路补齐单测（此前完全零覆盖）**：新增 `src/lib/comfyResult.test.ts`（17 条）与 `src/hooks/useGeneration.test.ts`（19 条）。
-  - `comfyResult`：字符数组拼接、对象过滤、空值容错、优先键命中时不走兜底、**多节点连续处理时第二个节点同样能走兜底**（本次修复点）、图片 `url`/`nodeTitle` 取值、`mergeJobResult` 的按 `url`/按内容去重与保序、`acc` 原地累加语义。
-  - `useGeneration`：`runPrompt` 成功/失败/非 Error 抛出物/结果上限 24 条/`activeTaskLabel`/`document.title` 联动（含 `max=0` 不出现 `NaN%`）；`runWd14` 与 `runClSingle` 的「未选图抛错且不提交」「带本地文件先上传并用上传名覆盖 `imageName`」「只有 `imageName` 时不触发上传」；`runXyzItems` 的 `reset` 重置、中断后续条目标记 `cancelled`、单条失败不中断整批。
-  - **三条回归防线**：XYZ 重跑与重试失败的**原位替换**（原 bug 是 `reset=true` 清空其余结果）、multi 轴的 `positivePrompt` **追加**到 `globalPrompt` 而非覆盖、anima 轴的 `drawText` **按层合并**而非整体覆盖。
-  - 明确不测 `exportXyzGrid`（依赖 `new Image()` / canvas 2D / `toDataURL`，jsdom 未实现；已由 E2E 间接覆盖），测试文件末尾注释了原因。
-- 测试总数 224 → **260**（30 个文件全绿）；`tsc --noEmit` 0 错误、`eslint src server` 0 error / 127 warning、`vite build` 成功（主 chunk 442.66 kB）。
+- 测试总数 **260 → 316**（新增 server 56 项），30 → 33 个文件全绿。
+- `tsc --noEmit` 0 错误；`eslint src server` 0 error / 42 warning（基线 135）；`vite build` 成功；
+  E2E 冒烟 6 项全绿。
+
+### ♻️ 重构 (Refactor)
+
+- **结果解析逻辑消除重复实现（T1）**：`processTextValue` 与文本优先键列表原先在 `runPrompt` 与 `extractHistory` 里**各写一份**，现抽到新模块 `src/lib/comfyResult.ts`（`collectNodeTexts` / `collectNodeImages` / `mergeJobResult`），两条路径共用同一实现。`comfyClient.ts` 由 1062 行降至 958 行。
+- **追加提示词的动态键 updater 收敛**：散落在 App.tsx 四处的「追加到 globalPrompt/positivePrompt」`(prev: any)` 逻辑重构为类型化的 `appendPromptUpdater<T>`（dedupe 开关区分灵感/标签与触发词两条路径），行为逐字不变。
+
+### 🧪 测试 (Tests)
+
+- 测试总数 **224 → 316**（+92），33 个文件全绿：
+  - **T1 核心链路（此前完全零覆盖，+36）**：`src/lib/comfyResult.test.ts`（17 条——字符数组拼接、对象过滤、空值容错、优先键命中时不走兜底、**多节点连续处理时第二个节点同样能走兜底**（本次修复点）、图片 `url`/`nodeTitle` 取值、`mergeJobResult` 去重保序）；`src/hooks/useGeneration.test.ts`（19 条——`runPrompt` 成败分支/结果上限/`document.title` 联动、`runWd14`/`runClSingle` 三分支、`runXyzItems` 的 reset/中断/失败续跑、**XYZ 重跑原位替换**等三条回归防线）。
+  - **T4 server 层（此前完全零覆盖，+56）**：SSRF 防护契约、LoRA 路径白名单、原子写/写队列/请求体上限；全部使用临时目录，不触碰仓库 `data/`。
+  - 明确不测 `exportXyzGrid`（依赖 canvas 2D，jsdom 未实现；已由 E2E 间接覆盖），测试文件末尾注释了原因。
+- **五项质量门**：`tsc --noEmit` 0 错误；`eslint src server` **0 error / 42 warning**（基线 135）；`vitest run` 316 项全绿；`vite build` 成功；E2E 冒烟 6 项全绿。
 
 ## [v0.4.2] - 2026-09-22
 
