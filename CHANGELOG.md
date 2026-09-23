@@ -2,19 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [未发布] - 2026-09-23
-
-### 🐛 修复 (Bug Fixes)
-
-- **生成中的实时预览裂图（“预览中...”显示失败）**：WS 二进制预览帧切片后 Blob 的 MIME type 为空，而 `blob:` URL 无内容嗅探，`<img>` 直接裂图（成品图走 `/view` HTTP 有正确响应头所以一直正常——这也是为什么只有预览坏）。现按帧头声明的图片类型（1=JPEG / 2=PNG / 3=WEBP）显式设置 MIME；顺带把旧预览 URL 从「立即 revoke」改为保留 3 帧缓冲延迟回收（原实现会在 `<img>` 还在加载时吊销 URL，造成裂图闪烁），并在完成/出错时统一释放。
-- **XYZ multi/highres 目标补齐水印借用**：主界面跑多人/高清修复时会借用「文字特效」页的水印配置（App.tsx 一直如此），但 XYZ 跑这两个目标时不借——同一组合两条路径出图不一致。现四个 target 统一借用，且 drawText 轴仍按层合并（未打轴的字体/颜色不丢）。补 2 条回归测试（C2b/C2c）。
-
 ## [v0.5.0] - 2026-09-23
 
 > 本版一次性落地 `任务清单-下个迭代.md` 的全部 12 项工程任务（T2 / T4–T14），并纳入此前已推送未发版的「核心链路单测」批次（T1）。
 
 ### 🐛 修复 (Bug Fixes)
 
+- **生成中的实时预览裂图（“预览中...”显示失败）**：WS 二进制预览帧切片后 Blob 的 MIME type 为空，而 `blob:` URL 无内容嗅探，`<img>` 直接裂图（成品图走 `/view` HTTP 有正确响应头所以一直正常——这也是为什么只有预览坏）。现按帧头声明的图片类型（1=JPEG / 2=PNG / 3=WEBP）显式设置 MIME；顺带把旧预览 URL 从「立即 revoke」改为保留 3 帧缓冲延迟回收（原实现会在 `<img>` 还在加载时吊销 URL，造成裂图闪烁），并在完成/出错时统一释放。
+- **XYZ multi/highres 目标补齐水印借用**：主界面跑多人/高清修复时会借用「文字特效」页的水印配置（App.tsx 一直如此），但 XYZ 跑这两个目标时不借——同一组合两条路径出图不一致。现四个 target 统一借用，且 drawText 轴仍按层合并（未打轴的字体/颜色不丢）。补 2 条回归测试（C2b/C2c）。
 - **history 兜底路径会丢掉后续节点的文本输出**：`extractHistory` 用**函数级累积数组**判断「本节点有没有文本」，导致只有第一个产出文本的节点会走「扫描全部输出」的兜底，第二个及之后的节点若用自定义输出键名，其文本被静默丢弃。WebSocket 的 `executed` 路径用的是每条消息的局部数组、没有这个问题——两条路径本该等价却不等价。现统一为**按节点**判定（T1）。
 - **图片去重口径统一**：`extractHistory` 原先不对图片去重（同一 `url` 会重复列出），现与 `executed` 路径一致按 `url` 去重（T1）。
 
@@ -66,12 +61,6 @@ All notable changes to this project will be documented in this file.
   `PromptEditorDialog.tsx` 902 → 861 行（类型与预设包抽至 `PromptEditorData`）；导出面与逻辑逐字不变。
   `workflowBuilders.ts` / `comfyClient.ts` 按 SSOT 约定保持单文件不动。
 
-### 🧪 测试 (Tests)
-
-- 测试总数 **260 → 316**（新增 server 56 项），30 → 33 个文件全绿。
-- `tsc --noEmit` 0 错误；`eslint src server` 0 error / 42 warning（基线 135）；`vite build` 成功；
-  E2E 冒烟 6 项全绿。
-
 ### ♻️ 重构 (Refactor)
 
 - **结果解析逻辑消除重复实现（T1）**：`processTextValue` 与文本优先键列表原先在 `runPrompt` 与 `extractHistory` 里**各写一份**，现抽到新模块 `src/lib/comfyResult.ts`（`collectNodeTexts` / `collectNodeImages` / `mergeJobResult`），两条路径共用同一实现。`comfyClient.ts` 由 1062 行降至 958 行。
@@ -79,11 +68,12 @@ All notable changes to this project will be documented in this file.
 
 ### 🧪 测试 (Tests)
 
-- 测试总数 **224 → 316**（+92），33 个文件全绿：
+- 测试总数 **224 → 340**（+116），35 个文件全绿：
   - **T1 核心链路（此前完全零覆盖，+36）**：`src/lib/comfyResult.test.ts`（17 条——字符数组拼接、对象过滤、空值容错、优先键命中时不走兜底、**多节点连续处理时第二个节点同样能走兜底**（本次修复点）、图片 `url`/`nodeTitle` 取值、`mergeJobResult` 去重保序）；`src/hooks/useGeneration.test.ts`（19 条——`runPrompt` 成败分支/结果上限/`document.title` 联动、`runWd14`/`runClSingle` 三分支、`runXyzItems` 的 reset/中断/失败续跑、**XYZ 重跑原位替换**等三条回归防线）。
   - **T4 server 层（此前完全零覆盖，+56）**：SSRF 防护契约、LoRA 路径白名单、原子写/写队列/请求体上限；全部使用临时目录，不触碰仓库 `data/`。
+  - **hook 层测试补齐（+18）**：`useLoras`（14 条：翻页合并去重、收藏乐观更新与失败回滚、触发词解析、mutation、doctorAction 分派等）与 `useXyz`（4 条），至此核心 hook 全部有覆盖。
   - 明确不测 `exportXyzGrid`（依赖 canvas 2D，jsdom 未实现；已由 E2E 间接覆盖），测试文件末尾注释了原因。
-- **五项质量门**：`tsc --noEmit` 0 错误；`eslint src server` **0 error / 42 warning**（基线 135）；`vitest run` 316 项全绿；`vite build` 成功；E2E 冒烟 6 项全绿。
+- **五项质量门**：`tsc --noEmit` 0 错误；`eslint src server` **0 error / 42 warning**（基线 135）；`vitest run` 340 项全绿；`vite build` 成功；E2E 冒烟 6 项全绿。
 
 ## [v0.4.2] - 2026-09-22
 
