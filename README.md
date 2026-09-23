@@ -255,7 +255,8 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **详尽更新日志**：更多详细的改动记录请参阅 [CHANGELOG.md](file:///f:/demo/comfyui-xyz-demo/CHANGELOG.md)。
 
 ### 37. 工程质量基建：组件测试 · E2E 冒烟 · ESLint
-- **组件层测试 (v0.3.7 新增)**：`@testing-library/react` + jsdom 测试基建（滚动 API stub），23 个组件测试覆盖 LoRA 侧边栏折叠交互、卡片 NSFW 模糊与遮罩、拖拽控件与权重胶囊；连同 `useOptions` 选项映射防线，`npm run test` 总计 **224 个测试**（v0.4.2 更新；v0.3.7 时为 120 个）。
+- **组件层测试 (v0.3.7 新增)**：`@testing-library/react` + jsdom 测试基建（滚动 API stub），23 个组件测试覆盖 LoRA 侧边栏折叠交互、卡片 NSFW 模糊与遮罩、拖拽控件与权重胶囊；连同 `useOptions` 选项映射防线，`npm run test` 总计 **260 个测试**（v0.4.3 更新；v0.3.7 时为 120 个）。
+- **核心链路测试 (v0.4.3 新增)**：`useGeneration`（生成调度）与 `comfyClient` 的结果解析此前**零覆盖**，现已补齐——`src/lib/comfyResult.test.ts`（17 条，纯函数：文本/图片提取与归并去重）+ `src/hooks/useGeneration.test.ts`（19 条，`renderHook` + mock client：成败分支、结果上限、标题联动、WD14/CL 单图、XYZ 的 reset/中断/单条失败）。含三条回归防线：XYZ 重跑与重试的**原位替换**、multi 轴 prompt **追加**、anima 轴 drawText **按层合并**。
 - **E2E 冒烟 (v0.3.7 新增，v0.4.2 修复)**：Playwright 驱动真实页面的 6 个冒烟用例（`npm run test:e2e`，约 4 秒），API **与 WebSocket** 均在路由层 mock（`page.route` + `page.routeWebSocket`），**不依赖 ComfyUI 运行**；另附真实生图手动验证脚本 `e2e/run-generation.mjs`（捕获实际提交的 workflow 并以 ComfyUI history 独立核验）。
   - 若 `npm` 不可用（如被安全策略拦截的环境），可直接调二进制：`node node_modules/@playwright/test/cli.js test`。
 - **ESLint 与构建优化 (v0.3.7 新增)**：flat config（typescript-eslint + react-hooks + react-refresh），`npm run lint`；存量死代码清理（56 处未用变量/导入、287 行死 hook）；构建警告清零——crypto-js 按需引入 + vendor 分包，主 chunk 684 → 402 kB，全部 chunk < 500 kB。

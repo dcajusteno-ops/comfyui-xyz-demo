@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [未发布] - 2026-09-23
+
+### 🐛 修复 (Bug Fixes)
+
+- **history 兜底路径会丢掉后续节点的文本输出**：`extractHistory` 用**函数级累积数组**判断「本节点有没有文本」，导致只有第一个产出文本的节点会走「扫描全部输出」的兜底，第二个及之后的节点若用自定义输出键名，其文本被静默丢弃。WebSocket 的 `executed` 路径用的是每条消息的局部数组、没有这个问题——两条路径本该等价却不等价。现统一为**按节点**判定。
+- **图片去重口径统一**：`extractHistory` 原先不对图片去重（同一 `url` 会重复列出），现与 `executed` 路径一致按 `url` 去重。
+
+### ♻️ 重构 (Refactor)
+
+- **结果解析逻辑消除重复实现**：`processTextValue` 与文本优先键列表 `["text","texts","STRING","string","tags","csv"]` 原先在 `runPrompt` 与 `extractHistory` 里**各写一份**，现抽到新模块 `src/lib/comfyResult.ts`（`collectNodeTexts` / `collectNodeImages` / `mergeJobResult`），两条路径共用同一实现。`comfyClient.ts` 由 1062 行降至 958 行。
+- 顺带消掉 2 处 `any`，lint warning 129 → 127（业务行为除上述两个修复点外逐字不变）。
+
+### 🧪 测试 (Tests)
+
+- **核心链路补齐单测（此前完全零覆盖）**：新增 `src/lib/comfyResult.test.ts`（17 条）与 `src/hooks/useGeneration.test.ts`（19 条）。
+  - `comfyResult`：字符数组拼接、对象过滤、空值容错、优先键命中时不走兜底、**多节点连续处理时第二个节点同样能走兜底**（本次修复点）、图片 `url`/`nodeTitle` 取值、`mergeJobResult` 的按 `url`/按内容去重与保序、`acc` 原地累加语义。
+  - `useGeneration`：`runPrompt` 成功/失败/非 Error 抛出物/结果上限 24 条/`activeTaskLabel`/`document.title` 联动（含 `max=0` 不出现 `NaN%`）；`runWd14` 与 `runClSingle` 的「未选图抛错且不提交」「带本地文件先上传并用上传名覆盖 `imageName`」「只有 `imageName` 时不触发上传」；`runXyzItems` 的 `reset` 重置、中断后续条目标记 `cancelled`、单条失败不中断整批。
+  - **三条回归防线**：XYZ 重跑与重试失败的**原位替换**（原 bug 是 `reset=true` 清空其余结果）、multi 轴的 `positivePrompt` **追加**到 `globalPrompt` 而非覆盖、anima 轴的 `drawText` **按层合并**而非整体覆盖。
+  - 明确不测 `exportXyzGrid`（依赖 `new Image()` / canvas 2D / `toDataURL`，jsdom 未实现；已由 E2E 间接覆盖），测试文件末尾注释了原因。
+- 测试总数 224 → **260**（30 个文件全绿）；`tsc --noEmit` 0 错误、`eslint src server` 0 error / 127 warning、`vite build` 成功（主 chunk 442.66 kB）。
+
 ## [v0.4.2] - 2026-09-22
 
 ### 🎨 图生图闭环 (Img2Img Round-Trip)
