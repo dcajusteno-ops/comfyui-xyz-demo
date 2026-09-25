@@ -30,9 +30,14 @@ test-results/
 .zcode/
 .playwright-mcp/
 .workbuddy/
+.webview2/
 
 # backups & temp files
 backup_*/
 *.md
 !README.md
 !CHANGELOG.md
+
+# go build artifacts
+ComfyUI-XYZ-Web.exe
+*.exe.tmp

@@ -7,7 +7,7 @@ interface WelcomeModalProps {
 
 export function WelcomeModal({ onClose }: WelcomeModalProps) {
   return (
-    <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+    <div className="modal-backdrop" style={{ zIndex: 11000 }}>
       <div 
         className="modal" 
         style={{ 

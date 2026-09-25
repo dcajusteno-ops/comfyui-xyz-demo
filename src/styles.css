@@ -1969,7 +1969,8 @@ button {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 5000;
+  /* 高于断连遮罩（10000）：离线时从顶栏打开的弹窗（外部工具 / 设置等）不被遮罩盖住 */
+  z-index: 11000;
   display: grid;
   place-items: center;
   padding: 20px;
@@ -5132,6 +5133,8 @@ textarea {
 }
 
 /* Connection Overlay */
+/* 断连遮罩拦截背景全部交互（顶栏/侧栏均不可点）——离线功能入口收敛为
+   遮罩卡片上的「外部工具」按钮；弹窗层级(z 11000)在遮罩之上，可正常打开 */
 .connection-overlay {
   position: fixed;
   inset: 0;

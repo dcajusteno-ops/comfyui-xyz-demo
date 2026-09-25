@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Settings,
   Sparkles,
+  Wrench,
 } from "lucide-react";
 
 import { AppSidebar } from "./components/layout/AppSidebar";
@@ -566,6 +567,10 @@ function App() {
               <button type="button" className="icon-button" onClick={() => ui.setShowTranslation(true)} title="翻译工具">
                 <Languages size={18} />
               </button>
+              {/* 外部工具启动器：不经过 ComfyUI，离线可用 */}
+              <button type="button" className="icon-button" onClick={() => ui.setShowLauncher(true)} title="外部工具（一键启动本地程序/脚本）">
+                <Wrench size={18} />
+              </button>
             </div>
             
             <div className="action-divider" />
@@ -1003,6 +1008,11 @@ function App() {
               <button type="button" className="primary-action" onClick={() => window.location.reload()}>
                 <RefreshCw size={18} />
                 重新连接
+              </button>
+              {/* 断连时也能用的离线功能入口：外部工具启动器（不依赖 ComfyUI） */}
+              <button type="button" className="secondary-action" onClick={() => ui.setShowLauncher(true)} title="离线可用：一键启动本地程序/脚本/网页">
+                <Wrench size={18} />
+                外部工具
               </button>
               <button type="button" className="secondary-action" onClick={() => loras.setLoraOperation({ type: "settings" })}>
                 <Settings size={18} />

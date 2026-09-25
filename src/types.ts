@@ -778,6 +778,15 @@ export type PathPreset = {
   value: string;
 };
 
+/** 外部工具启动器的工具条目（复刻 comfyui-demo-main；icon 为 data URL 或空 = 默认图标） */
+export type LauncherTool = {
+  id: string;
+  name: string;
+  path: string;
+  args?: string;
+  icon?: string;
+};
+
 export type NoteItem = {
   id: string;
   title: string;

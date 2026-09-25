@@ -58,6 +58,7 @@ export function useUiState() {
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showPromptSidebar, setShowPromptSidebar] = useState(false);
   const [showTranslation, setShowTranslation] = useState(false);
+  const [showLauncher, setShowLauncher] = useState(false);
 
   const confirm = (title: string, message: string, onConfirm: () => void) => {
     setConfirmDialog({ title, message, onConfirm });
@@ -87,6 +88,8 @@ export function useUiState() {
     setShowPromptSidebar,
     showTranslation,
     setShowTranslation,
+    showLauncher,
+    setShowLauncher,
     confirm,
   }), [
     showWelcome,
@@ -101,5 +104,6 @@ export function useUiState() {
     showPromptEditor,
     showPromptSidebar,
     showTranslation,
+    showLauncher,
   ]);
 }

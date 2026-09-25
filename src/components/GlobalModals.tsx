@@ -25,6 +25,7 @@ const LoraOperationModal = lazy(() => import("./features/Lora/LoraModals").then(
 const PromptEditorDialog = lazy(() => import("./PromptEditorDialog").then((m) => ({ default: m.PromptEditorDialog })));
 const TranslationToolDialog = lazy(() => import("./TranslationToolDialog").then((m) => ({ default: m.TranslationToolDialog })));
 const XyzHelpModal = lazy(() => import("./features/Xyz/XyzHelpModal").then((m) => ({ default: m.XyzHelpModal })));
+const LauncherDialog = lazy(() => import("./LauncherDialog").then((m) => ({ default: m.LauncherDialog })));
 
 interface GlobalModalsProps {
   loraOperation: LoraOperation | null;
@@ -122,6 +123,8 @@ export function GlobalModals(props: GlobalModalsProps) {
           onToast={pushToast}
         />
       )}
+
+      {ui.showLauncher && <LauncherDialog ui={ui} onToast={pushToast} onClose={() => ui.setShowLauncher(false)} />}
 
       {loraOperation && (
         <LoraOperationModal
