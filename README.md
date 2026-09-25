@@ -10,6 +10,7 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 目前项目已搭建完毕基础架构，并实现了以下核心标签页功能：
 
+> **🆕 v0.6.0 亮点**：项目编译为**单文件桌面应用** `ComfyUI-XYZ-Web.exe`——双击即开的独立窗口（WebView2 壳），**免 Node/Go 环境**，约 15MB；DPI 感知不模糊、默认 1600×1000 且记忆窗口尺寸、固定 9123 端口状态不丢、单实例运行。新增**外部工具启动器**：把常用本地程序/脚本/网页登记成工具一键拉起，**ComfyUI 断连时也能用**（断连遮罩拦截背景交互，入口收敛为卡片上的「外部工具」按钮）。详见下方「### 41. 独立桌面应用与外部工具启动器」。
 > **🆕 v0.5.0 亮点**：一次落地 12 项工程任务——**局部重绘涂抹遮罩**（图生图 + 遮罩 → VAEEncodeForInpaint）、**手机端远程生图**（手机提交 → 电脑跑 → 回传成图）、**任务队列面板**（查看/移除/清空）、**通配符在线编辑**、**LoRA 配方界面**、**XYZ 最优组合一键回填**、输出面板标题摘要、目录选择器/全局快捷键/显存预警/记事本标签与附件图、主 chunk 分包瘦身 42%、server 层 56 项单测破零、lint warning 135→42。详见下方「### 40. v0.5.0 工程迭代」。
 > **🆕 v0.4.2 亮点**：默认生图 / 多人工作流 / 高清修复三大模板**补齐图生图**（开关式，默认关闭），并新增「输出图一键作为输入图 / 送去反推」——把「出图 → 改图 → 再出图」串成闭环。详见下方「### 39. 图生图闭环」。
 >
@@ -288,6 +289,26 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **枚举隔离**：图生图缩放的采样方法独立拉取 `ImageScale.upscale_method`。**不可复用**「放大方法」那份——后者来自 `LatentUpscaleBy`，含 `bislerp` 而无 `lanczos`，对 `ImageScale` 非法。
 - **Anima 零回归**：Anima 的图生图实现与其 `keepProportion` / `cropPosition` 字段语义未变，设置值不丢。
 
+### 40. v0.5.0 工程迭代（12 项任务一次落地）
+
+- **局部重绘 (Inpaint)**：图生图开启且已选参考图时可「涂抹遮罩」指定重绘区域（双画布涂抹编辑器，`LoadImageMask(channel=red) → VAEEncodeForInpaint(grow_mask_by=6)`；未设遮罩仍走整图重绘）。
+- **手机端远程生图**：手机页 `#/mobile-tag` 新增「生图」标签页——手机提交提示词 → 电脑 ComfyUI 出图 → 手机端即时回显，可与 WD1.4 识图并存。
+- **任务队列面板**：接入 ComfyUI `/queue`，支持查看 pending/running、移除单条、一键清空。
+- **其他**：通配符在线编辑、LoRA 配方界面、XYZ 最优组合一键回填、输出面板标题摘要、目录选择器、全局快捷键、显存预警、记事本标签与附件图、主 chunk 分包瘦身 42%、server 层 56 项单测破零、lint warning 135→42。
+- 详细清单见 [CHANGELOG.md](CHANGELOG.md) 的 `[v0.5.0]` 小节。
+
+### 41. 独立桌面应用与外部工具启动器 (v0.6.0)
+
+- **Go 单文件桌面 exe**（构建与运行方法见下方「快速开始 → 独立桌面应用」）：
+  - **双击即用的独立桌面窗口**（WebView2 壳，`-H=windowsgui` 无控制台黑窗）；`--web` 参数回退「本地服务 + 浏览器」形态。
+  - **Per-Monitor V2 DPI 感知**：修复高分屏下界面发糊。
+  - **窗口默认 1600×1000，记忆上次尺寸/位置**（`data/window-state.json`），按屏幕 95%/92% 钳制，最小 1100×700。
+  - **固定绑定 9123 端口 + 单实例互斥体**：与 dev server（9999）完全解耦、可同时运行；界面状态不再因端口漂移而「重置」。
+  - **应用图标**：`scripts/gen_icon.py` 生成 → rsrc 编译 `.syso`，窗口与 exe 文件同图标。
+- **外部工具启动器**：顶栏「工具」入口，把常用本地程序登记成工具（支持 `.exe` / `.bat` / `.cmd` / `.html` / `.url`），双击条目或点 ▶ 一键拉起；可从 exe 提取程序图标或选内置图标；清单存 `data/launcher-tools.json`（原子写）。
+  - **断连也可用**：断连遮罩拦截背景全部交互（防止误点连不上服务的功能），遮罩卡片上保留「重新连接 / 外部工具 / 修改 API 地址」三个按钮——外部工具走离线启动链路，不经 ComfyUI。
+  - **双实现对齐**：dev 为 TS 中间件 `server/launcher.ts`（SSOT），exe 为 Go 移植 `internal/launcher`，两侧测试成对固化行为契约。
+
 ---
 
 ## 🚀 快速开始 (Quick Start)
@@ -316,6 +337,25 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
    git config core.hooksPath scripts/githooks
    ```
    之后每次 `git commit` 会自动运行 `tsc --noEmit` 与 `eslint src server`（约 15 秒），存在 error 时中止提交；紧急情况可用 `git commit --no-verify` 跳过单次校验。
+
+### 独立桌面应用（单文件 exe，免 Node 环境，可选）
+
+项目已支持用 **Go** 编译为单个 `ComfyUI-XYZ-Web.exe`（约 15MB）：前端 `dist/` 与全部后端中间件（笔记/词库/手机联动/示例图/LoRA/代理）通过 `go:embed` 打包进一个文件，**无需安装 Node.js 或 Go 即可运行**。
+
+**双击 exe 弹出的是独立桌面窗口（WebView2 壳），不打开浏览器**；关闭窗口即退出。需要旧的「本地服务 + 系统浏览器」形态时加 `--web` 参数（或设 `DSH_WEB=1`）：
+
+```bash
+# 方式一：双击 run-exe.bat（exe 不存在时会给出构建提示）
+# 方式二：命令行构建 + 运行（需 Go 1.25+）
+powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1   # 自动执行 vite build + go build（GUI 子系统，无控制台黑窗；脚本为 UTF-8 BOM，Windows PowerShell 5.1 可直接跑）
+ComfyUI-XYZ-Web.exe                # 独立桌面窗口
+ComfyUI-XYZ-Web.exe --web          # 兼容模式：本地服务 + 浏览器
+```
+
+- 环境变量：`PORT`（浏览器模式默认 9999）、`COMFYUI_URL`（默认 `http://127.0.0.1:8188`）。
+- **桌面窗口模式固定绑定 9123 端口**（被占则 9124/9125… 顺延）：与 dev server 的 9999 完全解耦，**两者可同时运行**，且界面状态（localStorage）不会因端口漂移丢失；**手机联动地址为 `http://<局域网IP>:9123/#/mobile-tag`**。同一时刻只允许运行一个 exe 实例。
+- 数据目录（`data/`、`public/`）沿用工作目录下的既有文件夹，与 dev 模式完全兼容。
+- 设计与实施细节见 `任务书-Go单文件exe.md`（本地文档）。
 
 ## 🧩 核心插件与模型依赖
 
@@ -380,5 +420,5 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 ### 2. 后端健壮性与边界处理
 - **更多资产管理**：未来需将 VAE、Embeddings 甚至 Checkpoints 也纳入类似 LoRA 的网格化管理与详情展示中。
-- **任务队列面板**：`comfyClient` 目前只用了 `/interrupt`、`/history`、`/view`，未接入 `/queue`（pending 列表、排序、删除、清空）。
-- **历史记录画廊**：生成结果当前仅内存态（刷新即丢），可基于 ComfyUI `/history` + prompt JSON 做持久化历史与「回填参数」。
+- **任务队列面板**：✅ 已在 v0.5.0 完成（`/queue` pending 列表、移除、清空）。
+- **Go exe 持续打磨**：自动更新检查、多语言界面等桌面化能力可按需外扩。

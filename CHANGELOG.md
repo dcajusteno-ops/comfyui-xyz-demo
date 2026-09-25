@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.6.0] - 2026-09-25
+
+### ✨ 新功能 (Features)
+
+- **外部工具启动器（复刻自 comfyui-demo-main，样式按本项目规范重写）**：顶栏新增「工具」入口——把常用本地程序/脚本（.exe/.bat/.cmd）或网页（.html/.url）登记成工具，一键拉起（弹窗内双击或点 ▶）。工具清单存 `data/launcher-tools.json`（原子写+写队列），支持从 .exe 提取程序图标（PowerShell ExtractAssociatedIcon，缓存 `data/icons/<md5>.png`）或选内置图标。**启动链路不经过 ComfyUI，未连接服务（离线）时完全可用**。实现：TS 中间件 `server/launcher.ts`（SSOT）+ Go 移植 `internal/launcher`（exe 与 dev 行为对齐，两侧测试成对固化 ext 分派/空白参数切分语义）+ 前端 `LauncherDialog`（ModalFrame/CSS 变量，零 styles.css 新增，lazy 分包）。
+  **断连遮罩正常拦截背景**：断连时顶栏/侧栏等背景功能不可点（避免误操作连不上服务的功能），弹窗层级提到遮罩之上保证弹窗可用。离线功能入口收敛为**遮罩卡片上的「外部工具」快捷按钮**——断连时从这里一键拉起本地工具。
+- **Go 单文件 exe 打包（`任务书-Go单文件exe.md` G1–G8）**：用 Go 1.25 把项目编译为单个
+  `ComfyUI-XYZ-Web.exe`（约 15MB）——前端 `dist/` 经 `go:embed` 内嵌，TS 中间件层（notes/prompts/wildcards/
+  fsBrowse、手机联动 SSE+队列、示例图管理器、LoRA 元数据、ComfyUI/阿里云反代含 WebSocket）全部移植为
+  Go 实现，行为契约逐条对齐 `server/*.ts`（2MB 请求上限、temp+rename 原子写、备份 KEEP=30+防抖、
+  revision 乐观并发 409、SSRF 双重防护、.safetensors 路径白名单）。**双击 exe 弹出独立桌面窗口
+  （WebView2 壳，`-H=windowsgui` 无控制台黑窗），不打开浏览器**；`--web` 参数回退「服务 + 浏览器」模式。
+  窗口与 exe 均带应用图标（靛蓝渐变 + XYZ，`scripts/gen_icon.py` 生成 → rsrc 编译 `.syso` 内嵌）。
+  运行无需 Node/Go 环境；`scripts/build-exe.ps1` 一键构建（vite build + go build）。质量门：Go 单测全绿、
+  TS 侧 vitest 340/340、代理/静态/WS 对拍 8/8 一致、桌面窗口模式 6/6 + 浏览器模式 E2E 7/7 通过
+  （详细实施记录见任务书 §8）。
+- **桌面窗口体验细化（G8 后追加）**：Per-Monitor V2 **DPI 感知**（`setDPIAware()`，修复高分屏界面发糊）；窗口默认 **1600×1000** 并**记忆上次尺寸/位置**（`data/window-state.json`，屏幕 95%/92% 钳制，最小 1100×700）；桌面模式**固定绑定 9123 端口**（与 dev 的 9999 解耦，可同时运行；localStorage 不再因端口漂移「重置」）+ **单实例互斥体**（重复启动弹提示框）；修复「启动器唤起外部程序无窗口」（去掉 `HideWindow:true` 的 SW_HIDE 误传，仅保留 `CREATE_NO_WINDOW|DETACHED_PROCESS`）；`scripts/build-exe.ps1` 补 UTF-8 BOM（Windows PowerShell 5.1 兼容）。
+
 ## [v0.5.0] - 2026-09-23
 
 > 本版一次性落地 `任务清单-下个迭代.md` 的全部 12 项工程任务（T2 / T4–T14），并纳入此前已推送未发版的「核心链路单测」批次（T1）。
