@@ -335,8 +335,11 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
    cd comfyui-xyz-demo
    ```
 
+   > 全部源码在 `desktop-source/` 子目录中，根目录只保留 exe、启动脚本与运行数据；后续命令都在 `desktop-source/` 里执行。
+
 2. **安装依赖 (必做)**：
    ```bash
+   cd desktop-source
    npm install
    ```
 
@@ -344,11 +347,11 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
    ```bash
    npm run dev
    ```
-   *(注：在 Windows 环境下也可以直接双击 `run.bat`，它会自动处理端口冲突并自动在浏览器中打开页面)*
+   *(注：在 Windows 环境下也可以直接双击 `desktop-source\run.bat`，它会自动处理端口冲突并自动在浏览器中打开页面)*
 
 4. **启用提交前质量门（推荐）**：
    ```bash
-   git config core.hooksPath scripts/githooks
+   git config core.hooksPath desktop-source/scripts/githooks
    ```
    之后每次 `git commit` 会自动运行 `tsc --noEmit` 与 `eslint src server`（约 15 秒），存在 error 时中止提交；紧急情况可用 `git commit --no-verify` 跳过单次校验。
 
@@ -360,8 +363,8 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 ```bash
 # 方式一：双击 run-exe.bat（exe 不存在时会给出构建提示）
-# 方式二：命令行构建 + 运行（需 Go 1.25+）
-powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1   # 自动执行 vite build + go build（GUI 子系统，无控制台黑窗；脚本为 UTF-8 BOM，Windows PowerShell 5.1 可直接跑）
+# 方式二：命令行构建 + 运行（需 Go 1.25+，在 desktop-source 目录下执行）
+powershell -ExecutionPolicy Bypass -File desktop-source\scripts\build-exe.ps1   # 自动执行 vite build + go build（GUI 子系统，无控制台黑窗；脚本为 UTF-8 BOM，Windows PowerShell 5.1 可直接跑）
 ComfyUI-XYZ-Web.exe                # 独立桌面窗口
 ComfyUI-XYZ-Web.exe --web          # 兼容模式：本地服务 + 浏览器
 ```

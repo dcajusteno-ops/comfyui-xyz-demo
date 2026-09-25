@@ -1,7 +1,10 @@
 #!/bin/sh
 # Pre-commit 质量门：类型检查 + Lint（提交前自动运行）
-# 启用方式：git config core.hooksPath scripts/githooks（本仓库已配置）
+# 启用方式：git config core.hooksPath desktop-source/scripts/githooks（本仓库已配置）
 # 想跳过单次校验：git commit --no-verify（不建议）
+# 源码与 node_modules 在 desktop-source/ 下，钩子从仓库根运行，先切过去
+
+cd desktop-source || { echo "[pre-commit] ✗ 找不到 desktop-source/"; exit 1; }
 
 echo "[pre-commit] tsc --noEmit ..."
 node node_modules/typescript/bin/tsc --noEmit

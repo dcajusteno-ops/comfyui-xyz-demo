@@ -1,6 +1,6 @@
 ﻿# 构建 Go 版单文件 exe（任务书-Go单文件exe.md §3.4）
-# 用法：在仓库根目录执行  powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1
-# 前置：Node.js（vite build）与 Go >= 1.22
+# 用法：在 desktop-source 目录执行  powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1
+# 前置：Node.js（vite build）与 Go >= 1.22；产物输出到仓库根目录（与 run-exe.bat 同级）
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
@@ -9,7 +9,7 @@ node node_modules/vite/bin/vite.js build
 if ($LASTEXITCODE -ne 0) { throw "vite build 失败" }
 
 Write-Host "[2/3] go build（内嵌 dist，产出单文件 exe；-H=windowsgui 隐藏控制台窗口）..." -ForegroundColor Cyan
-$exe = "ComfyUI-XYZ-Web.exe"
+$exe = "..\ComfyUI-XYZ-Web.exe"
 # 图标：scripts/appicon.ico → rsrc_windows_amd64.syso（图标改过则重编；syso 变更后 go build 自动链接）
 $ico = "scripts/appicon.ico"
 $syso = "rsrc_windows_amd64.syso"

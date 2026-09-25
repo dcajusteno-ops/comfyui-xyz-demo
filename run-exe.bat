@@ -6,7 +6,7 @@ rem 旧的开发模式菜单仍可用：运行 run-dev.bat（即原 run.bat）
 cd /d "%~dp0"
 if not exist "ComfyUI-XYZ-Web.exe" (
   echo [提示] 未找到 ComfyUI-XYZ-Web.exe，请先执行：
-  echo   powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1
+  echo   powershell -ExecutionPolicy Bypass -File desktop-source\scripts\build-exe.ps1
   echo （需要 Node.js 与 Go ^>= 1.22）
   pause
   exit /b 1

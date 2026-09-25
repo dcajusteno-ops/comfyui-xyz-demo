@@ -123,7 +123,7 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
               <PluginLink 
                 name="ComfyUI-DrawText-Advanced" 
                 desc="提供高级文字绘制节点，支持文字旋转与无级字体加粗。请将项目源码中的此文件夹拷贝到 ComfyUI 的 custom_nodes 目录中并重启。"
-                url="https://github.com/dcajusteno-ops/comfyui-xyz-demo/tree/master/ComfyUI-DrawText-Advanced"
+                url="https://github.com/dcajusteno-ops/comfyui-xyz-demo/tree/master/desktop-source/ComfyUI-DrawText-Advanced"
               />
             </div>
           </div>

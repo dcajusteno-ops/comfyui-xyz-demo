@@ -11,8 +11,8 @@ export default defineConfig({
   retries: 0,
   webServer: useExe
     ? {
-        // 直接运行 Go exe（已内嵌前端），要求 exe 存在且监听 5199
-        command: "ComfyUI-XYZ-Web.exe",
+        // 直接运行 Go exe（已内嵌前端），要求 exe 存在且监听 5199；exe 在仓库根目录
+        command: "..\\ComfyUI-XYZ-Web.exe",
         url: "http://127.0.0.1:5199",
         reuseExistingServer: true,
         env: { DSH_E2E: "1", PORT: "5199" },
