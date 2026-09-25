@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.6.2] - 2026-09-25
+
+### 🔧 工程与质量 (Engineering)
+
+- **项目结构重整（对齐 comfyui-demo-main 的仓库布局），功能零变化**：
+  - **全部源码收进 `desktop-source/`**：src、server、internal + main.go、e2e、scripts（构建脚本与 git 钩子）、public、workflows、ComfyUI-DrawText-Advanced 插件及全部工程配置（package.json / tsconfig / vite / playwright / eslint / go.mod）整体迁入，git 以 rename 记录（历史可追溯）。**根目录只保留 `ComfyUI-XYZ-Web.exe`、`run-exe.bat`、运行数据 `data/` 与 README / CHANGELOG**；
+  - **全部文档收进 `docs/`**：活跃文档（待办与遗留事项、文档导航）在 `docs/` 根，归档文档按类型分目录（任务书 / 任务清单 / 计划与核验 / 体检报告）整体迁入 `docs/归档文档/`，索引与相互链接同步更新；
+  - 路径适配：`scripts/build-exe.ps1` 产物改输出到仓库根目录（exe 与启动脚本同级的双击体验不变）；`run-exe.bat` 构建提示、playwright `DSH_EXE` 模式 exe 路径、pre-commit 钩子（`core.hooksPath` 指向 `desktop-source/scripts/githooks`，钩内先切源码目录）、WelcomeModal 里插件 GitHub 链接、README 快速开始均已同步；
+  - **数据目录语义**：exe 与 dev server 均按进程工作目录解析 `data/`——exe 在根目录运行，正式数据仍在根 `data/`；dev 模式在 `desktop-source/` 里跑，开发数据落 `desktop-source/data/`，两者互不干扰。
+- 质量门（新布局下全部实跑验证）：vitest **38 个测试文件 / 373 项全绿**、`tsc --noEmit` 0 错、`eslint src server` 0 error（41 warning 基线持平）、`go test ./internal/... .` 6 包全绿、`build-exe.ps1` 重建 exe 成功（14.7MB）。
+- 版本号补齐：`package.json` / `package-lock.json` 由 0.6.0 升至 0.6.2（v0.6.1 发版时漏升）。
+
 ## [v0.6.1] - 2026-09-25
 
 ### ✨ 新功能 (Features)
