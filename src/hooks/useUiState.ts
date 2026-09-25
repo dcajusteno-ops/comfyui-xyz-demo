@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { isServerBacked, readStoredValue, scheduleUiStateSave } from "../lib/uiStateStore";
 
 export type ConfirmDialog = { title: string; message: string; onConfirm: () => void };
 
-/** 欢迎弹窗已读标记：懒初始化时顺带把无前缀的旧键迁移过来，避免用 effect 同步 setState */
+/**
+ * 欢迎弹窗已读标记：正常路径走服务端存储；offline 兜底走 localStorage
+ * （懒初始化时顺带把无前缀的旧键迁移过来，避免用 effect 同步 setState）。
+ */
 function readWelcomeSeen(): boolean {
+  if (isServerBacked()) {
+    return readStoredValue<boolean>("comfyui_xyz_welcome_seen") === true;
+  }
   try {
     if (localStorage.getItem("comfyui_xyz_welcome_seen")) return true;
     const legacy = localStorage.getItem("xyz_welcome_seen");
@@ -18,15 +25,23 @@ function readWelcomeSeen(): boolean {
   return false;
 }
 
+function persistWelcomeSeen(): void {
+  if (isServerBacked()) {
+    scheduleUiStateSave("comfyui_xyz_welcome_seen", true);
+    return;
+  }
+  try {
+    localStorage.setItem("comfyui_xyz_welcome_seen", "true");
+  } catch {
+    // 写失败时仅本次会话内不再弹出
+  }
+}
+
 export function useUiState() {
   const [showWelcome, setShowWelcome] = useState<boolean>(() => !readWelcomeSeen());
 
   const handleCloseWelcome = useCallback(() => {
-    try {
-      localStorage.setItem("comfyui_xyz_welcome_seen", "true");
-    } catch {
-      // 写失败时仅本次会话内不再弹出
-    }
+    persistWelcomeSeen();
     setShowWelcome(false);
   }, []);
 

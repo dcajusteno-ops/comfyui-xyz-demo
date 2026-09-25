@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState, useCall
 import { ComfyClient } from "./lib/comfyClient";
 import { ConnectionInfo, TabId } from "./types";
 import { CONFIG } from "./config";
-import { useLocalStorageState } from "./hooks/useLocalStorageState";
+import { usePersistentState } from "./hooks/usePersistentState";
 import { isValidTabId } from "./lib/app-utils";
 
 export type Theme = "light" | "dark";
@@ -25,8 +25,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [apiBase, setApiBase] = useState(CONFIG.DEFAULT_API_BASE);
   const client = useMemo(() => new ComfyClient(apiBase), [apiBase]);
   const [connection, setConnection] = useState<ConnectionInfo>({ status: "checking" });
-  const [tab, setTab] = useLocalStorageState<TabId>("comfyui_active_tab", "default");
-  const [theme, setTheme] = useLocalStorageState<Theme>("comfyui_xyz_theme", "light");
+  const [tab, setTab] = usePersistentState<TabId>("comfyui_active_tab", "default");
+  const [theme, setTheme] = usePersistentState<Theme>("comfyui_xyz_theme", "light");
 
   useEffect(() => {
     const root = window.document.documentElement;

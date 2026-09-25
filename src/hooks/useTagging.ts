@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useLocalStorageState } from "./useLocalStorageState";
+import { usePersistentState } from "./usePersistentState";
 import { CONFIG } from "../config";
 import type { 
   Wd14Params, 
@@ -10,7 +10,7 @@ import type {
 } from "../types";
 
 export function useTagging() {
-  const [wd14, setWd14] = useLocalStorageState<Wd14Params>("comfyui_wd14_params", {
+  const [wd14, setWd14] = usePersistentState<Wd14Params>("comfyui_wd14_params", {
     imageName: "",
     model: "wd-v1-4-moat-tagger-v2",
     threshold: 0.35,
@@ -22,11 +22,11 @@ export function useTagging() {
   });
   
   const [wdFile, setWdFile] = useState<File | null>(null);
-  const [wdTags, setWdTags] = useLocalStorageState("comfyui_wd_tags", "");
-  const [wd14Tab, setWd14Tab] = useLocalStorageState<TaggingTabId>("comfyui_wd14_tab", "single");
+  const [wdTags, setWdTags] = usePersistentState("comfyui_wd_tags", "");
+  const [wd14Tab, setWd14Tab] = usePersistentState<TaggingTabId>("comfyui_wd14_tab", "single");
   
   const [clFile, setClFile] = useState<File | null>(null);
-  const [clSingleParams, setClSingleParams] = useLocalStorageState<ClSingleParams>("comfyui_cl_single_params", {
+  const [clSingleParams, setClSingleParams] = usePersistentState<ClSingleParams>("comfyui_cl_single_params", {
     imageName: "",
     modelName: "cl_tagger/cl_tagger_1_02.onnx",
     general: 0.55,
@@ -37,7 +37,7 @@ export function useTagging() {
     sessionMethod: "GPU",
   });
   
-  const [clBatchParams, setClBatchParams] = useLocalStorageState<ClBatchParams>("comfyui_cl_batch_params", {
+  const [clBatchParams, setClBatchParams] = usePersistentState<ClBatchParams>("comfyui_cl_batch_params", {
     imageFolder: CONFIG.DEFAULT_TAG_IMAGE_FOLDER,
     outputFolder: CONFIG.DEFAULT_TAG_OUTPUT_FOLDER,
     prependText: "cs",
@@ -51,7 +51,7 @@ export function useTagging() {
     sessionMethod: "GPU",
   });
   
-  const [wdBatchParams, setWdBatchParams] = useLocalStorageState<WdBatchParams>("comfyui_wd_batch_params", {
+  const [wdBatchParams, setWdBatchParams] = usePersistentState<WdBatchParams>("comfyui_wd_batch_params", {
     imageFolder: CONFIG.DEFAULT_TAG_IMAGE_FOLDER,
     outputFolder: CONFIG.DEFAULT_TAG_OUTPUT_FOLDER,
     prependText: "cs",

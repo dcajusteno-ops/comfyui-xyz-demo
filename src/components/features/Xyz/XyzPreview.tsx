@@ -8,13 +8,19 @@ export function XyzPreview({
   lorasOfTarget,
   excludedIndices,
   onToggleIndex,
+  libraryNames,
 }: {
   axes: XyzAxis[];
   lorasOfTarget?: { name: string; displayName?: string }[];
   excludedIndices: Set<number>;
   onToggleIndex: (index: number) => void;
+  /** LoRA 库文件名列表：模型轴取值支持库序号范围（1..6 / *） */
+  libraryNames?: string[];
 }) {
-  const allCombos = useMemo(() => buildXyzCombinations(axes, lorasOfTarget), [axes, lorasOfTarget]);
+  const allCombos = useMemo(
+    () => buildXyzCombinations(axes, lorasOfTarget, undefined, libraryNames),
+    [axes, lorasOfTarget, libraryNames]
+  );
   const activeCount = allCombos.length - excludedIndices.size;
   const estMinutes = Math.ceil((activeCount * 15) / 60);
 

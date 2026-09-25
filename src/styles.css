@@ -796,6 +796,9 @@ button {
 
 .output-panel {
   min-height: 0;
+  /* 防 grid 溢出：图片固有宽度（如 1024px）会通过 min-width:auto 把列撑爆，
+     导致面板连同标题/下拉框一起溢出窗口被裁切（2026-09-25） */
+  min-width: 0;
   overflow-y: auto;
   padding: 0;
   box-shadow: var(--shadow);
@@ -816,6 +819,8 @@ button {
 
 .gallery-item {
   display: grid;
+  /* minmax(0,1fr)：列宽跟随面板，不被图片固有宽度（1024px）撑大 */
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 14px;
 }
@@ -824,6 +829,7 @@ button {
 .result-card img,
 .lora-preview img {
   width: 100%;
+  max-width: 100%;
   display: block;
   object-fit: cover;
 }
@@ -1861,7 +1867,8 @@ button {
   position: fixed;
   top: 24px;
   right: 24px;
-  z-index: 10001;
+  /* 高于所有弹窗遮罩（modal-backdrop 11000）：弹窗打开期间触发的 toast（如 LoRA 管理器内复制提示词）不被遮罩盖住 */
+  z-index: 12000;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -4401,8 +4408,15 @@ textarea {
 
 .xyz-result {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   border: 1px solid var(--border);
+  min-width: 0;
+}
+
+/* 网格子项默认 min-width:auto 会被长路径标签/大图的 min-content 撑爆，统一放行收缩 */
+.xyz-result > * {
+  min-width: 0;
 }
 
 .xyz-result-head {
@@ -4415,6 +4429,8 @@ textarea {
 .xyz-result-head strong {
   user-select: text;
   -webkit-user-select: text;
+  /* 模型全路径是不可断行长 token：必须允许任意断行，否则 min-content 把格子顶爆 */
+  overflow-wrap: anywhere;
 }
 
 .xyz-result-head span {

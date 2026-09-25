@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocalStorageState } from "./useLocalStorageState";
+import { usePersistentState } from "./usePersistentState";
 import type { AnimaGenerationParams, BaseGenerationParams, HighresParams, LoraSelection, MultiGenerationParams, XyzAxis, TemplateKind } from "../types";
 
 /** XYZ 需要读取的四个模板参数集合（与 useParams 的返回对齐） */
@@ -11,9 +11,9 @@ export type XyzParamsBundle = {
 };
 
 export function useXyz() {
-  const [xyzTarget, setXyzTarget] = useLocalStorageState<TemplateKind>("comfyui_xyz_target", "default");
+  const [xyzTarget, setXyzTarget] = usePersistentState<TemplateKind>("comfyui_xyz_target", "default");
   
-  const [xyzAxes, setXyzAxes] = useLocalStorageState<XyzAxis[]>("comfyui_xyz_axes", [
+  const [xyzAxes, setXyzAxes] = usePersistentState<XyzAxis[]>("comfyui_xyz_axes", [
     { enabled: true, field: "seed", values: "1,2" },
     { enabled: false, field: "cfg", values: "5,7" },
     { enabled: false, field: "steps", values: "20..30..10" },

@@ -82,13 +82,14 @@ export async function metricsForUrl(url: string, maxSide = MAX_SIDE): Promise<Im
 export function aggregateInsights(
   samples: XyzCellScore[],
   axes: XyzAxis[],
-  lorasOfTarget?: { name: string; displayName?: string }[]
+  lorasOfTarget?: { name: string; displayName?: string }[],
+  libraryNames?: string[]
 ): XyzAxisInsight[] {
   const insights: XyzAxisInsight[] = [];
 
   for (const axis of axes) {
     if (!axis.enabled) continue;
-    const parsed = parseAxisValues(axis.values, axis.field).map(String);
+    const parsed = parseAxisValues(axis.values, axis.field, libraryNames).map(String);
     if (parsed.length <= 1) continue;
 
     const axisLabel = fieldLabel(axis.field, lorasOfTarget);
@@ -125,7 +126,8 @@ export async function runXyzReview(
   items: XyzRunItem[],
   axes: XyzAxis[],
   lorasOfTarget?: { name: string; displayName?: string }[],
-  onProgress?: (done: number, total: number, currentLabel: string) => void
+  onProgress?: (done: number, total: number, currentLabel: string) => void,
+  libraryNames?: string[]
 ): Promise<XyzReviewOutcome> {
   const candidates = items.filter((item) => item.status === "success" && item.result?.images?.length);
   const total = candidates.length;
@@ -161,7 +163,7 @@ export async function runXyzReview(
   const bestCount = Math.max(1, Math.ceil(sorted.length * 0.1));
   const bestUrls = sorted.slice(0, bestCount).map((sample) => sample.url);
 
-  const insights = aggregateInsights(samples, axes, lorasOfTarget);
+  const insights = aggregateInsights(samples, axes, lorasOfTarget, libraryNames);
 
   return { scoresByUrl, metricsByUrl, samples, bestUrls, insights };
 }

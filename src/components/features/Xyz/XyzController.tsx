@@ -16,7 +16,7 @@ import { useXyzReview } from "../../../hooks/useXyzReview";
 import type { useGeneration } from "../../../hooks/useGeneration";
 import { xyzStatusLabel } from "../../../lib/app-utils";
 import { animaStageMeta, templateLabels } from "../../../constants";
-import { fieldLabel } from "../../../lib/xyz";
+import { axisValuePlaceholder, fieldLabel } from "../../../lib/xyz";
 import { buildXyzCombinations } from "../../../lib/xyz";
 import type {
   XyzAxis,
@@ -31,6 +31,13 @@ import type {
   XyzCellScore,
   XyzCombination,
 } from "../../../types";
+
+/** 快捷预设用的轴构造器：默认禁用，主轴显式开 */
+const makeAxis = (field: XyzField, values: string, enabled = false): XyzAxis => ({
+  enabled,
+  field,
+  values,
+});
 
 interface XyzControllerProps {
   xyzTarget: TemplateKind;
@@ -52,6 +59,10 @@ interface XyzControllerProps {
   };
   /** Anima 的能力探测结果（重绘时透传给 builder） */
   animaCaps: OptionsState["animaCaps"];
+  /** 枚举列表（采样器/调度器等），快捷预设取真实可选值而不是硬编码 */
+  options: OptionsState;
+  /** LoRA 库文件名列表，供「LoRA 模型」快捷预设填真实文件名 */
+  loraNames: string[];
   onOutputLightbox: (url: string) => void;
   /** 把某个组合的 patch 回填到目标模板面板（T8：批量试 → 选最优 → 回单张微调） */
   onApplyCombo?: (combo: XyzCombination) => void;
@@ -69,6 +80,8 @@ export const XyzController = React.memo(({
   gen,
   params,
   animaCaps,
+  options,
+  loraNames,
   onOutputLightbox,
   onApplyCombo,
 }: XyzControllerProps) => {
@@ -111,6 +124,79 @@ export const XyzController = React.memo(({
     ];
   }, [lorasOfTarget, xyzTarget]);
 
+  // 快捷预设：一键把三行轴填成常用组合（整体替换，值都可以再改）。
+  // 枚举类（采样器/调度器/LoRA 模型）从真实列表取前几项，空列表时退回中性占位。
+  const xyzPresets = useMemo(() => {
+    const samplerValues = options.samplers.slice(0, 3).join(", ") || "euler, ddim";
+    const schedulerValues = options.schedulers.slice(0, 3).join(", ") || "simple, karras";
+    // 面板挂了 LoRA 就替换第 1 个槽位；否则走追加轴（不依赖已有槽位）。
+    // 取值用库序号范围语法：1..6 = LoRA 库第 1～6 个，不用逐个填文件名
+    const loraModelField: XyzField = lorasOfTarget.length > 0 ? "loraName_0" : "loraAppendName_1";
+
+    const presets: Array<{ label: string; axes: XyzAxis[] }> = [
+      {
+        label: "Seed",
+        axes: [makeAxis("seed", "1,2,3", true), makeAxis("cfg", "5,7"), makeAxis("steps", "20..30..10")],
+      },
+      {
+        label: "CFG",
+        axes: [makeAxis("cfg", "5,7,9", true), makeAxis("steps", "20..30..10"), makeAxis("seed", "1,2")],
+      },
+      {
+        label: "步数",
+        axes: [makeAxis("steps", "20,26,32", true), makeAxis("cfg", "5,7"), makeAxis("seed", "1,2")],
+      },
+      {
+        label: "尺寸",
+        axes: [makeAxis("width", "768,1024", true), makeAxis("height", "1024,1536", true), makeAxis("seed", "1,2")],
+      },
+      {
+        label: "采样器",
+        axes: [makeAxis("samplerName", samplerValues, true), makeAxis("seed", "1,2"), makeAxis("cfg", "5,7")],
+      },
+      {
+        label: "调度器",
+        axes: [makeAxis("scheduler", schedulerValues, true), makeAxis("seed", "1,2"), makeAxis("cfg", "5,7")],
+      },
+      {
+        label: "重绘幅度",
+        axes: [makeAxis("denoise", "0.3,0.5,0.7", true), makeAxis("seed", "1,2"), makeAxis("cfg", "5,7")],
+      },
+      {
+        label: "LoRA 强度",
+        axes: [makeAxis("loraStrength_0", "0.6,0.8,1", true), makeAxis("seed", "1,2"), makeAxis("cfg", "5,7")],
+      },
+      {
+        label: "LoRA 模型",
+        axes: [makeAxis(loraModelField, "1..6", true), makeAxis("seed", "1,2"), makeAxis("cfg", "5,7")],
+      },
+      {
+        // 每行一条（按换行拆分成多个组合）
+        label: "提示词追加",
+        axes: [
+          makeAxis("positiveAppend", "cinematic lighting\nsoft light", true),
+          makeAxis("seed", "1,2"),
+          makeAxis("cfg", "5,7"),
+        ],
+      },
+      {
+        label: "文字内容",
+        axes: [makeAxis("drawTextText", "文字A\n文字B", true), makeAxis("seed", "1,2"), makeAxis("cfg", "5,7")],
+      },
+    ];
+    if (xyzTarget === "anima") {
+      presets.push({
+        label: "Anima 放大",
+        axes: [
+          makeAxis("animaHiresPrePercent", "0,35,50", true),
+          makeAxis("animaHiresPostPercent", "0,20"),
+          makeAxis("seed", "1,2"),
+        ],
+      });
+    }
+    return presets;
+  }, [options.samplers, options.schedulers, lorasOfTarget.length, xyzTarget]);
+
   const updateAxis = (index: number, patch: Partial<XyzAxis>) => {
     setXyzAxes((prev) => {
       const next = [...prev];
@@ -152,82 +238,23 @@ export const XyzController = React.memo(({
           </select>
         </label>
         <div className="metric-card">
-          <strong>{buildXyzCombinations(xyzAxes, lorasOfTarget).length}</strong>
+          <strong>{buildXyzCombinations(xyzAxes, lorasOfTarget, undefined, loraNames).length}</strong>
           <span>组合</span>
         </div>
         <div className="xyz-preset-bar">
           <button type="button" className="icon-button" onClick={() => setShowXyzHelp(true)}>
             <CircleHelp size={16} /> 怎么用
           </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={() =>
-              setXyzAxes([
-                { enabled: true, field: "seed", values: "1,2,3" },
-                { enabled: false, field: "cfg", values: "5,7" },
-                { enabled: false, field: "steps", values: "20..30..10" },
-              ])
-            }
-          >
-            Seed
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={() =>
-              setXyzAxes([
-                { enabled: true, field: "cfg", values: "5,7,9" },
-                { enabled: false, field: "steps", values: "20..30..10" },
-                { enabled: false, field: "seed", values: "1,2" },
-              ])
-            }
-          >
-            CFG
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={() =>
-              setXyzAxes([
-                { enabled: true, field: "width", values: "768,1024" },
-                { enabled: true, field: "height", values: "1024,1536" },
-                { enabled: false, field: "seed", values: "1,2" },
-              ])
-            }
-          >
-            尺寸
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={() =>
-              setXyzAxes([
-                { enabled: true, field: "loraStrength_0", values: "0.6,0.8,1" },
-                { enabled: false, field: "seed", values: "1,2" },
-                { enabled: false, field: "cfg", values: "5,7" },
-              ])
-            }
-          >
-            LoRA 强度
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={() =>
-              setXyzAxes([
-                {
-                  enabled: true,
-                  field: "positiveAppend",
-                  values: "cinematic lighting\\nsoft light",
-                },
-                { enabled: false, field: "seed", values: "1,2" },
-                { enabled: false, field: "cfg", values: "5,7" },
-              ])
-            }
-          >
-            提示词追加
-          </button>
+          {xyzPresets.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              className="icon-button"
+              onClick={() => setXyzAxes(preset.axes)}
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
       </div>
       <div className="axis-list">
@@ -254,6 +281,7 @@ export const XyzController = React.memo(({
             <input
               value={axis.values}
               onChange={(event) => updateAxis(index, { values: event.target.value })}
+              placeholder={axisValuePlaceholder(axis.field)}
             />
           </div>
         ))}
@@ -263,6 +291,7 @@ export const XyzController = React.memo(({
         lorasOfTarget={lorasOfTarget}
         excludedIndices={xyzExcludedIndices}
         onToggleIndex={onToggleXyzIndex}
+        libraryNames={loraNames}
       />
       <button
         className="primary-action xyz-run-btn"
@@ -277,7 +306,8 @@ export const XyzController = React.memo(({
             params.multiParams,
             params.highresParams,
             params.animaParams,
-            animaCaps
+            animaCaps,
+            loraNames
           )
         }
       >
@@ -297,7 +327,7 @@ export const XyzController = React.memo(({
           type="button"
           className="icon-button"
           disabled={!canReview || review.reviewing}
-          onClick={() => review.startReview(gen.xyzResults, xyzAxes, lorasOfTarget)}
+          onClick={() => review.startReview(gen.xyzResults, xyzAxes, lorasOfTarget, loraNames)}
         >
           {review.reviewing ? <RotateCw size={16} className="spin" /> : <Gauge size={16} />}
           {review.reviewing && review.progress
@@ -333,7 +363,7 @@ export const XyzController = React.memo(({
           type="button"
           className="icon-button"
           disabled={gen.xyzResults.length === 0}
-          onClick={() => gen.exportXyzGrid(xyzTarget, xyzAxes, lorasOfTarget)}
+          onClick={() => gen.exportXyzGrid(xyzTarget, xyzAxes, lorasOfTarget, loraNames)}
         >
           <Grid3X3 size={16} /> 导出网格
         </button>

@@ -1,7 +1,7 @@
 import { Bell, Volume2, EyeOff } from "lucide-react";
 import { useNotifier } from "../hooks/useNotifier";
 
-/** 完成提醒设置区（自管理 localStorage 状态），嵌入「通知」弹窗顶部 */
+/** 完成提醒设置区（经 useNotifier → usePersistentState 持久化），嵌入「通知」弹窗顶部 */
 export function NotifierSettingsPanel() {
   const { settings, update, enableDesktopNotifications } = useNotifier();
 

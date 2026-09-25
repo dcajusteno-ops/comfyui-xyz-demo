@@ -16,9 +16,10 @@ import { atomicWriteJson, enqueueFileWrite, readJsonBody, readJsonFile, sendErro
  *
  * 契约（Go 侧 internal/launcher 逐条对齐，勿单边改动）：
  * - 存储走 data/launcher-tools.json（atomicWriteJson + enqueueFileWrite，与其它插件同款）；
- * - 启动语义：路径 trim 后必须存在（404 "tool file not found"）；参数按空白切分；
+ * - 启动语义：http(s):// 网址交给默认浏览器，**不做存在性检查**（网址无文件可 stat）；
+ *   本地路径 trim 后必须存在（404 "tool file not found"）；参数按空白切分；
  *   .bat/.cmd/.html/.htm/.url → `cmd /c start "" <path> <args...>`，其余直接 spawn；
- *   工作目录 = 目标文件所在目录（很多便携工具依赖相对路径）；
+ *   工作目录 = 目标文件所在目录（网址无所在目录，用进程工作目录）；
  * - 图标提取：PowerShell ExtractAssociatedIcon → data/icons/<md5(path)>.png 缓存 → base64 data URL。
  */
 
@@ -39,9 +40,18 @@ export function splitLaunchArgs(argsString: string): string[] {
   return argsString.trim().split(/\s+/).filter(Boolean);
 }
 
-/** 启动命令构造（纯函数，测试固化 ext 分派语义） */
+/** 网址目标（http/https，大小写不敏感）：无文件可 stat，运行时跳过存在性检查 */
+export function isWebUrl(targetPath: string): boolean {
+  return /^https?:\/\//i.test(targetPath);
+}
+
+/** 启动命令构造（纯函数，测试固化分派语义）；网址分支优先于扩展名分派（URL 路径里可能含 .html 等） */
 export function buildLaunchCommand(targetPath: string, argsString: string): { file: string; args: string[]; cwd: string } {
   const args = splitLaunchArgs(argsString);
+  if (isWebUrl(targetPath)) {
+    // 网址交给默认浏览器打开；无「所在目录」概念，用进程工作目录（Go 侧返回空 = 同语义）
+    return { file: "cmd.exe", args: ["/c", "start", "", targetPath, ...args], cwd: ROOT };
+  }
   const ext = path.extname(targetPath).toLowerCase();
   if (ext === ".bat" || ext === ".cmd" || ext === ".html" || ext === ".htm" || ext === ".url") {
     return { file: "cmd.exe", args: ["/c", "start", "", targetPath, ...args], cwd: path.dirname(targetPath) };
@@ -189,15 +199,18 @@ async function handleRun(req: IncomingMessage, res: ServerResponse) {
     sendJson(res, 400, { success: false, error: "tool path is empty" });
     return;
   }
-  try {
-    await stat(targetPath);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      sendJson(res, 404, { success: false, error: "tool file not found" });
+  // 网址无文件可查，跳过存在性检查（本地路径仍要求存在，防拼错路径静默起不来）
+  if (!isWebUrl(targetPath)) {
+    try {
+      await stat(targetPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        sendJson(res, 404, { success: false, error: "tool file not found" });
+        return;
+      }
+      sendJson(res, 500, { success: false, error: error instanceof Error ? error.message : String(error) });
       return;
     }
-    sendJson(res, 500, { success: false, error: error instanceof Error ? error.message : String(error) });
-    return;
   }
 
   const command = buildLaunchCommand(targetPath, tool.args ?? "");

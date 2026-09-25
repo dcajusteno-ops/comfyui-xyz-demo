@@ -7,7 +7,8 @@ type State = { error: Error | null };
 /**
  * 渲染期兜底：任何子树抛错时不再白屏，而是给出错误摘要与自救入口。
  *
- * 「重置本地配置」会清除本应用写入的全部 localStorage（comfyui_* / xyz_* 前缀）——
+ * 「重置本地配置」会清除本应用的全部持久化状态——localStorage（comfyui_* / xyz_* 前缀，
+ * 兼容旧版本残留）与服务端 data/ui-state.json（/api/ui-state DELETE）一并清空——
  * 参数结构演进后，旧的持久化数据是历史上最常见的一类渲染崩溃来源。
  */
 export class ErrorBoundary extends Component<Props, State> {
@@ -30,6 +31,8 @@ export class ErrorBoundary extends Component<Props, State> {
       if (key && prefixes.some((p) => key.startsWith(p))) keys.push(key);
     }
     keys.forEach((key) => window.localStorage.removeItem(key));
+    // 服务端持久化状态一并清空（keepalive 保证 reload 前发出；失败不影响本地清理）
+    void fetch("/api/ui-state", { method: "DELETE", keepalive: true }).catch(() => undefined);
     window.location.reload();
   };
 

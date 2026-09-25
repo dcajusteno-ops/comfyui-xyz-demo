@@ -83,7 +83,11 @@ function insertDrawTextNode(
 ): [string, number] {
   if (!params.drawText?.enabled) return inputImage;
 
-  const textToDraw = (params.drawText.text && params.drawText.text.trim()) ? params.drawText.text : "测试文本";
+  // 文字留空 = 不写字。以前这里会回退把占位字「测试文本」合成进图，
+  // 误开开关时图片凭空多一行字、极难排查（2026-09-25 用户连踩两次），改为直接跳过：
+  // 此时返回原输入链，SaveImage 及整条工作流与未开启时逐节点一致。
+  const textToDraw = params.drawText.text?.trim();
+  if (!textToDraw) return inputImage;
 
   const drawTextId = String(nextId);
   prompt[drawTextId] = {

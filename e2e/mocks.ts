@@ -84,6 +84,17 @@ export async function installApiMocks(page: Page) {
   await page.route(/\/comfy\/api\/object_info/, (route) => route.fulfill(json(OBJECT_INFO)));
   await page.route(/\/comfy\/(api\/)?system_stats/, (route) => route.fulfill(json(stats)));
 
+  // 前端持久化状态已走服务端 /api/ui-state（data/ui-state.json）：这里旁路掉，让每个
+  // 用例都从空状态开始（与旧 localStorage 空 context 等价），同时防止 E2E 污染真实数据。
+  await page.route(/\/api\/ui-state/, (route) => {
+    const method = (route.request().method() ?? "GET").toUpperCase();
+    if (method === "GET") {
+      route.fulfill(json({ success: true, data: {}, revision: 0 }));
+      return;
+    }
+    route.fulfill(json({ success: true, revision: 1 }));
+  });
+
   // 断连覆盖层的显隐由 WebSocket 的 open/close 驱动，而 page.route 拦不住 WebSocket：
   // ComfyUI 不在运行时 onclose 会把状态置为 offline，全屏 .connection-overlay 随即拦截所有点击
   // （表现为 4 个需要点击的用例统一超时）。这里接管 /comfy/ws，握手成功即让状态回到 online；

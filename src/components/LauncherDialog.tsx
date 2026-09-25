@@ -285,7 +285,7 @@ export function LauncherDialog({
           </div>
 
           <div style={{ fontSize: 11, color: "var(--muted)" }}>
-            支持 .exe / .bat / .cmd / .html / .url 等；双击条目即可启动，与 ComfyUI 连接状态无关。
+            支持 .exe / .bat / .cmd / .html / .url 文件或直接粘贴 http(s):// 网址；双击条目即可启动，与 ComfyUI 连接状态无关。
           </div>
         </div>
 
@@ -318,7 +318,7 @@ export function LauncherDialog({
               <span>目标路径</span>
               <input
                 value={form.path}
-                placeholder="D:\工具\程序.exe 或 脚本.bat"
+                placeholder="D:\工具\程序.exe、脚本.bat 或 http(s)://网址"
                 onChange={(e) => setForm({ ...form, path: e.target.value })}
                 onBlur={() => void handleExtractIcon(false)}
               />

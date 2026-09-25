@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useLocalStorageState } from "./useLocalStorageState";
+import { usePersistentState } from "./usePersistentState";
 import { makeBaseParams, makeMultiParams, makeHighresParams, makeAnimaParams } from "../lib/paramBuilders";
 import { fallbackOptions } from "../constants";
 import type { 
@@ -11,11 +11,11 @@ import type {
 } from "../types";
 
 export function useParams() {
-  const [options, setOptions] = useLocalStorageState<OptionsState>("comfyui_options", fallbackOptions);
-  const [defaultParams, setDefaultParams] = useLocalStorageState<BaseGenerationParams>("comfyui_default_params", makeBaseParams());
-  const [multiParams, setMultiParams] = useLocalStorageState<MultiGenerationParams>("comfyui_multi_params", makeMultiParams());
-  const [highresParams, setHighresParams] = useLocalStorageState<HighresParams>("comfyui_highres_params", makeHighresParams());
-  const [animaParams, setAnimaParams] = useLocalStorageState<AnimaGenerationParams>("comfyui_anima_params", makeAnimaParams());
+  const [options, setOptions] = usePersistentState<OptionsState>("comfyui_options", fallbackOptions);
+  const [defaultParams, setDefaultParams] = usePersistentState<BaseGenerationParams>("comfyui_default_params", makeBaseParams());
+  const [multiParams, setMultiParams] = usePersistentState<MultiGenerationParams>("comfyui_multi_params", makeMultiParams());
+  const [highresParams, setHighresParams] = usePersistentState<HighresParams>("comfyui_highres_params", makeHighresParams());
+  const [animaParams, setAnimaParams] = usePersistentState<AnimaGenerationParams>("comfyui_anima_params", makeAnimaParams());
 
   const allActiveLoraHashes = useMemo(() => {
     return [

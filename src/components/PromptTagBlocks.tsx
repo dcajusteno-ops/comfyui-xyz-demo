@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { parsePromptTags, adjustWeightForTag, PromptTag } from '../lib/promptUtils';
 import { translateText, defaultTranslationSettings, TranslationSettings } from '../lib/translation';
-import { useLocalStorageState } from '../hooks/useLocalStorageState';
+import { usePersistentState } from '../hooks/usePersistentState';
 import { Globe2 } from 'lucide-react';
 
 interface PromptTagBlocksProps {
@@ -11,7 +11,7 @@ interface PromptTagBlocksProps {
 
 export function PromptTagBlocks({ value, onChange }: PromptTagBlocksProps) {
   const tags = useMemo(() => parsePromptTags(value), [value]);
-  const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
+  const [translationSettings] = usePersistentState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const [translating, setTranslating] = useState<Record<number, boolean>>({});
 

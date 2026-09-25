@@ -3,7 +3,7 @@ import { CheckCircle2, Copy, Globe2 } from "lucide-react";
 import { handlePromptWeightAdjustment } from "../../lib/promptUtils";
 import { translateText, defaultTranslationSettings } from "../../lib/translation";
 import type { TranslationSettings } from "../../lib/translation";
-import { useLocalStorageState } from "../../hooks/useLocalStorageState";
+import { usePersistentState } from "../../hooks/usePersistentState";
 import { PromptTagBlocks } from "../PromptTagBlocks";
 
 export function NumberField({ label, value, min, max, step, disabled, onChange }: { label: string; value: number; min?: number; max?: number; step?: number; disabled?: boolean; onChange: (value: number) => void }) {
@@ -147,7 +147,7 @@ export function CopyableTextarea({ value, className }: { value: string; classNam
 export function TextAreaField({ label, value, placeholder, onChange, hideChips }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void; hideChips?: boolean }) {
   const isPrompt = label.toLowerCase().includes("prompt") || label.includes("提示词");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
+  const [translationSettings] = usePersistentState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
   const [isTranslating, setIsTranslating] = useState(false);
 
   const handleTranslate = async () => {

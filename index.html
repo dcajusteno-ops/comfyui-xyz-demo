@@ -18,7 +18,12 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- boot 门期间（拉取 /api/ui-state，本地通常 <50ms）的占位，render 后被整体替换 -->
+    <div id="root">
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; color: #888; background: var(--bg, #fafaf9);">
+        加载中…
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -35,30 +35,99 @@ function isNumericField(field: XyzField) {
   return numericFields.has(field);
 }
 
-export function parseAxisValues(raw: string, field: XyzField): Array<string | number> {
+/** 模型库取值字段：LoRA 模型轴支持按库序号批量（1..6 / {2..4} / 1..9..2 / * ）与通配符（模型名*） */
+function isLibraryModelField(field: XyzField) {
+  return field.startsWith("loraName_") || field.startsWith("loraAppendName_");
+}
+
+/** 通配符模式 → 正则（* 任意串、? 单字符，不区分大小写，锚定全串） */
+function wildcardToRegExp(pattern: string) {
+  const escaped = pattern
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*/g, ".*")
+    .replace(/\?/g, ".");
+  return new RegExp(`^${escaped}$`, "i");
+}
+
+function stripSafetensors(name: string) {
+  return name.replace(/\.safetensors$/i, "");
+}
+
+/**
+ * 数值范围 token 展开（数值轴专用）：`0.4..1.0` / `1..5`，步进可写第三段 `0.4..1.0..0.2`。
+ * 缺省步进：两端都是整数 → 1（seed/步数/CFG 等整数扫描）；否则 → 0.1（强度/重绘幅度等小数扫描粒度）。
+ * 返回 null 表示不是合法范围（token 原样保留，走后续字面值流程，不误伤普通值）。
+ */
+function expandNumericRangeToken(value: string): number[] | null {
+  const segments = value.split("..");
+  if (segments.length < 2 || segments.length > 3) return null;
+  if (segments.some((part) => !part.trim())) return null;
+  const [start, end, stepArg] = segments.map((part) => Number(part.trim()));
+  const defaultStep = Number.isInteger(start) && Number.isInteger(end) ? 1 : 0.1;
+  const step = segments.length === 3 ? stepArg : defaultStep;
+  if (![start, end, step].every(Number.isFinite) || step === 0) return null;
+  const values: number[] = [];
+  const direction = start <= end ? 1 : -1;
+  const actualStep = Math.abs(step) * direction;
+  for (let current = start; direction > 0 ? current <= end : current >= end; current += actualStep) {
+    values.push(roundAxisNumber(current));
+    if (values.length > 256) break;
+  }
+  return values;
+}
+
+/** 轴值输入框 placeholder（与 parseAxisValues 实际支持的写法保持一致，勿另写一份） */
+export function axisValuePlaceholder(field: XyzField): string | undefined {
+  if (isLibraryModelField(field)) return "模型名{1..4}、模型名*、1..6 或文件名";
+  if (isNumericField(field)) return "0.3, 0.5, 0.4..1.0 或 0.4..1.0..0.2";
+  return undefined;
+}
+
+export function parseAxisValues(raw: string, field: XyzField, library?: string[]): Array<string | number> {
   const trimmed = raw.trim();
   if (!trimmed) return [];
 
-  if (isNumericField(field) && trimmed.includes("..")) {
-    const parts = trimmed.split("..").map((part) => Number(part.trim()));
-    const [start, end, step = 1] = parts;
-    if ([start, end, step].every(Number.isFinite) && step !== 0) {
-      const values: number[] = [];
-      const direction = start <= end ? 1 : -1;
-      const actualStep = Math.abs(step) * direction;
-      for (let value = start; direction > 0 ? value <= end : value >= end; value += actualStep) {
-        values.push(roundAxisNumber(value));
-        if (values.length > 256) break;
-      }
-      return values;
-    }
-  }
+  // 模型库模式：LoRA 模型轴按库序号（1 起始）取值，展开成真实文件名
+  const lib = library && library.length > 0 && isLibraryModelField(field) ? library : undefined;
 
   return trimmed
     .split(/[,\n]/)
     .map((value) => value.trim())
     .filter(Boolean)
-    .flatMap((value) => {
+    .flatMap((value): Array<string | number> => {
+      // 数值轴的范围写法（0.4..1.0 / 1..5，可带步进），支持与普通值混填（逗号分隔）
+      if (isNumericField(field)) {
+        const expanded = expandNumericRangeToken(value);
+        if (expanded) return expanded;
+      }
+      if (lib) {
+        if (value === "*" || value.toLowerCase() === "all") {
+          return lib.slice(0, 256);
+        }
+        // 通配符模式：模型名* / *关键词* / 名称? —— 限定同一模型/文件夹内批量
+        if (value.includes("*") || value.includes("?")) {
+          const pattern = wildcardToRegExp(value);
+          return lib
+            .filter((name) => pattern.test(name) || pattern.test(stripSafetensors(name)))
+            .slice(0, 256);
+        }
+        const range = value.match(/^(\d+)\s*\.\.\s*(\d+)(?:\s*\.\.\s*(\d+))?$/);
+        if (range) {
+          const [, startStr, endStr, stepStr] = range;
+          const start = parseInt(startStr, 10);
+          const end = parseInt(endStr, 10);
+          const step = stepStr ? parseInt(stepStr, 10) : 1;
+          if (Number.isFinite(start) && Number.isFinite(end) && step > 0) {
+            const expanded: string[] = [];
+            const direction = start <= end ? 1 : -1;
+            for (let i = start; direction > 0 ? i <= end : i >= end; i += step * direction) {
+              if (i >= 1 && i <= lib.length) expanded.push(lib[i - 1]);
+              if (expanded.length > 256) break;
+            }
+            return expanded;
+          }
+        }
+      }
       const match = value.match(/^(.*)\{(\d+)\.\.(\d+)(?:\.\.(\d+))?\}(.*)$/);
       if (match) {
         const [, prefix, startStr, endStr, stepStr, suffix] = match;
@@ -66,7 +135,7 @@ export function parseAxisValues(raw: string, field: XyzField): Array<string | nu
         const end = parseInt(endStr, 10);
         const step = stepStr ? parseInt(stepStr, 10) : 1;
         const padLen = startStr.length === endStr.length && startStr.startsWith("0") ? startStr.length : 0;
-        
+
         if (Number.isFinite(start) && Number.isFinite(end) && Number.isFinite(step) && step > 0) {
           const expanded: string[] = [];
           const direction = start <= end ? 1 : -1;
@@ -81,24 +150,32 @@ export function parseAxisValues(raw: string, field: XyzField): Array<string | nu
       return [value];
     })
     .map((value) => {
+      // 花括号展开/单值产生的纯数字串 → 库序号映射（越界丢弃，稍后过滤）
+      if (lib && /^\d+$/.test(String(value))) {
+        const index = Number(value);
+        return index >= 1 && index <= lib.length ? lib[index - 1] : "";
+      }
       if (isNumericField(field)) {
         const numeric = Number(value);
         return Number.isFinite(numeric) ? numeric : value;
       }
       return value;
-    });
+    })
+    .filter((value) => value !== "");
 }
 
 export function buildXyzCombinations(
   axes: XyzAxis[],
   lorasOfTarget?: { name: string; displayName?: string }[],
-  excludedIndices?: Set<number>
+  excludedIndices?: Set<number>,
+  /** 模型库列表（LoRA 库文件名）：模型轴取值支持库序号范围（1..6 / * ） */
+  libraryNames?: string[]
 ): XyzCombination[] {
   const activeAxes = axes
     .filter((axis) => axis.enabled)
     .map((axis) => ({
       axis,
-      values: parseAxisValues(axis.values, axis.field),
+      values: parseAxisValues(axis.values, axis.field, libraryNames),
     }))
     .filter((axis) => axis.values.length > 0);
 

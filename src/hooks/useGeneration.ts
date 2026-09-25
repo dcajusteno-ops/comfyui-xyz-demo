@@ -275,7 +275,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
   }, [client, pushToast, buildXyzPrompt, notifyComplete]);
 
   const runXyz = useCallback(async (
-    xyzAxes: XyzAxis[], 
+    xyzAxes: XyzAxis[],
     xyzExcludedIndices: Set<number>,
     xyzTarget: TemplateKind,
     lorasOfTarget: LoraSelection[],
@@ -283,9 +283,11 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     multiParams: MultiGenerationParams,
     highresParams: HighresParams,
     animaParams: AnimaGenerationParams,
-    animaCaps: AnimaCaps
+    animaCaps: AnimaCaps,
+    /** LoRA 库文件名列表：模型轴取值支持库序号范围（1..6 / *） */
+    libraryNames?: string[]
   ) => {
-    const combos = buildXyzCombinations(xyzAxes, lorasOfTarget, xyzExcludedIndices);
+    const combos = buildXyzCombinations(xyzAxes, lorasOfTarget, xyzExcludedIndices, libraryNames);
     if (!combos.length) {
       pushToast("error", "XYZ 无法运行", "至少需要启用一个轴并填写取值，且不能全部被排除");
       return;
@@ -387,7 +389,8 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
   const exportXyzGrid = useCallback(async (
     xyzTarget: TemplateKind,
     xyzAxes: XyzAxis[],
-    lorasOfTarget: LoraSelection[]
+    lorasOfTarget: LoraSelection[],
+    libraryNames?: string[]
   ) => {
     const drawableItems = xyzResults.filter((item) => item.status === "success" && item.result?.images[0]);
     if (drawableItems.length === 0) {
@@ -398,7 +401,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
 
     const activeAxes = xyzAxes.filter((axis) => axis.enabled && axis.values.trim());
     const lastAxis = activeAxes[activeAxes.length - 1];
-    const lastAxisValues = lastAxis ? parseAxisValues(lastAxis.values, lastAxis.field) : [];
+    const lastAxisValues = lastAxis ? parseAxisValues(lastAxis.values, lastAxis.field, libraryNames) : [];
     const cols = lastAxisValues.length > 0 ? lastAxisValues.length : 1;
 
     const slotOf = (item: XyzRunItem) => (typeof item.comboIndex === "number" ? item.comboIndex : xyzResults.indexOf(item));
@@ -425,7 +428,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
 
       const itemsBySlot = new Map<number, XyzRunItem>();
       xyzResults.forEach((item) => itemsBySlot.set(slotOf(item), item));
-      const combos = buildXyzCombinations(xyzAxes, lorasOfTarget);
+      const combos = buildXyzCombinations(xyzAxes, lorasOfTarget, undefined, libraryNames);
       const labelOfSlot = (slot: number) => itemsBySlot.get(slot)?.label ?? combos[slot]?.label ?? "";
 
       const canvas = document.createElement("canvas");

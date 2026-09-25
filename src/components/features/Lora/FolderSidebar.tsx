@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
 import type { FolderTreeNode } from "../../../types";
 import { collectAncestorPaths } from "../../../lib/lora-helper";
-import { useLocalStorageState } from "../../../hooks/useLocalStorageState";
+import { usePersistentState } from "../../../hooks/usePersistentState";
 
 export const FolderNodeButton = memo(({
   folder,
@@ -68,8 +68,8 @@ export const FolderSidebar = memo(({
   onSelect: (folder: string) => void;
 }) => {
   const sidebarRef = useRef<HTMLElement>(null);
-  // 折叠集合：localStorage 持久化（任务书 v1.2 D5/D6 采纳），按路径存储，失效路径无害
-  const [collapsedPaths, setCollapsedPaths] = useLocalStorageState<string[]>("comfyui_lora_sidebar_collapsed", []);
+  // 折叠集合：服务端持久化（任务书 v1.2 D5/D6 采纳，经 usePersistentState 落 data/ui-state.json），按路径存储，失效路径无害
+  const [collapsedPaths, setCollapsedPaths] = usePersistentState<string[]>("comfyui_lora_sidebar_collapsed", []);
   const collapsed = useMemo(() => new Set(collapsedPaths), [collapsedPaths]);
 
   const handleToggleFolder = useCallback((path: string) => {

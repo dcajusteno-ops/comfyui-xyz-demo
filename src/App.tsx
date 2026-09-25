@@ -750,6 +750,8 @@ function App() {
                   gen={gen}
                   params={params}
                   animaCaps={options.animaCaps}
+                  options={options}
+                  loraNames={loraNames}
                   onOutputLightbox={ui.setOutputLightbox}
                   onApplyCombo={handleXyzApplyCombo}
                 />

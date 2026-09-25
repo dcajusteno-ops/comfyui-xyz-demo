@@ -1,5 +1,6 @@
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildLaunchCommand, splitLaunchArgs } from "./launcher";
+import { buildLaunchCommand, isWebUrl, splitLaunchArgs } from "./launcher";
 
 /**
  * 外部工具启动器（复刻 comfyui-demo-main 的 app_feature_launcher.go）：
@@ -44,5 +45,26 @@ describe("buildLaunchCommand", () => {
     const cmd = buildLaunchCommand("D:\\notes\\readme.txt", "");
     expect(cmd.file).toBe("D:\\notes\\readme.txt");
     expect(cmd.cwd).toBe("D:\\notes");
+  });
+
+  it("http(s) 网址走 cmd /c start，优先于扩展名分派（URL 路径含 .html 也不误判），工作目录为进程工作目录", () => {
+    const cmd = buildLaunchCommand("https://example.com/preview.html", "--port 3000");
+    expect(cmd.file).toBe("cmd.exe");
+    expect(cmd.args).toEqual(["/c", "start", "", "https://example.com/preview.html", "--port", "3000"]);
+    expect(cmd.cwd).toBe(path.resolve(process.cwd()));
+
+    expect(buildLaunchCommand("HTTP://localhost:5199", "").args).toEqual(["/c", "start", "", "HTTP://localhost:5199"]);
+    expect(buildLaunchCommand("http://localhost:5199", "").file).toBe("cmd.exe");
+  });
+});
+
+describe("isWebUrl", () => {
+  it("识别 http/https 网址（大小写不敏感），本地路径与其它协议不误判", () => {
+    expect(isWebUrl("http://localhost:5199")).toBe(true);
+    expect(isWebUrl("HTTPS://Example.com/page")).toBe(true);
+    expect(isWebUrl("D:\\tools\\app.exe")).toBe(false);
+    expect(isWebUrl("ftp://example.com")).toBe(false);
+    expect(isWebUrl("httpx://weird")).toBe(false);
+    expect(isWebUrl("")).toBe(false);
   });
 });

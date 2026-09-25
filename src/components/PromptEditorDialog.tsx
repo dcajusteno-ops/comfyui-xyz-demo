@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useLocalStorageState } from "../hooks/useLocalStorageState";
+import { usePersistentState } from "../hooks/usePersistentState";
 import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy, Globe2, Upload, Braces } from "lucide-react";
 import { handlePromptWeightAdjustment } from "../lib/promptUtils";
 import { PromptTagBlocks } from "./PromptTagBlocks";
@@ -99,7 +99,7 @@ export function PromptEditorDialog({
   const [negativeParts, setNegativeParts] = useState<EditorPart[]>([]);
   const [quickInput, setQuickInput] = useState("");
   const [showWildcards, setShowWildcards] = useState(false);
-  const [translationSettings] = useLocalStorageState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
+  const [translationSettings] = usePersistentState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
   const [isTranslating, setIsTranslating] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);

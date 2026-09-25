@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Copy, ImageUp, Loader2, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import type { CSSProperties } from "react";
+import { usePersistentState } from "../../hooks/usePersistentState";
 
 /**
  * 手机端远程生图（T13）：同一手机页（#/mobile-tag）里的「生图」标签页。
@@ -43,9 +44,7 @@ const DEFAULT_FORM: FormState = {
   steps: 20,
   cfg: 7,
   seedText: "",
-};
-
-const PRESET_SIZES = [
+};const PRESET_SIZES = [
   { label: "竖版 832×1216", width: 832, height: 1216 },
   { label: "横版 1216×832", width: 1216, height: 832 },
   { label: "方形 1024×1024", width: 1024, height: 1024 },
@@ -76,16 +75,6 @@ const inputStyle: CSSProperties = {
   fontSize: 14,
 };
 
-function readForm(): FormState {
-  try {
-    const raw = localStorage.getItem(FORM_KEY);
-    if (raw) return { ...DEFAULT_FORM, ...(JSON.parse(raw) as Partial<FormState>) };
-  } catch {
-    // 忽略损坏的存储
-  }
-  return { ...DEFAULT_FORM };
-}
-
 const fieldLabel: CSSProperties = { display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "var(--muted)" };
 
 async function copyText(text: string): Promise<boolean> {
@@ -104,7 +93,7 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 export function MobileGenPanel() {
-  const [form, setForm] = useState<FormState>(readForm);
+  const [form, setForm] = usePersistentState<FormState>(FORM_KEY, DEFAULT_FORM);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [task, setTask] = useState<GenTask | null>(null);
   const [recent, setRecent] = useState<GenTask[]>([]);
@@ -114,14 +103,6 @@ export function MobileGenPanel() {
   const pollRef = useRef<number | null>(null);
 
   const updateForm = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(FORM_KEY, JSON.stringify(form));
-    } catch {
-      // 存储失败不影响使用
-    }
-  }, [form]);
 
   const refreshRecent = useCallback(async () => {
     try {

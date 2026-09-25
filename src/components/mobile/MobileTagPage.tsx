@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScanSearch, Copy, RefreshCw, ImageUp, Loader2, Sparkles } from "lucide-react";
 import { useMobileTasks } from "../../hooks/useMobileTasks";
+import { usePersistentState } from "../../hooks/usePersistentState";
 import { beep } from "../../lib/notifier";
 import { MobileGenPanel } from "./MobileGenPanel";
 import type { MobileTaskParams, MobileTaskStatus } from "../../types";
 
-const PARAM_KEY = "comfyui_wd14_params";
+const WD14_PARAMS_KEY = "comfyui_wd14_params";
 
 const DEFAULT_PARAMS: MobileTaskParams = {
   model: "wd-v1-4-moat-tagger-v2",
@@ -16,19 +17,6 @@ const DEFAULT_PARAMS: MobileTaskParams = {
   excludeTags: "",
   device: "GPU",
 };
-
-function readStoredParams(): MobileTaskParams {
-  try {
-    const raw = localStorage.getItem(PARAM_KEY);
-    if (raw) {
-      const p = JSON.parse(raw) as Partial<MobileTaskParams>;
-      return { ...DEFAULT_PARAMS, ...p };
-    }
-  } catch {
-    // 忽略损坏的存储
-  }
-  return { ...DEFAULT_PARAMS };
-}
 
 const STATUS_META: Record<MobileTaskStatus, { label: string; color: string }> = {
   queued: { label: "排队中…", color: "var(--muted)" },
@@ -70,7 +58,7 @@ export const MobileTagPage = () => {
 
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [params, setParams] = useState<MobileTaskParams>(readStoredParams);
+  const [params, setParams] = usePersistentState<MobileTaskParams>(WD14_PARAMS_KEY, DEFAULT_PARAMS);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");

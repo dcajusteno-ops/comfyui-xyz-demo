@@ -358,4 +358,14 @@ describe("buildAnimaPrompt - 文字水印", () => {
     const prompt = buildAnimaPrompt(animaParams());
     expect(typesOf(prompt)).not.toContain("DrawTextAdvanced");
   });
+
+  it("drawText 启用但文字留空时跳过写字节点（不回退烧占位字，2026-09-25）", () => {
+    const inherited = animaParams().drawText!;
+    for (const blank of ["", "   "]) {
+      const prompt = buildAnimaPrompt(animaParams({ drawText: { ...inherited, enabled: true, text: blank } }));
+      expect(typesOf(prompt)).not.toContain("DrawTextAdvanced");
+      // 链路与未开启时一致：仍正常产出保存节点
+      expect(typesOf(prompt)).toContain("SaveImage");
+    }
+  });
 });

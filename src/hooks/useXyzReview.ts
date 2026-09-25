@@ -32,7 +32,8 @@ export function useXyzReview() {
     async (
       items: XyzRunItem[],
       axes: XyzAxis[],
-      lorasOfTarget: { name: string; displayName?: string }[]
+      lorasOfTarget: { name: string; displayName?: string }[],
+      libraryNames?: string[]
     ) => {
       const token = ++tokenRef.current;
       setState((prev) => ({ ...prev, reviewing: true, progress: { done: 0, total: 0 } }));
@@ -41,7 +42,7 @@ export function useXyzReview() {
           if (tokenRef.current === token) {
             setState((prev) => ({ ...prev, progress: { done, total } }));
           }
-        });
+        }, libraryNames);
         if (tokenRef.current !== token) return;
         setState((prev) => ({
           ...prev,

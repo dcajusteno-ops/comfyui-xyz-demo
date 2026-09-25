@@ -329,6 +329,10 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL) *http
 	launcherStore := launcher.NewStore(root)
 	mux.HandleFunc("/xyz/launcher", launcherStore.Handle)
 	mux.HandleFunc("/xyz/launcher/", launcherStore.Handle)
+	// 前端持久化状态（data/ui-state.json，替代 localStorage）；E2E 内存态防污染真实数据
+	uiStateStore := &api.UiStateStore{RepoRoot: root, Queue: storage.NewWriteQueue(), InMemory: os.Getenv("DSH_E2E") == "1"}
+	mux.HandleFunc("/api/ui-state", uiStateStore.Handle)
+	mux.HandleFunc("/api/ui-state/", uiStateStore.Handle)
 	// TS 版 lora 只注册精确路径；exampleImages 的 startsWith("/xyz/example") 语义 →
 	// 三个前缀模式都要挂到同一 handler（"/xyz/example-images/..." 不落在 "/xyz/example/" 之内）
 	mux.HandleFunc("/xyz/lora/extract-metadata", mediaMgr.HandleLoraExtractMetadata)

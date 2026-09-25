@@ -67,6 +67,35 @@ func TestResolveLaunchCommand(t *testing.T) {
 	if file != `D:\notes\readme.txt` {
 		t.Fatalf("未知扩展名应直启: %q", file)
 	}
+
+	// 网址走 cmd start，优先于扩展名分派（URL 路径含 .html 也不误判）；cwd 为空 = 进程工作目录
+	file, args, cwd = ResolveLaunchCommand("https://example.com/preview.html", "--port 3000")
+	if file != "cmd.exe" || cwd != "" {
+		t.Fatalf("网址应走 cmd start: file=%q cwd=%q", file, cwd)
+	}
+	if !reflect.DeepEqual(args, []string{"/c", "start", "", "https://example.com/preview.html", "--port", "3000"}) {
+		t.Fatalf("网址 args: %v", args)
+	}
+	if file, _, _ = ResolveLaunchCommand("HTTP://localhost:5199", ""); file != "cmd.exe" {
+		t.Fatalf("网址应大小写不敏感: %q", file)
+	}
+}
+
+// TestIsWebURL 与 server/launcher.test.ts 的 isWebUrl 用例成对。
+func TestIsWebURL(t *testing.T) {
+	cases := map[string]bool{
+		"http://localhost:5199":    true,
+		"HTTPS://Example.com/page": true,
+		`D:\tools\app.exe`:         false,
+		"ftp://example.com":        false,
+		"httpx://weird":            false,
+		"":                         false,
+	}
+	for input, want := range cases {
+		if got := isWebURL(input); got != want {
+			t.Fatalf("isWebURL(%q) = %v, want %v", input, got, want)
+		}
+	}
 }
 
 func TestSplitLaunchArgs(t *testing.T) {

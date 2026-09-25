@@ -1,12 +1,12 @@
 import { useCallback } from "react";
-import { useLocalStorageState } from "./useLocalStorageState";
+import { usePersistentState } from "./usePersistentState";
 import { exportPresetsJson, makePreset, selectPresetsFor, validateImport } from "../lib/generationPresets";
 import type { GenerationPreset, TemplateKind } from "../types";
 
 type Store = { presets: GenerationPreset[] };
 
 export function usePresets() {
-  const [store, setStore] = useLocalStorageState<Store>("comfyui_presets", { presets: [] });
+  const [store, setStore] = usePersistentState<Store>("comfyui_presets", { presets: [] });
 
   const add = useCallback(
     (name: string, target: TemplateKind, snapshot: Record<string, unknown>) => {

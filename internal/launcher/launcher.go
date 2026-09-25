@@ -46,10 +46,24 @@ func SplitLaunchArgs(argsString string) []string {
 }
 
 // ResolveLaunchCommand 对齐 TS buildLaunchCommand：
+// http(s):// 网址 → cmd /c start ""（交给默认浏览器，无存在性检查）；
 // .bat/.cmd/.html/.htm/.url → `cmd /c start "" <path> <args...>`，其余直接以目标路径启动；
-// 工作目录 = 目标文件所在目录。大小写不敏感（对齐 path.extname().toLowerCase()）。
+// 工作目录 = 目标文件所在目录（网址为空 = 进程工作目录，对齐 TS ROOT 语义）。
+// 扩展名分派大小写不敏感（对齐 path.extname().toLowerCase()）。
+// isWebURL 对齐 TS isWebUrl：http(s):// 网址（大小写不敏感）。
+// 网址无文件可 stat，运行时跳过存在性检查。
+func isWebURL(targetPath string) bool {
+	lower := strings.ToLower(targetPath)
+	return strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://")
+}
+
 func ResolveLaunchCommand(targetPath, argsString string) (file string, args []string, cwd string) {
 	args = SplitLaunchArgs(argsString)
+	if isWebURL(targetPath) {
+		// 网址交给默认浏览器；无「所在目录」概念，cwd 为空 = 进程工作目录（对齐 TS ROOT 语义）
+		cmdArgs := append([]string{"/c", "start", "", targetPath}, args...)
+		return "cmd.exe", cmdArgs, ""
+	}
 	ext := strings.ToLower(filepath.Ext(targetPath))
 	if ext == ".bat" || ext == ".cmd" || ext == ".html" || ext == ".htm" || ext == ".url" {
 		cmdArgs := append([]string{"/c", "start", "", targetPath}, args...)
@@ -255,13 +269,16 @@ func (s *Store) handleRun(w http.ResponseWriter, r *http.Request) {
 		storage.SendJSON(w, http.StatusBadRequest, map[string]any{"success": false, "error": "tool path is empty"})
 		return
 	}
-	if _, err := os.Stat(targetPath); err != nil {
-		if os.IsNotExist(err) {
-			storage.SendJSON(w, http.StatusNotFound, map[string]any{"success": false, "error": "tool file not found"})
+	// 网址无文件可查，跳过存在性检查（本地路径仍要求存在，防拼错路径静默起不来）
+	if !isWebURL(targetPath) {
+		if _, err := os.Stat(targetPath); err != nil {
+			if os.IsNotExist(err) {
+				storage.SendJSON(w, http.StatusNotFound, map[string]any{"success": false, "error": "tool file not found"})
+				return
+			}
+			storage.SendJSON(w, http.StatusInternalServerError, map[string]any{"success": false, "error": err.Error()})
 			return
 		}
-		storage.SendJSON(w, http.StatusInternalServerError, map[string]any{"success": false, "error": err.Error()})
-		return
 	}
 
 	file, args, cwd := ResolveLaunchCommand(targetPath, tool.Args)

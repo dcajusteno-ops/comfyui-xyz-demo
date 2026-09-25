@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useLocalStorageState } from "./useLocalStorageState";
+import { usePersistentState } from "./usePersistentState";
 import {
   beep,
   notify,
@@ -10,7 +10,7 @@ import {
 } from "../lib/notifier";
 
 export function useNotifier() {
-  const [settings, setSettings] = useLocalStorageState<NotifierSettings>("comfyui_notifier", defaultNotifierSettings);
+  const [settings, setSettings] = usePersistentState<NotifierSettings>("comfyui_notifier", defaultNotifierSettings);
 
   const update = useCallback(
     (patch: Partial<NotifierSettings>) => {
