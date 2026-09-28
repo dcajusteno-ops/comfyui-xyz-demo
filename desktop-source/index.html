@@ -7,20 +7,38 @@
     <meta name="theme-color" content="#1c1917" />
     <title>ComfyUI XYZ 控制台</title>
     <script>
-      (function() {
+      // 首帧前应用上次的主题配色。本脚本在模块加载之前执行，读不到服务端 ui-state，
+      // 只能读 localStorage 里的预绘制缓存（由 src/lib/theme.ts 的 writeThemeCache 写入，
+      // 内容 = 明暗基底 + 已派生的 CSS 变量 + 壁纸变量）。
+      // 之后 uiStateStore.applyBootTheme() 会用服务端真相再覆盖一次，多窗口/换机后仍以服务端为准。
+      (function () {
         try {
-          var theme = JSON.parse(localStorage.getItem('xyz_theme'));
-          if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
+          var cache = JSON.parse(localStorage.getItem("comfyui_xyz_theme_cache") || "null");
+          if (!cache) return;
+          var root = document.documentElement;
+          if (cache.base === "dark") root.classList.add("dark");
+          var vars = cache.vars || {};
+          for (var name in vars) {
+            if (Object.prototype.hasOwnProperty.call(vars, name)) {
+              root.style.setProperty("--" + name, vars[name]);
+            }
           }
-        } catch (e) {}
+          if (cache.wallpaperImage) {
+            root.classList.add("has-wallpaper");
+            root.style.setProperty("--wallpaper-image", cache.wallpaperImage);
+            root.style.setProperty("--wallpaper-fit", cache.wallpaperFit || "cover");
+            root.style.setProperty("--wallpaper-blur", cache.wallpaperBlur || "0px");
+          }
+        } catch (e) {
+          /* 缓存损坏：退回默认配色，不阻断启动 */
+        }
       })();
     </script>
   </head>
   <body>
     <!-- boot 门期间（拉取 /api/ui-state，本地通常 <50ms）的占位，render 后被整体替换 -->
     <div id="root">
-      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; color: #888; background: var(--bg, #fafaf9);">
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; color: #888; background: var(--surface-alt, #fafaf9);">
         加载中…
       </div>
     </div>

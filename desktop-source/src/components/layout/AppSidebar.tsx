@@ -1,7 +1,6 @@
 import { memo } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, Moon, Sun, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Palette, Sparkles, type LucideIcon } from "lucide-react";
 import type { TabId } from "../../types";
-import { useAppContext } from "../../AppContext";
 
 type TabConfig = { id: TabId; label: string; icon: LucideIcon };
 
@@ -12,6 +11,7 @@ export const AppSidebar = memo(({
   onTabChange,
   generationTabs,
   toolTabs,
+  onOpenThemePanel,
 }: {
   isCollapsed: boolean;
   onToggle: () => void;
@@ -19,9 +19,9 @@ export const AppSidebar = memo(({
   onTabChange: (id: TabId) => void;
   generationTabs: TabConfig[];
   toolTabs: TabConfig[];
+  /** 打开主题面板（明暗切换已移入面板内部） */
+  onOpenThemePanel: () => void;
 }) => {
-  const { theme, toggleTheme } = useAppContext();
-
   return (
     <aside className={isCollapsed ? "app-sidebar is-collapsed" : "app-sidebar"}>
       <div className="sidebar-header">
@@ -77,11 +77,11 @@ export const AppSidebar = memo(({
         <button
           type="button"
           className="theme-toggle"
-          onClick={(e) => toggleTheme(e)}
-          title={theme === "light" ? "切换到暗色模式" : "切换到亮色模式"}
+          onClick={onOpenThemePanel}
+          title="主题（配色 / 壁纸 / 明暗）"
         >
-          {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-          {!isCollapsed && <span>{theme === "light" ? "深色模式" : "浅色模式"}</span>}
+          <Palette size={18} />
+          {!isCollapsed && <span>主题</span>}
         </button>
 
         <button

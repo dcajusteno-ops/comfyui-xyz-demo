@@ -49,26 +49,36 @@ function readWithLegacyMigration(key: string): string | null {
  * 持久化 state：正常路径存服务端 data/ui-state.json（800ms 防抖批量 PUT），
  * 服务不可达时回退 localStorage（离线兜底）。deepMerge 语义与旧 useLocalStorageState
  * 完全一致——只补新键，参数字段一律不改名。
+ *
+ * normalize（可选）：deepMerge 只「补默认值命中的路径」，修不了类型错乱的坏数据
+ * （例如存储里 themes 不是数组）。需要结构校验的调用方传它，会拿到「合并后的值 + 原始存储值」
+ * 并返回最终初始值；原始存储值为 undefined 表示本地/服务端都没有数据。
  */
-export function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+export function usePersistentState<T>(
+  key: string,
+  defaultValue: T,
+  normalize?: (merged: T, raw: unknown) => T,
+): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
+    const finish = (merged: T, raw: unknown) => (normalize ? normalize(merged, raw) : merged);
     if (isServerBacked()) {
       const stored = readStoredValue<unknown>(key);
       if (stored !== undefined && stored !== null) {
-        return deepMerge(defaultValue, stored);
+        return finish(deepMerge<T>(defaultValue, stored), stored);
       }
-      return defaultValue;
+      return finish(defaultValue, undefined);
     }
     // pending / offline：沿用 localStorage（offline 是服务不可达的兜底，永不变砖）
     try {
       const item = readWithLegacyMigration(key);
       if (item !== null) {
-        return deepMerge(defaultValue, JSON.parse(item));
+        const parsed = JSON.parse(item);
+        return finish(deepMerge<T>(defaultValue, parsed), parsed);
       }
     } catch (error) {
       console.warn(`Error reading persisted key "${key}":`, error);
     }
-    return defaultValue;
+    return finish(defaultValue, undefined);
   });
 
   // 跳过首次挂载：服务端是共享存储，启动时全量回写会把本地快照盖到别的窗口的变更上；

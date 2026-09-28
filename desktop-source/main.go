@@ -32,6 +32,7 @@ import (
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/mobile"
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/proxy"
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/storage"
+	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/winchrome"
 )
 
 //go:embed all:dist
@@ -88,7 +89,12 @@ func main() {
 		return
 	}
 	dist := embeddedDist()
-	mux := buildMux(root, dist, comfyTarget, aliyunTarget)
+	// 窗口外观（DWM 标题栏 / 边框）：必须在 newWindow **之前**把上次落盘的颜色读出来，
+	// 才能把「窗口显示 → 上色」的间隔压到函数调用级 —— go-webview2 在 NewWithOptions
+	// 内部就 ShowWindow，之后再改色会先亮一帧系统默认色。
+	chrome := winchrome.New()
+	startupAppearance := api.LoadPersistedAppearance(filepath.Join(root, "data", "ui-state.json"))
+	mux := buildMux(root, dist, comfyTarget, aliyunTarget, chrome)
 
 	// 桌面窗口模式绑定**专用固定端口 9123**（而非 dev 的 9999）：dev/exe 可共存互不干扰，
 	// 且每次启动 origin 稳定 → localStorage（预设/面板状态）不会因端口漂移而"重置"。
@@ -119,6 +125,9 @@ func main() {
 		defer cancel()
 		_ = srv.Shutdown(ctx)
 	}()
+	// 窗口此刻已经可见（go-webview2 内部即 ShowWindow），所以立刻着色
+	chrome.Attach(uintptr(w.Window()))
+	chrome.Apply(startupAppearance)
 	w.SetSize(winMinWidth, winMinHight, webview2.HintMin)
 	w.Navigate(base)
 	go watchWindowSize(w, filepath.Join(root, "data", "window-state.json"), ww, hh)
@@ -254,7 +263,8 @@ func runWebMode(port string, comfyTarget, aliyunTarget *url.URL, openBrowser boo
 		log.Fatal(err)
 	}
 	dist := embeddedDist()
-	mux := buildMux(root, dist, comfyTarget, aliyunTarget)
+	// 浏览器模式没有桌面窗口：chrome 传 nil → /xyz/window/appearance 返回 desktop:false
+	mux := buildMux(root, dist, comfyTarget, aliyunTarget, nil)
 
 	addr := "0.0.0.0:" + port
 	ln, err := net.Listen("tcp", addr)
@@ -303,7 +313,8 @@ func embeddedDist() fs.FS {
 }
 
 // buildMux 汇总全部路由。两种运行形态共用同一套 handler，行为完全一致。
-func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL) *http.ServeMux {
+// chrome 为 nil 表示非桌面窗口形态（runWebMode / --web / DSH_E2E）。
+func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrome *winchrome.Applier) *http.ServeMux {
 	stores := &api.Stores{RepoRoot: root, Queue: storage.NewWriteQueue()}
 	comfyBaseURL := envOr("COMFYUI_URL", comfyTarget.String())
 	mediaMgr := media.NewManager(comfyBaseURL)
@@ -330,9 +341,23 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL) *http
 	mux.HandleFunc("/xyz/launcher", launcherStore.Handle)
 	mux.HandleFunc("/xyz/launcher/", launcherStore.Handle)
 	// 前端持久化状态（data/ui-state.json，替代 localStorage）；E2E 内存态防污染真实数据
-	uiStateStore := &api.UiStateStore{RepoRoot: root, Queue: storage.NewWriteQueue(), InMemory: os.Getenv("DSH_E2E") == "1"}
+	// 窗口外观也写这个文件，所以两个 handler 必须共用同一个写队列，否则并发写会互相覆盖
+	uiQueue := storage.NewWriteQueue()
+	uiStateStore := &api.UiStateStore{RepoRoot: root, Queue: uiQueue, InMemory: os.Getenv("DSH_E2E") == "1"}
 	mux.HandleFunc("/api/ui-state", uiStateStore.Handle)
 	mux.HandleFunc("/api/ui-state/", uiStateStore.Handle)
+	// 桌面窗口外观：原生标题栏 / 边框跟随主题（DWM）。非桌面形态 chrome 为 nil → desktop:false
+	windowHandler := &api.WindowHandler{
+		Chrome:   chrome,
+		RepoRoot: root,
+		Queue:    uiQueue,
+		InMemory: os.Getenv("DSH_E2E") == "1",
+	}
+	mux.HandleFunc("/xyz/window/appearance", windowHandler.Handle)
+	// 主题壁纸存储（data/theme/wallpapers/）：ui-state 只存引用，图片本体走这里
+	themeStore := &api.ThemeStore{RepoRoot: root, InMemory: os.Getenv("DSH_E2E") == "1"}
+	mux.HandleFunc(api.WallpaperRoutePrefix, themeStore.Handle)
+	mux.HandleFunc(api.WallpaperRoutePrefix+"/", themeStore.Handle)
 	// TS 版 lora 只注册精确路径；exampleImages 的 startsWith("/xyz/example") 语义 →
 	// 三个前缀模式都要挂到同一 handler（"/xyz/example-images/..." 不落在 "/xyz/example/" 之内）
 	mux.HandleFunc("/xyz/lora/extract-metadata", mediaMgr.HandleLoraExtractMetadata)

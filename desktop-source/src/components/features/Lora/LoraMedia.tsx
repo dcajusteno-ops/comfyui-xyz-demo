@@ -13,6 +13,8 @@ export const LoraMedia = memo(({
   controls = false,
   settings,
   fallbackNsfwLevel = 0,
+  initialRevealed = false,
+  onRevealChange,
   onOpen,
 }: {
   media: LoraExampleMedia;
@@ -21,17 +23,26 @@ export const LoraMedia = memo(({
   controls?: boolean;
   settings: LoraManagerSettings;
   fallbackNsfwLevel?: number;
+  /** 初始是否已解禁（大图查看沿用网格里已解禁的状态，避免同一张图被糊两次） */
+  initialRevealed?: boolean;
+  /** 把解禁状态镜像给调用方（示例卡片用它把状态带给大图查看） */
+  onRevealChange?: (revealed: boolean) => void;
   onOpen?: () => void;
 }) => {
   const src = normalizePreview(apiBase, media.path || media.url);
-  const [revealed, setRevealed] = useState(false);
+  const [revealed, setRevealed] = useState(initialRevealed);
   const nsfwLevel = getMediaNsfwLevel(media, fallbackNsfwLevel);
   const shouldBlur = shouldBlurNsfwLevel(nsfwLevel, settings);
   const isBlurred = shouldBlur && !revealed;
 
   useEffect(() => {
-    setRevealed(false);
-  }, [src, shouldBlur]);
+    setRevealed(initialRevealed);
+  }, [src, shouldBlur, initialRevealed]);
+
+  // 只在同步给调用方这一个副作用上做通知（不塞进 setState updater，避免 StrictMode 下重复调用）
+  useEffect(() => {
+    onRevealChange?.(revealed);
+  }, [revealed, onRevealChange]);
 
   if (!src) {
     return <div className="lm-media-empty"><Layers size={34} /></div>;
@@ -98,6 +109,8 @@ export const LoraMedia = memo(({
          prev.controls === next.controls &&
          prev.settings === next.settings &&
          prev.fallbackNsfwLevel === next.fallbackNsfwLevel &&
+         prev.initialRevealed === next.initialRevealed &&
+         prev.onRevealChange === next.onRevealChange &&
          prev.onOpen === next.onOpen &&
          prev.media.url === next.media.url &&
          prev.media.path === next.media.path &&

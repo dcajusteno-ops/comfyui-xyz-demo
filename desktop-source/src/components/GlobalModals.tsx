@@ -26,6 +26,7 @@ const PromptEditorDialog = lazy(() => import("./PromptEditorDialog").then((m) =>
 const TranslationToolDialog = lazy(() => import("./TranslationToolDialog").then((m) => ({ default: m.TranslationToolDialog })));
 const XyzHelpModal = lazy(() => import("./features/Xyz/XyzHelpModal").then((m) => ({ default: m.XyzHelpModal })));
 const LauncherDialog = lazy(() => import("./LauncherDialog").then((m) => ({ default: m.LauncherDialog })));
+const ThemePanel = lazy(() => import("./theme").then((m) => ({ default: m.ThemePanel })));
 
 interface GlobalModalsProps {
   loraOperation: LoraOperation | null;
@@ -125,6 +126,10 @@ export function GlobalModals(props: GlobalModalsProps) {
       )}
 
       {ui.showLauncher && <LauncherDialog ui={ui} onToast={pushToast} onClose={() => ui.setShowLauncher(false)} />}
+
+      {ui.showThemePanel && (
+        <ThemePanel onClose={() => ui.setShowThemePanel(false)} onConfirm={ui.confirm} />
+      )}
 
       {loraOperation && (
         <LoraOperationModal

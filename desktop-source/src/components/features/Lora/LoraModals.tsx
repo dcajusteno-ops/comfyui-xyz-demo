@@ -99,7 +99,7 @@ export function LoraDetailModal({
   const [localFiles, setLocalFiles] = useState<LoraExampleMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailError, setDetailError] = useState("");
-  const [lightboxMedia, setLightboxMedia] = useState<{ media: LoraExampleMedia; index: number } | null>(null);
+  const [lightboxMedia, setLightboxMedia] = useState<{ media: LoraExampleMedia; index: number; revealed: boolean } | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(item.file_name);
   const [renaming, setRenaming] = useState(false);
@@ -366,7 +366,7 @@ export function LoraDetailModal({
                     onToast={onToast}
                     settings={settings}
                     fallbackNsfwLevel={getItemNsfwLevel(item, metadata)}
-                    onOpenMedia={(selectedMedia, selectedIndex) => setLightboxMedia({ media: selectedMedia, index: selectedIndex })}
+                    onOpenMedia={(selectedMedia, selectedIndex, revealed) => setLightboxMedia({ media: selectedMedia, index: selectedIndex, revealed })}
                   />
                 ))}
               </div>
@@ -379,6 +379,7 @@ export function LoraDetailModal({
             alt={`示例 ${lightboxMedia.index + 1}`}
             settings={settings}
             fallbackNsfwLevel={getItemNsfwLevel(item, metadata)}
+            initialRevealed={lightboxMedia.revealed}
             onClose={() => setLightboxMedia(null)}
           />
         )}

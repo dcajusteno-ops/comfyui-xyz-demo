@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { BadgePlus, Brain, CheckCircle2, Copy, Film, ImageIcon, Info, Maximize2, Plus, ScanSearch, X } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import type {
@@ -183,19 +184,27 @@ export function LoraExampleCard({
   onToast: (type: Toast["type"], title: string, message?: string) => void;
   settings: LoraManagerSettings;
   fallbackNsfwLevel?: number;
-  onOpenMedia?: (media: LoraExampleMedia, index: number) => void;
+  onOpenMedia?: (media: LoraExampleMedia, index: number, revealed: boolean) => void;
 }) {
   const src = normalizePreview(apiBase, media.path || media.url);
   const meta = media.meta ?? {};
   const label = media.source === "local" ? "Local" : media.source === "preview" ? "Preview" : src ? "Civitai" : "Missing";
   const nsfwLevel = getMediaNsfwLevel(media, fallbackNsfwLevel);
   const canOpenMedia = Boolean(src) && !isLoraVideo(media, src);
+  /* 把「已解禁」状态从 LoraMedia 镜像上来：大图查看与卡片是同一张图，
+     用户在这里解禁过之后，打开大图不该再被糊一次。 */
+  const [revealed, setRevealed] = useState(false);
+  const handleRevealChange = useCallback((next: boolean) => setRevealed(next), []);
+  const openMedia = useCallback(
+    () => onOpenMedia?.(media, index, revealed),
+    [onOpenMedia, media, index, revealed],
+  );
   return (
     <article className={shouldBlurNsfwLevel(nsfwLevel, settings) ? "lm-example-card nsfw-content" : "lm-example-card"} data-nsfw-level={nsfwLevel}>
       <div className="lm-example-media">
         <div className="lm-media-badge">{isLoraVideo(media, src) ? <Film size={14} /> : <ImageIcon size={14} />} {label} #{index + 1}</div>
         {canOpenMedia && (
-          <button type="button" className="lm-media-open-btn" title="查看大图" onClick={() => onOpenMedia?.(media, index)}>
+          <button type="button" className="lm-media-open-btn" title="查看大图" onClick={openMedia}>
             <Maximize2 size={15} />
           </button>
         )}
@@ -206,7 +215,8 @@ export function LoraExampleCard({
           controls
           settings={settings}
           fallbackNsfwLevel={fallbackNsfwLevel}
-          onOpen={canOpenMedia ? () => onOpenMedia?.(media, index) : undefined}
+          onRevealChange={handleRevealChange}
+          onOpen={canOpenMedia ? openMedia : undefined}
         />
       </div>
       <LoraExampleMetadata meta={meta} onToast={onToast} />
@@ -220,6 +230,7 @@ export function MediaLightbox({
   alt,
   settings,
   fallbackNsfwLevel,
+  initialRevealed = false,
   onClose,
 }: {
   media: LoraExampleMedia;
@@ -227,15 +238,29 @@ export function MediaLightbox({
   alt: string;
   settings: LoraManagerSettings;
   fallbackNsfwLevel: number;
+  /** 在网格里已经解禁过这张图 → 大图直接显示，不再糊一次 */
+  initialRevealed?: boolean;
   onClose: () => void;
 }) {
-  return (
+  /* 挂到 document.body：.lm-lightbox 是 position:fixed，一旦祖先戴上 backdrop-filter
+     （壁纸模式给 .modal 加了毛玻璃）它就成了包含块，灯箱会被关在弹窗盒子里 ——
+     表现为「大图不占满屏、身后弹窗半透出来」。portal 出去后 fixed 恒以视口为准。 */
+  return createPortal(
     <div className="lm-lightbox" role="dialog" aria-modal="true" aria-label="查看大图" onMouseDown={onClose}>
       <div className="lm-lightbox-content" onMouseDown={(event) => event.stopPropagation()}>
-        <button type="button" className="lm-lightbox-close" title="关闭" onClick={onClose}><X size={18} /></button>
-        <LoraMedia media={media} apiBase={apiBase} alt={alt} controls settings={settings} fallbackNsfwLevel={fallbackNsfwLevel} />
+        <button type="button" className="lm-lightbox-close" title="关闭" aria-label="关闭" onClick={onClose}><X size={18} /></button>
+        <LoraMedia
+          media={media}
+          apiBase={apiBase}
+          alt={alt}
+          controls
+          settings={settings}
+          fallbackNsfwLevel={fallbackNsfwLevel}
+          initialRevealed={initialRevealed}
+        />
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

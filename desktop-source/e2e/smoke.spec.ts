@@ -78,8 +78,15 @@ test("简易 LoRA 管理器弹窗：打开与折叠交互", async ({ page }) => 
   await expect(page.locator(".lm-folder-node button", { hasText: "画师" })).toHaveCount(0);
 });
 
-test("主题切换：昼夜模式", async ({ page }) => {
+test("主题：侧栏入口打开主题面板", async ({ page }) => {
   await page.goto("/");
-  await page.getByTitle("切换到暗色模式").click();
-  await expect(page.getByTitle("切换到亮色模式")).toBeVisible();
+  // 侧栏底部按钮已由「深色/浅色模式」快切改为「主题」面板入口
+  await expect(page.locator(".theme-toggle")).toHaveText(/主题/);
+  await page.locator(".theme-toggle").click();
+  await expect(page.locator(".theme-panel")).toBeVisible();
+  // 用名字精确匹配：行的元信息里也带「深色/浅色」，用 hasText 会命中多行
+  await expect(
+    page.locator(".theme-library-item").filter({ has: page.locator(".theme-library-name", { hasText: /^深色$/ }) }),
+  ).toHaveCount(1);
+  await expect(page.locator(".theme-library-item", { hasText: "赛博霓虹" })).toHaveCount(1);
 });

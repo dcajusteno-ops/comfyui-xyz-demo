@@ -147,6 +147,8 @@ function App() {
   // ===== Hooks =====
   const { toasts, notificationLog, pushToast, removeToast } = useToast();
   const ui = useUiState();
+  // AppSidebar 是 React.memo：回调必须是稳定引用，否则每次渲染都会击穿 memo
+  const openThemePanel = useCallback(() => ui.setShowThemePanel(true), [ui.setShowThemePanel]);
   const tagging = useTagging();
   const xyz = useXyz();
   const notesHook = useNotes({ tab, pushToast, confirm: ui.confirm });
@@ -534,6 +536,7 @@ function App() {
         onTabChange={setTab}
         generationTabs={generationTabs}
         toolTabs={toolTabs}
+        onOpenThemePanel={openThemePanel}
       />
       
       <div className="app-main">

@@ -15,6 +15,16 @@
  * E2E（Playwright）：/api/ui-state 由 e2e/mocks.ts 路由拦截，不触达服务端。
  */
 
+import {
+  LEGACY_THEME_KEY,
+  THEME_LIBRARY_KEY,
+  THEME_LIBRARY_VERSION,
+  applyThemeToDom,
+  normalizeThemeLibrary,
+  readLibraryVersion,
+  writeThemeCache,
+} from "./theme";
+
 type BootState = "pending" | "ready" | "offline";
 
 const FLUSH_DEBOUNCE_MS = 800;
@@ -37,14 +47,26 @@ export function readStoredValue<T>(key: string): T | undefined | null {
   return store.get(key) as T | undefined;
 }
 
-/** boot 完成后、首帧渲染前同步应用主题，避免 dark 用户看到一帧 light */
+/**
+ * boot 完成后、首帧渲染前同步应用主题：<html> 的 dark class + 内联 CSS 变量 + 壁纸变量。
+ * 同时把「预绘制缓存」写给 index.html 的内联脚本 —— index.html 在任何模块加载前就要着墨，
+ * 只能读 localStorage，所以缓存的正是本次算完的结果，下次冷启动零闪烁。
+ *
+ * 首次运行（服务端还没有主题库）或**老版本库**时把归一化/迁移结果立刻写回 store：
+ * 既让后续 hook 读到同一份真相，也避免迁移结果只活在内存里（每次冷启动重复迁一遍）。
+ */
 export function applyBootTheme(): void {
   if (bootState !== "ready") return;
-  const theme = store.get("comfyui_xyz_theme");
-  if (theme === "dark") {
-    document.documentElement.classList.add("dark");
-  } else if (theme === "light") {
-    document.documentElement.classList.remove("dark");
+  const stored = store.get(THEME_LIBRARY_KEY);
+  const state = normalizeThemeLibrary(stored, store.get(LEGACY_THEME_KEY), {
+    allowLegacyMigration: stored === undefined || stored === null,
+  });
+  applyThemeToDom(state);
+  writeThemeCache(state);
+  const staleLibrary =
+    stored === undefined || stored === null || readLibraryVersion(stored) < THEME_LIBRARY_VERSION;
+  if (staleLibrary) {
+    scheduleUiStateSave(THEME_LIBRARY_KEY, state);
   }
 }
 

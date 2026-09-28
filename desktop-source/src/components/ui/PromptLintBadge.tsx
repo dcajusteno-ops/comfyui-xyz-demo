@@ -10,9 +10,16 @@ const SEVERITY_ICON = {
 } as const;
 
 const SEVERITY_COLOR = {
-  error: "#dc2626",
-  warning: "#d97706",
-  info: "#64748b",
+  error: "var(--danger)",
+  warning: "var(--warning)",
+  info: "var(--info)",
+} as const;
+
+/** 徽标底色单独取令牌：上面那些要拼 `1a` 后缀做透明度，换成 var() 就拼不出来了 */
+const SEVERITY_SOFT = {
+  error: "var(--danger-soft)",
+  warning: "var(--warning-soft)",
+  info: "var(--info-soft)",
 } as const;
 
 export function PromptLintBadge({
@@ -79,7 +86,7 @@ export function PromptLintBadge({
               fontSize: "12px",
               borderRadius: 999,
               border: `1px solid ${SEVERITY_COLOR[topSeverity]}`,
-              background: `${SEVERITY_COLOR[topSeverity]}1a`,
+              background: SEVERITY_SOFT[topSeverity],
               color: SEVERITY_COLOR[topSeverity],
               cursor: "pointer",
             }}
@@ -88,7 +95,7 @@ export function PromptLintBadge({
             {issues.length} 个提示
           </button>
         ) : (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "#16a34a" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "var(--success)" }}>
             <ShieldCheck size={13} /> 无提示
           </span>
         )}

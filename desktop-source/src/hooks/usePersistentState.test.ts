@@ -151,3 +151,73 @@ describe("bootUiState + ready 路径", () => {
     await waitFor(() => expect(second.result.current[0]).toBe("b"));
   });
 });
+
+describe("usePersistentState 的合并语义与 normalize 钩子", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    __resetForTest();
+  });
+
+  /**
+   * 主题库把整个主题数组存进一个 key：deepMerge 对数组是「整体替换」，
+   * 所以「存了多少条就是多少条」，不会出现半合并的数组。这里固化这个语义。
+   */
+  it("数组整体替换（不做逐项合并）", () => {
+    localStorage.setItem(
+      "comfyui_test_key",
+      JSON.stringify({ items: [{ id: "a" }], keep: 1 }),
+    );
+    const { result } = renderHook(() =>
+      usePersistentState("comfyui_test_key", { items: [{ id: "default" }, { id: "extra" }], keep: 0, added: true }),
+    );
+    expect(result.current[0]).toEqual({ items: [{ id: "a" }], keep: 1, added: true });
+  });
+
+  it("对象逐键补全（只补默认值命中的路径）", () => {
+    localStorage.setItem("comfyui_test_key", JSON.stringify({ cfg: { steps: 30 } }));
+    const { result } = renderHook(() => usePersistentState("comfyui_test_key", { cfg: { steps: 20, cfg: 7 } }));
+    expect(result.current[0]).toEqual({ cfg: { steps: 30, cfg: 7 } });
+  });
+
+  it("normalize 收到「合并后的值」与「原始存储值」，原始值可用来判断是否首次运行", () => {
+    localStorage.setItem("comfyui_test_key", JSON.stringify({ steps: 30 }));
+    const seen: Array<{ merged: unknown; raw: unknown }> = [];
+    const { result } = renderHook(() =>
+      usePersistentState(
+        "comfyui_test_key",
+        { steps: 20 },
+        (merged, raw) => {
+          seen.push({ merged, raw });
+          return { steps: (merged as { steps: number }).steps + 1 };
+        },
+      ),
+    );
+    expect(result.current[0]).toEqual({ steps: 31 });
+    expect(seen).toHaveLength(1);
+    expect(seen[0].raw).toEqual({ steps: 30 });
+  });
+
+  it("无存储数据时 normalize 收到 raw === undefined（首次运行信号）", () => {
+    let raw: unknown = "unset";
+    const { result } = renderHook(() =>
+      usePersistentState("comfyui_test_key", { steps: 20 }, (merged, stored) => {
+        raw = stored;
+        return merged;
+      }),
+    );
+    expect(result.current[0]).toEqual({ steps: 20 });
+    expect(raw).toBeUndefined();
+  });
+
+  it("normalize 能修复类型错乱的坏数据", () => {
+    localStorage.setItem("comfyui_test_key", JSON.stringify({ items: "坏数据" }));
+    const { result } = renderHook(() =>
+      usePersistentState(
+        "comfyui_test_key",
+        { items: [] as string[] },
+        (merged) => ({ items: Array.isArray((merged as { items: unknown }).items) ? (merged as { items: string[] }).items : [] }),
+      ),
+    );
+    expect(result.current[0]).toEqual({ items: [] });
+  });
+});

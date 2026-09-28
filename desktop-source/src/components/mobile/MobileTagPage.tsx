@@ -21,8 +21,8 @@ const DEFAULT_PARAMS: MobileTaskParams = {
 const STATUS_META: Record<MobileTaskStatus, { label: string; color: string }> = {
   queued: { label: "排队中…", color: "var(--muted)" },
   running: { label: "识别中…", color: "var(--accent)" },
-  done: { label: "完成", color: "#16a34a" },
-  error: { label: "失败", color: "#dc2626" },
+  done: { label: "完成", color: "var(--success)" },
+  error: { label: "失败", color: "var(--danger)" },
 };
 
 async function copyText(text: string): Promise<boolean> {
@@ -136,7 +136,7 @@ export const MobileTagPage = () => {
   const status = current ? STATUS_META[current.status] : null;
 
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--bg)", color: "var(--text)", maxWidth: 520, margin: "0 auto", padding: "16px 16px 48px" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--surface-alt)", color: "var(--text)", maxWidth: 520, margin: "0 auto", padding: "16px 16px 48px" }}>
       <header style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
         <ScanSearch size={22} color="var(--accent)" />
         <div>
@@ -273,7 +273,7 @@ export const MobileTagPage = () => {
             {submitting ? <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> : <ScanSearch size={18} />}
             {submitting ? "提交中…" : "开始识别"}
           </button>
-          {submitError && <div style={{ marginTop: 10, fontSize: 13, color: "#dc2626" }}>{submitError}</div>}
+          {submitError && <div style={{ marginTop: 10, fontSize: 13, color: "var(--danger)" }}>{submitError}</div>}
         </section>
       )}
 
@@ -312,7 +312,7 @@ export const MobileTagPage = () => {
           )}
 
           {current.status === "error" && (
-            <div style={{ fontSize: 13, color: "#dc2626", background: "rgba(220,38,38,0.08)", padding: 12, borderRadius: 8 }}>{current.error ?? "识别失败"}</div>
+            <div style={{ fontSize: 13, color: "var(--danger)", background: "var(--danger-soft)", padding: 12, borderRadius: 8 }}>{current.error ?? "识别失败"}</div>
           )}
 
           <div style={{ display: "flex", gap: 10, marginTop: 12 }}>

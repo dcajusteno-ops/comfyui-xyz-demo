@@ -25,4 +25,13 @@ export const CONFIG = {
     SSE_HEARTBEAT_MS: 20000, // SSE 心跳注释行间隔
     PAGE_HASH: "#/mobile-tag", // 手机端页面入口 hash
   },
+
+  // DIY 主题系统配置
+  THEME: {
+    // 壁纸单张上限；必须与 server/theme.ts 的 THEME_MAX_WALLPAPER_BYTES、
+    // internal/api/theme.go 的 ThemeMaxWallpaperBytes 保持一致
+    MAX_WALLPAPER_BYTES: 20 * 1024 * 1024,
+    // 壁纸文件受支持的类型（服务端按 MIME 白名单推导扩展名）
+    WALLPAPER_ACCEPT: "image/png,image/jpeg,image/webp,image/gif,image/avif",
+  },
 };

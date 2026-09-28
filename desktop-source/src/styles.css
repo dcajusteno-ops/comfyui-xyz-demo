@@ -1510,21 +1510,6 @@ button {
   justify-content: flex-end;
 }
 
-.lora-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 16px;
-  align-items: start;
-}
-
-.lora-grid.density-compact {
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-}
-
-.lora-grid.density-large {
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-}
-
 .lora-card {
   aspect-ratio: 896 / 1152;
   min-width: 0;
@@ -1596,34 +1581,6 @@ button {
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.lora-card .card-actions {
-  gap: 5px;
-  opacity: 0;
-  transition: opacity 140ms ease;
-}
-
-.lora-card:hover .card-actions,
-.lora-card:focus-within .card-actions {
-  opacity: 1;
-}
-
-.lora-card .card-actions button {
-  width: 28px;
-  height: 28px;
-  min-height: 28px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 50%;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(6px);
-}
-
-.lora-card .card-actions button:hover {
-  background: var(--accent);
-  border-color: var(--accent);
 }
 
 .lora-info {
@@ -2245,20 +2202,6 @@ button {
 .lora-summary {
   justify-content: flex-start;
   gap: 24px;
-}
-
-.lora-grid,
-.lora-grid.density-compact,
-.lora-grid.density-large {
-  grid-template-columns: repeat(auto-fill, minmax(152px, 162px));
-  justify-content: start;
-  align-items: start;
-  gap: 14px;
-}
-
-.lora-card {
-  width: min(100%, 162px);
-  max-width: 162px;
 }
 
 .base-model-label {
@@ -2961,25 +2904,6 @@ textarea {
   width: 112px;
 }
 
-.lora-grid {
-  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
-  gap: 14px;
-  content-visibility: auto;
-  contain-intrinsic-size: 0 320px;
-}
-
-.lora-grid.density-compact {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  content-visibility: auto;
-  contain-intrinsic-size: 0 240px;
-}
-
-.lora-grid.density-large {
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  content-visibility: auto;
-  contain-intrinsic-size: 0 400px;
-}
-
 .lora-card {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -3232,20 +3156,6 @@ textarea {
 .lora-summary {
   justify-content: flex-start;
   gap: 24px;
-}
-
-.lora-grid,
-.lora-grid.density-compact,
-.lora-grid.density-large {
-  grid-template-columns: repeat(auto-fill, minmax(152px, 162px));
-  justify-content: start;
-  align-items: start;
-  gap: 14px;
-}
-
-.lora-card {
-  width: min(100%, 162px);
-  max-width: 162px;
 }
 
 .base-model-label {
@@ -3593,6 +3503,10 @@ textarea {
   overscroll-behavior: contain;
   padding-right: 4px;
   scrollbar-gutter: stable;
+  /* 卡片是「内容区」，上方筛选行 / 摘要行是「工具区」，两者之间需要有层级差。
+     .lm-model-area 的行距是统一的 10px，摘要行紧贴首行卡片时像被压着，故此处再留一段
+     （合计约 18px，略大于卡片网格自身的 12px 行距，读起来才是一个断档而不是另一行卡片）。 */
+  margin-top: 8px;
 }
 
 .lm-load-status {
@@ -3676,20 +3590,24 @@ textarea {
 .lm-plugin-shell .lm-card-grid.density-large {
   display: grid;
   justify-content: stretch;
-  align-items: start;
+  align-items: stretch;
   gap: 12px 14px;
 }
 
 .lm-plugin-shell .lm-card-grid {
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+  content-visibility: auto;
+  contain-intrinsic-size: 0 320px;
 }
 
 .lm-plugin-shell .lm-card-grid.density-compact {
-  grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(218px, 100%), 1fr));
+  contain-intrinsic-size: 0 285px;
 }
 
 .lm-plugin-shell .lm-card-grid.density-large {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  contain-intrinsic-size: 0 300px;
 }
 
 .lm-plugin-shell .lm-card-grid > .empty-strip {
@@ -3697,44 +3615,71 @@ textarea {
   width: 100%;
 }
 
+/* ---- LoRA 卡片（2026-09-25 版式重做）：封面区 + 实底信息面板，两段式 ---- */
 .lm-plugin-shell .lm-model-card {
-  aspect-ratio: 1 / 1.2;
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  aspect-ratio: auto; /* 覆盖旧一代 .lora-card 的 896/1152 —— 新版高度由「封面 + 信息面板」自然决定 */
   width: 100%;
   max-width: none;
   min-width: 0;
   margin: 0;
+  overflow: hidden;
   border: 1px solid var(--lm-border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--lm-surface);
+  box-shadow: var(--shadow);
   cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.lm-plugin-shell .lm-card-grid.density-compact .lm-model-card {
-  aspect-ratio: 1 / 1.14;
-  max-width: none;
+.lm-plugin-shell .lm-model-card {
+  position: relative; /* 悬停描边画在 ::after 上（见下），需要卡片作为定位基准 */
 }
 
-.lm-plugin-shell .lm-card-grid.density-large .lm-model-card {
-  aspect-ratio: 1 / 1.24;
-  max-width: none;
+/* 悬停描边用 ::after 而不是 border/outline：border 画在卡片边缘，会被封面图亮部「吃掉」
+   （1px 青边压在亮色封面上几乎不可见 —— 看起来就是「边框显示不全」：暗部能看见、亮部看不见，
+   一直都有，与壁纸无关）。::after 是定位元素且 z-index 高于封面（封面 blur/transform 会产生
+   合成层，outline 会被压在下面），任何封面上都是完整一圈。 */
+.lm-plugin-shell .lm-model-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  pointer-events: none;
 }
 
 .lm-plugin-shell .lm-model-card:hover,
 .lm-plugin-shell .lm-model-card:focus-visible {
   transform: translateY(-2px);
   border-color: var(--accent);
-  background: var(--surface-hover);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
   outline: none;
+}
+
+.lm-plugin-shell .lm-model-card:hover::after,
+.lm-plugin-shell .lm-model-card:focus-visible::after {
+  border-color: var(--accent);
 }
 
 .lm-card-preview {
   position: relative;
   width: 100%;
-  height: 100%;
-  border-radius: 8px;
+  height: auto;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--surface-alt);
+}
+
+.lm-plugin-shell .lm-card-grid.density-large .lm-card-preview {
+  aspect-ratio: 5 / 4;
+}
+
+.lm-card-preview .lm-media-empty {
+  min-height: 0;
 }
 
 .lm-card-preview img,
@@ -3854,8 +3799,9 @@ textarea {
 }
 
 .lm-card-preview .lm-restricted-toggle {
-  top: 44px;
-  left: 8px;
+  top: 8px;
+  right: 8px;
+  left: auto;
 }
 
 .lm-example-media .lm-restricted-toggle {
@@ -3863,65 +3809,20 @@ textarea {
   left: auto;
 }
 
-.lm-card-header,
-.lm-card-footer {
+/* 顶部徽标条：只在封面区内，去掉整条渐变，改由徽标自带半透明底 */
+.lm-card-header {
   position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   display: flex;
-  gap: 8px;
-  justify-content: space-between;
-  color: white;
-  padding: 8px;
-  backdrop-filter: blur(8px);
-}
-
-.lm-card-header {
-  top: 0;
+  flex-direction: row;
   align-items: flex-start;
-  flex-direction: column;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), transparent);
-}
-
-.lm-card-header .card-quick-actions {
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  margin-top: 6px;
-  transition: opacity 160ms ease;
-}
-
-.lm-model-card:hover .card-quick-actions {
-  opacity: 1;
-}
-
-.card-quick-actions button {
-  padding: 3px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.5);
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px;
   color: white;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.card-quick-actions button:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.lm-card-footer {
-  bottom: 0;
-  display: grid;
-  align-items: end;
-  box-sizing: border-box;
-  height: 36%;
-  min-height: 136px;
-  padding: 28px 10px 10px;
-  overflow: hidden;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  backdrop-filter: blur(3px);
+  backdrop-filter: none;
 }
 
 .lm-card-header .card-header-info {
@@ -3931,12 +3832,68 @@ textarea {
   gap: 6px;
 }
 
-.lm-card-header .base-model-label {
-  max-width: 150px;
+/* 快捷插入：封面右下角，悬停浮现 */
+.lm-card-header .card-quick-actions,
+.card-quick-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.lm-model-card:hover .card-quick-actions,
+.lm-model-card:focus-within .card-quick-actions {
+  opacity: 1;
+  transform: none;
+}
+
+.card-quick-actions {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+}
+
+.card-quick-actions button {
   padding: 3px 7px;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(6px);
   color: white;
-  background: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.card-quick-actions button:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 信息面板：实底（跟随主题），不再压在封面渐变上 */
+.lm-card-footer {
+  position: static;
+  display: block;
+  box-sizing: border-box;
+  height: auto;
+  min-height: 0;
+  padding: 8px 10px 9px;
+  overflow: hidden;
+  border-top: 1px solid var(--lm-border);
+  background: var(--lm-surface);
+  backdrop-filter: none;
+}
+
+.lm-card-header .base-model-label {
+  max-width: 100%;
+  padding: 3px 7px;
+  border-radius: 5px;
+  color: white;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  font-size: 11px;
 }
 
 .model-separator {
@@ -3961,10 +3918,8 @@ textarea {
 }
 
 .lm-card-footer .model-info {
-  position: relative;
-  z-index: 1;
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
   width: 100%;
   max-width: 100%;
@@ -3975,37 +3930,59 @@ textarea {
   box-shadow: none;
 }
 
+/* 名称固定一行省略（完整名见 title 提示）——旧版两行 clamp 会把下面的行挤掉 */
 .lm-card-footer .model-name {
-  display: -webkit-box;
+  display: block;
   width: 100%;
-  max-height: 2.7em;
   overflow: hidden;
-  color: white;
-  font-size: 14px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1.35;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.lm-card-footer .version-name,
-.lm-card-footer span,
-.lm-card-footer p {
+.lm-card-footer .model-meta,
+.lm-card-footer .model-tags {
   display: block;
   width: 100%;
   margin: 0;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
-  text-overflow: ellipsis;
+  font-size: 11px;
+  line-height: 1.35;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.lm-card-footer p {
+.lm-card-footer .model-meta {
+  color: var(--muted);
+}
+
+/* 触发词行常驻（空内容也占行高），同排卡片高度一致 */
+.lm-card-footer .model-tags {
+  min-height: 1.35em;
   color: var(--accent);
+  opacity: 0.9;
+}
+
+.lm-plugin-shell .lm-card-grid.density-compact .lm-card-footer {
+  padding: 7px 9px 8px;
+}
+
+.lm-plugin-shell .lm-card-grid.density-compact .lm-card-footer .model-name {
+  font-size: 12px;
+}
+
+.lm-plugin-shell .lm-card-grid.density-compact .lm-card-footer .model-meta,
+.lm-plugin-shell .lm-card-grid.density-compact .lm-card-footer .model-tags {
+  font-size: 10.5px;
+}
+
+.lm-plugin-shell .lm-card-grid.density-compact .card-quick-actions button {
+  padding: 2px 5px;
+  font-size: 10px;
 }
 
 .modal:has(.lm-modal) {
@@ -4742,15 +4719,73 @@ textarea {
   border-color: var(--accent);
 }
 
+/* 「查看大图」原本也贴右上角，而限制级开关是同角、z-index 更高（4 > 3）的一颗 26px 圆钮，
+   正好压在它中心 —— 限制级素材上这颗按钮根本点不到（elementFromPoint 命中开关的图标）。
+   挪到右下角，两个角各管一件事。 */
+.lm-example-media .lm-media-open-btn {
+  top: auto;
+  bottom: 8px;
+}
+
 .lm-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 5001;
+  /* 高于 modal-backdrop(11000)、低于 toast(12000)。灯箱由 portal 挂到 body，
+     若留在弹窗里则会被弹窗的 backdrop-filter 变成包含块而关进弹窗盒子。 */
+  z-index: 11500;
   display: grid;
   place-items: center;
   padding: 24px;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
+}
+
+/* MediaLightbox 的关闭按钮（ImageLightbox 用的是 .lm-lightbox-toolbar 里那颗）。
+   此前这个类名没有任何规则，按钮退化成 flex 里的一个整宽色条、图标居中，
+   在大图顶上横成一条灰杠。 */
+.lm-lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  background: var(--surface-solid, var(--surface));
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.lm-lightbox-close:hover {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 大图面板里的「重新模糊」开关与关闭按钮配成一对角标：默认样式是「压在封面图上」的
+   深色小圆钮，在这里它落在空白面板上，样式与位置都跟右上角的关闭按钮对不齐。 */
+.lm-lightbox-content .lm-media-frame > .lm-restricted-toggle {
+  top: 14px;
+  left: 14px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  background: var(--surface-solid, var(--surface));
+}
+
+.lm-lightbox-content .lm-media-frame > .lm-restricted-toggle:hover {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .lm-lightbox-bg-blur {
@@ -4773,7 +4808,9 @@ textarea {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface);
+  /* 全 α：大图查看是「就给我看这一张」，面板半透明会让身后弹窗的表格文字透上来，
+     和图片糊成一层，正是「图片查看不好」的观感来源。 */
+  background: var(--surface-solid, var(--surface));
   box-shadow: var(--shadow-lg);
 }
 
@@ -4828,6 +4865,8 @@ textarea {
   height: auto;
   max-width: 100%;
   max-height: 100%;
+  /* 图片四周留一圈底，大图不再顶到面板边 */
+  padding: 14px;
   background: transparent;
 }
 
@@ -4855,6 +4894,16 @@ textarea {
   max-height: 90vh;
   object-fit: contain;
   filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.5));
+}
+
+/* 大图面板里的媒体：上限按「面板尺寸 - 内边距 - 面板边框」算（视口单位是确定值，
+   而百分比 max-height 在 height:auto 的父级上会退化成 none），否则图会被
+   .lm-media-frame 的 overflow:hidden 裁掉上下两端。
+   14px×2 内边距 + 1px×2 面板边框 = 30px，取 34px 再留 4px 余量。 */
+.lm-lightbox-content .lm-media-frame .lm-media-asset {
+  max-width: calc(96vw - 34px);
+  max-height: calc(92vh - 34px);
+  border-radius: 6px;
 }
 
 .lm-media-empty {
@@ -5856,4 +5905,626 @@ textarea {
 
 .xyz-score-badge.is-best {
   outline: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+/* ==================================================================
+   DIY 主题面板（.theme-*）
+   全部走既有令牌，跟随当前主题；不含硬编码颜色。
+   ================================================================== */
+
+.theme-modal {
+  width: min(1080px, calc(100vw - 32px));
+  height: min(760px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.theme-panel {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.theme-panel-library {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  padding-right: 12px;
+}
+
+.theme-panel-library-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.theme-text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.theme-text-btn:hover {
+  background: var(--surface-hover);
+}
+
+.theme-library {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.theme-library-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 2px 4px;
+}
+
+.theme-library-item:hover {
+  background: var(--row-hover);
+}
+
+.theme-library-item.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.theme-library-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 4px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.theme-library-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.theme-library-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-library-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.theme-library-check {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.theme-library-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.theme-library-item:hover .theme-library-actions {
+  opacity: 1;
+}
+
+.theme-chip {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  display: block;
+}
+
+.theme-chip-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+}
+
+.theme-chip-text {
+  position: absolute;
+  left: 12px;
+  right: 5px;
+  top: 16px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.theme-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  font-size: 10px;
+  font-style: normal;
+  line-height: 16px;
+}
+
+.theme-rename-input {
+  width: 100%;
+  padding: 1px 4px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.theme-panel-editor {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.theme-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.theme-tabs-spacer {
+  flex: 1;
+}
+
+.theme-tab {
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.theme-tab:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.theme-tab.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.theme-current-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 40%;
+  min-width: 0;
+}
+
+.theme-current-name > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-editor-body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.theme-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.theme-dim {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: normal;
+}
+
+.theme-error {
+  font-size: 11px;
+  color: var(--danger);
+  font-style: normal;
+}
+
+.theme-link-btn {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.theme-link-btn:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  text-decoration: none;
+  opacity: 0.6;
+}
+
+.theme-palette-group > h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.theme-palette-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 6px 14px;
+}
+
+.theme-palette-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-palette-label {
+  width: 92px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.theme-palette-overridden {
+  font-size: 10px;
+  font-style: normal;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 0 3px;
+  flex-shrink: 0;
+}
+
+.theme-palette-swatch {
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.theme-palette-swatch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.theme-palette-text {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 12px;
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+}
+
+.theme-palette-text::placeholder {
+  color: var(--muted);
+}
+
+.theme-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.theme-icon-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.theme-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.theme-icon-btn.danger:hover:not(:disabled) {
+  color: var(--danger);
+}
+
+.theme-advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 6px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.theme-advanced-toggle:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.theme-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.theme-field > input[type="text"],
+.theme-field > select {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.theme-field > input[type="range"] {
+  width: 100%;
+}
+
+.theme-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.theme-segmented {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.theme-segmented > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.theme-segmented > button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.theme-segmented > button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.theme-segmented > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.theme-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.theme-dropzone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.theme-dropzone p {
+  margin: 0;
+}
+
+.theme-wallpaper-preview {
+  position: relative;
+  display: inline-flex;
+  align-self: flex-start;
+}
+
+.theme-wallpaper-preview img {
+  max-width: 100%;
+  max-height: 160px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: block;
+}
+
+.theme-wallpaper-preview > .theme-icon-btn {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  background: var(--modal-bg);
+  border-color: var(--border);
+}
+
+.theme-wallpaper-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.theme-panel-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.theme-panel-footer > .theme-dim {
+  margin-right: auto;
+}
+
+/* ==================================================================
+   壁纸模式（html.has-wallpaper）
+   只为「让壁纸透出来」服务：表面令牌的半透明化由 src/lib/theme.ts 内联注入完成
+   （内联优先级高于任何选择器规则），这里只负责壁纸图层、页面兜底底色与毛玻璃。
+   内置主题 + 无壁纸时不会命中任何一条。
+   ================================================================== */
+
+html.has-wallpaper {
+  /* surface-alt 在壁纸模式下是半透明的（面板要透出壁纸），但留边区域不能透到浏览器画布，
+     所以兜底底色用 theme.ts 额外派生的不透明合成色 --wallpaper-page */
+  background-color: var(--wallpaper-page, #fafaf9);
+}
+
+/* html,body 原本是 radial-gradient(...), var(--surface-alt)；这里把 body 让给壁纸图层，
+   兜底底色留在 html 上，cover 之外的留边区域才不会透出浏览器画布 */
+html.has-wallpaper body {
+  background: var(--wallpaper-image, none) center / var(--wallpaper-fit, cover) no-repeat fixed;
+}
+
+/* .app-shell 默认是不透明的 var(--surface-alt)，会整片盖住壁纸 */
+html.has-wallpaper .app-shell {
+  background: transparent;
+}
+
+html.has-wallpaper .topbar,
+html.has-wallpaper .app-sidebar,
+html.has-wallpaper .modal,
+html.has-wallpaper .panel-header {
+  /* saturate 抵消压暗带来的发灰：暗下去但颜色还在 */
+  backdrop-filter: blur(var(--wallpaper-blur, 0px)) saturate(1.12);
+  -webkit-backdrop-filter: blur(var(--wallpaper-blur, 0px)) saturate(1.12);
+}
+
+/* 内容区根（.workspace）。三层职责：
+   1) 铺页面级半透明底（--wallpaper-base，α = 面板不透明度）：LoRA 管理器的标题行 / 摘要行 /
+      筛选行以及各工具页里大量元素本身没有背景，不铺的话文字直接画在照片上 —— 实测壁纸亮部
+      p90=#f9faf7，浅色文字对比度只有 1.14，调「面板不透明度」都救不回来（根本没有表面可调）；
+   2) 磨砂：把背后的壁纸糊成色块而不是清晰照片，内容区才像「玻璃后面有图」而不是「灰 film 蒙图」；
+      blur 在用户设置的毛玻璃强度上再加 8px 保底（关掉毛玻璃也有基础磨砂，可读性不塌）；
+   3) 给内部面板发「玻璃」令牌（--surface / --surface-alt 在这里重指到半 α 变体）：
+      workspace 已垫过一层底，内部面板再叠满 α 会把壁纸压到只剩 ~18%，一整片死灰。
+      分层后是：壁纸 → 磨砂底 → 玻璃面板 → 实底文字区，四层透明度各司其职。 */
+html.has-wallpaper .workspace {
+  /* 页面级磨砂底：α = surfaceAlpha（半透，壁纸透得出来）。不能用 --surface-alt-solid，
+     那是全 α 的「实底」档，铺上去壁纸在内容区就完全看不见了。 */
+  background: var(--wallpaper-base, var(--surface-alt-solid, var(--surface-alt)));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  /* margin 让面板与顶栏/侧栏/窗口边缘之间留出一条壁纸缝 —— 「浮在壁纸上」的关键；
+     padding 是面板自己的内边距，内容不再顶着窗口边 */
+  margin: 12px;
+  padding: 12px;
+  backdrop-filter: blur(calc(var(--wallpaper-blur, 0px) + 8px)) saturate(1.12);
+  -webkit-backdrop-filter: blur(calc(var(--wallpaper-blur, 0px) + 8px)) saturate(1.12);
+  --surface: var(--surface-glass, var(--surface));
+  --surface-alt: var(--surface-alt-glass, var(--surface-alt));
+}
+
+/* 卡片：封面区让开（外壳那层玻璃就是它的底），信息面板压文字、保持实底，
+   于是每张卡自带「玻璃封面 + 实底说明」的两段质感，而不是一整块平底。 */
+html.has-wallpaper .lm-model-card > .lm-card-preview {
+  background: transparent;
+}
+
+html.has-wallpaper .lm-model-card > .lm-card-footer {
+  background: var(--surface-solid, var(--surface));
+}
+
+/* 浮在磨砂底上的面板给一点投影 —— 才是「叠在照片上」，不是「印在照片上」 */
+html.has-wallpaper .lm-plugin-toolbar,
+html.has-wallpaper .lm-folder-sidebar {
+  box-shadow: var(--shadow);
 }
