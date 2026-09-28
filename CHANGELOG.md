@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.2] - 2026-09-28
+
+### ✨ 新功能 (Features)
+
+- **提示词编辑器新增「导出我的词库」**：一键把「我的词库」里的自定义词条导出成 `我的词库-YYYY-MM-DD.json`，按钮上直接显示条数（如 `导出我的词库 (7002)`），空词库时置灰为 `(0)`。
+  - **为什么要加**：导入时上传的原始文件**服务端并不保留**（只存解析后的词条），而编辑器此前只有导入、没有导出 —— 用户想把自己的词库拿出去，只能去运行目录翻 `data/prompts_state.json`，于是就有「我上传的那个 json 怎么找不到了」的困惑。有了这个按钮，词库随时能取回、能自己留备份。
+  - **导出即可再导入**：导出形状与「上传文件」导入解析认的字段**完全一致**（`source / category / subcategory / scope / text_en / text_zh`）。两个方向现在共用 `toPortableEntries` / `normalizeImportedEntries` 一对互逆的纯函数，避免日后单边改动造成「导出再导入丢字段」。注意再次导入仍是**追加、不去重**（沿用原有语义）。
+
+### 🧪 测试 (Tests)
+
+- 新增 `src/components/PromptEditorData.test.ts` **7 例**：导出字段裁剪与默认值、导入补默认值 / 丢空白条目 / id 唯一 / 缺 `text_zh` 回退到 `name` / 非数组抛错、**导出再导入逐字往返一致**、下载文件名与内容（stub `URL.createObjectURL`，用 `FileReader` 读回 Blob 断言是缩进过的合法 JSON）。
+- 实机验证（真实 exe + 真实数据）：点击按钮抓下载文件 → 7002 条、字段形状正确、无空条目、**与服务端 `data/prompts_state.json` 逐条同序完全一致**、页面零报错（9/9 通过）。
+
 ## [v0.7.1] - 2026-09-28
 
 ### 🐛 修复 (Bug Fixes)
