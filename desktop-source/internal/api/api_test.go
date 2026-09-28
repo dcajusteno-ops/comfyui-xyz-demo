@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/storage"
 )
@@ -223,6 +224,96 @@ func TestWildcards_ListAndWrite(t *testing.T) {
 	rec = do(t, s.HandleWildcards, "DELETE", "/xyz/wildcards", "")
 	if rec.Code != 404 {
 		t.Fatalf("DELETE 应 404: %d", rec.Code)
+	}
+}
+
+// ---- wildcards：exe 布局（单文件 exe 旁边没有 public/wildcards）----
+
+// 回归：旧实现把词库目录写死成 public/wildcards，而单文件 exe 旁边并没有 public/ ——
+// GET 四个词库全返回 missing + 空内容（编辑器打开是空白），POST 直接 500：
+//
+//	open ...\public\wildcards\styles.txt.12345.tmp: The system cannot find the path specified.
+//
+// 现在应落到 data/wildcards，并由内嵌 dist 播种内置词库。
+func TestWildcards_ExeLayoutUsesRuntimeDirAndSeeds(t *testing.T) {
+	s := newTestStores(t) // t.TempDir() 下没有 public/wildcards = exe 布局
+	if dirExists(filepath.Join(s.RepoRoot, "public", "wildcards")) {
+		t.Fatal("前置条件不成立：public/wildcards 不应存在")
+	}
+	dist := fstest.MapFS{
+		"wildcards/styles.txt":   {Data: []byte("# styles\nanime style\n")},
+		"wildcards/lighting.txt": {Data: []byte("golden hour\n")},
+	}
+
+	if err := s.SeedWildcards(dist); err != nil {
+		t.Fatalf("SeedWildcards: %v", err)
+	}
+	if want := filepath.Join(s.RepoRoot, "data", "wildcards"); s.wildcardDir() != want {
+		t.Fatalf("wildcardDir = %q, 期望 %q", s.wildcardDir(), want)
+	}
+
+	// 播种成功 → 不再是 missing，内容来自内嵌词库
+	rec := do(t, s.HandleWildcards, "GET", "/xyz/wildcards", "")
+	byName := map[string]map[string]any{}
+	for _, f := range bodyJSON(t, rec)["files"].([]any) {
+		e := f.(map[string]any)
+		byName[e["name"].(string)] = e
+	}
+	if byName["styles"]["missing"] != false || byName["styles"]["content"] != "# styles\nanime style\n" {
+		t.Fatalf("styles 未播种: %v", byName["styles"])
+	}
+	// 内嵌里没有的词库保持 missing（不因播种整体成功就伪造内容）
+	if byName["camera"]["missing"] != true {
+		t.Fatalf("camera 无内嵌内容应保持 missing: %v", byName["camera"])
+	}
+
+	// POST：exe 里原本 500，现在应成功并落盘到 data/wildcards
+	rec = do(t, s.HandleWildcards, "POST", "/xyz/wildcards", `{"name":"styles","content":"# edited\nwatercolor\n","baseRevision":0}`)
+	if rec.Code != 200 {
+		t.Fatalf("POST 应 200，实得 %d %s", rec.Code, rec.Body.String())
+	}
+	b, err := os.ReadFile(filepath.Join(s.RepoRoot, "data", "wildcards", "styles.txt"))
+	if err != nil || string(b) != "# edited\nwatercolor\n" {
+		t.Fatalf("未落到 data/wildcards: %q %v", b, err)
+	}
+
+	// /wildcards/styles.txt 必须回放编辑后的内容 —— 否则保存「成功」但展开仍读内嵌旧版，
+	// 编辑静默失效（比直接报错更难查）。
+	rec2 := httptest.NewRecorder()
+	s.ServeWildcardFile(rec2, httptest.NewRequest("GET", "/wildcards/styles.txt", nil), dist)
+	if rec2.Code != 200 || rec2.Body.String() != "# edited\nwatercolor\n" {
+		t.Fatalf("ServeWildcardFile 未回放编辑后内容: %d %q", rec2.Code, rec2.Body.String())
+	}
+	// 工作目录里没有的仍在 dist 里回退命中
+	rec2 = httptest.NewRecorder()
+	s.ServeWildcardFile(rec2, httptest.NewRequest("GET", "/wildcards/lighting.txt", nil), dist)
+	if rec2.Code != 200 || rec2.Body.String() != "golden hour\n" {
+		t.Fatalf("回退内嵌版本失败: %d %q", rec2.Code, rec2.Body.String())
+	}
+	// 白名单外 → 404（不泄漏 dist 里的任意文件）
+	rec2 = httptest.NewRecorder()
+	s.ServeWildcardFile(rec2, httptest.NewRequest("GET", "/wildcards/../favicon.svg", nil), dist)
+	if rec2.Code != 404 {
+		t.Fatalf("白名单外应 404，实得 %d", rec2.Code)
+	}
+}
+
+// dev / 测试布局（public/wildcards 存在）必须保持原行为：目录就是源码树里那个，且不播种。
+func TestWildcards_DevLayoutKeepsSourceDir(t *testing.T) {
+	s := newTestStores(t)
+	src := filepath.Join(s.RepoRoot, "public", "wildcards")
+	if err := os.MkdirAll(src, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	dist := fstest.MapFS{"wildcards/styles.txt": {Data: []byte("from dist\n")}}
+	if err := s.SeedWildcards(dist); err != nil {
+		t.Fatalf("SeedWildcards: %v", err)
+	}
+	if s.wildcardDir() != src {
+		t.Fatalf("dev 布局应沿用 public/wildcards，实得 %q", s.wildcardDir())
+	}
+	if _, err := os.Stat(filepath.Join(src, "styles.txt")); err == nil {
+		t.Fatal("dev 布局不应播种（会把 dist 的副本写进源码树）")
 	}
 }
 

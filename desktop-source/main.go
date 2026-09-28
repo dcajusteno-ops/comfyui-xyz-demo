@@ -316,6 +316,11 @@ func embeddedDist() fs.FS {
 // chrome 为 nil 表示非桌面窗口形态（runWebMode / --web / DSH_E2E）。
 func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrome *winchrome.Applier) *http.ServeMux {
 	stores := &api.Stores{RepoRoot: root, Queue: storage.NewWriteQueue()}
+	// 单文件 exe 旁边没有 public/：把内嵌的内置通配符词库播种到 data/wildcards，
+	// 「在线编辑」才读得到内容、存得下去。种子只在文件缺失时写，不覆盖用户改动。
+	if err := stores.SeedWildcards(dist); err != nil {
+		log.Printf("seed wildcards: %v", err)
+	}
 	comfyBaseURL := envOr("COMFYUI_URL", comfyTarget.String())
 	mediaMgr := media.NewManager(comfyBaseURL)
 	syncMgr := mobile.NewSyncManager(comfyBaseURL)
@@ -368,6 +373,11 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrom
 	mux.HandleFunc("/xyz/example-image-files", mediaMgr.Handle)
 	mux.Handle("/comfy/", proxy.NewComfy(comfyTarget))
 	mux.Handle("/proxy/aliyun/", proxy.NewAliyun(aliyunTarget))
+	// /wildcards/<name>.txt 必须早于兜底的静态目录：优先返回用户在线编辑过的版本
+	// （data/wildcards，exe 布局），缺失时才回退内嵌的内置版本。
+	mux.HandleFunc("/wildcards/", func(w http.ResponseWriter, r *http.Request) {
+		stores.ServeWildcardFile(w, r, dist)
+	})
 	mux.Handle("/", http.FileServerFS(dist))
 	return mux
 }

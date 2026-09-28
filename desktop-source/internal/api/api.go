@@ -5,8 +5,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -206,7 +208,93 @@ func (s *Stores) HandlePrompts(w http.ResponseWriter, r *http.Request) {
 // wildcardNames 对齐 WILDCARD_NAMES（顺序即 GET 返回顺序）。
 var wildcardNames = []string{"styles", "lighting", "camera", "quality"}
 
-func (s *Stores) wildcardDir() string { return filepath.Join(s.RepoRoot, "public", "wildcards") }
+// sourceWildcardDir 是 dev / 测试布局下的词库本体目录（= server/wildcards.ts 的 WILDCARD_DIR），
+// 同时也是前端静态加载 /wildcards/<name>.txt 的来源。
+func (s *Stores) sourceWildcardDir() string {
+	return filepath.Join(s.RepoRoot, "public", "wildcards")
+}
+
+// runtimeWildcardDir 是单文件 exe 的词库工作目录（源码不进包，exe 旁边没有 public/）。
+func (s *Stores) runtimeWildcardDir() string {
+	return filepath.Join(s.RepoRoot, "data", "wildcards")
+}
+
+// wildcardDir 选词库工作目录：public/wildcards 在就用它（dev / 测试，与 TS 行为逐字一致），
+// 否则退回 data/wildcards（exe 布局）。
+//
+// **这是 exe 里「在线编辑」可用与否的关键。** 旧实现把目录写死成 public/wildcards，而单文件
+// exe 旁边并没有 public/：于是 GET 四个词库全返回 missing+空内容（编辑器打开是空白），
+// POST 直接 500（实测 "open ...\\public\\wildcards\\styles.txt.12345.tmp: The system cannot
+// find the path specified."），且界面上只说保存失败、不说为什么。
+func (s *Stores) wildcardDir() string {
+	if dirExists(s.sourceWildcardDir()) {
+		return s.sourceWildcardDir()
+	}
+	return s.runtimeWildcardDir()
+}
+
+func dirExists(p string) bool {
+	st, err := os.Stat(p)
+	return err == nil && st.IsDir()
+}
+
+// SeedWildcards 首次运行时把内嵌的内置词库播种到运行时目录；已存在的文件不覆盖（保留用户改动）。
+// fsys 传的是已 fs.Sub 到 dist 的 FS，内置词库位于其中 wildcards/<name>.txt。
+func (s *Stores) SeedWildcards(fsys fs.FS) error {
+	if dirExists(s.sourceWildcardDir()) {
+		return nil // dev / 测试布局：词库本体就在源码树里，不播种、不写脏工作区
+	}
+	dir := s.runtimeWildcardDir()
+	for _, name := range wildcardNames {
+		target := filepath.Join(dir, name+".txt")
+		if _, err := os.Stat(target); err == nil {
+			continue
+		}
+		b, err := fs.ReadFile(fsys, path.Join("wildcards", name+".txt"))
+		if err != nil {
+			continue // 内嵌资源缺失则该词库保持 missing（等价旧行为），不牵连其它词库
+		}
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
+		if err := storage.AtomicWrite(target, b); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ServeWildcardFile 提供 /wildcards/<name>.txt：优先工作目录里的版本（用户可能在线编辑过），
+// 缺失时回退内嵌的内置版本。
+//
+// 没有这条路由的话，exe 里「编辑并保存」看起来成功、但前端读到的仍是内嵌的旧内容 ——
+// 编辑静默失效，比直接报错更难查。
+func (s *Stores) ServeWildcardFile(w http.ResponseWriter, r *http.Request, dist fs.FS) {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		storage.SendJSON(w, http.StatusMethodNotAllowed, map[string]any{"success": false, "error": "Method Not Allowed"})
+		return
+	}
+	name := strings.TrimSuffix(path.Base(r.URL.Path), ".txt")
+	if !isWildcardName(name) {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	// 编辑完要立刻生效，不能被启发式缓存挡住
+	w.Header().Set("Cache-Control", "no-cache")
+	if b, err := os.ReadFile(filepath.Join(s.wildcardDir(), name+".txt")); err == nil {
+		_, _ = w.Write(b)
+		return
+	}
+	if dist != nil {
+		if b, err := fs.ReadFile(dist, path.Join("wildcards", name+".txt")); err == nil {
+			_, _ = w.Write(b)
+			return
+		}
+	}
+	http.NotFound(w, r)
+}
+
 func (s *Stores) wildcardsStateFile() string {
 	return filepath.Join(s.RepoRoot, "data", "wildcards_state.json")
 }
