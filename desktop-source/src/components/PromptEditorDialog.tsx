@@ -1,7 +1,17 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { usePersistentState } from "../hooks/usePersistentState";
-import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy, Globe2, Upload, Braces } from "lucide-react";
+import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy, Globe2, Upload, Download, Braces } from "lucide-react";
 import { handlePromptWeightAdjustment } from "../lib/promptUtils";
+import {
+  EditorPart,
+  negativePresetPacks,
+  positivePresetPacks,
+  downloadJsonFile,
+  normalizeImportedEntries,
+  toPortableEntries,
+  type PromptEntry,
+  type PromptTemplate,
+} from "./PromptEditorData";
 import { PromptTagBlocks } from "./PromptTagBlocks";
 import { PromptLintBadge } from "./ui/PromptLintBadge";
 import { translateText, defaultTranslationSettings } from "../lib/translation";
@@ -413,17 +423,7 @@ export function PromptEditorDialog({
       if (!content) return;
       if (file.name.endsWith('.json')) {
         try {
-          const data = JSON.parse(content);
-          if (!Array.isArray(data)) throw new Error("JSON must be an array");
-          const newCustoms = data.map((item: Record<string, unknown>) => ({
-             id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-             source: typeof item.source === "string" && item.source ? item.source : "本地文件",
-             category: typeof item.category === "string" && item.category ? item.category : "未分类",
-             subcategory: typeof item.subcategory === "string" ? item.subcategory : "",
-             scope: typeof item.scope === "string" && item.scope ? item.scope : "default",
-             text_en: typeof item.text_en === "string" ? item.text_en : "",
-             text_zh: typeof item.text_zh === "string" && item.text_zh ? item.text_zh : (typeof item.name === "string" ? item.name : "")
-          })).filter((x) => x.text_en || x.text_zh);
+          const newCustoms = normalizeImportedEntries(JSON.parse(content));
           setCustomEntries(prev => [...newCustoms, ...prev]);
           alert(`成功导入 ${newCustoms.length} 条词条`);
         } catch (err) {
@@ -452,6 +452,17 @@ export function PromptEditorDialog({
       e.target.value = '';
     };
     reader.readAsText(file);
+  };
+
+  /**
+   * 导出「我的词库」为 JSON。
+   * 上传的原始文件服务端不保留（只存解析后的词条），所以这里是用户把自己词库拿出去的
+   * 唯一出口 —— 形状与 handleLocalFileImport 认的完全一致，导出即可再导入。
+   */
+  const handleExportLibrary = () => {
+    const payload = toPortableEntries(customEntries);
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadJsonFile(`我的词库-${stamp}.json`, payload);
   };
 
   const handleDeleteCustom = (id: string, e: React.MouseEvent) => {
@@ -584,6 +595,14 @@ export function PromptEditorDialog({
                         <input type="file" accept=".txt,.csv,.json" onChange={handleLocalFileImport} style={{ display: "none" }} />
                       </label>
                     </div>
+                    <button
+                      onClick={handleExportLibrary}
+                      disabled={customEntries.length === 0}
+                      title="把「我的词库」里的自定义词条导出成 JSON；格式与「上传文件」导入完全一致，可直接再导入"
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem", padding: "0.4rem", fontSize: "0.8rem", borderRadius: "6px", border: "1px solid var(--border)", background: "transparent", color: "var(--text)", cursor: customEntries.length === 0 ? "not-allowed" : "pointer", opacity: customEntries.length === 0 ? 0.5 : 1 }}
+                    >
+                      <Download size={14} /> 导出我的词库 ({customEntries.length})
+                    </button>
                     <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.25rem" }}>
                       <input value={importUrl} onChange={e => setImportUrl(e.target.value)} placeholder="网络词库 JSON URL" style={{ flex: 1, padding: "0.4rem", borderRadius: "6px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.75rem" }} />
                       <button onClick={handleNetworkImport} disabled={importingNetwork || !importUrl.trim()} style={{ padding: "0.4rem 0.6rem", borderRadius: "6px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.75rem", cursor: "pointer", opacity: (importingNetwork || !importUrl.trim()) ? 0.5 : 1 }}>
@@ -857,4 +876,3 @@ export function PromptEditorDialog({
     </>
   );
 }
-import { EditorPart, negativePresetPacks, positivePresetPacks, PromptEntry, PromptTemplate } from "./PromptEditorData";
