@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.1] - 2026-09-28
+
+### 🐛 修复 (Bug Fixes)
+
+- **单文件 exe 里「通配符在线编辑」整条功能是坏的**：词库目录在 Go 侧写死成 `<仓库根>/public/wildcards`，而单文件 exe 旁边**并没有 `public/`**（源码不进包），于是 —— `GET /xyz/wildcards` 四个词库全返回 `missing:true` + 空内容（点「编辑」打开的是空白编辑器），`POST /xyz/wildcards` 直接 **500**：
+  `open ...\public\wildcards\styles.txt.28972.tmp: The system cannot find the path specified.`
+  （顺带说明：`__styles__` 这类**展开**一直是好的，因为它读的是内嵌 dist 里的 `/wildcards/*.txt`；坏的只有「编辑」这条链路。）
+  修法：
+  - `wildcardDir()` 改为「`public/wildcards` 存在就用它（dev / 测试，行为与 TS 逐字一致），否则退回运行时目录 `data/wildcards`」；
+  - 新增 `SeedWildcards()`：首次运行时把**内嵌 dist 的内置词库**播种到 `data/wildcards`（只在文件缺失时写，不覆盖用户改动）；
+  - 新增 `/wildcards/<name>.txt` 路由：优先返回工作目录里用户编辑过的版本，缺失才回退内嵌版本。**没有这条路由的话，编辑保存会「成功」但展开仍读内嵌旧版 —— 编辑静默失效，比直接报错更难查。**
+  - 落地目录选 `data/`（与已有 `data/wildcards_state.json` 同处），不在 exe 旁边生成 `public/`。
+  验证：新建「只有 exe 的空目录」实跑 **13/13 通过**（4 个词库均已播种、保存由 500 变 200、写入 `data/wildcards`、未生成 `public/`、`/wildcards/styles.txt` 回放编辑后内容、未编辑词库回退内嵌版本、revision 自增、**重启后用户改动仍在**）；dev 布局（`public/wildcards` 存在）实测为**严格 no-op**（内容与源码树逐字节一致、不播种、不写脏工作区）。新增 2 例 Go 回归测试守这两条分支。
+
 ## [v0.7.0] - 2026-09-28
 
 ### ✨ 新功能 (Features)
