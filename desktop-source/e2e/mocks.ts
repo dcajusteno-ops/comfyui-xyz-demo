@@ -1,5 +1,7 @@
 import type { Page } from "@playwright/test";
 
+import { DEFAULT_WHEEL_SECTORS } from "../src/lib/luckyWheel";
+
 // 与后端 /api/lm/* 返回形状一致的固定 mock（items / facets / settings）
 export const MOCK_FOLDERS = ["SDXL", "SDXL/画师", "动漫"];
 
@@ -104,4 +106,40 @@ export async function installApiMocks(page: Page) {
       if (typeof message === "string" && message.includes("ping")) ws.send("pong");
     });
   });
+}
+
+/**
+ * 幸运大转盘的 mock 词库：直接沿用 `DEFAULT_WHEEL_SECTORS` 用到的分类，
+ * 保证「默认扇区一定有词可抽」这条不会因为改了默认映射而悄悄失配。
+ */
+const PROMPT_CATEGORIES = [...new Set(DEFAULT_WHEEL_SECTORS.flatMap((sector) => sector.categories))];
+
+/**
+ * 拦截内置词库请求，返回覆盖全部默认分类的小词库。
+ * 只给「幸运大转盘」的用例挂载：其它用例不关心词库内容，装上去只会拖慢它们。
+ */
+export async function installPromptLibraryMock(page: Page) {
+  const records = PROMPT_CATEGORIES.flatMap((category, categoryIndex) =>
+    Array.from({ length: 3 }, (_, i) => ({
+      id: `${categoryIndex}-${i}`,
+      source: "e2e",
+      category,
+      scope: "normal",
+      // 必须是唯一英文词，否则会与同一词池内的去重规则相撞
+      text_en: `tag-${categoryIndex}-${i}`,
+      text_zh: `${category}词${i + 1}`,
+    }))
+  ).concat([
+    // 负面词库与 NSFW 词：断言它们不会出现在扇区候选里
+    { id: "neg", source: "e2e", category: "人物", scope: "negative_default", text_en: "bad anatomy", text_zh: "负面" },
+    { id: "r18", source: "e2e", category: "动作", scope: "r18", text_en: "nsfw action", text_zh: "限制级" },
+  ]);
+
+  await page.route(/\/data\/prompt-library\/.*\.json/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(records),
+    })
+  );
 }

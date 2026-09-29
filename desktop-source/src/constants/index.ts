@@ -1,6 +1,6 @@
 import {
   Boxes,
-  Dices,
+  Disc3,
   FileText,
   ImageUp,
   ScanSearch,
@@ -69,8 +69,8 @@ export const toolTabs: TabConfig[] = [
   { id: "notes", label: "记事本", icon: FileText },
 ];
 
-/** 灵感老虎机：视觉上归入「生图模板」组，单独导出以标记其不属于前两组的语义 */
-export const slotsTab: TabConfig = { id: "slots", label: "灵感老虎机", icon: Dices };
+/** 幸运大转盘：视觉上归入「生图模板」组，单独导出以标记其不属于前两组的语义 */
+export const slotsTab: TabConfig = { id: "slots", label: "幸运大转盘", icon: Disc3 };
 
 /** 全部 tab，用于 `?tab=` 参数校验与非法值回落 */
 export const tabs: TabConfig[] = [...generationTabs, slotsTab, ...toolTabs];

@@ -55,8 +55,8 @@ const XyzController = lazy(() =>
 const LoraManagerPanel = lazy(() =>
   import("./components/features/Lora").then((m) => ({ default: m.LoraManagerPanel })),
 );
-const SlotMachinePanel = lazy(() =>
-  import("./components/features/Slots").then((m) => ({ default: m.SlotMachinePanel })),
+const LuckyWheelPanel = lazy(() =>
+  import("./components/features/LuckyWheel").then((m) => ({ default: m.LuckyWheelPanel })),
 );
 
 /** 懒加载占位：复用现有 `.panel` + `.empty-state`，`styles.css` 零新增 */
@@ -84,7 +84,7 @@ function jobTitle(result: JobResult) {
 /**
  * 「追加词条到目标模板正向提示词」的 updater。
  * multi 用 globalPrompt，其余模板用 positivePrompt；dedupe=true 时按逗号切分去重
- * （灵感老虎机 / 手机标签），false 时原样追加（触发词 / 提示词仓库）。
+ * （幸运大转盘 / 手机标签），false 时原样追加（触发词 / 提示词仓库）。
  */
 function appendPromptUpdater<T extends BaseGenerationParams | MultiGenerationParams>(
   text: string,
@@ -309,7 +309,7 @@ function App() {
     } else {
       params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: false, dedupe: true }));
     }
-    pushToast("success", "灵感已应用", `已追加 ${clean.length} 个词条到 ${templateLabels[target]} 正向提示词`);
+    pushToast("success", "转盘结果已应用", `已追加 ${clean.length} 个词条到 ${templateLabels[target]} 正向提示词`);
   }, [params, pushToast]);
 
   // 手机识图结果应用到工作流（与 handleSlotsApply 相同的追加/去重规则）
@@ -761,7 +761,7 @@ function App() {
               )}
 
               {tab === "slots" && (
-                <SlotMachinePanel onApplyPrompt={handleSlotsApply} />
+                <LuckyWheelPanel onApplyPrompt={handleSlotsApply} />
               )}
 
               {tab === "loras" && (

@@ -40,4 +40,7 @@ backup_*/
 
 # go build artifacts
 ComfyUI-XYZ-Web.exe
+# 应用开着时目标 exe 被占用：go build 会把**正在运行的旧 exe** 改名为 xxx~，再把新产物放回原路径。
+# 于是这个 xxx~ 会被进程锁住删不掉，且「用户当前跑的就是它」—— 更新前端后必须重启应用才生效。
+ComfyUI-XYZ-Web.exe~
 *.exe.tmp

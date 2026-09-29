@@ -5316,14 +5316,14 @@ textarea {
   to { transform: rotate(360deg); }
 }
 
-/* ===== 灵感老虎机 (Slot Machine) ===== */
-.slots-body {
+/* ===== 幸运大转盘 (Lucky Wheel) ===== */
+.wheel-body {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.slots-status {
+.wheel-status {
   padding: 14px;
   border: 1px dashed var(--border-strong);
   border-radius: 8px;
@@ -5332,7 +5332,7 @@ textarea {
   text-align: center;
 }
 
-.slots-status.is-error {
+.wheel-status.is-error {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5342,216 +5342,210 @@ textarea {
   background: var(--danger-soft);
 }
 
-.slots-row-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+.wheel-hint {
+  padding: 10px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* --- 转盘本体 --- */
+.wheel-arena {
+  display: flex;
+  justify-content: center;
+  /* center 而非默认的 stretch：避免 .wheel-stage 被纵向拉伸，
+     否则 .wheel-rotor(inset:0) 会跟着变高，SVG 的命中区域就会盖住下面的操作按钮 */
+  align-items: center;
+}
+
+.wheel-stage {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 18px solid var(--accent);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+  transform-origin: 50% 0;
+}
+
+.wheel-pointer.is-spinning {
+  animation: wheelPointerWobble 260ms ease-in-out infinite;
+}
+
+.wheel-rotor {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  /* 旋转的是**方形**容器：转到某些角度时它的四个角会扫到盘外的操作区，
+     变成看不见的点击拦截层（实测点不到「转满整套」）。裁成圆之后只剩盘面参与命中测试，
+     盘内的扇区 <title> 提示仍然可用。 */
+  clip-path: circle(50% at 50% 50%);
+}
+
+.wheel-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 扇区底色 = 角色色低比例混入主题实底：明暗主题与壁纸模式下文字都可读 */
+.wheel-sector {
+  fill: color-mix(in srgb, var(--sector-hue, var(--accent)) 22%, var(--surface-solid, var(--surface)));
+  stroke: var(--surface-solid, var(--surface-alt));
+  stroke-width: 1;
+  transition: fill 220ms ease, stroke 160ms ease;
+}
+
+.wheel-sector.is-alt {
+  fill: color-mix(in srgb, var(--sector-hue, var(--accent)) 12%, var(--surface-solid, var(--surface)));
+}
+
+.wheel-sector.is-drawn {
+  fill: color-mix(in srgb, var(--sector-hue, var(--accent)) 46%, var(--surface-solid, var(--surface)));
+}
+
+.wheel-sector.is-locked {
+  stroke: var(--sector-hue, var(--accent));
+  stroke-width: 2.5;
+}
+
+.wheel-sector-hole {
+  fill: var(--surface-solid, var(--surface));
+}
+
+/* paint-order + 主题底色描边 = 任意填充色上都能读清 */
+.wheel-label {
+  fill: var(--text);
+  paint-order: stroke fill;
+  stroke: var(--surface-solid, var(--surface));
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  font-weight: 600;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wheel-check {
+  fill: var(--accent);
+  font-weight: 700;
+}
+
+.wheel-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed var(--border-strong);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wheel-hub {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: auto;
+  width: 34%;
+  aspect-ratio: 1;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface-solid, var(--surface));
+  box-shadow: 0 2px 12px var(--accent-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.wheel-hub.is-spinning {
+  animation: wheelHubPop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wheel-hub-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.wheel-hub-text {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.15;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wheel-hub-zh {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.wheel-hub-hint {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.wheel-spin-icon {
+  color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+
+/* --- 操作区 --- */
+.wheel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 
-.slot-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding: 13px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  transition: border-color 160ms ease, opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-}
-
-.slot-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 9px 9px 0 0;
-  background: var(--slot-accent, var(--accent));
-  opacity: 0.85;
-}
-
-.slot-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border-strong);
-}
-
-.slot-card.is-off {
-  opacity: 0.55;
-}
-
-.slot-card.is-locked {
-  border-color: var(--slot-accent, var(--accent));
-}
-
-.slot-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.slot-card-head strong {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--text);
-}
-
-.slot-card-head strong::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--slot-accent, var(--accent));
-  flex: 0 0 auto;
-}
-
-.slot-lock {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--muted);
-  background: var(--surface);
-  cursor: pointer;
-  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
-}
-
-.slot-lock:hover {
-  color: var(--slot-accent, var(--accent));
-  border-color: var(--slot-accent, var(--accent));
-}
-
-.slot-card.is-locked .slot-lock {
-  color: var(--slot-accent, var(--accent));
-  background: var(--accent-soft);
-  border-color: var(--slot-accent, var(--accent));
-}
-
-.slot-window {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  min-height: 68px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface-alt);
-  overflow: hidden;
-}
-
-.slot-window-tag {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  width: 100%;
-  overflow: hidden;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.9;
-}
-
-.slot-window-tag-text {
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.slot-window-tag em {
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--muted);
-  font-style: normal;
-  font-weight: 400;
-  font-size: 11px;
-}
-
-.slot-window-empty {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.slot-window-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.slot-window-hint.is-rolling {
-  color: var(--slot-accent, var(--accent));
-}
-
-.slot-hint-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.slot-hint-tag {
-  padding: 1px 8px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 999px;
-  background: var(--row-bg);
-  color: var(--muted);
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.slot-window.is-spinning .slot-window-tag {
-  animation: slotsShimmer 0.6s linear infinite;
-}
-
-@keyframes slotsShimmer {
-  0%, 100% { opacity: 1; transform: translateY(0); }
-  50% { opacity: 0.35; transform: translateY(3px); }
-}
-
-.slot-card-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.slot-card-meta span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.slots-lever {
-  align-self: center;
-  width: min(100%, 420px);
+.wheel-lever {
   gap: 10px;
   min-height: 46px;
+  min-width: 200px;
   font-size: 15px;
   flex-shrink: 0;
 }
 
-.slots-lever kbd {
+.wheel-lever kbd {
   padding: 1px 7px;
   border: 1px solid var(--border-strong);
   border-radius: 4px;
@@ -5561,105 +5555,147 @@ textarea {
   line-height: 1.6;
 }
 
-.slots-lever:disabled {
+.wheel-lever:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-.slots-result {
+/* --- 结果 --- */
+.wheel-results {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: flex-start;
-  min-height: 52px;
-  height: auto;
+  flex-direction: column;
+  gap: 8px;
   padding: 14px;
   border: 1px dashed var(--border-strong);
   border-radius: 8px;
   background: var(--surface-alt);
-  align-content: flex-start;
-  width: 100%;
-  box-sizing: border-box;
-  flex-shrink: 0;
 }
 
-.slots-empty-hint {
+.wheel-result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.wheel-result-label {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--muted);
-  font-size: 12px;
-  align-self: center;
-  margin: auto;
+  min-width: 76px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.slot-tag-chip {
+.wheel-result-label::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+.wheel-result-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wheel-result-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--muted);
+  background: var(--surface);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.wheel-result-lock:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.wheel-result-lock.is-locked {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.wheel-tag {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   max-width: 100%;
-  padding: 6px 10px 6px 14px;
-  border: 1px solid var(--slot-accent, var(--accent));
+  padding: 5px 10px 5px 12px;
+  border: 1px solid var(--accent);
   border-radius: 999px;
-  color: var(--slot-accent, var(--accent));
-  background: color-mix(in srgb, var(--slot-accent, var(--accent)), transparent 92%);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent), transparent 92%);
   font-size: 12px;
-  user-select: text;
-  -webkit-user-select: text;
-  transition: all 0.2s ease;
   line-height: 1.2;
 }
 
-.slot-tag-zh {
-  color: var(--muted);
-  font-style: normal;
-  font-size: 11px;
-  opacity: 0.85;
-  margin-right: 2px;
-  font-weight: 400;
-}
-
-.slot-tag-text {
+.wheel-tag-text {
   min-width: 0;
   max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 600;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
-.slot-tag-remove {
+.wheel-tag-zh {
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.wheel-tag-remove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 18px;
   height: 18px;
+  flex: 0 0 auto;
   border: none;
   border-radius: 50%;
   color: inherit;
   background: transparent;
   cursor: pointer;
-  flex: 0 0 auto;
   opacity: 0.6;
   transition: all 0.2s;
 }
 
-.slot-tag-remove:hover {
+.wheel-tag-remove:hover {
   background: var(--danger);
   color: #fff;
   opacity: 1;
 }
 
-.slots-apply-bar {
+/* --- 应用 / 历史 --- */
+.wheel-apply-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  margin-top: 4px;
-  flex-shrink: 0;
 }
 
-.slots-target {
+.wheel-target {
   flex: 1;
   min-width: 160px;
   max-width: 220px;
@@ -5672,25 +5708,25 @@ textarea {
   outline: none;
 }
 
-.slots-target:focus {
+.wheel-target:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.slots-history {
+.wheel-history {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.slots-history h4 {
+.wheel-history h4 {
   margin: 0;
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
 }
 
-.slots-history-item {
+.wheel-history-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -5705,18 +5741,18 @@ textarea {
   transition: border-color 160ms ease, background 160ms ease;
 }
 
-.slots-history-item:hover {
+.wheel-history-item:hover {
   border-color: var(--accent);
   background: var(--surface-hover);
   color: var(--accent);
 }
 
-.slots-history-item.is-copied {
+.wheel-history-item.is-copied {
   border-color: var(--success);
   background: var(--success-soft);
 }
 
-.slots-history-text {
+.wheel-history-text {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -5724,7 +5760,7 @@ textarea {
   white-space: nowrap;
 }
 
-.slots-history-meta {
+.wheel-history-meta {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -5733,11 +5769,12 @@ textarea {
   font-size: 11px;
 }
 
-.slots-history-item.is-copied .slots-history-meta {
+.wheel-history-item.is-copied .wheel-history-meta {
   color: var(--success);
 }
 
-.slots-advanced summary {
+/* --- 编辑扇区 --- */
+.wheel-sectors summary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -5752,20 +5789,20 @@ textarea {
   transition: border-color 160ms ease, color 160ms ease;
 }
 
-.slots-advanced summary:hover,
-.slots-advanced[open] summary {
+.wheel-sectors summary:hover,
+.wheel-sectors[open] summary {
   color: var(--accent);
   border-color: var(--accent);
 }
 
-.slots-adv-list {
+.wheel-sector-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 10px;
 }
 
-.slots-adv-row {
+.wheel-sector-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -5776,8 +5813,9 @@ textarea {
   background: var(--surface);
 }
 
-.slots-adv-name {
-  width: 110px;
+.wheel-sector-name,
+.wheel-sector-cats,
+.wheel-sector-extra {
   min-height: 32px;
   padding: 0 10px;
   border: 1px solid var(--border-strong);
@@ -5787,35 +5825,65 @@ textarea {
   outline: none;
 }
 
-.slots-adv-cats {
+.wheel-sector-name {
+  width: 96px;
+}
+
+.wheel-sector-cats {
   flex: 1;
   min-width: 180px;
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 5px;
-  color: var(--text);
-  background: var(--surface);
-  outline: none;
 }
 
-.slots-adv-count {
-  min-height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--border-strong);
-  border-radius: 5px;
-  color: var(--text);
-  background: var(--surface);
-  outline: none;
+.wheel-sector-extra {
+  flex: 1;
+  min-width: 160px;
 }
 
-.slots-adv-enable {
+.wheel-sector-pool {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.wheel-sector-pool.is-empty {
+  color: var(--warning);
+}
+
+.wheel-sector-enable {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--muted);
   font-size: 12px;
   cursor: pointer;
+}
+
+.wheel-sector-cap {
+  margin-left: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* --- 动画 --- */
+@keyframes wheelPointerWobble {
+  0%, 100% { transform: translateX(-50%) rotate(-7deg); }
+  50% { transform: translateX(-50%) rotate(7deg); }
+}
+
+@keyframes wheelHubPop {
+  from { transform: scale(0.86); opacity: 0.4; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel-rotor {
+    transition-duration: 1ms !important;
+  }
+  .wheel-pointer.is-spinning,
+  .wheel-hub.is-spinning {
+    animation: none !important;
+  }
 }
 
 /* ===== XYZ 智能复盘 (Review Overlay) ===== */
