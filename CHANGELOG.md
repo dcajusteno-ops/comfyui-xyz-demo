@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.4] - 2026-10-02
+
+### 🐛 修复 (Bug Fixes)
+
+- **幸运大转盘的状态现在会跟着 ui-state 持久化**：此前扇区配置、整盘结果与 20 条历史全是组件内的 `useState` —— 切走标签页组件即卸载，回来就是一张空盘（用户反馈「离开转盘页面再回来记录清空了」）。现在收进 `data/ui-state.json` 的 `comfyui_xyz_wheel` 键（走既有的 `usePersistentState`：800ms 防抖批量 PUT + beforeunload flush），**切页、刷新、重开应用都在**；圆心 hub 与指针高亮改从「最近一次抽中的结果」推导（不单独存）。顺带在「编辑扇区」里加了**「恢复默认」**按钮（两步确认）—— 扇区配置既然持久化了，就得有回到出厂映射的出口。E2E 新增「刷新后结果与历史还在」一例（用有状态的 ui-state mock 模拟服务端持久化）。
+
 ## [v0.7.3] - 2026-09-29
 
 ### ✨ 新功能 (Features)

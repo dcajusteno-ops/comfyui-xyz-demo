@@ -80,6 +80,49 @@ test("幸运大转盘：指针指向的扇区与实际抽到的结果一致", as
   await expect(page.locator(".toast", { hasText: "转盘结果已应用" })).toBeVisible();
 });
 
+test("幸运大转盘：离开页面再回来，结果与历史还在", async ({ page }) => {
+  // 有状态的 ui-state mock：PUT 合并进 store、GET 回读 —— 模拟服务端 data/ui-state.json。
+  // 注册在 installApiMocks 之后（Playwright 后注册的路由优先），只为这一条用例提供真实持久化语义。
+  const store: Record<string, unknown> = {};
+  await page.route(/\/api\/ui-state/, (route) => {
+    const method = (route.request().method() ?? "GET").toUpperCase();
+    if (method === "GET") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, data: store, revision: 1 }),
+      });
+    }
+    const body = route.request().postDataJSON() as { entries?: Record<string, unknown> } | null;
+    Object.assign(store, body?.entries ?? {});
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, revision: 2 }),
+    });
+  });
+
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "幸运大转盘" }).click();
+  await page.locator(".wheel-lever").click();
+  await expect(page.locator(FILLED_ROWS)).toHaveCount(1);
+  const beforeTag = await page.locator(FILLED_ROWS).getAttribute("data-tag");
+  const beforeSector = await page.locator(FILLED_ROWS).getAttribute("data-sector-id");
+  expect(beforeTag).toBeTruthy();
+
+  // 转盘状态走 800ms 防抖批量 PUT —— 等它落盘再刷新（reload 也会触发 beforeunload flush，这里等够更稳）
+  await page.waitForTimeout(1200);
+  expect(Object.keys(store), "转盘状态没有被持久化").toContain("comfyui_xyz_wheel");
+
+  await page.reload();
+  await expect(page.locator(FILLED_ROWS)).toHaveCount(1, { timeout: 30000 });
+  await expect(page.locator(FILLED_ROWS)).toHaveAttribute("data-tag", beforeTag as string);
+  await expect(page.locator(FILLED_ROWS)).toHaveAttribute("data-sector-id", beforeSector as string);
+  // 历史与圆心 hub 也跟着恢复
+  await expect(page.locator(".wheel-history-item")).toHaveCount(1);
+  await expect(page.locator(".wheel-hub-text")).toHaveText(beforeTag as string);
+});
+
 test("幸运大转盘：词库里的负面词与限制级词不会进入扇区", async ({ page }) => {
   await page.goto("/");
   await page.locator(".nav-item", { hasText: "幸运大转盘" }).click();

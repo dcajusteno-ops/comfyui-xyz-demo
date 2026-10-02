@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Disc3, Lock, Plus, Send, Sparkles, Trash2, Unlock, X } from "lucide-react";
+import { Copy, Disc3, Lock, Plus, RotateCcw, Send, Sparkles, Trash2, Unlock, X } from "lucide-react";
 
 import { PanelTitle } from "../../ui";
 import { templateLabels } from "../../../constants";
 import type { TemplateKind } from "../../../types";
+import { usePersistentState } from "../../../hooks/usePersistentState";
 import { loadPromptLibrary, type PromptRecord } from "../../../lib/promptLibrary";
 import {
   DEFAULT_WHEEL_SECTORS,
@@ -28,6 +29,21 @@ interface LuckyWheelPanelProps {
 /** 历史快照：记录整盘结果，回填时无需按分类反推。 */
 type HistoryItem = { time: number; snapshot: Record<string, SectorResult> };
 
+/**
+ * 随 ui-state 持久化的转盘状态：扇区配置、整盘结果、历史。
+ * 不存 rotation / spinning —— 动画状态没有跨会话意义。
+ */
+type PersistedWheelState = {
+  sectors: WheelSector[];
+  results: Record<string, SectorResult>;
+  history: HistoryItem[];
+};
+
+const WHEEL_STATE_KEY = "comfyui_xyz_wheel";
+
+/** 最近一次抽中的结果（圆心 hub + 指针高亮），从 results 里按时间取，不单独存。 */
+type LastDraw = { sectorId: string; label: string; tag: PromptRecord };
+
 const SPIN_MS = 3200;
 const CHAIN_SPIN_MS = 1800;
 /** 提交时机必须晚于 transition 结束，否则先停的盘会与结果错位。 */
@@ -44,18 +60,25 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
   const [records, setRecords] = useState<PromptRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [sectors, setSectors] = useState<WheelSector[]>(() => createDefaultSectors());
-  const [results, setResults] = useState<Record<string, SectorResult>>({});
+  // 扇区配置 / 整盘结果 / 历史都随 ui-state 持久化：切走标签页、重开应用都还在
+  const [saved, setSaved] = usePersistentState<PersistedWheelState>(WHEEL_STATE_KEY, {
+    sectors: createDefaultSectors(),
+    results: {},
+    history: [],
+  });
+  const sectors = saved.sectors;
+  const results = saved.results;
+  const history = saved.history;
   const [rotation, setRotation] = useState(0);
   /** 与本次 rotation 同批提交的过渡时长；空闲时为 0，避免复位角度时出现补间倒转 */
   const [spinDuration, setSpinDuration] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [chaining, setChaining] = useState(false);
-  const [lastDraw, setLastDraw] = useState<{ sectorId: string; label: string; tag: PromptRecord } | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [target, setTarget] = useState<TemplateKind>("default");
   const [copied, setCopied] = useState(false);
   const [copiedKey, setCopiedKey] = useState<number | null>(null);
+  /** 「恢复默认扇区」的两步确认 */
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const recordsRef = useRef<PromptRecord[]>([]);
   const sectorsRef = useRef<WheelSector[]>(sectors);
@@ -91,15 +114,21 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
     []
   );
 
-  const applySectors = useCallback((next: WheelSector[]) => {
-    sectorsRef.current = next;
-    setSectors(next);
-  }, []);
+  const applySectors = useCallback(
+    (next: WheelSector[]) => {
+      sectorsRef.current = next;
+      setSaved((prev) => ({ ...prev, sectors: next }));
+    },
+    [setSaved]
+  );
 
-  const applyResults = useCallback((next: Record<string, SectorResult>) => {
-    resultsRef.current = next;
-    setResults(next);
-  }, []);
+  const applyResults = useCallback(
+    (next: Record<string, SectorResult>) => {
+      resultsRef.current = next;
+      setSaved((prev) => ({ ...prev, results: next }));
+    },
+    [setSaved]
+  );
 
   const wait = useCallback(
     (ms: number) =>
@@ -121,8 +150,6 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
     rotationRef.current = 0;
     setSpinDuration(0);
     setRotation(0);
-    setLastDraw((prev) => (prev && active.some((sector) => sector.id === prev.sectorId) ? prev : null));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅按扇区集合变化复位
   }, [activeKey]);
 
   const categories = useMemo(() => {
@@ -150,11 +177,23 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
 
   const visibleTags = useMemo(() => collectResultTags(results, sectors), [results, sectors]);
 
+  /** 最近一次抽中的结果：圆心 hub 与指针高亮都从它来（不单独存，切页回来也能恢复显示） */
+  const lastDraw = useMemo<LastDraw | null>(() => {
+    let latest: SectorResult | null = null;
+    for (const result of Object.values(results)) {
+      if (!latest || result.at > latest.at) latest = result;
+    }
+    if (!latest) return null;
+    const sector = sectors.find((item) => item.id === latest.sectorId);
+    return sector ? { sectorId: sector.id, label: sector.label, tag: latest.tag } : null;
+  }, [results, sectors]);
+
   const pushHistory = useCallback(() => {
-    setHistory((prev) =>
-      [{ time: Date.now(), snapshot: { ...resultsRef.current } }, ...prev].slice(0, HISTORY_LIMIT)
-    );
-  }, []);
+    setSaved((prev) => ({
+      ...prev,
+      history: [{ time: Date.now(), snapshot: { ...resultsRef.current } }, ...prev.history].slice(0, HISTORY_LIMIT),
+    }));
+  }, [setSaved]);
 
   /**
    * 单次转动：先定结果（扇区 + 词），再放动画，最后提交。
@@ -198,7 +237,6 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
         ...resultsRef.current,
         [pick.sector.id]: { sectorId: pick.sector.id, tag, locked: false, at: Date.now() },
       });
-      setLastDraw({ sectorId: pick.sector.id, label: pick.sector.label, tag });
       return true;
     },
     [applyResults, wait]
@@ -277,7 +315,6 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
 
   const clearResults = useCallback(() => {
     applyResults({});
-    setLastDraw(null);
   }, [applyResults]);
 
   const apply = useCallback(() => {
@@ -304,7 +341,6 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
     async (item: HistoryItem) => {
       const text = joinResultTags(item.snapshot, sectorsRef.current);
       applyResults({ ...item.snapshot });
-      setLastDraw(null);
       if (!text) return;
       try {
         await navigator.clipboard.writeText(text);
@@ -349,6 +385,16 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
     },
     [applyResults, applySectors]
   );
+
+  /** 扇区配置现在是持久化的，给一个回到出厂映射的出口（两步确认，避免误伤自定义） */
+  const resetSectors = useCallback(() => {
+    if (!confirmReset) {
+      setConfirmReset(true);
+      return;
+    }
+    setConfirmReset(false);
+    applySectors(createDefaultSectors());
+  }, [applySectors, confirmReset]);
 
   const canSpin = !loading && !loadError && anyCandidates.length > 0;
   const winnerIndex = lastDraw ? active.findIndex((sector) => sector.id === lastDraw.sectorId) : -1;
@@ -573,6 +619,15 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
               </div>
               <button type="button" className="icon-button" onClick={addSector} disabled={sectors.length >= MAX_SECTORS}>
                 <Plus size={16} /> 新增扇区
+              </button>
+              <button
+                type="button"
+                className={`icon-button${confirmReset ? " danger" : ""}`}
+                onClick={resetSectors}
+                onBlur={() => setConfirmReset(false)}
+                title="把扇区恢复成出厂默认映射（会清掉自定义扇区与手填词）"
+              >
+                <RotateCcw size={16} /> {confirmReset ? "再点一次确认恢复" : "恢复默认"}
               </button>
               {sectors.length >= MAX_SECTORS && (
                 <span className="wheel-sector-cap">已达上限 {MAX_SECTORS} 个扇区，再多标签就不易读清了</span>
