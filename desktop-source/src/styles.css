@@ -5859,6 +5859,11 @@ textarea {
   cursor: pointer;
 }
 
+/* R18 开关：开启后用一个强调色标出来，避免「以为没生效」 */
+.wheel-sector-r18.is-on {
+  color: var(--warning);
+}
+
 .wheel-sector-cap {
   margin-left: 10px;
   color: var(--muted);

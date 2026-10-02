@@ -22,6 +22,8 @@ export type WheelSector = {
   extraTags: string[];
   /** 停用 = 不上盘（配置保留） */
   enabled: boolean;
+  /** 允许把 `r18` scope 的词条放进本扇区词池（默认关；负面词恒不进） */
+  allowR18?: boolean;
 };
 
 export type SectorResult = {
@@ -80,12 +82,13 @@ function dedupeByText(records: PromptRecord[]): PromptRecord[] {
 /**
  * 词池 = 词库分类命中 + 手填补充词。
  * 按 text_en 去重、剔除超长整句；手填词排在前面（保证一定在池内）。
+ * `r18` 词默认不进池（负面词永远不进），只有扇区开了 `allowR18` 才放行。
  */
 export function buildSectorPool(sector: WheelSector, records: PromptRecord[]): PromptRecord[] {
   const wanted = new Set(sector.categories.map(normalizeCategory));
   const hits = records.filter(
     (record) =>
-      isCandidateRecord(record) &&
+      isCandidateRecord(record, { allowR18: sector.allowR18 }) &&
       record.text_en.trim().length <= MAX_TAG_LENGTH &&
       wanted.has(normalizeCategory(record.category ?? ""))
   );

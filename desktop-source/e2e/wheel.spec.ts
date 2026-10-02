@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { installApiMocks, installPromptLibraryMock } from "./mocks";
+import { installApiMocks, installPromptLibraryMock, MOCK_CUSTOM_CATEGORY } from "./mocks";
 
 /** 结果行中「已抽到词」的那些（data-tag 非空）。 */
 const FILLED_ROWS = '.wheel-result-row:not([data-tag=""])';
@@ -123,7 +123,7 @@ test("幸运大转盘：离开页面再回来，结果与历史还在", async ({
   await expect(page.locator(".wheel-hub-text")).toHaveText(beforeTag as string);
 });
 
-test("幸运大转盘：词库里的负面词与限制级词不会进入扇区", async ({ page }) => {
+test("幸运大转盘：扇区未开启「允许R18」时，负面词与限制级词都不会进入扇区", async ({ page }) => {
   await page.goto("/");
   await page.locator(".nav-item", { hasText: "幸运大转盘" }).click();
   await expect(page.locator(".wheel-arena")).toHaveAttribute("data-sector-count", String(DEFAULT_SECTORS));
@@ -140,4 +140,51 @@ test("幸运大转盘：词库里的负面词与限制级词不会进入扇区",
     await page.locator(".wheel-clear").click();
     await expect(page.locator(EMPTY_ROWS)).toHaveCount(DEFAULT_SECTORS);
   }
+});
+
+test("幸运大转盘：「允许R18」按扇区放行，且不外溢", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "幸运大转盘" }).click();
+  await expect(page.locator(".wheel-arena")).toHaveAttribute("data-sector-count", String(DEFAULT_SECTORS));
+
+  await page.locator(".wheel-sectors > summary").click();
+
+  // mock 词库里唯一一条 scope=r18 的词属于「动作」分类（角色/服饰/配件/动作）
+  const actionRow = page.locator(".wheel-sector-row").nth(3);
+  const characterRow = page.locator(".wheel-sector-row").nth(0);
+  await expect(actionRow.locator(".wheel-sector-name")).toHaveValue("动作");
+  await expect(characterRow.locator(".wheel-sector-name")).toHaveValue("角色");
+
+  // 默认关：r18 词不进池（每个分类 3 条，动作扇区 = 3 个分类 × 3 = 9）
+  await expect(actionRow.locator(".wheel-sector-pool")).toHaveText("9 个候选");
+
+  await actionRow.locator(".wheel-sector-r18 input").check();
+  await expect(actionRow.locator(".wheel-sector-r18")).toHaveClass(/is-on/);
+  await expect(actionRow.locator(".wheel-sector-pool")).toHaveText("10 个候选");
+  // 只有被勾选的那个扇区放行
+  await expect(characterRow.locator(".wheel-sector-pool")).toHaveText("18 个候选");
+
+  await actionRow.locator(".wheel-sector-r18 input").uncheck();
+  await expect(actionRow.locator(".wheel-sector-pool")).toHaveText("9 个候选");
+});
+
+test("幸运大转盘：我自己导入的词条（customEntries）也能进扇区词池", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "幸运大转盘" }).click();
+  await expect(page.locator(".wheel-arena")).toHaveAttribute("data-sector-count", String(DEFAULT_SECTORS));
+
+  await page.locator(".wheel-sectors > summary").click();
+  const row = page.locator(".wheel-sector-row").nth(3);
+  await expect(row.locator(".wheel-sector-name")).toHaveValue("动作");
+
+  // 逐字敲「自建分类, 动作」：既验证逗号不再被吞（否则会拼成假分类 → 0 个候选），
+  // 也验证「自建分类」这个**只存在于我的词条里**的分类能命中（内置词库没有它）。
+  // mock 里每个分类 3 条 → 自建分类 1 条 + 动作 3 条 = 4。
+  const cats = row.locator(".wheel-sector-cats");
+  await cats.click();
+  await cats.press("Control+a");
+  await cats.press("Delete");
+  await cats.pressSequentially(`${MOCK_CUSTOM_CATEGORY}, 动作`);
+  await expect(cats).toHaveValue(`${MOCK_CUSTOM_CATEGORY}, 动作`);
+  await expect(row.locator(".wheel-sector-pool")).toHaveText("4 个候选");
 });

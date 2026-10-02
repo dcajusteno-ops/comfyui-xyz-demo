@@ -97,6 +97,15 @@ export async function installApiMocks(page: Page) {
     route.fulfill(json({ success: true, revision: 1 }));
   });
 
+  await page.route(/\/api\/prompts/, (route) =>
+    route.fulfill(
+      json({
+        success: true,
+        data: { favorites: [], recents: [], customEntries: [], templates: [], revision: 0 },
+      })
+    )
+  );
+
   // 断连覆盖层的显隐由 WebSocket 的 open/close 驱动，而 page.route 拦不住 WebSocket：
   // ComfyUI 不在运行时 onclose 会把状态置为 offline，全屏 .connection-overlay 随即拦截所有点击
   // （表现为 4 个需要点击的用例统一超时）。这里接管 /comfy/ws，握手成功即让状态回到 online；
@@ -113,6 +122,9 @@ export async function installApiMocks(page: Page) {
  * 保证「默认扇区一定有词可抽」这条不会因为改了默认映射而悄悄失配。
  */
 const PROMPT_CATEGORIES = [...new Set(DEFAULT_WHEEL_SECTORS.flatMap((sector) => sector.categories))];
+
+/** 只存在于「我的词条」（customEntries）里的分类，用来验证转盘能吃到用户导入的词条。 */
+export const MOCK_CUSTOM_CATEGORY = "自建分类";
 
 /**
  * 拦截内置词库请求，返回覆盖全部默认分类的小词库。
@@ -140,6 +152,28 @@ export async function installPromptLibraryMock(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(records),
+    })
+  );
+
+  // 用户词条（`/api/prompts` 的 customEntries）：转盘词池 = 内置 + 我的词条，
+  // 这里给一条只存在于「我的词条」里的分类，用来在真实浏览器里守住这条合并链路。
+  // 后注册的路由优先匹配，因此覆盖 installApiMocks 里那份空数据。
+  await page.route(/\/api\/prompts/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          favorites: [],
+          recents: [],
+          customEntries: [
+            { id: "mine", source: "本地文件", category: MOCK_CUSTOM_CATEGORY, scope: "default", text_en: "my-own-tag", text_zh: "我的词" },
+          ],
+          templates: [],
+          revision: 0,
+        },
+      }),
     })
   );
 }

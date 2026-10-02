@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   DEFAULT_WHEEL_SECTORS,
   MAX_SECTORS,
@@ -12,7 +14,7 @@ import {
   type SectorResult,
   type WheelSector,
 } from "./luckyWheel";
-import { isCandidateRecord, normalizeCategory, type PromptRecord } from "./promptLibrary";
+import { isCandidateRecord, normalizeCategory, resetPromptLibraryCache, loadPromptLibrary, type PromptRecord } from "./promptLibrary";
 import {
   CHECK_BADGE_UNITS,
   WHEEL_HUB_R,
@@ -68,7 +70,19 @@ describe("词库判据", () => {
       makeRecord({ text_en: "negative", scope: "negative_default" }),
       makeRecord({ text_en: "unscoped" }),
     ];
-    expect(records.filter(isCandidateRecord).map((r) => r.text_en)).toEqual(["safe", "unscoped"]);
+    expect(records.filter((r) => isCandidateRecord(r)).map((r) => r.text_en)).toEqual(["safe", "unscoped"]);
+  });
+
+  it("allowR18 显式放行 r18，但负面词仍然恒排除", () => {
+    const records: PromptRecord[] = [
+      makeRecord({ text_en: "safe", scope: "normal" }),
+      makeRecord({ text_en: "mature", scope: "r18" }),
+      makeRecord({ text_en: "negative", scope: "negative_default" }),
+    ];
+    expect(records.filter((r) => isCandidateRecord(r, { allowR18: true })).map((r) => r.text_en)).toEqual([
+      "safe",
+      "mature",
+    ]);
   });
 
   it("分类匹配大小写不敏感", () => {
@@ -98,7 +112,7 @@ describe("词库判据", () => {
       makeRecord({ text_en: "prostrate, lie flat" }),
       makeRecord({ text_en: "全角，逗号" }),
     ];
-    expect(records.filter(isCandidateRecord).map((r) => r.text_en)).toEqual(["single tag"]);
+    expect(records.filter((r) => isCandidateRecord(r)).map((r) => r.text_en)).toEqual(["single tag"]);
   });
 });
 
@@ -124,6 +138,56 @@ describe("扇区词池", () => {
   it("手填词同样受长度上限约束", () => {
     const pool = buildSectorPool(makeSector({ categories: [], extraTags: ["ok", "z".repeat(81)] }), []);
     expect(pool.map((r) => r.text_en)).toEqual(["ok"]);
+  });
+
+  it("默认不放行 r18 词，开 allowR18 后才进池（负面词始终不进）", () => {
+    const records: PromptRecord[] = [
+      makeRecord({ category: "NSFW", text_en: "tentacle", scope: "r18" }),
+      makeRecord({ category: "NSFW", text_en: "69", scope: "normal" }),
+      makeRecord({ category: "NSFW", text_en: "neg tag", scope: "negative_default" }),
+    ];
+    expect(buildSectorPool(makeSector({ categories: ["NSFW"] }), records).map((r) => r.text_en)).toEqual(["69"]);
+    expect(
+      buildSectorPool(makeSector({ categories: ["NSFW"], allowR18: true }), records).map((r) => r.text_en).sort()
+    ).toEqual(["69", "tentacle"]);
+  });
+});
+
+/**
+ * 拿**真实词库**跑一遍真实代码路径（`loadPromptLibrary` + `buildSectorPool`），
+ * 把「候选数口径」钉成基线：分类命中 → 剔 r18（除非扇区放行）→ 剔负面词 → 剔整句 →
+ * 剔超长 → 按 text_en 去重。**换词库版本就同步这两个数**（967 / 1089），
+ * 数值变化即说明过滤口径被改动了 —— 这正是用户问过的「为什么 NSFW 只有 967 个候选」。
+ */
+describe("真实词库基线（口径回归）", () => {
+  // vitest 的 cwd 是 desktop-source（配置根），按这个定位词库文件最稳
+  const LIB_PATH = resolve(process.cwd(), "public/data/prompt-library/all_prompts_merged.cleaned.json");
+  const hasLibrary = existsSync(LIB_PATH);
+
+  it.skipIf(!hasLibrary)("NSFW 扇区：默认 967 个候选，开 allowR18 后 1089 个", async () => {
+    console.log("[基线] 词库路径 =", LIB_PATH);
+    const raw = JSON.parse(readFileSync(LIB_PATH, "utf8")) as PromptRecord[];
+    // 只喂内置词库（用户词条返回空），基线数字即「内置词库」的口径
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) =>
+        String(url).includes("/api/prompts")
+          ? { ok: true, status: 200, json: async () => ({ success: true, data: { customEntries: [] } }) }
+          : { ok: true, status: 200, json: async () => raw }
+      )
+    );
+    resetPromptLibraryCache();
+    try {
+      const records = await loadPromptLibrary();
+      const sector: WheelSector = { id: "nsfw", label: "自定义1", categories: ["NSFW"], extraTags: [], enabled: true };
+      expect(buildSectorPool(sector, records)).toHaveLength(967);
+      expect(buildSectorPool({ ...sector, allowR18: true }, records)).toHaveLength(1089);
+    } finally {
+      resetPromptLibraryCache();
+      vi.unstubAllGlobals();
+    }
+    // 词库浏览器（原始 JSON、不过滤不去重）看到的条数，用来解释两者差异
+    expect(raw.filter((record) => (record.category ?? "").trim().toLowerCase() === "nsfw")).toHaveLength(1432);
   });
 });
 

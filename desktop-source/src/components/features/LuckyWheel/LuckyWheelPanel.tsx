@@ -56,6 +56,52 @@ function prefersReducedMotion(): boolean {
     : false;
 }
 
+/** 逗号分隔列表 → 字符串数组（半角 / 全角逗号都认）。 */
+function parseList(text: string): string[] {
+  return text
+    .split(/[,，]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+interface SectorListInputProps {
+  className: string;
+  placeholder?: string;
+  listId?: string;
+  /** 已提交的值：只在没有编辑草稿时用于显示 */
+  value: string[];
+  /** 编辑中的原始文本；undefined = 未在编辑 */
+  draft: string | undefined;
+  onDraft: (text: string) => void;
+  onCommit: () => void;
+}
+
+/**
+ * 逗号分隔列表输入框。
+ *
+ * **不要把 value 直接绑成 `value.join(", ")` 再在 onChange 里 split 回写**：那样每次按键都会
+ * 「拆分 → 过滤空段 → 重新拼接」，用户刚敲下的逗号当场被吞掉，第二段只能黏在前一段屁股后面
+ * （表现为「一个扇区只能定义一个分类」，逐字输入 `NSFW, 表情` 会变成 `NSFW表情`）。
+ * 这里编辑期一律显示原始文本，失焦 / 回车才归一化。
+ */
+function SectorListInput({ className, placeholder, listId, value, draft, onDraft, onCommit }: SectorListInputProps) {
+  return (
+    <input
+      className={className}
+      {...(listId ? { list: listId } : {})}
+      {...(placeholder ? { placeholder } : {})}
+      value={draft ?? value.join(", ")}
+      onChange={(event) => onDraft(event.target.value)}
+      onBlur={onCommit}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        event.currentTarget.blur();
+      }}
+    />
+  );
+}
+
 export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelProps) => {
   const [records, setRecords] = useState<PromptRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +125,8 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
   const [copiedKey, setCopiedKey] = useState<number | null>(null);
   /** 「恢复默认扇区」的两步确认 */
   const [confirmReset, setConfirmReset] = useState(false);
+  /** 列表输入框的编辑草稿（按 `扇区id:字段` 存）：编辑期显示原始文本，避免回写吞掉逗号 */
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const recordsRef = useRef<PromptRecord[]>([]);
   const sectorsRef = useRef<WheelSector[]>(sectors);
@@ -360,6 +408,32 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
     [applySectors]
   );
 
+  /** 草稿键：一个扇区两个列表输入框各自独立 */
+  const draftKey = (sectorId: string, field: "cats" | "extra") => `${sectorId}:${field}`;
+
+  const setDraft = useCallback((sectorId: string, field: "cats" | "extra", text: string) => {
+    setDrafts((prev) => ({ ...prev, [draftKey(sectorId, field)]: text }));
+  }, []);
+
+  const clearDraft = useCallback((sectorId: string, field: "cats" | "extra") => {
+    setDrafts((prev) => {
+      const key = draftKey(sectorId, field);
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
+
+  const dropDrafts = useCallback((sectorId: string) => {
+    setDrafts((prev) => {
+      const next = { ...prev };
+      delete next[draftKey(sectorId, "cats")];
+      delete next[draftKey(sectorId, "extra")];
+      return next;
+    });
+  }, []);
+
   const addSector = useCallback(() => {
     const list = sectorsRef.current;
     if (list.length >= MAX_SECTORS) return;
@@ -379,11 +453,12 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
       const list = sectorsRef.current;
       if (list.length <= 1) return;
       applySectors(list.filter((sector) => sector.id !== id));
+      dropDrafts(id);
       const next = { ...resultsRef.current };
       delete next[id];
       applyResults(next);
     },
-    [applyResults, applySectors]
+    [applyResults, applySectors, dropDrafts]
   );
 
   /** 扇区配置现在是持久化的，给一个回到出厂映射的出口（两步确认，避免误伤自定义） */
@@ -393,6 +468,7 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
       return;
     }
     setConfirmReset(false);
+    setDrafts({});
     applySectors(createDefaultSectors());
   }, [applySectors, confirmReset]);
 
@@ -567,32 +643,28 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
                       onChange={(event) => updateSector(sector.id, { label: event.target.value })}
                       placeholder="扇区名"
                     />
-                    <input
+                    <SectorListInput
                       className="wheel-sector-cats"
-                      list="wheel-category-suggestions"
+                      listId="wheel-category-suggestions"
                       placeholder="词库分类，逗号分隔（如：人物, face）"
-                      value={sector.categories.join(", ")}
-                      onChange={(event) =>
-                        updateSector(sector.id, {
-                          categories: event.target.value
-                            .split(/[,，]/)
-                            .map((part) => part.trim())
-                            .filter(Boolean),
-                        })
-                      }
+                      value={sector.categories}
+                      draft={drafts[draftKey(sector.id, "cats")]}
+                      onDraft={(text) => {
+                        setDraft(sector.id, "cats", text);
+                        updateSector(sector.id, { categories: parseList(text) });
+                      }}
+                      onCommit={() => clearDraft(sector.id, "cats")}
                     />
-                    <input
+                    <SectorListInput
                       className="wheel-sector-extra"
                       placeholder="手填候选词，逗号分隔（可选）"
-                      value={sector.extraTags.join(", ")}
-                      onChange={(event) =>
-                        updateSector(sector.id, {
-                          extraTags: event.target.value
-                            .split(/[,，]/)
-                            .map((part) => part.trim())
-                            .filter(Boolean),
-                        })
-                      }
+                      value={sector.extraTags}
+                      draft={drafts[draftKey(sector.id, "extra")]}
+                      onDraft={(text) => {
+                        setDraft(sector.id, "extra", text);
+                        updateSector(sector.id, { extraTags: parseList(text) });
+                      }}
+                      onCommit={() => clearDraft(sector.id, "extra")}
                     />
                     <span className={`wheel-sector-pool${(poolSizes[sector.id] ?? 0) === 0 ? " is-empty" : ""}`}>
                       {poolSizes[sector.id] ?? 0} 个候选
@@ -604,6 +676,17 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
                         onChange={(event) => updateSector(sector.id, { enabled: event.target.checked })}
                       />
                       启用
+                    </label>
+                    <label
+                      className={`wheel-sector-enable wheel-sector-r18${sector.allowR18 === true ? " is-on" : ""}`}
+                      title="允许该扇区抽到 R18（scope=r18）词条。默认关闭；负面词永远不会进池。"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={sector.allowR18 === true}
+                        onChange={(event) => updateSector(sector.id, { allowR18: event.target.checked })}
+                      />
+                      允许R18
                     </label>
                     <button
                       type="button"
