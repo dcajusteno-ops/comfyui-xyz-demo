@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.7] - 2026-10-15
+
+### ✨ 新功能 (Features)
+
+- **图片文字水印（灯箱入口，手动操作）**：输出面板点开任意结果图，查看器工具栏新增「印章」按钮 → 文字水印弹窗：左侧原图实时预览（canvas 与导出走同一代码路径，所见即所得），右侧参数栏——水印文字、字号（6–300px）、颜色、不透明度、**九宫格位置**（3×3 按钮矩阵）+ 边距（0–300px）、旋转（-90°~90°，绕文字中心）与**平铺整图**（沿旋转方向铺满全图、奇偶行错位半步，防盗图样式）；「下载 PNG」文件名自动取原文件名拼 `-水印.png`。水印参数持久化（`data/ui-state.json`）；弹窗打开期间灯箱挂起（值保留，关闭水印后灯箱原样恢复，绕开两层全屏浮层的 Esc 监听冲突）；图片一律 fetch → blob → createImageBitmap 加载，避免 crossOrigin 污染 canvas 导致导出抛 SecurityError。
+- **生图自动水印（烙进工作流，与文字特效/手写层同机制）**：输出面板「自动水印」开关（与水印弹窗内勾选同源联动）开启后，当前水印参数自动渲染成双图层（黑底彩字 + 白字黑底遮罩，约定与手写层一致）约 1 秒防抖上传 ComfyUI `input/`（固定文件名覆盖），生成时在默认/多人/高清/Anima 四条工作流链尾、手写层**之后**用**内置节点**（LoadImage → ImageScale → ImageToMask(red) → ImageCompositeMasked）合成——**ComfyUI 落盘的图片文件本身就带水印**（不只是前端显示层），XYZ 组合同样生效（借用手写层同款的 drawText 借用链）；平铺/旋转等效果与弹窗预览完全一致（同一渲染代码路径）。可靠性：烙入失败（ComfyUI 离线等）自动回退为仅前端叠加并 toast 提示，水印不失效；烙入成功时前端叠加自动跳过，**不会双重水印**；关闭开关后链尾不插任何节点，工作流与未开启时逐节点一致；「作为输入图」回流与灯箱水印入口自动取原图，避免对已水印图二次叠加。水印层按当前生图尺寸渲染，链尾 ImageScale 等比适配实际出图（图生图尺寸差异大时位置等比偏移，与手写层行为一致）。
+
+### 🧪 测试 (Tests)
+
+- 新增 `src/lib/watermark.test.ts`（8 例）：九宫格锚点几何（margin 贴边 / 居中 / margin=0 与负值边界）、normalize 兜底（越界 clamp、NaN 回退默认、非法 position/color、tile 为合法位置）、有限并发 map 保序且峰值不超限。
+- 新增 `src/lib/watermark-bake.test.ts`（4 例）：default 工作流 wm 六节点接线断言（SaveImage 消费 wm_mix 输出、wm_mix.destination 指向 hw_mix = 水印盖在手写层之上、遮罩走 red 通道）、未配置时零 wm_* 节点（零回归）、enabled 但缺文件名不插链（烘焙失败回退场景）、multi/highres/anima 链尾 SaveImage/PreviewImage 消费 wm_mix 输出（anima 链尾按 `999_save`/`998_preview` 固定键找，中间 SaveImage 有多个不能按 class_type 泛搜）。
+
 ## [v0.7.6] - 2026-10-15
 
 ### ✨ 新功能 (Features)
