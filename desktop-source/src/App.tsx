@@ -20,6 +20,7 @@ import { GlobalModals } from "./components/GlobalModals";
 import { PromptSidebar } from "./components/PromptSidebar";
 import { QueuePanel } from "./components/QueuePanel";
 import { ToastViewport, RunProgressStrip, VramBadge } from "./components/ui";
+import { useWatermarkSettings } from "./hooks/useWatermarkSettings";
 
 // 首屏必需，随主包同步加载；**必须从具体文件引**，走 `features/Generation` 的
 // barrel 会把下面所有懒加载面板的依赖（MultiWorkspace / DrawTextControls 等）
@@ -135,7 +136,8 @@ import {
   toolTabs as toolTabConfig,
   templateLabels,
 } from "./constants";
-import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, JobResult, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams } from "./types";
+import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, JobResult, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams, WatermarkBakeConfig, DrawTextParams } from "./types";
+import { renderWatermarkLayers } from "./lib/watermark";
 import { applySpecialXyzPatch } from "./lib/xyz";
 import { img2imgUpdater } from "./lib/paramBuilders";
 import { loadWildcards } from "./lib/wildcards";
@@ -153,8 +155,10 @@ function App() {
   const xyz = useXyz();
   const notesHook = useNotes({ tab, pushToast, confirm: ui.confirm });
   const notifier = useNotifier();
+  // 水印设置单点创建（参数 + 生图自动开关），useGeneration 与水印弹窗共用
+  const watermarkSettings = useWatermarkSettings();
 
-  const gen = useGeneration({ client, pushToast, notifyComplete: notifier.notifyComplete });
+  const gen = useGeneration({ client, pushToast, notifyComplete: notifier.notifyComplete, watermark: watermarkSettings });
   const params = useParams();
 
   // 应用启动即惰性加载内置通配符词库到动态提示的模块级注册表
@@ -404,12 +408,55 @@ function App() {
     return uploaded.name;
   }, [client]);
 
+  // —— 自动水印烙入工作流（与手写层同款双图上传 + 链尾合成，见 insertWatermarkNode）——
+  // auto 开：渲染水印双图（彩图黑底彩字 / mask 白字黑底）上传到 input/，并把烙入配置写进
+  // default/multi/highres 的 drawText.watermark（Anima 构建时借用 default 的 drawText，
+  // XYZ 的 withBorrowedDrawText 同理）→ ComfyUI 落盘的图片文件本身就带水印。
+  // auto 关 / 烙入失败：写 disabled 配置（链尾不插节点），useGeneration 回退前端叠加。
+  useEffect(() => {
+    const wm = watermarkSettings.params;
+    const width = params.defaultParams.width;
+    const height = params.defaultParams.height;
+    const write = (config: WatermarkBakeConfig) => {
+      const patch = <T extends { drawText?: DrawTextParams }>(prev: T): T =>
+        prev.drawText ? { ...prev, drawText: { ...prev.drawText, watermark: config } } : prev;
+      params.setDefaultParams(patch);
+      params.setMultiParams(patch);
+      params.setHighresParams(patch);
+    };
+    if (!watermarkSettings.auto || !wm.text.trim()) {
+      watermarkSettings.setBaked(false);
+      write({ ...wm, enabled: false, imageName: "", maskName: "" });
+      return;
+    }
+    // 防抖：弹窗里拖滑块会连续触发，等参数稳定再上传
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const { colorBlob, maskBlob } = await renderWatermarkLayers(width, height, wm);
+          const imageName = await uploadImage(new File([colorBlob], "xyz_watermark.png", { type: "image/png" }));
+          const maskName = await uploadImage(new File([maskBlob], "xyz_watermark_mask.png", { type: "image/png" }));
+          write({ ...wm, enabled: true, imageName, maskName, renderWidth: width, renderHeight: height });
+          watermarkSettings.setBaked(true);
+        } catch {
+          watermarkSettings.setBaked(false);
+          write({ ...wm, enabled: false, imageName: "", maskName: "" });
+          pushToast("error", "自动水印烙入失败", "回退为仅前端叠加；请检查 ComfyUI 连接后重新调整水印参数");
+        }
+      })();
+    }, 600);
+    return () => clearTimeout(timer);
+    // uploadImage/pushToast 为稳定引用；write 只改 drawText 不动尺寸，不会自触发
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watermarkSettings.auto, watermarkSettings.params, watermarkSettings.setBaked, params.defaultParams.width, params.defaultParams.height, connection.status]);
+
   /**
    * 把一张输出图复制进 input/ 后返回文件名。
    * 输出图存放在 ComfyUI 的 output/，而 LoadImage 只读 input/，故必须重新上传一份。
    */
   const promoteOutputToInput = useCallback(async (image: OutputImage) => {
-    const response = await fetch(image.url);
+    // 自动水印开启时 url 是水印版，回流用原图（originalUrl ?? url）
+    const response = await fetch(image.originalUrl ?? image.url);
     if (!response.ok) throw new Error(`读取图像失败：${response.status}`);
     const blob = await response.blob();
     const file = new File([blob], image.filename, { type: blob.type || "image/png" });
@@ -763,7 +810,7 @@ function App() {
                   animaCaps={options.animaCaps}
                   options={options}
                   loraNames={loraNames}
-                  onOutputLightbox={ui.setOutputLightbox}
+                  onOutputLightbox={(url, originalUrl) => ui.setOutputLightbox({ url, originalUrl })}
                   onApplyCombo={handleXyzApplyCombo}
                 />
               )}
@@ -824,7 +871,20 @@ function App() {
             {tab !== "loras" && !(tab === "notes" && notesHook.isNotesWide) && (
               <aside className={gen.results.length > 0 || gen.progress.previewUrl ? "output-panel" : "output-panel is-empty"}>
                 <div className="gallery">
-                  <h2><GalleryHorizontalEnd size={18} /> 输出</h2>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <h2><GalleryHorizontalEnd size={18} /> 输出</h2>
+                    <label
+                      title="开启后水印直接烙进 ComfyUI 出图文件（与文字特效同机制）；烙入失败时回退为仅前端叠加"
+                      style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--muted)", cursor: "pointer", whiteSpace: "nowrap" }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={watermarkSettings.auto}
+                        onChange={(event) => watermarkSettings.setAuto(event.target.checked)}
+                      />
+                      自动水印
+                    </label>
+                  </div>
                   {gen.results.length === 0 && !gen.progress.previewUrl && <div className="empty-state">暂无输出</div>}
                   
                   {gen.progress.running && gen.progress.previewUrl && (
@@ -865,7 +925,7 @@ function App() {
                               src={image.url} 
                               alt={image.filename} 
                               style={{ cursor: "zoom-in" }}
-                              onClick={() => ui.setOutputLightbox(image.url)}
+                              onClick={() => ui.setOutputLightbox({ url: image.url, originalUrl: image.originalUrl })}
                             />
                             {baseImages.length > 0 && (
                               <button 
@@ -995,6 +1055,7 @@ function App() {
         setApiBase={setApiBase}
         ui={ui}
         client={client}
+        watermark={watermarkSettings}
         translationSettings={options.translation}
         onTranslationSettingsSaved={(ts) => setOptions(prev => ({ ...prev, translation: ts }))}
         pushToast={pushToast}

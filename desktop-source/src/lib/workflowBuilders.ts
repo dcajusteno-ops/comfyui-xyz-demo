@@ -220,6 +220,81 @@ function insertHandwritingNode(
 }
 
 /**
+ * 自动水印层（与手写层同款双图合成链，插在其后——水印盖在所有内容最上面）。
+ *
+ * 配置来自 drawText.watermark（App 的烘焙 effect 渲染双图并上传，见 renderWatermarkLayers）：
+ * - 彩图：黑底 + 彩色水印文字（imageName）；
+ * - mask 图：白字黑底，red 通道即 alpha（maskName）。
+ * 链：LoadImage → ImageScale（对齐出图尺寸）→ LoadImage → ImageScale → ImageToMask(red)
+ *     → ImageCompositeMasked。全部核心节点，零自定义节点依赖。
+ *
+ * 插在手写层之后是刻意的：手写笔迹属于用户内容，水印属于保护层，压在最上面。
+ * 未开启 / 缺任一文件名 / 文字留空时原样返回 inputImage，不写入任何节点。
+ */
+function insertWatermarkNode(
+  prompt: ComfyPrompt,
+  params: BaseGenerationParams,
+  inputImage: [string, number],
+  size: { width: number | [string, number]; height: number | [string, number] },
+): [string, number] {
+  const wm = params.drawText?.watermark;
+  if (!wm?.enabled || !wm.imageName || !wm.maskName || !wm.text.trim()) return inputImage;
+
+  prompt["wm_load"] = {
+    class_type: "LoadImage",
+    inputs: { image: wm.imageName },
+    _meta: { title: "自动水印层" },
+  };
+  // 彩图与 mask 图同一 upscale_method（lanczos），与手写层同理防彩边
+  prompt["wm_scale"] = {
+    class_type: "ImageScale",
+    inputs: {
+      image: ["wm_load", 0],
+      upscale_method: "lanczos",
+      width: size.width,
+      height: size.height,
+      crop: "disabled",
+    },
+    _meta: { title: "自动水印层缩放" },
+  };
+  prompt["wm_maskload"] = {
+    class_type: "LoadImage",
+    inputs: { image: wm.maskName },
+    _meta: { title: "自动水印层遮罩" },
+  };
+  prompt["wm_maskscale"] = {
+    class_type: "ImageScale",
+    inputs: {
+      image: ["wm_maskload", 0],
+      upscale_method: "lanczos",
+      width: size.width,
+      height: size.height,
+      crop: "disabled",
+    },
+    _meta: { title: "自动水印层遮罩缩放" },
+  };
+  prompt["wm_mask"] = {
+    class_type: "ImageToMask",
+    inputs: { image: ["wm_maskscale", 0], channel: "red" },
+    _meta: { title: "自动水印层遮罩通道" },
+  };
+  prompt["wm_mix"] = {
+    class_type: "ImageCompositeMasked",
+    inputs: {
+      destination: inputImage,
+      source: ["wm_scale", 0],
+      x: 0,
+      y: 0,
+      resize_source: false,
+      mask: ["wm_mask", 0],
+    },
+    _meta: { title: "自动水印叠加" },
+  };
+
+  return ["wm_mix", 0];
+}
+
+/**
  * 图生图 latent：LoadImage → ImageScale → VAEEncode（batchSize > 1 时再 RepeatLatentBatch）。
  *
  * 未开启开关或未选参考图时返回 `null`，调用方保留原有 EmptyLatentImage 分支
@@ -412,6 +487,8 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
   let finalImage = insertDrawTextNode(prompt, params, ["7", 0], 8);
   // 手写层：链尾尺寸即生图尺寸（EmptyLatentImage 整除 8 的 ≤7px 偏差由 composite 夹紧容错）
   finalImage = insertHandwritingNode(prompt, params, finalImage, { width: params.width, height: params.height });
+  // 自动水印：盖在手写层之上，直接烙进出图文件
+  finalImage = insertWatermarkNode(prompt, params, finalImage, { width: params.width, height: params.height });
 
   prompt["999_save"] = {
     class_type: "SaveImage",
@@ -726,6 +803,8 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
   let finalImage = insertDrawTextNode(prompt, params, ["10", 0], 28);
   // 手写层：多人模板的分辨率由 ResolutionMasterSimplify("22") 决定，必须沿用它的输出
   finalImage = insertHandwritingNode(prompt, params, finalImage, { width: ["22", 0], height: ["22", 1] });
+  // 自动水印：同沿 "22" 的输出尺寸
+  finalImage = insertWatermarkNode(prompt, params, finalImage, { width: ["22", 0], height: ["22", 1] });
 
   prompt["999_save"] = {
     class_type: "SaveImage",
@@ -936,6 +1015,11 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
   nextId += 2;
   // 手写层：最终尺寸与 detailerChain 的 segsMaskSize 口径一致（enableUpscale 开时按 scaleBy 放大）
   currentImage = insertHandwritingNode(prompt, params, currentImage, {
+    width: enableUpscale ? Math.round(params.width * params.scaleBy) : params.width,
+    height: enableUpscale ? Math.round(params.height * params.scaleBy) : params.height,
+  });
+  // 自动水印：尺寸口径与手写层一致
+  currentImage = insertWatermarkNode(prompt, params, currentImage, {
     width: enableUpscale ? Math.round(params.width * params.scaleBy) : params.width,
     height: enableUpscale ? Math.round(params.height * params.scaleBy) : params.height,
   });
@@ -1408,6 +1492,15 @@ export function buildAnimaPrompt(
   currentImage = insertDrawTextNode(prompt, params, currentImage, nextId);
   // ---- 手写层：最终尺寸取放大②的目标尺寸（未开放大②时是 pre 目标或原始尺寸）----
   currentImage = insertHandwritingNode(
+    prompt,
+    params,
+    currentImage,
+    stages.hiresFixPost
+      ? animaUpscaleTargetSize(nominalWidth, nominalHeight, params.hires.postPercent)
+      : { width: nominalWidth, height: nominalHeight },
+  );
+  // ---- 自动水印：尺寸口径与手写层一致 ----
+  currentImage = insertWatermarkNode(
     prompt,
     params,
     currentImage,

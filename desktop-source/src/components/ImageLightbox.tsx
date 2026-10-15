@@ -1,12 +1,16 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { X, ZoomIn, ZoomOut, Download, Copy, RefreshCw } from "lucide-react";
+import { X, ZoomIn, ZoomOut, Download, Copy, RefreshCw, Stamp } from "lucide-react";
 
 interface ImageLightboxProps {
   url: string;
+  /** 自动水印产出的图：原图 URL（水印入口用它，避免二次叠加） */
+  originalUrl?: string;
   onClose: () => void;
+  /** 打开文字水印弹窗（传入源图 URL；不传则不显示入口） */
+  onWatermark?: (url: string) => void;
 }
 
-export function ImageLightbox({ url, onClose }: ImageLightboxProps) {
+export function ImageLightbox({ url, originalUrl, onClose, onWatermark }: ImageLightboxProps) {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -97,6 +101,11 @@ export function ImageLightbox({ url, onClose }: ImageLightboxProps) {
           </div>
           <div className="lm-toolbar-divider" />
           <div className="lm-toolbar-group">
+            {onWatermark && (
+              <button onClick={() => onWatermark(originalUrl ?? url)} title="添加文字水印">
+                <Stamp size={18} />
+              </button>
+            )}
             <button onClick={handleCopy} title="复制到剪贴板"><Copy size={18} /></button>
             <button onClick={handleDownload} title="下载图片"><Download size={18} /></button>
           </div>

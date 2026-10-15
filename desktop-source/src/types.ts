@@ -1,6 +1,8 @@
 import type { TranslationSettings, TranslationProvider } from "./lib/translation";
+import type { WatermarkParams } from "./lib/watermark";
 
 export type { TranslationSettings, TranslationProvider };
+export type { WatermarkParams };
 
 export type MaskHandle = "nw" | "ne" | "sw" | "se";
 
@@ -282,6 +284,23 @@ export type LoraQueryState = {
   pageSize: number;
 };
 
+/**
+ * 自动水印烙入工作流的配置（drawText.watermark，可选字段，旧数据判空）。
+ * 与手写层同款约定：双图上传到 ComfyUI input/（彩图黑底+彩字 / mask 白字黑底），
+ * 由 workflowBuilders 的 insertWatermarkNode 在四模板链尾用内置节点合成——
+ * 水印直接烙进 ComfyUI 落盘的图片文件，而不是前端显示层叠加。
+ */
+export type WatermarkBakeConfig = WatermarkParams & {
+  enabled: boolean;
+  /** 彩图文件名（黑底 + 彩色水印文字），ComfyUI input/ */
+  imageName: string;
+  /** mask 文件名（白字黑底，取 red 通道作 alpha），ComfyUI input/ */
+  maskName: string;
+  /** 导出图层时的生图尺寸（链尾 ImageScale 拉伸到此配置的画布 → 实际出图尺寸） */
+  renderWidth?: number;
+  renderHeight?: number;
+};
+
 export type DrawTextParams = {
   enabled: boolean;
   text: string;
@@ -320,6 +339,11 @@ export type DrawTextParams = {
    * 可选：旧 localStorage / 测试夹具没有该键，消费方判空（与 img2img? 同款约定）。
    */
   handwriting?: HandwritingParams;
+  /**
+   * 自动水印烙入配置（与手写层同款链尾合成，App 的烘焙 effect 写入）。
+   * 可选：旧数据判空；XYZ 借用 drawText 时随对象一起带过去。
+   */
+  watermark?: WatermarkBakeConfig;
 };
 
 /**
@@ -676,6 +700,11 @@ export type OutputImage = {
   type?: string;
   url: string;
   nodeTitle?: string;
+  /**
+   * 自动水印开启时，url 指向本地产出的水印版 blob URL，此字段保留原图 URL。
+   * 「作为输入图」回流、灯箱水印入口取原图（originalUrl ?? url），避免二次叠加。
+   */
+  originalUrl?: string;
 };
 
 /**

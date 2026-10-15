@@ -11,6 +11,7 @@ import type {
 import { ComfyClient } from "../lib/comfyClient";
 import type { useLoras } from "../hooks/useLoras";
 import type { useUiState } from "../hooks/useUiState";
+import type { WatermarkSettings } from "../hooks/useWatermarkSettings";
 import { WelcomeModal } from "./WelcomeModal";
 import { ImageComparerModal } from "./ImageComparerModal";
 import { ImageLightbox } from "./ImageLightbox";
@@ -27,6 +28,7 @@ const TranslationToolDialog = lazy(() => import("./TranslationToolDialog").then(
 const XyzHelpModal = lazy(() => import("./features/Xyz/XyzHelpModal").then((m) => ({ default: m.XyzHelpModal })));
 const LauncherDialog = lazy(() => import("./LauncherDialog").then((m) => ({ default: m.LauncherDialog })));
 const ThemePanel = lazy(() => import("./theme").then((m) => ({ default: m.ThemePanel })));
+const WatermarkModal = lazy(() => import("./features/Generation/WatermarkModal").then((m) => ({ default: m.WatermarkModal })));
 
 interface GlobalModalsProps {
   loraOperation: LoraOperation | null;
@@ -65,6 +67,8 @@ interface GlobalModalsProps {
   /** useUiState 的返回值（同上） */
   ui: ReturnType<typeof useUiState>;
   client: ComfyClient;
+  /** useWatermarkSettings 的返回值（水印弹窗参数 + 生图自动水印开关，App 单点创建传入） */
+  watermark: WatermarkSettings;
   translationSettings: TranslationSettings;
   onTranslationSettingsSaved: (settings: TranslationSettings) => void;
   pushToast: (type: Toast["type"], title: string, message?: string) => void;
@@ -95,6 +99,7 @@ export function GlobalModals(props: GlobalModalsProps) {
     setApiBase,
     ui,
     client,
+    watermark,
     translationSettings,
     onTranslationSettingsSaved,
     pushToast,
@@ -150,10 +155,22 @@ export function GlobalModals(props: GlobalModalsProps) {
         />
       )}
       
-      {ui.outputLightbox && (
-        <ImageLightbox 
-          url={ui.outputLightbox} 
-          onClose={() => ui.setOutputLightbox(null)} 
+      {/* 水印弹窗打开期间挂起灯箱（outputLightbox 值保留，关掉水印后原样恢复）：
+          灯箱有 window 级 Esc 监听，不挂起会连带关闭；两层同时在场也读不清层级。 */}
+      {ui.outputLightbox && !ui.watermarkSource && (
+        <ImageLightbox
+          url={ui.outputLightbox.url}
+          originalUrl={ui.outputLightbox.originalUrl}
+          onClose={() => ui.setOutputLightbox(null)}
+          onWatermark={(sourceUrl) => ui.setWatermarkSource(sourceUrl)}
+        />
+      )}
+
+      {ui.watermarkSource && (
+        <WatermarkModal
+          url={ui.watermarkSource}
+          settings={watermark}
+          onClose={() => ui.setWatermarkSource(null)}
         />
       )}
 

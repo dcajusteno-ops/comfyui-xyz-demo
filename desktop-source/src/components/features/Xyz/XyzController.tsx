@@ -63,7 +63,7 @@ interface XyzControllerProps {
   options: OptionsState;
   /** LoRA 库文件名列表，供「LoRA 模型」快捷预设填真实文件名 */
   loraNames: string[];
-  onOutputLightbox: (url: string) => void;
+  onOutputLightbox: (url: string, originalUrl?: string) => void;
   /** 把某个组合的 patch 回填到目标模板面板（T8：批量试 → 选最优 → 回单张微调） */
   onApplyCombo?: (combo: XyzCombination) => void;
 }
@@ -401,7 +401,7 @@ export const XyzController = React.memo(({
                   src={item.result.images[0].url}
                   alt={item.label}
                   style={{ cursor: "zoom-in" }}
-                  onClick={() => onOutputLightbox(item.result!.images[0].url)}
+                  onClick={() => onOutputLightbox(item.result!.images[0].url, item.result!.images[0].originalUrl)}
                 />
                 {review.overlayOn && cellScore !== undefined && (
                   <XyzCellBadge score={cellScore} best={isBestCell} />

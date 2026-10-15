@@ -13,6 +13,7 @@ import {
 import { buildXyzCombinations, applySpecialXyzPatch, fieldLabel, parseAxisValues } from "../lib/xyz";
 import { downloadTextFile } from "../lib/file-helper";
 import { describePrompt, xyzStatusLabel } from "../lib/app-utils";
+import { applyWatermarkToUrl, mapWithConcurrency, type WatermarkParams } from "../lib/watermark";
 import { templateLabels } from "../constants";
 import type {
   ClBatchParams,
@@ -39,7 +40,7 @@ type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
 /** Anima 的能力探测结果（决定用原节点还是核心节点降级实现） */
 type AnimaCaps = OptionsState["animaCaps"];
 
-export function useGeneration({ client, pushToast, notifyComplete }: { client: ComfyClient; pushToast: ToastFn; notifyComplete?: (title: string, message?: string) => void }) {
+export function useGeneration({ client, pushToast, notifyComplete, watermark }: { client: ComfyClient; pushToast: ToastFn; notifyComplete?: (title: string, message?: string) => void; watermark?: { auto: boolean; params: WatermarkParams; baked?: boolean } }) {
   const [progress, setProgress] = useState<ProgressState>({
     running: false,
     value: 0,
@@ -51,8 +52,69 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
   const [error, setError] = useState("");
   const xyzCancelRef = useRef(false);
   const baseDocTitleRef = useRef(document.title);
-  
+
   const [xyzResults, setXyzResults] = useState<XyzRunItem[]>([]);
+
+  // —— 自动水印（生图开关开启时，结果落地前批量合成）——
+  // resultsRef：appendJob 需要在 setState 之外算出「新数组 + 被挤出 24 条上限的旧任务」，
+  // 不能在 setState updater 里做副作用（StrictMode 双调用会重复 revoke），所以镜像一份。
+  const resultsRef = useRef<JobResult[]>([]);
+  const xyzResultsRef = useRef(xyzResults);
+  useEffect(() => {
+    xyzResultsRef.current = xyzResults;
+  }, [xyzResults]);
+  // promptId → 本 hook 创建的水印版 blob URL（结果被挤出/任务消失时 revoke，防长会话泄漏）
+  const watermarkUrlsRef = useRef<Map<string, string[]>>(new Map());
+
+  useEffect(() => {
+    return () => {
+      // 卸载时清掉所有还活着的 blob URL
+      watermarkUrlsRef.current.forEach((urls) => urls.forEach((u) => URL.revokeObjectURL(u)));
+      watermarkUrlsRef.current.clear();
+    };
+  }, []);
+
+  const revokeEvicted = useCallback((kept: JobResult[]) => {
+    const keptIds = new Set(kept.map((job) => job.promptId));
+    for (const [promptId, urls] of watermarkUrlsRef.current) {
+      if (keptIds.has(promptId)) continue;
+      // XYZ 面板仍持有该任务的结果图（未水印原图+引用），不 revoke
+      if (xyzResultsRef.current.some((entry) => entry.result?.promptId === promptId)) continue;
+      urls.forEach((url) => URL.revokeObjectURL(url));
+      watermarkUrlsRef.current.delete(promptId);
+    }
+  }, []);
+
+  /**
+   * 结果统一入口：按自动水印开关决定是否合成水印版，再进 24 条上限的结果列表。
+   * baked = 水印已烙入工作流（ComfyUI 出图即带水印）→ 跳过前端叠加，防双重水印；
+   * 烙入失败回退前端叠加（baked=false）。
+   */
+  const appendJob = useCallback((job: JobResult) => {
+    void (async () => {
+      let final = job;
+      if (watermark?.auto && !watermark.baked && watermark.params.text.trim() && job.images.length > 0) {
+        const urls: string[] = [];
+        const images = await mapWithConcurrency(job.images, 2, async (img) => {
+          try {
+            const watermarked = await applyWatermarkToUrl(img.url, watermark.params);
+            urls.push(watermarked);
+            return { ...img, url: watermarked, originalUrl: img.url };
+          } catch (err) {
+            // 单张失败回退原图，不阻塞其余图
+            console.error("自动水印失败，使用原图：", img.url, err);
+            return img;
+          }
+        });
+        final = { ...job, images };
+        if (urls.length) watermarkUrlsRef.current.set(job.promptId, urls);
+      }
+      const next = [final, ...resultsRef.current].slice(0, 24);
+      resultsRef.current = next;
+      setResults(next);
+      revokeEvicted(next);
+    })();
+  }, [watermark, revokeEvicted]);
 
   useEffect(() => {
     if (progress.running) {
@@ -84,7 +146,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       const prompt = promptFactory();
       const result = await client.runPrompt(prompt, onProgress);
       const job: JobResult = { ...result, meta: describePrompt(prompt, label) };
-      setResults((prev) => [job, ...prev].slice(0, 24));
+      appendJob(job);
       pushToast("success", `${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : undefined);
       notifyComplete?.(`${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : "任务已完成");
       return job;
@@ -95,7 +157,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       pushToast("error", `${label} 失败`, message);
       throw runError;
     }
-  }, [client, pushToast, notifyComplete]);
+  }, [client, pushToast, notifyComplete, appendJob]);
 
   const runBatchTagger = useCallback(async (type: "cl" | "wd", clBatchParams: ClBatchParams, wdBatchParams: WdBatchParams) => {
     setError("");
@@ -136,7 +198,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       const prompt = buildWd14Prompt({ ...wd14, imageName });
       const result = await client.runPrompt(prompt, setProgress);
       const job: JobResult = { ...result, meta: describePrompt(prompt, "WD1.4 识别") };
-      setResults((prev) => [job, ...prev].slice(0, 24));
+      appendJob(job);
       pushToast("success", "WD1.4 识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       notifyComplete?.("WD1.4 识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       return job;
@@ -146,7 +208,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       pushToast("error", "WD1.4 识别失败", message);
       throw runError;
     }
-  }, [client, pushToast, notifyComplete]);
+  }, [client, pushToast, notifyComplete, appendJob]);
 
   const runClSingle = useCallback(async (clSingleParams: ClSingleParams, clFile: File | null) => {
     setError("");
@@ -163,7 +225,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       const prompt = buildClSinglePrompt({ ...clSingleParams, imageName });
       const result = await client.runPrompt(prompt, setProgress);
       const job: JobResult = { ...result, meta: describePrompt(prompt, "CL 单图识别") };
-      setResults((prev) => [job, ...prev].slice(0, 24));
+      appendJob(job);
       pushToast("success", "CL 单图识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       notifyComplete?.("CL 单图识别完成", result.texts.length ? "标签已写入输出框" : "任务已完成");
       return job;
@@ -173,7 +235,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
       pushToast("error", "CL 单图识别失败", message);
       throw runError;
     }
-  }, [client, pushToast, notifyComplete]);
+  }, [client, pushToast, notifyComplete, appendJob]);
 
   const buildXyzPrompt = useCallback((
     combo: Pick<XyzRunItem, "label" | "patch">,
@@ -255,7 +317,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
         const result = await client.runPrompt(prompt, (prog) => setProgress({ ...prog, batch }));
         const job: JobResult = { ...result, meta: describePrompt(prompt, item.label) };
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result: job } : entry));
-        setResults((prev) => [job, ...prev].slice(0, 24));
+        appendJob(job);
       } catch (runError) {
         const message = runError instanceof Error ? runError.message : String(runError);
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "failed", error: message } : entry));
@@ -272,7 +334,7 @@ export function useGeneration({ client, pushToast, notifyComplete }: { client: C
     });
     pushToast("success", "XYZ 执行结束", `已处理 ${items.length} 个组合`);
     notifyComplete?.("XYZ 执行结束", `已处理 ${items.length} 个组合`);
-  }, [client, pushToast, buildXyzPrompt, notifyComplete]);
+  }, [client, pushToast, buildXyzPrompt, notifyComplete, appendJob]);
 
   const runXyz = useCallback(async (
     xyzAxes: XyzAxis[],

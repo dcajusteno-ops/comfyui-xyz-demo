@@ -45,8 +45,10 @@ export function useUiState() {
     setShowWelcome(false);
   }, []);
 
-  const [outputLightbox, setOutputLightbox] = useState<string | null>(null);
+  const [outputLightbox, setOutputLightbox] = useState<{ url: string; originalUrl?: string } | null>(null);
   const [compareLightbox, setCompareLightbox] = useState<[string, string] | null>(null);
+  // 水印弹窗的源图 URL（transient，不持久化）。水印开着时灯箱挂起（见 GlobalModals），关掉后灯箱原样恢复。
+  const [watermarkSource, setWatermarkSource] = useState<string | null>(null);
   const [isAppSidebarCollapsed, setIsAppSidebarCollapsed] = useState<boolean>(() => {
     try {
       return window.innerWidth < 1024;
@@ -88,6 +90,8 @@ export function useUiState() {
     setOutputLightbox,
     compareLightbox,
     setCompareLightbox,
+    watermarkSource,
+    setWatermarkSource,
     isAppSidebarCollapsed,
     setIsAppSidebarCollapsed,
     featureModal,
@@ -114,6 +118,7 @@ export function useUiState() {
     handleCloseWelcome,
     outputLightbox,
     compareLightbox,
+    watermarkSource,
     isAppSidebarCollapsed,
     featureModal,
     confirmDialog,
