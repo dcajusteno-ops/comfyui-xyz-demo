@@ -131,6 +131,95 @@ function insertDrawTextNode(
 }
 
 /**
+ * 手写层（笔迹原样叠加，不做 OCR 识别、不用字体重渲染）。
+ *
+ * 与 insertDrawTextNode 相互独立：只开手写、不打字也要能生效，
+ * 因此不能并入有「文字留空即跳过」早退的 insertDrawTextNode。
+ *
+ * 数据来自手写板 Modal（HandwritingBoardModal）：画布尺寸 = 生图尺寸，
+ * 导出两张同尺寸 PNG 并走 client.uploadImage() 落到 ComfyUI input/：
+ * - 彩图：黑底 + 彩色笔迹（`imageName`）；
+ * - mask 图：白笔迹黑底，red 通道即 alpha（`maskName`）。
+ *
+ * 为什么是两张图而不是一张 RGBA：ComfyUI 的 LoadImage 会把 PNG convert("RGB")
+ * **丢掉 alpha**（透明区变黑），且它的 MASK 输出是**反转 alpha**（不透明笔迹反而
+ * mask=0）。单图方案必须额外加反相节点才能用，双图更直白，
+ * 与 T12 遮罩「红通道」先例一致（见 img2imgLatent 的 LoadImageMask）。
+ *
+ * 链：LoadImage → ImageScale（对齐生图尺寸）→ LoadImage → ImageScale → ImageToMask(red)
+ *     → ImageCompositeMasked（destination=链尾生成图，source=手写彩图，mask=手写遮罩）。
+ * 全部为核心节点，零自定义节点依赖；batch>1 时服务端 repeat_to_batch_size 自动广播。
+ *
+ * 节点键沿用 L139-141 的规范：一律非数字字符串（hw_* 前缀），
+ * 与 detailerChain 的数字 nextId 并存不冲突；本函数不消耗 nextId。
+ *
+ * 未开启 / 缺任一文件名时原样返回 inputImage，不写入任何节点——
+ * 此时工作流与未开启时逐节点一致。
+ */
+function insertHandwritingNode(
+  prompt: ComfyPrompt,
+  params: BaseGenerationParams,
+  inputImage: [string, number],
+  size: { width: number | [string, number]; height: number | [string, number] },
+): [string, number] {
+  const hw = params.drawText?.handwriting;
+  if (!hw?.enabled || !hw.imageName || !hw.maskName) return inputImage;
+
+  prompt["hw_load"] = {
+    class_type: "LoadImage",
+    inputs: { image: hw.imageName },
+    _meta: { title: "手写层" },
+  };
+  // 彩图与 mask 图必须用同一 upscale_method（lanczos），否则软硬边错位会产生彩边
+  prompt["hw_scale"] = {
+    class_type: "ImageScale",
+    inputs: {
+      image: ["hw_load", 0],
+      upscale_method: "lanczos",
+      width: size.width,
+      height: size.height,
+      crop: "disabled",
+    },
+    _meta: { title: "手写层缩放" },
+  };
+  prompt["hw_maskload"] = {
+    class_type: "LoadImage",
+    inputs: { image: hw.maskName },
+    _meta: { title: "手写层遮罩" },
+  };
+  prompt["hw_maskscale"] = {
+    class_type: "ImageScale",
+    inputs: {
+      image: ["hw_maskload", 0],
+      upscale_method: "lanczos",
+      width: size.width,
+      height: size.height,
+      crop: "disabled",
+    },
+    _meta: { title: "手写层遮罩缩放" },
+  };
+  prompt["hw_mask"] = {
+    class_type: "ImageToMask",
+    inputs: { image: ["hw_maskscale", 0], channel: "red" },
+    _meta: { title: "手写层遮罩通道" },
+  };
+  prompt["hw_mix"] = {
+    class_type: "ImageCompositeMasked",
+    inputs: {
+      destination: inputImage,
+      source: ["hw_scale", 0],
+      x: 0,
+      y: 0,
+      resize_source: false,
+      mask: ["hw_mask", 0],
+    },
+    _meta: { title: "手写层叠加" },
+  };
+
+  return ["hw_mix", 0];
+}
+
+/**
  * 图生图 latent：LoadImage → ImageScale → VAEEncode（batchSize > 1 时再 RepeatLatentBatch）。
  *
  * 未开启开关或未选参考图时返回 `null`，调用方保留原有 EmptyLatentImage 分支
@@ -320,7 +409,9 @@ export function buildDefaultPrompt(params: BaseGenerationParams): ComfyPrompt {
   // 未启用时本行为空操作，工作流与改造前逐节点一致。
   applyImg2ImgLatent(prompt, params, ["1", 2], { width: params.width, height: params.height }, "6", "5");
 
-  const finalImage = insertDrawTextNode(prompt, params, ["7", 0], 8);
+  let finalImage = insertDrawTextNode(prompt, params, ["7", 0], 8);
+  // 手写层：链尾尺寸即生图尺寸（EmptyLatentImage 整除 8 的 ≤7px 偏差由 composite 夹紧容错）
+  finalImage = insertHandwritingNode(prompt, params, finalImage, { width: params.width, height: params.height });
 
   prompt["999_save"] = {
     class_type: "SaveImage",
@@ -632,7 +723,9 @@ export function buildMultiPrompt(params: MultiGenerationParams): ComfyPrompt {
     "9",
   );
 
-  const finalImage = insertDrawTextNode(prompt, params, ["10", 0], 28);
+  let finalImage = insertDrawTextNode(prompt, params, ["10", 0], 28);
+  // 手写层：多人模板的分辨率由 ResolutionMasterSimplify("22") 决定，必须沿用它的输出
+  finalImage = insertHandwritingNode(prompt, params, finalImage, { width: ["22", 0], height: ["22", 1] });
 
   prompt["999_save"] = {
     class_type: "SaveImage",
@@ -841,6 +934,11 @@ export function buildHighresPrompt(params: HighresParams): ComfyPrompt {
 
   currentImage = insertDrawTextNode(prompt, params, currentImage, nextId);
   nextId += 2;
+  // 手写层：最终尺寸与 detailerChain 的 segsMaskSize 口径一致（enableUpscale 开时按 scaleBy 放大）
+  currentImage = insertHandwritingNode(prompt, params, currentImage, {
+    width: enableUpscale ? Math.round(params.width * params.scaleBy) : params.width,
+    height: enableUpscale ? Math.round(params.height * params.scaleBy) : params.height,
+  });
 
   prompt[String(nextId)] = {
     class_type: "SaveImage",
@@ -1308,6 +1406,15 @@ export function buildAnimaPrompt(
 
   // ---- 文字绘制（与默认/高修保持同等能力）----
   currentImage = insertDrawTextNode(prompt, params, currentImage, nextId);
+  // ---- 手写层：最终尺寸取放大②的目标尺寸（未开放大②时是 pre 目标或原始尺寸）----
+  currentImage = insertHandwritingNode(
+    prompt,
+    params,
+    currentImage,
+    stages.hiresFixPost
+      ? animaUpscaleTargetSize(nominalWidth, nominalHeight, params.hires.postPercent)
+      : { width: nominalWidth, height: nominalHeight },
+  );
 
   const saveImage = stages.saveImage;
   const prefix = outputPrefix(params.filenamePrefix, "Anima/%date:yyyy-MM-dd%/ComfyUI", params.filenameSuffix);

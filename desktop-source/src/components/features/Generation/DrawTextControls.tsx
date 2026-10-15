@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
+import { Brush, X } from "lucide-react";
 import { DrawTextCanvas } from "./DrawTextCanvas";
+import { HandwritingBoardModal } from "./HandwritingBoardModal";
 import { NumberField, SelectField, MultiSelectField, ColorAlphaField } from "../../ui";
 import { makeBaseParams } from "../../../lib/paramBuilders";
-import type { DrawTextParams, BaseGenerationParams, OptionsState } from "../../../types";
+import type { DrawTextParams, BaseGenerationParams, OptionsState, HandwritingParams } from "../../../types";
 
 
 export function DrawTextControls<T extends BaseGenerationParams>({
@@ -12,6 +14,8 @@ export function DrawTextControls<T extends BaseGenerationParams>({
   defaultParams,
   multiParams,
   highresParams,
+  onUploadImage,
+  apiBase,
 }: {
   params: T;
   options: OptionsState;
@@ -19,6 +23,10 @@ export function DrawTextControls<T extends BaseGenerationParams>({
   defaultParams?: BaseGenerationParams;
   multiParams?: BaseGenerationParams;
   highresParams?: BaseGenerationParams;
+  /** 上传任意图片到 ComfyUI input/（手写板导出的两张 PNG 走这条通道） */
+  onUploadImage?: (file: File) => Promise<string>;
+  /** ComfyUI 代理前缀（/comfy），用于手写层缩略图回显 */
+  apiBase?: string;
 }) {
   const drawText = params.drawText || makeBaseParams().drawText!;
   const updateDrawText = (patch: Partial<DrawTextParams>) => {
@@ -43,6 +51,34 @@ export function DrawTextControls<T extends BaseGenerationParams>({
     canvasWidth = highresParams.width;
     canvasHeight = highresParams.height;
   }
+
+  // ---- 手写图层（与文字特效相互独立：insertHandwritingNode 只看 handwriting.enabled）----
+  const hw = drawText.handwriting ?? { enabled: false, imageName: "", maskName: "" };
+  const [hwOpen, setHwOpen] = useState(false);
+  const hwViewUrl = hw.imageName && apiBase
+    ? `${apiBase}/api/view?filename=${encodeURIComponent(hw.imageName)}&type=input`
+    : "";
+
+  const updateHandwriting = (patch: Partial<HandwritingParams>) => {
+    setParams((prev) => ({
+      ...prev,
+      drawText: {
+        ...(prev.drawText || makeBaseParams().drawText!),
+        handwriting: {
+          ...(prev.drawText?.handwriting ?? { enabled: false, imageName: "", maskName: "" }),
+          ...patch,
+        },
+      },
+    }));
+  };
+
+  /** 手写板保存：导出的两张 PNG（彩图/mask）分别上传，固定文件名 + overwrite=true → input/ 恒 2 个文件 */
+  const saveHandwriting = async (colorBlob: Blob, maskBlob: Blob) => {
+    if (!onUploadImage) return;
+    const imageName = await onUploadImage(new File([colorBlob], "xyz_handwriting.png", { type: "image/png" }));
+    const maskName = await onUploadImage(new File([maskBlob], "xyz_handwriting_mask.png", { type: "image/png" }));
+    updateHandwriting({ enabled: true, imageName, maskName, drawnWidth: canvasWidth, drawnHeight: canvasHeight });
+  };
 
   return (
     <div className="draw-text-config">
@@ -196,6 +232,80 @@ export function DrawTextControls<T extends BaseGenerationParams>({
           </div>
         )}
       </div>
+      {/* 手写图层：独立开关，开启后笔迹原样叠加到生成图（不做 OCR 识别、不用字体重渲染） */}
+      <div
+        className="toggle-row"
+        style={{
+          marginTop: "12px",
+          marginBottom: "16px",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "20px",
+          background: "var(--surface-alt)",
+          padding: "12px 16px",
+          borderRadius: "8px",
+          border: "1px solid var(--border)",
+        }}
+      >
+        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontWeight: 600 }}>
+          <input
+            type="checkbox"
+            checked={hw.enabled}
+            onChange={(e) => updateHandwriting({ enabled: e.target.checked })}
+            style={{ width: "18px", height: "18px" }}
+          />
+          启用手写图层
+        </label>
+        <button
+          type="button"
+          className="secondary-action"
+          disabled={!onUploadImage}
+          title={onUploadImage ? "打开手写板，笔迹原样叠加到生成图" : "未连接 ComfyUI，无法上传手写层"}
+          onClick={() => setHwOpen(true)}
+        >
+          <Brush size={14} /> {hw.imageName ? "重新绘制" : "打开手写板"}
+        </button>
+        {hw.imageName && hwViewUrl && (
+          <>
+            <img
+              src={hwViewUrl}
+              alt="手写层预览"
+              style={{
+                width: 40,
+                height: 40,
+                objectFit: "contain",
+                borderRadius: 4,
+                border: "1px solid var(--border)",
+                backgroundImage: "conic-gradient(#2a2a2e 0 25%, #232327 0 50%, #2a2a2e 0 75%, #232327 0)",
+                backgroundSize: "10px 10px",
+              }}
+            />
+            <button
+              type="button"
+              className="secondary-action"
+              title="清除手写层"
+              onClick={() => updateHandwriting({ enabled: false, imageName: "", maskName: "" })}
+            >
+              <X size={14} />
+            </button>
+          </>
+        )}
+        {hw.drawnWidth && (hw.drawnWidth !== canvasWidth || hw.drawnHeight !== canvasHeight) && (
+          <span style={{ fontSize: "12px", color: "var(--muted)" }}>
+            当前生图尺寸 {canvasWidth}×{canvasHeight} 与导出时 {hw.drawnWidth}×{hw.drawnHeight} 不同，笔迹将被拉伸，建议重新绘制
+          </span>
+        )}
+      </div>
+      {hwOpen && (
+        <HandwritingBoardModal
+          width={canvasWidth}
+          height={canvasHeight}
+          initialImageUrl={hw.imageName && hwViewUrl ? hwViewUrl : undefined}
+          onClose={() => setHwOpen(false)}
+          onSave={saveHandwriting}
+        />
+      )}
       {drawText.enabled ? (
         <>
           <DrawTextCanvas

@@ -1,5 +1,5 @@
 import React from "react";
-import { Type, Sparkles, UserRound, ImageUp } from "lucide-react";
+import { Type, Sparkles, UserRound, ImageUp, Wand2 } from "lucide-react";
 import { PanelTitle } from "../../ui";
 import { DrawTextControls } from "./DrawTextControls";
 import type {
@@ -14,9 +14,14 @@ interface TextGenerationPanelProps {
   onRunDefault: () => void;
   onRunMulti: () => void;
   onRunHighres: () => void;
+  onRunAnima: () => void;
   defaultParams?: BaseGenerationParams;
   multiParams?: BaseGenerationParams;
   highresParams?: BaseGenerationParams;
+  /** 上传任意图片到 ComfyUI input/（手写板导出的两张 PNG 走这条通道，同 Img2ImgControls） */
+  onUploadImage?: (file: File) => Promise<string>;
+  /** ComfyUI 代理前缀（/comfy），用于手写层缩略图回显 */
+  apiBase?: string;
 }
 
 export function TextGenerationPanel({
@@ -26,9 +31,12 @@ export function TextGenerationPanel({
   onRunDefault,
   onRunMulti,
   onRunHighres,
+  onRunAnima,
   defaultParams,
   multiParams,
   highresParams,
+  onUploadImage,
+  apiBase,
 }: TextGenerationPanelProps) {
   return (
     <section className="panel">
@@ -36,13 +44,15 @@ export function TextGenerationPanel({
         <PanelTitle icon={Type} title="文字特效 & 水印" />
       </div>
       <div className="panel-body">
-        <DrawTextControls 
+        <DrawTextControls
           params={params}
           options={options}
           setParams={setParams}
           defaultParams={defaultParams}
           multiParams={multiParams}
           highresParams={highresParams}
+          onUploadImage={onUploadImage}
+          apiBase={apiBase}
         />
       </div>
       <div className="panel-footer" style={{ display: "flex", gap: "10px" }}>
@@ -72,6 +82,15 @@ export function TextGenerationPanel({
         >
           <ImageUp size={18} />
           高清
+        </button>
+        <button
+          className="primary-action"
+          style={{ flex: 1, background: "linear-gradient(135deg, var(--char-3), var(--char-1))", borderColor: "transparent" }}
+          type="button"
+          onClick={onRunAnima}
+        >
+          <Wand2 size={18} />
+          Anima
         </button>
       </div>
     </section>

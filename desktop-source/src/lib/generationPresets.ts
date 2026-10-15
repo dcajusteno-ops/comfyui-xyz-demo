@@ -140,12 +140,22 @@ export function applySnapshot<T extends Record<string, unknown>>(
  * 原因：`imageName` 指向 ComfyUI `input/` 里的具体文件，换机器或清理 input 后必然失效，
  * 随预设回填会让提交被校验拒绝（bad image name），且报错时机在生成时、很难定位。
  * 语义上预设管参数、参考图每次自选，更干净。
+ *
+ * `drawText.handwriting.imageName/maskName` 同理（手写板上传的笔迹图），
+ * 保留 enabled 与 drawnWidth/Height，只剥两个文件名。
  */
 export function snapshotForSave(params: Record<string, unknown>): Record<string, unknown> {
   const snapshot = { ...params };
   const img2img = snapshot.img2img;
   if (isRecord(img2img) && img2img.imageName) {
     snapshot.img2img = { ...img2img, imageName: "" };
+  }
+  const drawText = snapshot.drawText;
+  if (isRecord(drawText) && isRecord(drawText.handwriting)) {
+    snapshot.drawText = {
+      ...drawText,
+      handwriting: { ...drawText.handwriting, imageName: "", maskName: "" },
+    };
   }
   return snapshot;
 }

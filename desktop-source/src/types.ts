@@ -315,6 +315,30 @@ export type DrawTextParams = {
   decoration: "none" | "underline" | "strikethrough" | "overline" | "underline_overline" | "box" | "both" | "double_underline" | "dotted_underline" | "wave_underline" | "background_box" | "bracket" | "circle" | "rhombus" | "tag" | "dashed_underline" | "rounded_box" | "double_strikethrough" | "parallelogram" | "corners" | "speech_bubble" | "neon_border" | "double_box" | "shadow_box" | "wave_overline" | "bold_underline" | "zigzag_underline" | "dotted_box" | "dashed_box" | "bracket_curly" | "bracket_angle" | "ribbon" | "highlight" | "double_underline_overline" | "stitch" | "comic_bubble" | "capsule" | "wavy_box" | "leaf_box" | "trapezoid" | "star_corners" | "double_ribbon" | "dot_dash_underline" | "bracket_square_bold" | "pill_border" | "cross_out" | "heart_box" | "cloud_bubble" | "dashed_overline" | "double_wave_underline";
   syncWithImage: boolean;
   syncMode?: 'default' | 'multi' | 'highres' | 'manual';
+  /**
+   * 手写层（笔迹原样叠加，不做 OCR 识别、不用字体重渲染）。
+   * 可选：旧 localStorage / 测试夹具没有该键，消费方判空（与 img2img? 同款约定）。
+   */
+  handwriting?: HandwritingParams;
+};
+
+/**
+ * 手写层参数：手写板画布尺寸 = 生图尺寸，笔迹画在最终位置，
+ * 导出两张同尺寸 PNG（彩图黑底+彩笔 / mask 白笔黑底）上传后由
+ * workflowBuilders 的 insertHandwritingNode 用内置节点合成到链尾。
+ *
+ * `imageName` / `maskName` 指向 ComfyUI `input/` 的具体文件，换机器必然失效，
+ * 生成预设快照时由 snapshotForSave 剥掉（同 img2img.imageName 的处理）。
+ */
+export type HandwritingParams = {
+  enabled: boolean;
+  /** 彩图文件名（黑底 + 彩色笔迹），ComfyUI input/ */
+  imageName: string;
+  /** mask 文件名（白笔迹黑底，取 red 通道作 alpha），ComfyUI input/ */
+  maskName: string;
+  /** 导出时的手写板尺寸；与当前生图尺寸不一致时 UI 提示拉伸风险 */
+  drawnWidth?: number;
+  drawnHeight?: number;
 };
 
 /** 图生图的缩放方式：stretch = 拉伸填满（ImageScale.crop=disabled），crop = 缩放裁剪（crop=center） */

@@ -81,6 +81,11 @@ export function makeBaseParams(checkpoint = fallbackOptions.checkpoints[0]): Bas
       layoutDirection: "horizontal",
       decoration: "none",
       syncWithImage: true,
+      handwriting: {
+        enabled: false,
+        imageName: "",
+        maskName: "",
+      },
     },
   };
 }

@@ -733,9 +733,17 @@ function App() {
                   onRunDefault={() => gen.runPrompt("默认生图", () => buildDefaultPrompt(params.defaultParams))}
                   onRunMulti={() => gen.runPrompt("多人", () => buildMultiPrompt({ ...params.multiParams, drawText: params.defaultParams.drawText }))}
                   onRunHighres={() => gen.runPrompt("高清修复", () => buildHighresPrompt({ ...params.highresParams, drawText: params.defaultParams.drawText }))}
+                  onRunAnima={() =>
+                    gen.runPrompt("Anima 生图", () =>
+                      // 与多人/高修一致：水印在「文字特效 & 水印」页配置，生成时借用到这里
+                      buildAnimaPrompt({ ...params.animaParams, drawText: params.defaultParams.drawText }, options.animaCaps),
+                    )
+                  }
                   defaultParams={params.defaultParams}
                   multiParams={params.multiParams}
                   highresParams={params.highresParams}
+                  onUploadImage={uploadImage}
+                  apiBase={apiBase}
                 />
               )}
               
