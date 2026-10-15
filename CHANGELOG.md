@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.6] - 2026-10-15
+
+### ✨ 新功能 (Features)
+
+- **「文字特效 & 水印」面板底栏补上「Anima」生成按钮**：此前该面板只有 默认生图 / 多人 / 高清 三个入口，配好水印想跑 Anima 还得切页。现在四按钮并排（Anima 用主题 `--char` 令牌渐变区分，不硬编码色值），与多人/高清同样借用本页配置的文字特效与手写层生成。
+- **「文字特效 & 水印」新增手写板（笔迹水印）**：手写文字/签名可**原样叠加**到生成图上——保留笔迹形状，不做 OCR 识别、不用字体重渲染，与原有文字特效相互独立、可同时开启。手写板画布即当前生图尺寸（沿用面板的同步尺寸逻辑），直接画在最终位置，板内提供画笔（颜色/粗细/不透明度）、橡皮、整层移动/缩放（10%–200%）、撤销（20 步）与清空，支持鼠标与触摸；保存后可随时「重新绘制」（回显已上传层）或清除，改生图尺寸后与导出尺寸不符会提示拉伸。实现上手写板导出两张同尺寸 PNG（黑底彩笔 + 白笔黑底遮罩，前者走 LoadImage、后者取 red 通道作 alpha——ComfyUI 的 LoadImage 会丢 alpha 且其 MASK 输出是反转 alpha，单图方案不可行），上传到 ComfyUI `input/`（固定文件名覆盖，恒 2 个文件），生成时在四条工作流链尾用**内置节点**（LoadImage → ImageScale → ImageToMask(red) → ImageCompositeMasked）合成——**零自定义节点改动**；batch>1 由服务端广播，预设快照自动剥离手写图文件名（换机器不悬空引用）。
+
+### 🧪 测试 (Tests)
+
+- 新增 `src/lib/handwriting.test.ts`（11 例）：四模板零回归（关闭时工作流逐节点一致、SaveImage 输入不变）、6 节点连线断言（destination/source/mask/x/y/crop/channel）、与文字水印同开时接在 DrawTextAdvanced 之后、default/multi/highres/anima 的目标尺寸四组（multi 沿用 ResolutionMasterSimplify 输出）、双图缺一防御、batchSize>1 结构不变、非数字节点键与 detailerChain 数字 id 并存、预设快照剥离。
+
 ## [v0.7.5] - 2026-10-02
 
 ### 🐛 修复 (Bug Fixes)
