@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [未发布]
+
+### ✨ 新功能 (Features)
+
+- **Anima 词库（整合 Comfyui-Anima-Tools 的提示词能力）**：侧边栏「工具组件」新增「Anima 词库」页，含画廊 / 拼接台 / 抽卡 / Danbooru 四个视图。
+  - 画廊覆盖画师 40,600、角色 8,000、服装 430、背景 1,087、姿势 297：搜索、排序（热度/名称/随机）、角色性别/发色/瞳色筛选、服装分类/特征筛选、收藏、多选批量加入、随机抽 1 个、24/48/96 分页；缩略图懒加载 + 失败占位。
+  - 七分区拼接台（质量/画师/角色/服装/背景/姿势/额外）实时预览、去重开关、追加/覆盖到 Anima 正向提示词；覆盖带二次确认。输出顺序统一为 `quality → artist → character → clothing → background → pose → extra`，保证「抽卡 → 填入拼接台 → 提示词」文本一致。
+  - 随机抽卡：五类开关、主/角色/服装三个种子、三种角色细节、保留发色瞳色、服装四来源（内置库 / Danbooru 标签组 / 角色 Tags 借用 / 随机）；结果可锁定种子、再抽、填入拼接台或直接写入。
+  - Danbooru 随机图：查询串只填标签，**分级为多选下拉**（全年龄 / 敏感 / 疑问 / 露骨，可组合为 `rating:g,s`；不选 = 不限，默认全年龄；旧存档 `rating:*` 自动迁移）、分组标签、默认屏蔽上传类标签、**推荐屏蔽词**（文字水印 / 边框裁切 / 画质瑕疵整组一键加入，再点移除）、写入提示词 / 填入拼接台 / 设为 Anima 参考图（下载 → 上传 `input/` → 自动打开图生图）。
+  - **Danbooru 图片同源代理** `/xyz/anima/image`（`server/animaImage.ts` + Go `internal/api/anima_image.go`）：CDN 对浏览器 `Sec-Fetch-Site: cross-site` 热链回 403，`<img>` 直连会空白/NotSameOrigin；代理只放行 `*.donmai.us`（https、20MB），带插件同款 UA 取图，sample → 720 → original → preview 逐档回退，全失败显示原帖链接。
+  - 纯前端拼接，不改工作流拓扑；运行时不依赖插件安装。
+- **Anima 生图面板底栏新增「词库」快捷入口**，选词后无需手动切换侧栏。
+
+### 🗂️ 数据 (Data)
+
+- 新增一次性导入脚本 `scripts/import-anima-data.mjs`（支持 `--plugin` / `ANIMA_TOOLS_DIR`、`--dry-run` / `--verify-only`），从 Comfyui-Anima-Tools v3.3.1（MIT）提取 7 个数据集到 `public/data/anima/`（约 6.6MB），写 `manifest.json` 记录版本/条数/来源，并做条数与回读校验。
+- 运行时只读项目内置 JSON；插件卸载/升级不影响词库，刷新数据需重跑脚本。
+
+### 🧪 测试 (Tests)
+
+- 新增 `src/lib/anima/` 下 9 个测试文件共 131 条：分词与去重、画师 `@` 归一化、确定性 PRNG、分区拼接顺序、角色三种细节模式与冲突色折叠、服装四来源与池缺失回退、跨区去重、种子锁定、Danbooru `random:1` 构造/选图/过滤/分组/重试、分级多选拼接与旧档迁移、推荐屏蔽词整组切换、词库懒加载并发去重与失败重试、画廊索引（转义名/token/筛选/排序）、持久化坏数据修复。
+- 新增 `server/animaImage.test.ts` + `internal/api/anima_image_test.go`：代理只放行 donmai.us https、拒绝 POST/外域/伪造后缀。
+
+### 🐛 修复 (Fixes)
+
+- **Anima 词库下拉选项看不清**：原生 `<select>` 的弹层由系统绘制，深色主题下仍是浅灰底，而选项文字继承主题亮色（灰底白字）。新增自绘下拉 `AnimaSelect`（实底弹层 + 选中项主题色与对勾 + 键盘 ↑/↓/Enter/Esc + 靠右对齐），替换排序、性别/发色/瞳色、分类/特征、每页条数、角色细节、服装来源、Danbooru 图片尺寸共 9 处；分级用多选版 `AnimaMultiSelect`。深色对比度 13.9:1、浅色 10.3:1。
+
 ## [v0.7.7] - 2026-10-15
 
 ### ✨ 新功能 (Features)

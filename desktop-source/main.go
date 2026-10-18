@@ -341,6 +341,9 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrom
 	mux.HandleFunc("/xyz/wildcards/", stores.HandleWildcards)
 	mux.HandleFunc("/xyz/fs/folders", stores.HandleFsBrowse)
 	mux.HandleFunc("/xyz/fs/folders/", stores.HandleFsBrowse)
+	// Danbooru 图片同源代理：浏览器直连 CDN 会被 Sec-Fetch 热链保护拦成 403
+	mux.HandleFunc(api.AnimaImageRoute, stores.HandleAnimaImage)
+	mux.HandleFunc(api.AnimaImageRoute+"/", stores.HandleAnimaImage)
 	// 外部工具启动器（离线可用，不依赖 ComfyUI）：CRUD + run + 图标提取
 	launcherStore := launcher.NewStore(root)
 	mux.HandleFunc("/xyz/launcher", launcherStore.Handle)

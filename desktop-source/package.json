@@ -9,7 +9,8 @@
     "test": "vitest run",
     "lint": "eslint src server",
     "test:e2e": "playwright test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "import:anima": "node scripts/import-anima-data.mjs"
   },
   "dependencies": {
     "crypto-js": "^4.2.0",

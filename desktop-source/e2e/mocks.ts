@@ -86,15 +86,23 @@ export async function installApiMocks(page: Page) {
   await page.route(/\/comfy\/api\/object_info/, (route) => route.fulfill(json(OBJECT_INFO)));
   await page.route(/\/comfy\/(api\/)?system_stats/, (route) => route.fulfill(json(stats)));
 
-  // 前端持久化状态已走服务端 /api/ui-state（data/ui-state.json）：这里旁路掉，让每个
-  // 用例都从空状态开始（与旧 localStorage 空 context 等价），同时防止 E2E 污染真实数据。
-  await page.route(/\/api\/ui-state/, (route) => {
+  // 前端持久化状态已走服务端 /api/ui-state（data/ui-state.json）：这里用一个 test 内
+  // 存活的字典模拟服务端，既让每个用例从空状态开始、不污染真实数据，又让「刷新后保留
+  // 折叠状态 / 当前 tab」这类用例名副其实（此前 GET 恒返回 {}，刷新后必然回默认值）。
+  const uiState: Record<string, unknown> = {};
+  let uiRevision = 0;
+  await page.route(/\/api\/ui-state/, async (route) => {
     const method = (route.request().method() ?? "GET").toUpperCase();
     if (method === "GET") {
-      route.fulfill(json({ success: true, data: {}, revision: 0 }));
+      await route.fulfill(json({ success: true, data: uiState, revision: uiRevision }));
       return;
     }
-    route.fulfill(json({ success: true, revision: 1 }));
+    if (method === "PUT") {
+      const body = route.request().postDataJSON() as { entries?: Record<string, unknown> } | null;
+      if (body?.entries) Object.assign(uiState, body.entries);
+      uiRevision += 1;
+    }
+    await route.fulfill(json({ success: true, revision: uiRevision }));
   });
 
   await page.route(/\/api\/prompts/, (route) =>

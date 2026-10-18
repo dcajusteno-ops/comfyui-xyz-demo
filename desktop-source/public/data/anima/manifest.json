@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-18T03:48:26.370Z",
+  "generator": "scripts/import-anima-data.mjs",
+  "source": {
+    "plugin": "Comfyui-Anima-Tools",
+    "version": "3.3.1",
+    "repo": "https://github.com/nregret/Comfyui-Anima-Tools",
+    "license": "MIT"
+  },
+  "counts": {
+    "artists": 40600,
+    "characters": 8000,
+    "official": 7999,
+    "clothing": 430,
+    "backgrounds": 1087,
+    "poses": 297,
+    "danbooruAttire": 8
+  },
+  "files": {
+    "artists": "artists.json",
+    "characters": "characters.json",
+    "official": "character-official.json",
+    "clothing": "clothing.json",
+    "backgrounds": "backgrounds.json",
+    "poses": "poses.json",
+    "danbooruAttire": "danbooru-attire.json",
+    "manifest": "manifest.json"
+  },
+  "notes": "画师/角色缩略图来自 blobs.animadex.net；服装/背景/姿势缩略图来自数据内的 jsDelivr 地址。仅提取词条元数据，数据版权归 Comfyui-Anima-Tools（MIT）与 Danbooru 贡献者。"
+}

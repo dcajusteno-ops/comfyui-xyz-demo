@@ -874,7 +874,7 @@ export type PromptLintIssue = {
   fix?: (text: string) => string;
 };
 
-export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima";
+export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima" | "anima-library";
 
 export type LoraPreviewMedia = {
   url?: string;

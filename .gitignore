@@ -44,3 +44,9 @@ ComfyUI-XYZ-Web.exe
 # 于是这个 xxx~ 会被进程锁住删不掉，且「用户当前跑的就是它」—— 更新前端后必须重启应用才生效。
 ComfyUI-XYZ-Web.exe~
 *.exe.tmp
+
+# Anima 词库内置数据（与 prompt-library 一样随项目分发；导入脚本可重建）
+!desktop-source/public/data/
+desktop-source/public/data/*
+!desktop-source/public/data/anima/
+!desktop-source/public/data/anima/*.json

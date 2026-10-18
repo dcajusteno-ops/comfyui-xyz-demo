@@ -41,6 +41,9 @@ const HighresGenerationPanel = lazy(() =>
 const AnimaGenerationPanel = lazy(() =>
   import("./components/features/Generation/AnimaGenerationPanel").then((m) => ({ default: m.AnimaGenerationPanel })),
 );
+const AnimaLibraryPanel = lazy(() =>
+  import("./components/features/AnimaLibrary").then((m) => ({ default: m.AnimaLibraryPanel })),
+);
 const TextGenerationPanel = lazy(() =>
   import("./components/features/Generation/TextGenerationPanel").then((m) => ({ default: m.TextGenerationPanel })),
 );
@@ -137,6 +140,7 @@ import {
   templateLabels,
 } from "./constants";
 import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, JobResult, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams, WatermarkBakeConfig, DrawTextParams } from "./types";
+import type { AnimaApplyMode } from "./lib/anima/types";
 import { renderWatermarkLayers } from "./lib/watermark";
 import { applySpecialXyzPatch } from "./lib/xyz";
 import { img2imgUpdater } from "./lib/paramBuilders";
@@ -362,21 +366,23 @@ function App() {
   }, [xyz.xyzTarget, params, pushToast, setTab]);
 
   const handleSidebarSelect = useCallback((text: string, target: "positive" | "negative") => {
-    const opts = { useGlobal: tab === "multi", dedupe: false };
+    // 词库页没有自己的生成参数：在它上面从仓库取词时落点应当是 Anima 模板
+    const promptTab = tab === "anima-library" ? "anima" : tab;
+    const opts = { useGlobal: promptTab === "multi", dedupe: false };
     // negative 侧始终写 negativePrompt（multi 也没有单独的负向 globalPrompt），按 tab 落到对应面板
     if (target === "negative") {
-      if (tab === "multi") params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: false, dedupe: false }));
-      else if (tab === "highres") params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: false, dedupe: false }));
-      else if (tab === "anima") params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: false, dedupe: false }));
+      if (promptTab === "multi") params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: false, dedupe: false }));
+      else if (promptTab === "highres") params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: false, dedupe: false }));
+      else if (promptTab === "anima") params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: false, dedupe: false }));
       else params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: false, dedupe: false }));
       pushToast("info", "提示词已添加", `${text.slice(0, 20)}...`);
       return;
     }
-    if (tab === "multi") {
+    if (promptTab === "multi") {
       params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, opts));
-    } else if (tab === "highres") {
+    } else if (promptTab === "highres") {
       params.setHighresParams(appendPromptUpdater<HighresParams>(text, opts));
-    } else if (tab === "anima") {
+    } else if (promptTab === "anima") {
       params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, opts));
     } else {
       params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, opts));
@@ -407,6 +413,41 @@ function App() {
     const uploaded = await client.uploadImage(file);
     return uploaded.name;
   }, [client]);
+
+  /**
+   * Anima 词库 → Anima 模板正向提示词。
+   * 追加走 appendPromptUpdater（按逗号去重），覆盖是整段替换。
+   */
+  const handleAnimaLibraryApply = useCallback((text: string, mode: AnimaApplyMode) => {
+    const clean = text.trim();
+    if (!clean) return;
+    if (mode === "replace") {
+      params.setAnimaParams((prev) => ({ ...prev, positivePrompt: clean }));
+    } else {
+      params.setAnimaParams(
+        appendPromptUpdater<AnimaGenerationParams>(clean, { useGlobal: false, dedupe: true }),
+      );
+    }
+    pushToast(
+      "success",
+      mode === "replace" ? "已覆盖 Anima 提示词" : "已追加到 Anima 提示词",
+      `${clean.length} 字符`,
+    );
+  }, [params.setAnimaParams, pushToast]);
+
+  /**
+   * Danbooru 随机图 → Anima 参考图。
+   * 只填 imageName 不够：Anima 的图生图惰性条件是 `stages.img2img && imageName`，
+   * 必须同时打开阶段开关（与输出图回流的处理一致）。
+   */
+  const handleAnimaReference = useCallback((imageName: string) => {
+    params.setAnimaParams((prev) => ({
+      ...prev,
+      img2img: { ...prev.img2img, imageName },
+      stages: { ...prev.stages, img2img: true },
+    }));
+    setTab("anima");
+  }, [params.setAnimaParams, setTab]);
 
   // —— 自动水印烙入工作流（与手写层同款双图上传 + 链尾合成，见 insertWatermarkNode）——
   // auto 开：渲染水印双图（彩图黑底彩字 / mask 白字黑底）上传到 input/，并把烙入配置写进
@@ -510,7 +551,7 @@ function App() {
   const currentPrompts = useMemo(() => {
     if (tab === "multi") return { positive: params.multiParams.globalPrompt, negative: params.multiParams.negativePrompt };
     if (tab === "highres") return { positive: params.highresParams.positivePrompt, negative: params.highresParams.negativePrompt };
-    if (tab === "anima") return { positive: params.animaParams.positivePrompt, negative: params.animaParams.negativePrompt };
+    if (tab === "anima" || tab === "anima-library") return { positive: params.animaParams.positivePrompt, negative: params.animaParams.negativePrompt };
     return { positive: params.defaultParams.positivePrompt, negative: params.defaultParams.negativePrompt };
   }, [tab, params.defaultParams, params.multiParams, params.highresParams, params.animaParams]);
 
@@ -648,7 +689,8 @@ function App() {
         <RunProgressStrip progress={gen.progress} />
 
         <div className="layout-with-sidebar">
-          <div className={["layout", gen.results.length > 0 ? "has-output" : "no-output", tab === "loras" ? "lora-full" : ""].filter(Boolean).join(" ")}>
+          {/* `lora-full` 是历史命名的「全宽无输出栏」布局，词库页同样需要 */}
+          <div className={["layout", gen.results.length > 0 ? "has-output" : "no-output", tab === "loras" || tab === "anima-library" ? "lora-full" : ""].filter(Boolean).join(" ")}>
             <main className="workspace">
               <Suspense fallback={<PanelFallback />}>
               {tab === "default" && (
@@ -734,6 +776,7 @@ function App() {
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
                   onUploadImage={uploadImage}
+                  onOpenAnimaLibrary={() => setTab("anima-library")}
                 />
               )}
 
@@ -865,10 +908,21 @@ function App() {
                   onConfirmClear={() => ui.confirm("清空内容", "确定要清空当前笔记的所有内容吗？此操作无法撤销。", () => notesHook.updateActiveNote({ content: "" }))}
                 />
               )}
+
+              {tab === "anima-library" && (
+                <AnimaLibraryPanel
+                  currentPrompt={params.animaParams.positivePrompt}
+                  onApplyPrompt={handleAnimaLibraryApply}
+                  onUploadImage={uploadImage}
+                  onSetAnimaReference={handleAnimaReference}
+                  onConfirm={ui.confirm}
+                  pushToast={pushToast}
+                />
+              )}
               </Suspense>
             </main>
 
-            {tab !== "loras" && !(tab === "notes" && notesHook.isNotesWide) && (
+            {tab !== "loras" && tab !== "anima-library" && !(tab === "notes" && notesHook.isNotesWide) && (
               <aside className={gen.results.length > 0 || gen.progress.previewUrl ? "output-panel" : "output-panel is-empty"}>
                 <div className="gallery">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>

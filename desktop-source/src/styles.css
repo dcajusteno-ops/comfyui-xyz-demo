@@ -6601,3 +6601,1037 @@ html.has-wallpaper .lm-plugin-toolbar,
 html.has-wallpaper .lm-folder-sidebar {
   box-shadow: var(--shadow);
 }
+
+/* ================================================================== *
+ * Anima 词库（anima-library）
+ * 画廊 / 分区拼接台 / 抽卡 / Danbooru —— 全部复用主题变量，
+ * 保证明暗主题与壁纸模式下都有可读的表面层。
+ * ================================================================== */
+.al-panel .panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.al-header-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 全局 .segmented 是 auto-fit 网格，放在窄容器里会一列一列地堆叠；
+   词库页的视图/分区/启用开关都应该是横向一排。 */
+.al-panel .segmented {
+  display: flex;
+  flex-wrap: wrap;
+  grid-template-columns: none;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.al-panel .segmented button {
+  min-height: 30px;
+  padding: 0 10px;
+}
+
+.al-view-tabs {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.al-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ---------- 画廊 ---------- */
+.al-gallery {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 顶部筛选区不参与卡片滚动：内层 .al-gallery-scroll 单独滚。
+   负 margin 抵消 .panel-body 的 16px 内边距，让它铺满整宽。 */
+.al-gallery-head {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 0 auto;
+  margin: -16px -16px 0;
+  padding: 12px 16px 10px;
+  background: var(--surface-solid, var(--surface));
+  border-bottom: 1px solid var(--border);
+}
+
+.al-gallery-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 0 16px;
+}
+
+.al-body.is-gallery {
+  overflow: hidden;
+}
+
+.al-section-tabs {
+  align-self: flex-start;
+}
+
+.al-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.al-toolbar select,
+.al-toolbar input[type="search"],
+.al-toolbar input[type="number"] {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.al-toolbar .secondary-action.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.al-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 240px;
+  min-width: 180px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.al-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.al-gallery-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.al-gallery-page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 自定义下拉：原生 <select> 的弹层在深色主题下仍是浅色底，选项文字却是主题亮色，
+   灰底白字几乎看不清；这里统一用实底弹层，明暗/壁纸模式都可读。 */
+.al-select {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+.al-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-solid, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.al-select-trigger:hover {
+  border-color: var(--border-strong);
+}
+
+.al-select-trigger[aria-expanded="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.al-select-trigger:disabled {
+  color: var(--muted);
+  background: var(--surface-alt);
+  cursor: not-allowed;
+}
+
+.al-select-value {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.al-select-caret {
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.al-select-trigger[aria-expanded="true"] .al-select-caret {
+  transform: rotate(180deg);
+}
+
+.al-select-popup {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 60;
+  min-width: 100%;
+  width: max-content;
+  max-width: 320px;
+  max-height: 264px;
+  padding: 4px;
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-solid, var(--surface));
+  box-shadow: var(--shadow-lg);
+}
+
+.al-select-popup.is-right {
+  left: auto;
+  right: 0;
+}
+
+.al-select-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.al-select-option.is-active {
+  background: var(--surface-hover);
+}
+
+.al-select-option.is-selected {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.al-select-option-check {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.al-select.is-sm .al-select-trigger {
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.al-select.is-sm .al-select-option {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+/* 多选弹层顶部的「不限」行：与下面的具体选项用分隔线区分 */
+.al-select-option-none {
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
+}
+
+/* 推荐屏蔽词：整组一键加入/移除 */
+.al-preset-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.al-preset-label {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.al-preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.al-preset-chip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.al-preset-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.field .al-select {
+  width: 100%;
+}
+
+.field .al-select-trigger {
+  min-height: 36px;
+}
+
+.al-gallery-page-size .al-select {
+  flex: 0 0 auto;
+}
+
+.al-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.al-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.al-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.al-card.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.al-card-cover {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: var(--surface-alt);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.al-card-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.al-card-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  color: var(--muted);
+  background: var(--surface-alt);
+}
+
+.al-card-check {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+}
+
+.al-card.is-selected .al-card-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.al-card-fav {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.al-card:hover .al-card-fav,
+.al-card-fav.is-on {
+  opacity: 1;
+}
+
+.al-card-fav.is-on {
+  color: #fbbf24;
+}
+
+.al-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  padding: 8px;
+  min-height: 76px;
+}
+
+.al-card-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.al-card-sub {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.al-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.al-card-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-solid, var(--surface-alt));
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.al-card-actions button:hover {
+  background: var(--surface-hover);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.al-card.is-selected .al-card-actions button {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.al-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.al-selection-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  margin-top: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-solid, var(--surface));
+  box-shadow: 0 -10px 26px rgba(0, 0, 0, 0.22);
+  font-size: 12px;
+}
+
+.al-selection-bar > span {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.al-selection-bar .secondary-action {
+  background: var(--surface-alt-solid, var(--surface-alt));
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.al-selection-bar .secondary-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.al-random-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px dashed var(--accent);
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 12px;
+}
+
+.al-random-pick img {
+  width: 40px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.al-random-pick-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.al-random-pick-text strong {
+  font-size: 13px;
+}
+
+.al-random-pick-text small {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 拼接台 ---------- */
+.al-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.al-composer-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.al-composer-section {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-solid, var(--surface));
+}
+
+.al-composer-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.al-composer-section-head h3 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.al-composer-section-head span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.al-composer-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.al-composer-section textarea {
+  width: 100%;
+  min-height: 66px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.al-count {
+  white-space: nowrap;
+}
+
+.al-composer-preview {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt-solid, var(--surface-alt));
+}
+
+.al-preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.al-preview-head h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.al-preview-head span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.al-preview-text {
+  width: 100%;
+  min-height: 150px;
+  max-height: 42vh;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.al-preview-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.al-preview-actions .primary-action {
+  grid-column: 1 / -1;
+  justify-content: center;
+}
+
+.al-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.al-checkbox-inline {
+  padding-top: 18px;
+}
+
+.al-current {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.al-current-text {
+  max-height: 120px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ---------- 抽卡 ---------- */
+.al-gacha {
+  display: grid;
+  grid-template-columns: minmax(0, 430px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.al-gacha-form,
+.al-gacha-result,
+.al-danbooru-form,
+.al-danbooru-result {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-solid, var(--surface));
+}
+
+.al-danbooru-result {
+  min-height: 420px;
+}
+
+.al-gacha-form,
+.al-danbooru-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.al-sub-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.al-enable-tabs {
+  align-self: flex-start;
+}
+
+.al-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.al-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.al-inline input {
+  flex: 1;
+  min-width: 0;
+}
+
+.al-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.al-gacha-run {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.al-gacha-result-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.al-gacha-result-head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.al-gacha-result-head span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.al-gacha-group {
+  margin-bottom: 10px;
+}
+
+.al-gacha-group-label {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.al-danbooru-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.al-danbooru-group-head .al-gacha-group-label {
+  margin-bottom: 0;
+}
+
+.al-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.al-chip {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-alt);
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.al-gacha-text {
+  margin-top: 6px;
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.al-gacha-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ---------- Danbooru ---------- */
+.al-danbooru {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.al-danbooru-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.al-tag-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.al-tag-groups .al-checkbox-inline,
+.al-danbooru-toolbar .al-checkbox-inline {
+  padding-top: 8px;
+}
+
+.al-danbooru-result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.al-danbooru-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.al-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--info);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.al-danbooru-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  max-height: 52vh;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt-solid, var(--surface-alt));
+}
+
+.al-danbooru-image img {
+  max-width: 100%;
+  max-height: 52vh;
+  object-fit: contain;
+}
+
+.al-image-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 260px;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.al-image-fallback a {
+  color: var(--info);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.al-image-fallback a:hover {
+  text-decoration: underline;
+}
+
+.al-mini-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.al-mini-button:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.al-error-text {
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.al-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1180px) {
+  .al-composer,
+  .al-gacha,
+  .al-danbooru {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .al-composer-preview {
+    position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .al-grid {
+    grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+  }
+
+  .al-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .al-header-meta {
+    display: none;
+  }
+}

@@ -3,6 +3,7 @@ import {
   Disc3,
   FileText,
   ImageUp,
+  LibraryBig,
   ScanSearch,
   SlidersHorizontal,
   Sparkles,
@@ -66,6 +67,8 @@ export const generationTabs: TabConfig[] = [
 /** 侧边栏「工具组件」组 */
 export const toolTabs: TabConfig[] = [
   { id: "loras", label: "LoRA 管理", icon: Boxes },
+  // 该组从第 10 项起本来就不在数字键 1-9 的覆盖范围，插在记事本前不影响既有快捷键
+  { id: "anima-library", label: "Anima 词库", icon: LibraryBig },
   { id: "notes", label: "记事本", icon: FileText },
 ];
 

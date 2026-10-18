@@ -354,6 +354,26 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
   - 卡片区与上方工具区之间留出 18px 断档（原先摘要行与首行卡片只隔 10px，像被卡片压着）。
 - **验证**：`tsc --noEmit` 0 错误；`eslint` 0 error；vitest **462 项 / 40 文件**全绿；主题 E2E **10/10**；主题面板回归 **22/22**；`go build ./...` / `go vet` / `go test ./internal/... .` 全绿；exe 重建随附于本 Release。
 
+### 44. Anima 词库：把 Comfyui-Anima-Tools 的提示词能力搬进面板
+
+- **新增「工具组件 → Anima 词库」标签页**（Anima 生图面板底栏也有「词库」快捷入口），四个视图：
+  - **画廊**：画师 40,600 / 角色 8,000 / 服装 430 / 背景 1,087 / 姿势 297。搜索（中英文）、排序（热度 / 名称 / 随机洗牌）、角色按性别 / 发色 / 瞳色筛选、服装类按分类 / 特征筛选、收藏（`★`，可只看收藏）、多选批量加入、随机抽 1 个、24/48/96 分页；缩略图懒加载，失败自动占位。
+  - **拼接台**：质量 / 画师 / 角色 / 服装 / 背景 / 姿势 / 额外 七个分区，实时预览、大小写去重开关、复制、追加 / 覆盖到 Anima 正面提示词（覆盖有二次确认）。输出顺序统一为 `quality → artist → character → clothing → background → pose → extra`。
+  - **抽卡**：五类内容开关、主种子 + 角色种子 + 服装种子（-1 跟随主种子）、三种角色细节（仅触发词 / 触发词+全部 Tags / 触发词+随机 Tags）、保留角色发色瞳色、服装四来源（内置库 / Danbooru 标签组 / 角色 Tags 借用 / 随机）；结果按分区展示，可锁定种子、再抽、填入拼接台或直接写入提示词。
+  - **Danbooru 随机图**：查询串只填标签（最多 2 个普通标签）；分级为**多选下拉**（全年龄 / 敏感 / 疑问 / 露骨，可组合成 `rating:g,s`，一个不选 = 不限，默认全年龄）；按画师 / 角色 / 作品 / 普通 / meta 分组显示标签，默认屏蔽上传类标签，并提供**推荐屏蔽词**一键补齐（文字水印 / 边框裁切 / 画质瑕疵，再点移除）；支持写入提示词、填入拼接台，以及**设为 Anima 参考图**（下载原图 → 上传 ComfyUI `input/` → 自动打开图生图阶段）。
+- **纯前端拼接，不依赖插件节点**：选词结果直接写入 `animaParams.positivePrompt`，提交前可见可编辑；不改变任何工作流拓扑，XYZ / 预设 / 输出回流照常工作。
+- **数据内置**：`public/data/anima/*.json`（约 6.6MB，随 exe 内嵌，离线可用）。来源为 [Comfyui-Anima-Tools](https://github.com/nregret/Comfyui-Anima-Tools) v3.3.1（MIT），仅提取词条元数据；缩略图来自 `blobs.animadex.net` 与 jsDelivr，需要联网。刷新数据：
+  ```bash
+  cd desktop-source
+  node scripts/import-anima-data.mjs --plugin "F:/ComfyUI/custom_nodes/Comfyui-Anima-Tools"
+  node scripts/import-anima-data.mjs --verify-only
+  ```
+  插件目录也可用环境变量 `ANIMA_TOOLS_DIR`；脚本会写 `manifest.json`（版本 / 条数 / 来源）并做条数与回读校验。**运行时不再访问插件目录**，卸载插件也不影响词库可用。
+- **种子说明**：抽卡使用项目自有确定性 PRNG（mulberry32），同一个种子在本工具内可复现；与插件节点填同一个数字**不会**得到同一结果（Python 与 JS 随机流不同）。
+- **Danbooru 图片同源代理**：`GET /xyz/anima/image?url=...`（TS `server/animaImage.ts`，Go 移植 `internal/api/anima_image.go`，仅放行 `*.donmai.us` 的 https 地址，20MB 上限）。原因：CDN 对浏览器的 `Sec-Fetch-Site: cross-site` 热链直接 403，`<img>` 直连必然空白/NotSameOrigin；代理用插件同款 UA 取图，sample 档失败时依次回退 720 / original / preview，全部失败才显示「在 Danbooru 打开原图」。
+- **自绘下拉**：Anima 面板全部改用自绘 `AnimaSelect` / `AnimaMultiSelect`（实底弹层 + 选中项对勾 + 键盘导航）——原生 `<select>` 的弹层由系统绘制，深色主题下是浅灰底配主题亮字，几乎看不清，且 `color-scheme` 在 WebView2 里不可靠。
+- **测试**：`src/lib/anima/*.test.ts` 共 9 个文件 131 条（分词 / 随机 / 拼接 / 抽卡四类服装来源 / 角色细节与冲突色 / Danbooru 选图与重试 / 分级多选与旧档迁移 / 推荐屏蔽词整组切换 / 懒加载缓存 / 画廊索引 / 持久化修复），另有 `server/animaImage.test.ts` 与 Go `internal/api/anima_image_test.go` 守代理白名单；E2E 覆盖入口、五分区与拼接预览、自绘下拉、分级多选与推荐屏蔽词。
+
 ---
 
 ## 🚀 快速开始 (Quick Start)

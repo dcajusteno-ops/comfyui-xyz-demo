@@ -11,6 +11,7 @@ const NAV_LABELS = [
   "文字特效",
   "XYZ 控制器",
   "LoRA 管理",
+  "Anima 词库",
   "记事本",
 ];
 
@@ -89,4 +90,32 @@ test("主题：侧栏入口打开主题面板", async ({ page }) => {
     page.locator(".theme-library-item").filter({ has: page.locator(".theme-library-name", { hasText: /^深色$/ }) }),
   ).toHaveCount(1);
   await expect(page.locator(".theme-library-item", { hasText: "赛博霓虹" })).toHaveCount(1);
+});
+
+test("Anima 词库：入口、五分区与拼接预览", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "Anima 词库" }).click();
+  await expect(page.getByRole("heading", { name: "Anima 词库" })).toBeVisible();
+  await expect(page.locator(".al-section-tabs button")).toHaveCount(5);
+
+  // 原生 select 的弹层在深色下是系统浅底 + 主题亮字，必须走自绘下拉
+  await expect(page.locator(".al-gallery select")).toHaveCount(0);
+  await page.getByLabel("排序").click();
+  await expect(page.locator(".al-select-popup")).toBeVisible();
+  await expect(page.locator(".al-select-option")).toHaveCount(3);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".al-select-popup")).toHaveCount(0);
+
+  // Danbooru：分级是下拉多选，默认全年龄；可叠加敏感
+  await page.locator(".al-view-tabs button", { hasText: "Danbooru" }).click();
+  await expect(page.getByRole("button", { name: "分级" })).toContainText("全年龄");
+  await page.getByRole("button", { name: "分级" }).click();
+  await expect(page.locator(".al-select-option")).toHaveCount(5);
+  await page.locator(".al-select-option", { hasText: "敏感 sensitive" }).click();
+  await expect(page.getByRole("button", { name: "分级" })).toContainText("全年龄 + 敏感");
+  await page.keyboard.press("Escape");
+
+  await page.locator(".al-view-tabs button", { hasText: "拼接台" }).click();
+  await page.locator(".al-composer-section textarea").nth(1).fill("dairi, by wlop");
+  await expect(page.locator(".al-preview-text")).toHaveValue("@dairi, @wlop");
 });

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from "react";
-import { Sparkles, Plus, Upload, RotateCcw } from "lucide-react";
+import { Sparkles, Plus, Upload, RotateCcw, LibraryBig } from "lucide-react";
 import { PanelTitle, BaseControls, SelectField, NumberField } from "../../ui";
 import { PresetBar } from "./PresetBar";
 import { DetailerControls } from "./DetailerControls";
@@ -38,6 +38,8 @@ interface AnimaGenerationPanelProps {
   onSetSimpleLoraTarget: (target: "default" | "multi" | "highres" | "anima") => void;
   /** 上传参考图，返回 ComfyUI 侧的文件名 */
   onUploadImage: (file: File) => Promise<string>;
+  /** 打开 Anima 词库（可选：老调用方/测试夹具不传） */
+  onOpenAnimaLibrary?: () => void;
 }
 
 /** 预计输出分辨率与放大链摘要（估算值：percent 是直传节点的，此处按模型标称倍率折算） */
@@ -89,6 +91,7 @@ export const AnimaGenerationPanel = React.memo(({
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
   onUploadImage,
+  onOpenAnimaLibrary,
 }: AnimaGenerationPanelProps) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const preview = useAnimaPreview(params);
@@ -433,6 +436,16 @@ export const AnimaGenerationPanel = React.memo(({
           <Sparkles size={18} />
           开始生成
         </button>
+        {onOpenAnimaLibrary && (
+          <button
+            type="button"
+            onClick={onOpenAnimaLibrary}
+            title="打开 Anima 词库（画廊 / 拼接台 / 抽卡 / Danbooru）"
+            className="secondary-action"
+          >
+            <LibraryBig size={16} /> 词库
+          </button>
+        )}
         <button
           type="button"
           onClick={() => onSetSimpleLoraTarget("anima")}
