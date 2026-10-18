@@ -98,6 +98,12 @@ test("Anima 词库：入口、五分区与拼接预览", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Anima 词库" })).toBeVisible();
   await expect(page.locator(".al-section-tabs button")).toHaveCount(5);
 
+  // 安装包必须内嵌全部词库（exe 的 dist 由 go:embed 打包，漏拷数据文件在这里兜底）
+  const manifest = await page.evaluate(async () => (await fetch("/data/anima/manifest.json")).json());
+  expect(manifest.source.version).toBe("3.3.1");
+  expect(manifest.counts.artists).toBe(40600);
+  expect(manifest.counts.characters).toBe(8000);
+
   // 原生 select 的弹层在深色下是系统浅底 + 主题亮字，必须走自绘下拉
   await expect(page.locator(".al-gallery select")).toHaveCount(0);
   await page.getByLabel("排序").click();
