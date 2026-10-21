@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.9] - 2026-10-21
+
+### ✨ 新功能 (Features)
+
+- **三视图（角色三视图 / character sheet）独立生成页**：侧边栏「生图模板」在「Anima 生图」之后新增「三视图」，选模型族（`Anima` / `SDXL · Illustrious / NoobAI`）后一键出三视图，不用再手动挂 LoRA 与手写触发词。
+  - **自动 LoRA**：Anima → `AnimaLora/三视图/Character Sheet for Anima`（0.70，推荐 0.6–0.8），Illustrious → `AnimaLora/三视图/TRcharactersheet-10`（0.90，推荐 0.8–1.0）；权重滑杆 0–2，触发词 / 背景词各自可关，仍可叠加其它 LoRA。自动 LoRA **只在生成时 upsert 注入**，不进面板 LoRA 列表，也不写入其它模板参数。
+  - **LoRA 定位兜底**：打开页面时按关键字 `sheet` 检索 LoraManager（空结果再按目录 `AnimaLora/三视图` 兜底），命中则带预览与哈希；未命中或插件不可用时**按相对路径直接挂载**并给出提示，不阻断生成。面板可改选同族其它三视图 LoRA。
+  - **提示词拼装**：`主体 → 触发词 → 视角词 → 体型词 → 背景词 → 角色描述 → 画风`，大小写 / 下划线去重，`(word:1.2)` 权重语法不参与去重；页面预览与提交的工作流来自**同一个纯函数**。
+  - **两套参数隔离**：`sheet.anima` / `sheet.sdxl` 各自持久化（模型栈 / checkpoint / 步数 / CFG / 采样器 / 尺寸 / 负向 / 放大 / 阶段），首次打开从「Anima 生图」「默认生图」继承；角色描述与参考图跨模型族共享。
+  - **参考图**：Anima 走 `stages.img2img` + `ImageResizeKJv2`，SDXL 走 `img2img.enabled` + `ImageScale + VAEEncode`；开启时若重绘接近 1 自动降到 0.6 并提示。输出面板「作为输入图」新增 `→ 三视图`。
+  - **Anima 高级区**：档位预设、阶段开关、放大模型与百分比；三视图**默认关闭两级放大**（否则 1344×1024 会被放大到 4096×6144）。
+  - **SDXL 修复区**：与「高清修复」面板同一套参数——放大（LatentUpscaleBy，方法 / 倍率）、高修步数 / CFG / 重绘、同步 seed，以及全图 / 手部 / 脸部 / 眼部 / NSFW 五个 detailer（各带完整参数与检测器选择）。**开关全关时仍是纯文生图链路**（节点结构与接入修复前逐节点一致），开启任一项才切到高清修复链路（基础采样 → 放大 → 修复 → 输出），参考图在两条链路下都生效。
+  - **不新增工作流拓扑**：Anima 复用 `buildAnimaPrompt`、SDXL 复用 `buildDefaultPrompt` / `buildHighresPrompt`，只在生成前组装参数；三视图不是 `TemplateKind`，故不进 XYZ / 生成预设 / 手机端应用目标。
+  - 提示词仓库取词与提示词编辑器「应用」在三视图页分别落到「角色描述」与当前模式负向提示词（不再静默写进默认生图）。
+  - ⚠️ 侧边栏插入位置让数字快捷键顺移一位：`WD1.4 / 文字特效 / XYZ / 幸运大转盘` 各后移，`LoRA 管理` 不再有 9 号键。
+
+### 🛠 修复 (Fixes)
+
+- **LoRA 卡片快捷插入补上 Anima / 三视图**：缩略图卡片的快捷按钮此前只有 `默认 / 多人 / 高修`（连 Anima 都没有），现在补成 5 个；窄卡片放不下时按钮向上折行，不再溢出封面。
+- **LoRA 详情弹窗补「三视图」插入目标**：「使用语法」那排从 4 个（默认 / 多人 / 高修 / Anima）扩到 5 个。
+- **触发词落点按钮此前是死回调**：`GlobalModals` 里 `onInsertWords={(target, words) => onTriggerWordsApply(words)}` 把 target 参数吞掉了，导致触发词那排的「多人 / 高修 / Anima」实际全部写进默认生图。现在 target 正常透传，并补上「三视」落点（写到三视图角色描述）。
+- 三视图相关入口一律走 `LoraInsertTarget` + `loraInsertTargetLabels`，`handleLoraInsert` 改成编译期穷举表，避免新增目标时静默落到默认生图。
+
+### 🧪 测试 (Tests)
+
+- 新增 `src/lib/characterSheet.test.ts`（29 例）：词条切分与去重顺序、触发词 / 背景词开关、权重语法不误删、LoRA 三档匹配与相对路径兜底（含不误命中 Krea2 四视图）、upsert 语义（同名改权重生效、首条优先）、参考图映射到两套 builder、工作流分发（`UNETLoader` vs `CheckpointLoaderSimple`、`ImageResizeKJv2` vs `ImageScale+VAEEncode`、SDXL 修复全关走纯文生图 / 开启后出现 `LatentUpscaleBy` + `FaceDetailer` + 双 KSampler）、默认值深拷贝与 SDXL 修复骨架继承、脏数据兜底。
+- `src/constants/tabs.test.ts` 新增「三视图入口存在且唯一」；`LoraCard.test.tsx` 改为断言五个快捷按钮各自的 target。
+- `e2e/smoke.spec.ts` 新增 2 条：三视图（入口、LoRA 兜底提示、模式切换）、LoRA 卡片五个目标都可达且插入后落到三视图 LoRA 列表。合计 **667 条单测 / 9 条 smoke 全绿**。
+
 ## [v0.7.8] - 2026-10-18
 
 ### ✨ 新功能 (Features)
