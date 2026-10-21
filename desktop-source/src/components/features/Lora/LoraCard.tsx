@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import type { LoraItem, LoraManagerSettings, LoraPreviewMedia, TemplateKind } from "../../../types";
+import type { LoraInsertTarget, LoraItem, LoraManagerSettings, LoraPreviewMedia } from "../../../types";
 import { shouldBlurNsfwLevel } from "../../../lib/nsfw";
 import { subTypeAbbreviation, baseModelAbbreviation } from "../../../lib/lora-helper";
 import { formatBytes } from "../../../lib/file-helper";
@@ -30,7 +30,7 @@ export const LoraCard = memo(({
   settings: LoraManagerSettings;
   apiBase: string;
   onDetail: (item: LoraItem) => void;
-  onInsert?: (item: LoraItem, target: TemplateKind) => void;
+  onInsert?: (item: LoraItem, target: LoraInsertTarget) => void;
 }) => {
   const key = item.model_name || item.file_name;
   const previewMedia = useMemo(() => ({
@@ -69,9 +69,11 @@ export const LoraCard = memo(({
           </div>
         </div>
         <div className="card-quick-actions">
-          <button type="button" title="添加到默认" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "default"); }}>默认</button>
-          <button type="button" title="添加到多人" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "multi"); }}>多人</button>
-          <button type="button" title="添加到高修" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "highres"); }}>高修</button>
+          <button type="button" title="添加到默认生图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "default"); }}>默认</button>
+          <button type="button" title="添加到多人工作流" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "multi"); }}>多人</button>
+          <button type="button" title="添加到高清修复" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "highres"); }}>高修</button>
+          <button type="button" title="添加到 Anima 生图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "anima"); }}>Anima</button>
+          <button type="button" title="添加到三视图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "sheet"); }}>三视</button>
         </div>
       </div>
       <div className="card-footer lm-card-footer">

@@ -10,6 +10,7 @@ import {
 import { pickCardPreviewMedia } from "../lib/lora-media";
 import type {
   LoraItem,
+  LoraInsertTarget,
   LoraListResult,
   LoraManagerSettings,
   LoraOperation,
@@ -17,7 +18,6 @@ import type {
   LoraSelection,
   ManagedModelType,
   TabId,
-  TemplateKind,
   Toast,
   ExampleImagesStatus,
   ExampleImagesPendingResult,
@@ -26,7 +26,7 @@ import type {
 import {
   defaultLoraQuery,
   emptyLoraResult,
-  templateLabels,
+  loraInsertTargetLabels,
   managedModelExampleType
 } from "../constants";
 
@@ -70,12 +70,12 @@ export function useLoras({
   const loraTagsRef = useRef(loraTags);
   useEffect(() => { loraTagsRef.current = loraTags; }, [loraTags]);
   
-  const [loraTarget, setLoraTarget] = useState<TemplateKind>("default");
+  const [loraTarget, setLoraTarget] = useState<LoraInsertTarget>("default");
   const [loraDensity, setLoraDensity] = useState<"compact" | "medium" | "large">("medium");
   const [loraDetail, setLoraDetail] = useState<LoraItem | null>(null);
   const [selectedLoraPaths, setSelectedLoraPaths] = useState<string[]>([]);
   const [loraOperation, setLoraOperation] = useState<LoraOperation | null>(null);
-  const [simpleLoraTarget, setSimpleLoraTarget] = useState<TemplateKind | null>(null);
+  const [simpleLoraTarget, setSimpleLoraTarget] = useState<LoraInsertTarget | null>(null);
   
   const [loraExampleFilesByHash, setLoraExampleFilesByHash] = useState<Record<string, LoraExampleMedia[]>>({});
   const loraExampleFilesByHashRef = useRef(loraExampleFilesByHash);
@@ -755,4 +755,4 @@ export function appendLoraToCollection(prev: LoraSelection[], selection: LoraSel
   return mergeLora(prev, selection);
 }
 
-export const loraTargetLabel = (target: TemplateKind) => templateLabels[target];
+export const loraTargetLabel = (target: LoraInsertTarget) => loraInsertTargetLabels[target];

@@ -25,6 +25,7 @@ export const pathPresets: PathPreset[] = [
   { label: "多人 / 日期 / ComfyUI", value: "多人/%date:yyyy-MM-dd%/ComfyUI" },
   { label: "高清修复 / 日期 / ComfyUI", value: "高清修复/%date:yyyy-MM-dd%/ComfyUI" },
   { label: "Anima / 日期 / ComfyUI", value: "Anima/%date:yyyy-MM-dd%/ComfyUI" },
+  { label: "三视图 / 日期 / ComfyUI", value: "三视图/%date:yyyy-MM-dd%/ComfyUI" },
   { label: "XYZ / 日期 / ComfyUI", value: "XYZ/%date:yyyy-MM-dd%/ComfyUI" },
 ];
 

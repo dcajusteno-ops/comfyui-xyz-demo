@@ -93,12 +93,23 @@ describe("LoraCard", () => {
     expect(screen.queryByText("XXX-rated Content")).not.toBeInTheDocument();
   });
 
-  it("点击卡片触发 onDetail；点击快捷按钮触发 onInsert 且不冒泡到 onDetail", () => {
+  it("点击卡片触发 onDetail；五个快捷按钮各自触发对应 target 且不冒泡", () => {
     const { onDetail, onInsert } = renderCard({ previewUrl: "/view.png" });
     fireEvent.click(screen.getByText("cunnyfunk"));
     expect(onDetail).toHaveBeenCalledWith(baseItem);
-    fireEvent.click(screen.getByTitle("添加到默认"));
-    expect(onInsert).toHaveBeenCalledWith(baseItem, "default");
+
+    const targets: Array<[string, string]> = [
+      ["添加到默认生图", "default"],
+      ["添加到多人工作流", "multi"],
+      ["添加到高清修复", "highres"],
+      ["添加到 Anima 生图", "anima"],
+      ["添加到三视图", "sheet"],
+    ];
+    for (const [title, target] of targets) {
+      fireEvent.click(screen.getByTitle(title));
+      expect(onInsert).toHaveBeenCalledWith(baseItem, target);
+    }
+    expect(onInsert).toHaveBeenCalledTimes(targets.length);
     expect(onDetail).toHaveBeenCalledTimes(1);
   });
 });

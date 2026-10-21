@@ -41,6 +41,9 @@ const HighresGenerationPanel = lazy(() =>
 const AnimaGenerationPanel = lazy(() =>
   import("./components/features/Generation/AnimaGenerationPanel").then((m) => ({ default: m.AnimaGenerationPanel })),
 );
+const SheetGenerationPanel = lazy(() =>
+  import("./components/features/Generation/SheetGenerationPanel").then((m) => ({ default: m.SheetGenerationPanel })),
+);
 const AnimaLibraryPanel = lazy(() =>
   import("./components/features/AnimaLibrary").then((m) => ({ default: m.AnimaLibraryPanel })),
 );
@@ -123,6 +126,7 @@ import { useXyz } from "./hooks/useXyz";
 import { useOptions } from "./hooks/useOptions";
 import { useMobileTasks } from "./hooks/useMobileTasks";
 import { useNotifier } from "./hooks/useNotifier";
+import { useSheetLora } from "./hooks/useSheetLora";
 
 import { loraSyntaxName, mergeLora } from "./lib/lora-helper";
 import { pickCardPreviewMedia } from "./lib/lora-media";
@@ -133,13 +137,15 @@ import {
   buildMultiPrompt,
   buildAnimaPrompt,
 } from "./lib/workflowBuilders";
+import { buildSheetPrompt, composeSheetPromptFromParams } from "./lib/characterSheet";
 import {
   generationTabs as generationTabConfig,
   slotsTab,
   toolTabs as toolTabConfig,
   templateLabels,
+  loraInsertTargetLabels,
 } from "./constants";
-import type { LoraSelection, TemplateKind, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, JobResult, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams, WatermarkBakeConfig, DrawTextParams } from "./types";
+import type { LoraSelection, TemplateKind, LoraInsertTarget, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, JobResult, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams, WatermarkBakeConfig, DrawTextParams } from "./types";
 import type { AnimaApplyMode } from "./lib/anima/types";
 import { renderWatermarkLayers } from "./lib/watermark";
 import { applySpecialXyzPatch } from "./lib/xyz";
@@ -233,8 +239,17 @@ function App() {
     params.multiParams.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
     params.highresParams.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
     params.animaParams.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
+    params.sheetParams.anima.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
+    params.sheetParams.sdxl.loras.forEach(l => l.sha256 && hashes.add(l.sha256.toLowerCase()));
     return Array.from(hashes);
-  }, [params.defaultParams.loras, params.multiParams.loras, params.highresParams.loras, params.animaParams.loras]);
+  }, [
+    params.defaultParams.loras,
+    params.multiParams.loras,
+    params.highresParams.loras,
+    params.animaParams.loras,
+    params.sheetParams.anima.loras,
+    params.sheetParams.sdxl.loras,
+  ]);
 
   const loras = useLoras({
     client,
@@ -253,6 +268,12 @@ function App() {
     [loras.loraResult.items],
   );
   const wildcardNames = useMemo(() => [...WILDCARD_FILES] as string[], []);
+
+  /**
+   * 三视图 LoRA 检索：只在打开三视图页时发请求（一次），结果同时喂给面板展示与生成，
+   * 避免「预览说挂了 A、生成却挂 B」。
+   */
+  const sheetLora = useSheetLora(client, tab === "sheet", params.sheetParams.lora.override);
 
   const handleOpenLoraDetail = useCallback((lora: LoraSelection | LoraItem) => {
     if ("sha256" in lora && "file_path" in lora) {
@@ -274,7 +295,7 @@ function App() {
     } as LoraItem);
   }, [loras.loraExampleFilesByHash, loras.setLoraDetail, loras.setManagedModelType]);
 
-  const handleLoraInsert = useCallback((item: LoraItem, target: TemplateKind, strength = 1) => {
+  const handleLoraInsert = useCallback((item: LoraItem, target: LoraInsertTarget, strength = 1) => {
     const hash = item.sha256?.toLowerCase();
     const localFiles = hash ? loras.loraExampleFilesByHash[hash] ?? [] : [];
     const previewMedia = pickCardPreviewMedia(item, localFiles);
@@ -290,17 +311,33 @@ function App() {
       previewUrl: previewMedia.path || previewMedia.url || item.preview_url,
     };
 
-    if (target === "multi") {
-      params.setMultiParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
-    } else if (target === "highres") {
-      params.setHighresParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
-    } else if (target === "anima") {
-      params.setAnimaParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
-    } else {
-      params.setDefaultParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, selection) }));
+    /**
+     * 穷举表：新增插入目标时漏写会在编译期报错。
+     * 这里刻意不再用 `if/else` + `else → 默认生图`——那个兜底会把「三视图」的 LoRA
+     * 静默写进默认生图面板，且不报任何错。
+     */
+    const inserters: Record<LoraInsertTarget, (value: LoraSelection) => void> = {
+      default: (value) => params.setDefaultParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, value) })),
+      multi: (value) => params.setMultiParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, value) })),
+      highres: (value) => params.setHighresParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, value) })),
+      anima: (value) => params.setAnimaParams((prev) => ({ ...prev, loras: mergeLora(prev.loras, value) })),
+      sheet: (value) =>
+        params.setSheetParams((prev) =>
+          prev.mode === "anima"
+            ? { ...prev, anima: { ...prev.anima, loras: mergeLora(prev.anima.loras, value) } }
+            : { ...prev, sdxl: { ...prev.sdxl, loras: mergeLora(prev.sdxl.loras, value) } },
+        ),
+    };
+
+    const insert = inserters[target];
+    if (!insert) {
+      pushToast("error", "LoRA 插入失败", `未知目标：${String(target)}`);
+      return;
     }
-    pushToast("success", "LoRA 已插入", `${selection.displayName} -> ${templateLabels[target]}`);
-  }, [loras.loraExampleFilesByHash, params.setDefaultParams, params.setMultiParams, params.setHighresParams, params.setAnimaParams, pushToast]);
+
+    insert(selection);
+    pushToast("success", "LoRA 已插入", `${selection.displayName} -> ${loraInsertTargetLabels[target]}`);
+  }, [loras.loraExampleFilesByHash, params, pushToast]);
 
   const handleSlotsApply = useCallback((tags: string[], target: TemplateKind) => {
     const clean = tags.map((tag) => tag.trim()).filter(Boolean);
@@ -369,16 +406,28 @@ function App() {
     // 词库页没有自己的生成参数：在它上面从仓库取词时落点应当是 Anima 模板
     const promptTab = tab === "anima-library" ? "anima" : tab;
     const opts = { useGlobal: promptTab === "multi", dedupe: false };
+    // 三视图页没有 positivePrompt：正向落「角色描述」，负向落当前模型族的负向框
+    const appendToSheet = (side: "positive" | "negative") =>
+      params.setSheetParams((prev) => {
+        const join = (current: string) => [current.trim(), text.trim()].filter(Boolean).join(", ");
+        if (side === "positive") return { ...prev, characterPrompt: join(prev.characterPrompt) };
+        return prev.mode === "anima"
+          ? { ...prev, anima: { ...prev.anima, negativePrompt: join(prev.anima.negativePrompt) } }
+          : { ...prev, sdxl: { ...prev.sdxl, negativePrompt: join(prev.sdxl.negativePrompt) } };
+      });
     // negative 侧始终写 negativePrompt（multi 也没有单独的负向 globalPrompt），按 tab 落到对应面板
     if (target === "negative") {
-      if (promptTab === "multi") params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: false, dedupe: false }));
+      if (promptTab === "sheet") appendToSheet("negative");
+      else if (promptTab === "multi") params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: false, dedupe: false }));
       else if (promptTab === "highres") params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: false, dedupe: false }));
       else if (promptTab === "anima") params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: false, dedupe: false }));
       else params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: false, dedupe: false }));
       pushToast("info", "提示词已添加", `${text.slice(0, 20)}...`);
       return;
     }
-    if (promptTab === "multi") {
+    if (promptTab === "sheet") {
+      appendToSheet("positive");
+    } else if (promptTab === "multi") {
       params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, opts));
     } else if (promptTab === "highres") {
       params.setHighresParams(appendPromptUpdater<HighresParams>(text, opts));
@@ -390,10 +439,21 @@ function App() {
     pushToast("info", "提示词已添加", `${text.slice(0, 20)}...`);
   }, [tab, params, pushToast]);
 
-  function addTriggerWords(words: string[], target = loras.loraTarget) {
+  function addTriggerWords(words: string[], target: LoraInsertTarget = loras.loraTarget) {
     if (!words || words.length === 0) return;
     const text = words.join(", ");
-    // 注意：追加键取**当前 tab**（multi→globalPrompt），而落点是 loraTarget——与历史行为保持一致
+
+    // 三视图页没有 positivePrompt：触发词追加到「角色描述」
+    if (target === "sheet") {
+      params.setSheetParams((prev) => ({
+        ...prev,
+        characterPrompt: [prev.characterPrompt.trim(), text].filter(Boolean).join(", "),
+      }));
+      pushToast("success", "触发词已应用", "已追加到 三视图 角色描述");
+      return;
+    }
+
+    // 注意：追加键取**当前 tab**（multi→globalPrompt），而落点是 target——与历史行为保持一致
     const updater = appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: tab === "multi", dedupe: false });
 
     if (target === "multi") {
@@ -405,7 +465,7 @@ function App() {
     } else {
       params.setDefaultParams(appendPromptUpdater<BaseGenerationParams>(text, { useGlobal: tab === "multi", dedupe: false }));
     }
-    pushToast("success", "触发词已应用", `已追加到 ${templateLabels[target]} 正向提示词`);
+    pushToast("success", "触发词已应用", `已追加到 ${loraInsertTargetLabels[target]} 正向提示词`);
   }
 
   /** 上传任意图片到 ComfyUI input/（Anima 面板与三个新面板共用同一条通道） */
@@ -513,13 +573,17 @@ function App() {
    * - Anima：惰性条件是 `stages.img2img && imageName`，只填图不开阶段开关不生效；
    * - 图片识别：runWd14 里 `wdFile` 优先于 `imageName`，不清掉本地文件会被顶替。
    */
-  const handleSendImageTo = useCallback(async (image: OutputImage, target: TemplateKind | "wd14") => {
+  const handleSendImageTo = useCallback(async (image: OutputImage, target: TemplateKind | "wd14" | "sheet") => {
     try {
       const imageName = await promoteOutputToInput(image);
       if (target === "wd14") {
         tagging.setWdFile(null);
         tagging.setWd14((prev) => ({ ...prev, imageName }));
         setTab("wd14");
+      } else if (target === "sheet") {
+        // 三视图页的参考图是跨模型族共享的一份，开启后由 builder 映射到各自字段
+        params.setSheetParams((prev) => ({ ...prev, reference: { enabled: true, imageName } }));
+        setTab("sheet");
       } else if (target === "anima") {
         params.setAnimaParams((prev) => ({
           ...prev,
@@ -541,7 +605,7 @@ function App() {
       pushToast(
         "success",
         "已作为输入图",
-        `${image.filename} → ${target === "wd14" ? "图片识别" : templateLabels[target]}`,
+        `${image.filename} → ${target === "wd14" ? "图片识别" : target === "sheet" ? "三视图" : templateLabels[target]}`,
       );
     } catch (error) {
       pushToast("error", "作为输入图失败", error instanceof Error ? error.message : String(error));
@@ -552,12 +616,28 @@ function App() {
     if (tab === "multi") return { positive: params.multiParams.globalPrompt, negative: params.multiParams.negativePrompt };
     if (tab === "highres") return { positive: params.highresParams.positivePrompt, negative: params.highresParams.negativePrompt };
     if (tab === "anima" || tab === "anima-library") return { positive: params.animaParams.positivePrompt, negative: params.animaParams.negativePrompt };
+    if (tab === "sheet") {
+      return {
+        positive: composeSheetPromptFromParams(params.sheetParams),
+        negative: params.sheetParams[params.sheetParams.mode].negativePrompt,
+      };
+    }
     return { positive: params.defaultParams.positivePrompt, negative: params.defaultParams.negativePrompt };
-  }, [tab, params.defaultParams, params.multiParams, params.highresParams, params.animaParams]);
+  }, [tab, params.defaultParams, params.multiParams, params.highresParams, params.animaParams, params.sheetParams]);
 
   // 侧边栏 tab 定义统一来自 constants（历史上此处另有一份硬编码，导致新增入口时漏改）
   const generationTabs = useMemo(() => [...generationTabConfig, slotsTab], []);
   const toolTabs = useMemo(() => toolTabConfig, []);
+
+  /** 三视图生成：面板按钮与 Ctrl+Enter 共用同一份参数/LoRA 解析结果 */
+  const buildCurrentSheetPrompt = useCallback(() => {
+    const sheet = params.sheetParams;
+    return buildSheetPrompt(sheet, {
+      loraRef: sheetLora.resolved[sheet.mode].ref,
+      drawText: params.defaultParams.drawText,
+      animaCaps: options.animaCaps,
+    });
+  }, [params.sheetParams, params.defaultParams.drawText, sheetLora.resolved, options.animaCaps]);
 
   /** 当前 tab 的「生成」动作（Ctrl+Enter 触发；与面板按钮完全同源） */
   const runCurrentTab = useCallback(() => {
@@ -571,8 +651,9 @@ function App() {
           options.animaCaps,
         ),
       );
+    if (tab === "sheet") return gen.runPrompt("三视图", buildCurrentSheetPrompt);
     return undefined;
-  }, [tab, gen, params, options.animaCaps]);
+  }, [tab, gen, params, options.animaCaps, buildCurrentSheetPrompt]);
 
   // 全局快捷键（T10-②）：Ctrl+Enter 生成 · Ctrl+S 存预设 · 数字键切 tab
   useEffect(() => {
@@ -777,6 +858,25 @@ function App() {
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
                   onUploadImage={uploadImage}
                   onOpenAnimaLibrary={() => setTab("anima-library")}
+                />
+              )}
+
+              {tab === "sheet" && (
+                <SheetGenerationPanel
+                  params={params.sheetParams}
+                  setParams={params.setSheetParams}
+                  options={options}
+                  apiBase={apiBase}
+                  loraSettings={loraSettings}
+                  loraExampleFilesByHash={loras.loraExampleFilesByHash}
+                  loraNames={loraNames}
+                  wildcardNames={wildcardNames}
+                  loraState={sheetLora}
+                  onRunGeneration={() => gen.runPrompt("三视图", buildCurrentSheetPrompt)}
+                  onOpenLoraDetail={handleOpenLoraDetail}
+                  onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
+                  onUploadImage={uploadImage}
+                  pushToast={pushToast}
                 />
               )}
 
@@ -1000,7 +1100,7 @@ function App() {
                                   title="把这张图作为其它面板的参考图"
                                   style={{ width: "100%" }}
                                   onChange={(event) => {
-                                    const target = event.target.value as TemplateKind | "wd14";
+                                    const target = event.target.value as TemplateKind | "wd14" | "sheet";
                                     if (!target) return;
                                     setUploadingImageKey(key);
                                     void handleSendImageTo(image, target).finally(() => setUploadingImageKey(null));
@@ -1011,6 +1111,7 @@ function App() {
                                   <option value="multi">→ 多人工作流</option>
                                   <option value="highres">→ 高清修复</option>
                                   <option value="anima">→ Anima 生图</option>
+                                  <option value="sheet">→ 三视图</option>
                                   <option value="wd14">→ 图片识别（反推）</option>
                                 </select>
                               );
@@ -1086,7 +1187,20 @@ function App() {
             } as T;
           };
 
-          if (tab === "multi") {
+          if (tab === "sheet") {
+            // 三视图页的正向落点是「角色描述」，不是 positivePrompt
+            params.setSheetParams((prev) => {
+              const join = (current: string, addition: string) =>
+                [current.trim(), addition.trim()].filter(Boolean).join(", ");
+              const next: typeof prev = { ...prev, characterPrompt: join(prev.characterPrompt, pos) };
+              if (prev.mode === "anima") {
+                next.anima = { ...prev.anima, negativePrompt: join(prev.anima.negativePrompt, neg) };
+              } else {
+                next.sdxl = { ...prev.sdxl, negativePrompt: join(prev.sdxl.negativePrompt, neg) };
+              }
+              return next;
+            });
+          } else if (tab === "multi") {
             params.setMultiParams(updater);
           } else if (tab === "highres") {
             params.setHighresParams(updater);

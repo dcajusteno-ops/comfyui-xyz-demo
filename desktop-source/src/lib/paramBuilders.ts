@@ -7,8 +7,16 @@ import type {
   HighresParams,
   Img2ImgParams,
   MultiGenerationParams,
+  SheetMode,
+  SheetParams,
 } from "../types";
 import { ANIMA_FULL_STAGES, fallbackOptions } from "../constants";
+import {
+  SHEET_ANIMA_STAGES,
+  SHEET_DEFAULT_NEGATIVE,
+  SHEET_DEFAULT_STYLE,
+  SHEET_LORAS,
+} from "./characterSheet";
 
 /** 图生图参数的默认值（默认**关闭**，保证既有用户行为零变化） */
 export function makeImg2ImgParams(): Img2ImgParams {
@@ -273,5 +281,151 @@ export function makeAnimaParams(): AnimaGenerationParams {
       feather: 5,
       noiseMaskFeather: 32,
     }),
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * 三视图页
+ * ------------------------------------------------------------------ */
+
+/**
+ * 深拷贝 Anima 参数（含 5 个 detailer / hires / refine / modelStack）。
+ * 三视图页要独立于「Anima 生图」页的取值，共享嵌套对象会让两边互相污染。
+ */
+function cloneAnimaForSheet(params: AnimaGenerationParams): AnimaGenerationParams {
+  return {
+    ...params,
+    modelStack: { ...params.modelStack },
+    stages: { ...params.stages },
+    img2img: { ...params.img2img },
+    hires: { ...params.hires },
+    refine: { ...params.refine },
+    handDetailer: { ...params.handDetailer },
+    faceDetailer: { ...params.faceDetailer },
+    eyesDetailer: { ...params.eyesDetailer },
+    nsfwDetailer: { ...params.nsfwDetailer },
+    segsDetailer: { ...params.segsDetailer },
+  };
+}
+
+/** 深拷贝高清修复参数（SDXL 侧复用同一套 DetailerParams，同样不能共享引用） */
+function cloneHighresForSheet(params: HighresParams): HighresParams {
+  return {
+    ...params,
+    img2img: { ...(params.img2img ?? makeImg2ImgParams()) },
+    handDetailer: { ...params.handDetailer },
+    faceDetailer: { ...params.faceDetailer },
+    eyesDetailer: { ...params.eyesDetailer },
+    nsfwDetailer: { ...params.nsfwDetailer },
+    segsDetailer: { ...params.segsDetailer },
+  };
+}
+
+/**
+ * 三视图页初始值：模型栈 / checkpoint / 采样参数从现有模板**继承**（首次打开即可用），
+ * 但提示词、LoRA、负向、尺寸与阶段一律重置为本页专属取值。
+ *
+ * SDXL 侧直接拿「高清修复」的参数做骨架（放大方法 / 倍率 / 修复链取值与那边一致），
+ * 但**所有修复开关初始关闭**——先出干净图，需要时在页面里打开。
+ */
+export function makeSheetParams(
+  anima: AnimaGenerationParams = makeAnimaParams(),
+  sdxl: BaseGenerationParams = makeBaseParams(),
+  sdxlFix: HighresParams = makeHighresParams(sdxl.checkpoint),
+): SheetParams {
+  return {
+    mode: "anima",
+    subject: "1girl",
+    characterPrompt: "",
+    style: { ...SHEET_DEFAULT_STYLE },
+    reference: { enabled: false, imageName: "" },
+    lora: {
+      enabled: true,
+      weight: { anima: SHEET_LORAS.anima.defaultWeight, sdxl: SHEET_LORAS.sdxl.defaultWeight },
+      includeTrigger: true,
+      includeBackground: true,
+      override: {},
+    },
+    anima: {
+      ...cloneAnimaForSheet(anima),
+      checkpoint: "",
+      positivePrompt: "",
+      negativePrompt: SHEET_DEFAULT_NEGATIVE.anima,
+      width: 1344,
+      height: 1024,
+      batchSize: 1,
+      filenamePrefix: "三视图/%date:yyyy-MM-dd%/ComfyUI",
+      loras: [],
+      // 三视图默认只做基础采样 + CFGZeroStar，避免「完整复刻」档直接跑到 4096×6144
+      stages: { ...SHEET_ANIMA_STAGES },
+      img2img: { ...anima.img2img, imageName: "" },
+      // 水印/文字层在生成时从「默认生图」借用（imageName 会轮换，不能存快照）
+      drawText: undefined,
+    },
+    sdxl: {
+      ...cloneHighresForSheet(sdxlFix),
+      checkpoint: sdxl.checkpoint,
+      positivePrompt: "",
+      negativePrompt: SHEET_DEFAULT_NEGATIVE.sdxl,
+      width: 1344,
+      height: 1024,
+      batchSize: 1,
+      // 基础采样沿用「默认生图」的取值（高清修复模板自己的 20/7 只是它那套的起点）
+      seed: sdxl.seed,
+      randomizeSeed: sdxl.randomizeSeed,
+      steps: sdxl.steps,
+      cfg: sdxl.cfg,
+      samplerName: sdxl.samplerName,
+      scheduler: sdxl.scheduler,
+      denoise: sdxl.denoise,
+      filenamePrefix: "三视图/%date:yyyy-MM-dd%/ComfyUI",
+      loras: [],
+      img2img: makeImg2ImgParams(),
+      drawText: undefined,
+      // 修复开关一律从「关」开始：关着时走纯文生图链路，与之前的行为逐节点一致
+      enableUpscale: false,
+      enableSegsDetailer: false,
+      enableHandDetailer: false,
+      enableFaceDetailer: false,
+      enableEyesDetailer: false,
+      enableNsfwDetailer: false,
+    },
+  };
+}
+
+const SHEET_SUBJECTS: Array<SheetParams["subject"]> = ["1girl", "1boy", "1other", ""];
+
+/**
+ * 持久化脏数据兜底：deepMerge 只补新键，修不了枚举错值与 NaN 权重。
+ * 只做「不改字段名」的校验，保证历史存档不会被改成默认值。
+ */
+export function normalizeSheetParams(merged: SheetParams): SheetParams {
+  const source = (merged ?? {}) as SheetParams;
+  const mode: SheetMode = source.mode === "sdxl" ? "sdxl" : "anima";
+  const clampWeight = (value: unknown, fallback: number) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? Math.min(2, Math.max(0, num)) : fallback;
+  };
+
+  return {
+    ...source,
+    mode,
+    subject: SHEET_SUBJECTS.includes(source.subject) ? source.subject : "1girl",
+    characterPrompt: String(source.characterPrompt ?? ""),
+    style: { ...SHEET_DEFAULT_STYLE, ...(source.style ?? {}) },
+    reference: {
+      enabled: Boolean(source.reference?.enabled),
+      imageName: String(source.reference?.imageName ?? ""),
+    },
+    lora: {
+      enabled: source.lora?.enabled !== false,
+      weight: {
+        anima: clampWeight(source.lora?.weight?.anima, SHEET_LORAS.anima.defaultWeight),
+        sdxl: clampWeight(source.lora?.weight?.sdxl, SHEET_LORAS.sdxl.defaultWeight),
+      },
+      includeTrigger: source.lora?.includeTrigger !== false,
+      includeBackground: source.lora?.includeBackground !== false,
+      override: source.lora?.override ?? {},
+    },
   };
 }

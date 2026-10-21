@@ -694,6 +694,47 @@ export type AnimaGenerationParams = BaseGenerationParams & {
   // 每阶段的追加词直接用各自 DetailerParams.prompt（面板上叫「独立正向提示词」）
 };
 
+/* ------------------------------------------------------------------ *
+ * 三视图（角色三视图 / character sheet）页
+ * 刻意复用两套既有参数：Anima 走 buildAnimaPrompt，SDXL 走 buildDefaultPrompt，
+ * 本页只负责「拼提示词 + 挂三视图 LoRA + 把参考图映射到各自的字段」。
+ * ------------------------------------------------------------------ */
+
+/** 运行时定位到的三视图 LoRA（name 为 loraSyntaxName 形式：folder/file.safetensors） */
+export type SheetLoraRef = {
+  name: string;
+  displayName?: string;
+  filePath?: string;
+  sha256?: string;
+  previewUrl?: string;
+};
+
+export type SheetParams = {
+  /** 当前使用的模型族 */
+  mode: SheetMode;
+  /** 主体词（Anima LoRA 的 trainedWords 首位是 1girl，男性角色必须可改，故单独成项） */
+  subject: "1girl" | "1boy" | "1other" | "";
+  /** 角色描述（两个模型族共享：换模型不该丢角色设定） */
+  characterPrompt: string;
+  /** 画风 / 画质词：两族惯用词不同，各存一份 */
+  style: Record<SheetMode, string>;
+  /** 参考图（共享一份，生成时按模型族映射到各自字段） */
+  reference: { enabled: boolean; imageName: string };
+  lora: {
+    enabled: boolean;
+    weight: Record<SheetMode, number>;
+    /** 是否自动补 LoRA 触发词 */
+    includeTrigger: boolean;
+    /** 是否补「简单背景」等构图词 */
+    includeBackground: boolean;
+    /** 用户在面板里改选的文件（loraSyntaxName）；空 = 用内置默认 */
+    override: Partial<Record<SheetMode, string>>;
+  };
+  anima: AnimaGenerationParams;
+  /** SDXL 侧直接复用高清修复参数：放大 + 手/脸/眼/全图修复，开关全关时走纯文生图链路 */
+  sdxl: HighresParams;
+};
+
 export type OutputImage = {
   filename: string;
   subfolder?: string;
@@ -750,6 +791,16 @@ export type ProgressState = {
 };
 
 export type TemplateKind = "default" | "multi" | "highres" | "anima";
+
+/** 三视图页的模型族：Anima / SDXL 系（Illustrious、NoobAI 都归这一类） */
+export type SheetMode = "anima" | "sdxl";
+
+/**
+ * LoRA 插入目标：4 个生成模板 + 三视图页。
+ * 三视图刻意不进 `TemplateKind`——它不是「模板」而是独立页，进联合类型会连带
+ * 打挂 XYZ / 生成预设 / 手机端应用目标等 20+ 处分派。
+ */
+export type LoraInsertTarget = TemplateKind | "sheet";
 
 export type XyzField =
   | "seed"
@@ -874,7 +925,7 @@ export type PromptLintIssue = {
   fix?: (text: string) => string;
 };
 
-export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima" | "anima-library";
+export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima" | "anima-library" | "sheet";
 
 export type LoraPreviewMedia = {
   url?: string;

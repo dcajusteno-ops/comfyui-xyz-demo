@@ -1,5 +1,6 @@
 import {
   Boxes,
+  Columns3,
   Disc3,
   FileText,
   ImageUp,
@@ -14,6 +15,7 @@ import {
 import type {
   AnimaStageKey,
   AnimaStageToggles,
+  LoraInsertTarget,
   LoraListResult,
   LoraManagerSettings,
   LoraQueryState,
@@ -59,6 +61,8 @@ export const generationTabs: TabConfig[] = [
   { id: "multi", label: "多人工作流", icon: UserRound },
   { id: "highres", label: "高清修复", icon: ImageUp },
   { id: "anima", label: "Anima 生图", icon: Sparkles },
+  // 三视图紧随 Anima：它本质是 Anima / SDXL 两条模型族的专项模板
+  { id: "sheet", label: "三视图", icon: Columns3 },
   { id: "wd14", label: "WD1.4", icon: ScanSearch },
   { id: "text", label: "文字特效", icon: Type },
   { id: "xyz", label: "XYZ 控制器", icon: SlidersHorizontal },
@@ -84,6 +88,24 @@ export const templateLabels: Record<TemplateKind, string> = {
   highres: "高清修复",
   anima: "Anima 生图",
 };
+
+/**
+ * LoRA 插入目标的展示名：模板 + 三视图页。
+ * 凡是可能收到 `LoraInsertTarget` 的文案都必须走这张表——`templateLabels[target]`
+ * 在 target 为 "sheet" 时会取到 undefined。
+ */
+export const loraInsertTargetLabels: Record<LoraInsertTarget, string> = {
+  ...templateLabels,
+  sheet: "三视图",
+};
+
+/** 三视图页主体词选项 */
+export const sheetSubjectOptions: Array<{ value: "" | "1girl" | "1boy" | "1other"; label: string }> = [
+  { value: "1girl", label: "1girl（单人女性）" },
+  { value: "1boy", label: "1boy（单人男性）" },
+  { value: "1other", label: "1other（无性别/其它）" },
+  { value: "", label: "不指定" },
+];
 
 /* ------------------------------------------------------------------ *
  * Anima 模板常量

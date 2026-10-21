@@ -5,9 +5,9 @@ import type { KeyboardEvent } from "react";
 import type {
   ExampleImagesStatus,
   LoraExampleMedia,
+  LoraInsertTarget,
   LoraManagerSettings,
   LoraMediaMeta,
-  TemplateKind,
   Toast,
 } from "../../../types";
 import { getMediaNsfwLevel, shouldBlurNsfwLevel } from "../../../lib/nsfw";
@@ -30,7 +30,7 @@ export function TriggerWordsPanel({
   onExtract?: () => void;
   onSave: (words: string[]) => Promise<string[]>;
   onCopy: (text: string) => void;
-  onInsertWords?: (target: TemplateKind, words: string[]) => void;
+  onInsertWords?: (target: LoraInsertTarget, words: string[]) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draftWords, setDraftWords] = useState<string[]>(words);
@@ -91,6 +91,7 @@ export function TriggerWordsPanel({
               <button type="button" className="lm-text-btn" onClick={() => onInsertWords('multi', visibleWords)} title="追加到多人工作流正向提示词"><BadgePlus size={14} /> 多人</button>
               <button type="button" className="lm-text-btn" onClick={() => onInsertWords('highres', visibleWords)} title="追加到高清修复正向提示词"><BadgePlus size={14} /> 高修</button>
               <button type="button" className="lm-text-btn" onClick={() => onInsertWords('anima', visibleWords)} title="追加到 Anima 生图正向提示词"><BadgePlus size={14} /> Anima</button>
+              <button type="button" className="lm-text-btn" onClick={() => onInsertWords('sheet', visibleWords)} title="追加到三视图角色描述"><BadgePlus size={14} /> 三视</button>
             </div>
           )}
           {!editing && onExtract && <button type="button" className="lm-text-btn" onClick={onExtract} title="从 .safetensors 文件头中提取训练词并保存 (ss_tagger_tags)"><ScanSearch size={14} /> 提取并保存</button>}

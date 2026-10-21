@@ -16,7 +16,7 @@ import type {
   LoraManagerSettings,
   LoraQueryState,
   ManagedModelType,
-  TemplateKind,
+  LoraInsertTarget,
 } from "../../../types";
 
 import {
@@ -78,7 +78,7 @@ export const LoraManagerPanel = memo(({
   onRefresh: () => void | Promise<void>;
   onLoadMore: () => void | Promise<void>;
   onDetail: (item: LoraItem) => void;
-  onInsert?: (item: LoraItem, target: TemplateKind) => void;
+  onInsert?: (item: LoraItem, target: LoraInsertTarget) => void;
   exampleStatus: ExampleImagesStatus | null;
   examplePending: ExampleImagesPendingResult | null;
   pullingExampleHashes: string[];

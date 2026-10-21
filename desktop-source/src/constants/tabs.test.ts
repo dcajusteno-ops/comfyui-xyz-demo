@@ -27,6 +27,12 @@ describe("侧边栏 tab 定义", () => {
     expect(all).toContain(slotsTab.id);
   });
 
+  it("三视图入口存在且唯一（它不是 TemplateKind，但必须有侧边栏入口）", () => {
+    const ids = generationTabs.map((tab) => tab.id);
+    expect(ids).toContain("sheet");
+    expect(ids.filter((id) => id === "sheet")).toHaveLength(1);
+  });
+
   it("每个 tab 都有 label 与 icon（AppSidebar 渲染依赖这两项）", () => {
     for (const tab of tabs) {
       expect(tab.label.trim().length).toBeGreaterThan(0);

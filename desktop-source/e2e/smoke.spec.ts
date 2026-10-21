@@ -6,6 +6,7 @@ const NAV_LABELS = [
   "默认生图",
   "多人工作流",
   "高清修复",
+  "三视图",
   "幸运大转盘",
   "WD1.4",
   "文字特效",
@@ -29,6 +30,37 @@ test("应用加载：主壳与全部标签页渲染", async ({ page }) => {
   for (const label of NAV_LABELS) {
     await expect(page.locator(".nav-item", { hasText: label })).toBeVisible();
   }
+});
+
+test("三视图：模式切换与三视图 LoRA 的兜底挂载", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "三视图" }).click();
+
+  await expect(page.getByRole("heading", { name: "三视图", exact: true })).toBeVisible();
+  // mock 的 LoRA 列表里没有三视图 LoRA → 应提示「按相对路径挂载」而不是报错/空白
+  await expect(page.getByText(/已按相对路径挂载/)).toBeVisible();
+
+  // 切到 SDXL：LoRA 规格随模型族变化
+  await page.getByRole("button", { name: "SDXL · Illustrious / NoobAI" }).click();
+  await expect(page.getByText("三视图 LoRA（Illustrious）")).toBeVisible();
+});
+
+test("LoRA 卡片快捷插入：五个目标都可达（含 Anima / 三视图）", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "LoRA 管理" }).click();
+
+  const card = page.locator(".lora-card").first();
+  await card.hover();
+  const actions = card.locator(".card-quick-actions button");
+  await expect(actions).toHaveCount(5);
+  await expect(actions.filter({ hasText: "Anima" })).toBeVisible();
+  await expect(actions.filter({ hasText: "三视" })).toBeVisible();
+
+  // 点三视图必须落到三视图页的 LoRA 列表，而不是静默写进默认生图
+  await actions.filter({ hasText: "三视" }).click();
+  await expect(page.getByText(/-> 三视图/)).toBeVisible();
+  await page.locator(".nav-item", { hasText: "三视图" }).click();
+  await expect(page.locator(".lora-selection-card", { hasText: "ashima-style" })).toHaveCount(1);
 });
 
 test("默认生图：下拉选项由 object_info 填充（useOptions 解构错位回归防线）", async ({ page }) => {

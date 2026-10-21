@@ -27,7 +27,7 @@ import type {
   LoraOperation,
   LoraUpdateRecord,
   ManagedModelType,
-  TemplateKind,
+  LoraInsertTarget,
   Toast,
   TranslationSettings,
 } from "../../../types";
@@ -83,8 +83,8 @@ export function LoraDetailModal({
   apiBase: string;
   settings: LoraManagerSettings;
   onClose: () => void;
-  onInsert: (target: TemplateKind, strength: number) => void;
-  onInsertWords: (target: TemplateKind, words: string[]) => void;
+  onInsert: (target: LoraInsertTarget, strength: number) => void;
+  onInsertWords: (target: LoraInsertTarget, words: string[]) => void;
   onTriggerWords: () => void;
   onExtractTriggerWords?: () => void;
   onSaveTriggerWords: (words: string[]) => Promise<string[]>;
@@ -297,6 +297,7 @@ export function LoraDetailModal({
                     <button type="button" className="primary-action" onClick={() => onInsert("multi", strength)}><BadgePlus size={16} /> 多人</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("highres", strength)}><BadgePlus size={16} /> 高修</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("anima", strength)}><BadgePlus size={16} /> Anima</button>
+                    <button type="button" className="primary-action" onClick={() => onInsert("sheet", strength)}><BadgePlus size={16} /> 三视图</button>
                   </div>
                 </div>
               </div>

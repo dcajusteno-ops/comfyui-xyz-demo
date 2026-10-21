@@ -3852,6 +3852,10 @@ textarea {
   position: absolute;
   right: 8px;
   bottom: 8px;
+  /* 5 个按钮（默认 / 多人 / 高修 / Anima / 三视）在窄卡片上放不下时向上折行，不溢出封面 */
+  left: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .card-quick-actions button {

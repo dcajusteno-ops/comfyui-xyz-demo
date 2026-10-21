@@ -1,10 +1,10 @@
 import React, { Suspense, lazy } from "react";
 import type {
   LoraExampleMedia,
+  LoraInsertTarget,
   LoraItem,
   LoraManagerSettings,
   LoraOperation,
-  TemplateKind,
   Toast,
   TranslationSettings,
 } from "../types";
@@ -35,20 +35,20 @@ interface GlobalModalsProps {
   setLoraOperation: (op: LoraOperation | null) => void;
   loraDetail: LoraItem | null;
   setLoraDetail: (item: LoraItem | null) => void;
-  simpleLoraTarget: TemplateKind | null;
-  setSimpleLoraTarget: (target: TemplateKind | null) => void;
+  simpleLoraTarget: LoraInsertTarget | null;
+  setSimpleLoraTarget: (target: LoraInsertTarget | null) => void;
   showXyzHelp: boolean;
   setShowXyzHelp: (show: boolean) => void;
   featureModal: { title: string; body: string } | null;
   setFeatureModal: (modal: { title: string; body: string } | null) => void;
-  onLoraInsert: (item: LoraItem, target: TemplateKind, strength?: number) => void;
+  onLoraInsert: (item: LoraItem, target: LoraInsertTarget, strength?: number) => void;
   onLoraRename: (item: LoraItem, nextName: string) => Promise<void>;
   onLoraMove: (item: LoraItem, targetPath: string) => Promise<void>;
   onLoraDelete: (item: LoraItem) => Promise<void>;
   onLoraBatchMove: (items: LoraItem[], targetPath: string) => Promise<void>;
   onLoraBatchDelete: (items: LoraItem[]) => Promise<void>;
   onLoraCivitaiSync: (item: LoraItem) => Promise<void>;
-  onTriggerWordsApply: (words: string[]) => void;
+  onTriggerWordsApply: (words: string[], target: LoraInsertTarget) => void;
   onTriggerWordsSave: (item: LoraItem, words: string[]) => Promise<string[]>;
   onTriggerWordsRead: (item: LoraItem) => Promise<string[]>;
   onPromptApply?: (positive: string, negative: string) => void;
@@ -230,7 +230,7 @@ export function GlobalModals(props: GlobalModalsProps) {
           settings={loras.loraSettings}
           onClose={() => setLoraDetail(null)}
           onInsert={(target, strength) => onLoraInsert(loraDetail, target, strength)}
-          onInsertWords={(target, words) => onTriggerWordsApply(words)}
+          onInsertWords={(target, words) => onTriggerWordsApply(words, target)}
           onTriggerWords={() => onTriggerWordsRead(loraDetail)}
           onExtractTriggerWords={() => loras.extractTriggerWords(loraDetail, true)}
           onSaveTriggerWords={(words) => onTriggerWordsSave(loraDetail, words)}
