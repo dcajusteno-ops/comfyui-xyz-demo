@@ -47,6 +47,12 @@ const SheetGenerationPanel = lazy(() =>
 const AnimaLibraryPanel = lazy(() =>
   import("./components/features/AnimaLibrary").then((m) => ({ default: m.AnimaLibraryPanel })),
 );
+const WardrobePanel = lazy(() =>
+  import("./components/features/Wardrobe").then((m) => ({ default: m.WardrobePanel })),
+);
+const WorkbenchPanel = lazy(() =>
+  import("./components/features/Workbench").then((m) => ({ default: m.WorkbenchPanel })),
+);
 const TextGenerationPanel = lazy(() =>
   import("./components/features/Generation/TextGenerationPanel").then((m) => ({ default: m.TextGenerationPanel })),
 );
@@ -146,7 +152,11 @@ import {
   loraInsertTargetLabels,
 } from "./constants";
 import type { LoraSelection, TemplateKind, LoraInsertTarget, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, JobResult, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams, WatermarkBakeConfig, DrawTextParams } from "./types";
-import type { AnimaApplyMode } from "./lib/anima/types";
+import type { AnimaApplyMode, AnimaComposerValues } from "./lib/anima/types";
+import { mergeComposerSlots } from "./lib/anima/compose";
+import { useWorkbenchComposer } from "./hooks/useAnimaComposer";
+import { applyWardrobeSplitToValues } from "./lib/wardrobe/workbench";
+import type { WardrobeWorkbenchSplit } from "./lib/wardrobe/types";
 import { renderWatermarkLayers } from "./lib/watermark";
 import { applySpecialXyzPatch } from "./lib/xyz";
 import { img2imgUpdater } from "./lib/paramBuilders";
@@ -403,8 +413,8 @@ function App() {
   }, [xyz.xyzTarget, params, pushToast, setTab]);
 
   const handleSidebarSelect = useCallback((text: string, target: "positive" | "negative") => {
-    // 词库页没有自己的生成参数：在它上面从仓库取词时落点应当是 Anima 模板
-    const promptTab = tab === "anima-library" ? "anima" : tab;
+    // 词库 / 造型台 / 工作台没有自己的生成参数：在它们上面从仓库取词时落点应当是 Anima 模板
+    const promptTab = tab === "anima-library" || tab === "wardrobe" || tab === "workbench" ? "anima" : tab;
     const opts = { useGlobal: promptTab === "multi", dedupe: false };
     // 三视图页没有 positivePrompt：正向落「角色描述」，负向落当前模型族的负向框
     const appendToSheet = (side: "positive" | "negative") =>
@@ -494,6 +504,50 @@ function App() {
       `${clean.length} 字符`,
     );
   }, [params.setAnimaParams, pushToast]);
+
+  /**
+   * Anima 造型台 → Anima 模板正向提示词。
+   * 与词库同一条写入路径：追加按逗号去重，覆盖是整段替换。
+   */
+  const handleWardrobeApply = useCallback((text: string, mode: AnimaApplyMode) => {
+    const clean = text.trim();
+    if (!clean) return;
+    if (mode === "replace") {
+      params.setAnimaParams((prev) => ({ ...prev, positivePrompt: clean }));
+    } else {
+      params.setAnimaParams(
+        appendPromptUpdater<AnimaGenerationParams>(clean, { useGlobal: false, dedupe: true }),
+      );
+    }
+    pushToast(
+      "success",
+      mode === "replace" ? "已覆盖 Anima 提示词" : "已追加到 Anima 提示词",
+      `${clean.length} 字符 · 造型台`,
+    );
+  }, [params.setAnimaParams, pushToast]);
+
+  // —— 公共工作台（独立页）：词库与造型台的词在这里合流 ——
+  const [workbench, setWorkbench] = useWorkbenchComposer();
+
+  /** 造型台结果区「工作台」按钮：内容五区 replace、extra 追加、画师保留，然后跳到工作台页。 */
+  const handleSendToWorkbench = useCallback(
+    (split: WardrobeWorkbenchSplit) => {
+      setWorkbench((prev) => ({ ...prev, values: applyWardrobeSplitToValues(prev.values, split) }));
+      setTab("workbench");
+      pushToast("success", "已送入公共工作台", "内容分区已更新，画师保留；可继续加画师后写入提示词");
+    },
+    [setWorkbench, pushToast],
+  );
+
+  /** 词库拼接台「送入工作台」：整份分区追加并入（重复词去重），然后跳到工作台页。 */
+  const handleLibraryToWorkbench = useCallback(
+    (values: AnimaComposerValues) => {
+      setWorkbench((prev) => ({ ...prev, values: mergeComposerSlots(prev.values, values, "append") }));
+      setTab("workbench");
+      pushToast("success", "已送入公共工作台", "词库拼接台的内容已并入工作台（重复词已去重）");
+    },
+    [setWorkbench, pushToast],
+  );
 
   /**
    * Danbooru 随机图 → Anima 参考图。
@@ -615,7 +669,7 @@ function App() {
   const currentPrompts = useMemo(() => {
     if (tab === "multi") return { positive: params.multiParams.globalPrompt, negative: params.multiParams.negativePrompt };
     if (tab === "highres") return { positive: params.highresParams.positivePrompt, negative: params.highresParams.negativePrompt };
-    if (tab === "anima" || tab === "anima-library") return { positive: params.animaParams.positivePrompt, negative: params.animaParams.negativePrompt };
+    if (tab === "anima" || tab === "anima-library" || tab === "wardrobe" || tab === "workbench") return { positive: params.animaParams.positivePrompt, negative: params.animaParams.negativePrompt };
     if (tab === "sheet") {
       return {
         positive: composeSheetPromptFromParams(params.sheetParams),
@@ -771,7 +825,7 @@ function App() {
 
         <div className="layout-with-sidebar">
           {/* `lora-full` 是历史命名的「全宽无输出栏」布局，词库页同样需要 */}
-          <div className={["layout", gen.results.length > 0 ? "has-output" : "no-output", tab === "loras" || tab === "anima-library" ? "lora-full" : ""].filter(Boolean).join(" ")}>
+          <div className={["layout", gen.results.length > 0 ? "has-output" : "no-output", tab === "loras" || tab === "anima-library" || tab === "wardrobe" || tab === "workbench" ? "lora-full" : ""].filter(Boolean).join(" ")}>
             <main className="workspace">
               <Suspense fallback={<PanelFallback />}>
               {tab === "default" && (
@@ -858,6 +912,7 @@ function App() {
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
                   onUploadImage={uploadImage}
                   onOpenAnimaLibrary={() => setTab("anima-library")}
+                  onOpenWardrobe={() => setTab("wardrobe")}
                 />
               )}
 
@@ -1017,12 +1072,37 @@ function App() {
                   onSetAnimaReference={handleAnimaReference}
                   onConfirm={ui.confirm}
                   pushToast={pushToast}
+                  onSendToWorkbench={handleLibraryToWorkbench}
+                />
+              )}
+
+              {tab === "wardrobe" && (
+                <WardrobePanel
+                  currentPrompt={params.animaParams.positivePrompt}
+                  onApplyPrompt={handleWardrobeApply}
+                  onConfirm={ui.confirm}
+                  pushToast={pushToast}
+                  onOpenAnima={() => setTab("anima")}
+                  workbenchValues={workbench.values}
+                  onSendToWorkbench={handleSendToWorkbench}
+                />
+              )}
+
+              {tab === "workbench" && (
+                <WorkbenchPanel
+                  state={workbench}
+                  setState={setWorkbench}
+                  currentPrompt={params.animaParams.positivePrompt}
+                  onApplyPrompt={handleAnimaLibraryApply}
+                  onConfirm={ui.confirm}
+                  pushToast={pushToast}
+                  onOpenAnimaLibrary={() => setTab("anima-library")}
                 />
               )}
               </Suspense>
             </main>
 
-            {tab !== "loras" && tab !== "anima-library" && !(tab === "notes" && notesHook.isNotesWide) && (
+            {tab !== "loras" && tab !== "anima-library" && tab !== "wardrobe" && tab !== "workbench" && !(tab === "notes" && notesHook.isNotesWide) && (
               <aside className={gen.results.length > 0 || gen.progress.previewUrl ? "output-panel" : "output-panel is-empty"}>
                 <div className="gallery">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>

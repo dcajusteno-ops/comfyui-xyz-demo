@@ -1,13 +1,15 @@
 import React, { useMemo } from "react";
-import { Copy, Eraser, Plus, Replace } from "lucide-react";
+import { Blocks, Copy, Eraser, Plus, Replace } from "lucide-react";
 import type { Toast } from "../../../types";
 import type { AnimaApplyMode, AnimaComposerSlot, AnimaComposerState, AnimaLibrarySection } from "../../../lib/anima/types";
 import {
   COMPOSER_SLOT_META,
+  appendTokensToSlot,
   buildComposerPreview,
   composerTokens,
 } from "../../../lib/anima/compose";
 import { AnimaComposerSection } from "./AnimaComposerSection";
+import { AnimaArtistPicker } from "./AnimaArtistPicker";
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
 
@@ -30,6 +32,10 @@ type Props = {
   onConfirm: (title: string, message: string, onConfirm: () => void) => void;
   onOpenGallery: (section: AnimaLibrarySection) => void;
   pushToast: ToastFn;
+  /** 画师分区下方的「画师快取」（独立工作台同样复用） */
+  showArtistPicker?: boolean;
+  /** 「送入工作台」：把当前分区内容追加并进独立的 Anima 工作台页（词库侧传入） */
+  onSendToWorkbench?: () => void;
 };
 
 export const AnimaComposer = React.memo(({
@@ -43,6 +49,8 @@ export const AnimaComposer = React.memo(({
   onConfirm,
   onOpenGallery,
   pushToast,
+  showArtistPicker = true,
+  onSendToWorkbench,
 }: Props) => {
   const counts = useMemo(() => composerTokens(state.values), [state.values]);
   const preview = useMemo(
@@ -63,6 +71,9 @@ export const AnimaComposer = React.memo(({
   return (
     <div className="al-composer">
       <div className="al-composer-sections">
+        <div className="al-composer-order">
+          输出顺序（Anima 官方）：<b>质量 → 画师 → 角色 → 服装 → 背景 → 姿势 → 额外</b>
+        </div>
         {COMPOSER_SLOT_META.map((meta) => {
           const section = SLOT_TO_SECTION[meta.key];
           return (
@@ -74,6 +85,15 @@ export const AnimaComposer = React.memo(({
               onChange={onChangeSlot}
               onClear={onClearSlot}
               onOpenLibrary={section ? () => onOpenGallery(section) : undefined}
+              after={
+                meta.key === "artist" && showArtistPicker ? (
+                  <AnimaArtistPicker
+                    onAdd={(token) =>
+                      onChangeSlot("artist", appendTokensToSlot(state.values.artist, [token]))
+                    }
+                  />
+                ) : undefined
+              }
             />
           );
         })}
@@ -120,10 +140,21 @@ export const AnimaComposer = React.memo(({
             type="button"
             className="secondary-action"
             disabled={!hasAny}
-            onClick={() => onConfirm("清空拼接台", "确定清空七个分区的全部内容吗？", onClearAll)}
+            onClick={() => onConfirm("清空分区", "确定清空七个分区的全部内容吗？", onClearAll)}
           >
             <Eraser size={15} /> 清空
           </button>
+          {onSendToWorkbench && (
+            <button
+              type="button"
+              className="secondary-action"
+              disabled={!hasAny}
+              onClick={onSendToWorkbench}
+              title="把当前分区内容追加并进独立的「Anima 工作台」页（重复词去重）"
+            >
+              <Blocks size={15} /> 送入工作台
+            </button>
+          )}
         </div>
 
         <div className="al-current">

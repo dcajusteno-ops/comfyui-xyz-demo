@@ -12,6 +12,8 @@ type Props = {
   onChange: (slot: AnimaComposerSlot, value: string) => void;
   onClear: (slot: AnimaComposerSlot) => void;
   onOpenLibrary?: () => void;
+  /** 输入框下方的附加区域（画师分区挂「画师快取」） */
+  after?: React.ReactNode;
 };
 
 export const AnimaComposerSection = React.memo(({
@@ -21,6 +23,7 @@ export const AnimaComposerSection = React.memo(({
   onChange,
   onClear,
   onOpenLibrary,
+  after,
 }: Props) => (
   <div className="al-composer-section">
     <div className="al-composer-section-head">
@@ -47,6 +50,7 @@ export const AnimaComposerSection = React.memo(({
       spellCheck={false}
       onChange={(event) => onChange(meta.key, event.target.value)}
     />
+    {after}
   </div>
 ));
 

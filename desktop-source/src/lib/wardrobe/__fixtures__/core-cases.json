@@ -1,0 +1,445 @@
+{
+ "sanitize": [
+  {
+   "name": "hands",
+   "input": {
+    "count": "1girl, solo",
+    "arms_hands": "hand in own hair",
+    "pose_risque": "skirt pull"
+   },
+   "cleared": [
+    "pose_risque（上肢单槽，让位给 arms_hands）"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "arms_hands": "hand in own hair",
+    "pose_risque": ""
+   }
+  },
+  {
+   "name": "extra_hand",
+   "input": {
+    "count": "1girl, solo",
+    "arms_hands": "hand in own hair",
+    "n_extra": "stretching"
+   },
+   "cleared": [
+    "arms_hands（上肢单槽，让位给 extra 的 stretching）"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "arms_hands": "",
+    "n_extra": "stretching"
+   }
+  },
+  {
+   "name": "solo_partner",
+   "input": {
+    "count": "1girl, solo",
+    "n_act": "missionary",
+    "n_cum": "creampie"
+   },
+   "cleared": [
+    "n_act（`missionary` 需要伴侣，与当前人数不符）",
+    "n_cum（`creampie` 需要伴侣，与当前人数不符）"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "n_act": "",
+    "n_cum": ""
+   }
+  },
+  {
+   "name": "solo_group_theme",
+   "input": {
+    "count": "1girl, solo",
+    "n_theme": "threesome",
+    "n_cum": "bukkake"
+   },
+   "cleared": [
+    "n_cum（`bukkake` 需要伴侣，与当前人数不符）",
+    "n_theme（`threesome` 是三人以上才成立的元素，与当前人数不符）"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "n_theme": "",
+    "n_cum": ""
+   }
+  },
+  {
+   "name": "nude_outfit",
+   "input": {
+    "count": "1girl, solo",
+    "n_state": "completely nude",
+    "outfit": "evening gown",
+    "n_fabric": "lingerie"
+   },
+   "cleared": [
+    "outfit",
+    "n_fabric"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "n_state": "completely nude",
+    "outfit": "",
+    "n_fabric": ""
+   }
+  },
+  {
+   "name": "pantyhose_bare",
+   "input": {
+    "count": "1girl, solo",
+    "socks": "black pantyhose",
+    "shoes": "bare feet"
+   },
+   "cleared": [
+    "shoes(改高跟鞋)"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "socks": "black pantyhose",
+    "shoes": "high heels"
+   }
+  },
+  {
+   "name": "blindfold",
+   "input": {
+    "count": "1girl, solo",
+    "n_theme": "blindfold",
+    "accessory": "glasses",
+    "n_orgasm": "heart-shaped pupils"
+   },
+   "cleared": [
+    "accessory",
+    "n_orgasm"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "n_theme": "blindfold",
+    "accessory": "",
+    "n_orgasm": ""
+   }
+  },
+  {
+   "name": "facing_away",
+   "input": {
+    "count": "1girl, solo",
+    "pose_base": "standing, facing away",
+    "eye_gaze": "looking at viewer"
+   },
+   "cleared": [
+    "eye_gaze"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "pose_base": "standing, facing away",
+    "eye_gaze": ""
+   }
+  },
+  {
+   "name": "pov_full",
+   "input": {
+    "count": "1girl, solo",
+    "viewpoint": "pov",
+    "shot_size": "full body"
+   },
+   "cleared": [
+    "shot_size(改七分身)"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "viewpoint": "pov",
+    "shot_size": "cowboy shot"
+   }
+  },
+  {
+   "name": "lofi_dof",
+   "input": {
+    "count": "1girl, solo",
+    "device": "selfie",
+    "dof": "focus on face"
+   },
+   "cleared": [
+    "dof"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "device": "selfie",
+    "dof": ""
+   }
+  },
+  {
+   "name": "above_lookup",
+   "input": {
+    "count": "1girl, solo",
+    "viewpoint": "from above",
+    "eye_gaze": "looking up"
+   },
+   "cleared": [
+    "eye_gaze(改注视镜头)"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "viewpoint": "from above",
+    "eye_gaze": "looking at viewer"
+   }
+  },
+  {
+   "name": "protected_outfit",
+   "input": {
+    "count": "1girl, solo",
+    "_preset_fields": [
+     "outfit"
+    ],
+    "outfit": "bikini",
+    "n_state": "completely nude"
+   },
+   "cleared": [
+    "n_state"
+   ],
+   "state": {
+    "count": "1girl, solo",
+    "_preset_fields": [
+     "outfit"
+    ],
+    "outfit": "bikini",
+    "n_state": ""
+   }
+  }
+ ],
+ "repair": [
+  {
+   "name": "sfw_wet",
+   "tags": [
+    "wet hair",
+    "completely nude",
+    "black_hair",
+    "black hair",
+    "blindfold",
+    "heart-shaped pupils"
+   ],
+   "lv": 0,
+   "result": [
+    [
+     "wet hair",
+     "black hair"
+    ],
+    [
+     "格式：`black_hair` → `black hair`",
+     "档位：剔除超 0 档的 `completely nude`",
+     "档位：剔除超 0 档的 `blindfold`",
+     "档位：剔除超 0 档的 `heart-shaped pupils`"
+    ]
+   ]
+  },
+  {
+   "name": "nude_outfit",
+   "tags": [
+    "completely nude",
+    "evening gown",
+    "black thighhighs",
+    "bare feet"
+   ],
+   "lv": 0,
+   "result": [
+    [
+     "evening gown",
+     "black thighhighs",
+     "bare feet"
+    ],
+    [
+     "档位：剔除超 0 档的 `completely nude`"
+    ]
+   ]
+  },
+  {
+   "name": "pantyhose",
+   "tags": [
+    "black pantyhose",
+    "bare feet"
+   ],
+   "lv": 0,
+   "result": [
+    [
+     "black pantyhose",
+     "bare feet"
+    ],
+    []
+   ]
+  },
+  {
+   "name": "solo_multi",
+   "tags": [
+    "1girl",
+    "solo",
+    "2girls",
+    "smile"
+   ],
+   "lv": 0,
+   "result": [
+    [
+     "1girl",
+     "2girls",
+     "smile"
+    ],
+    [
+     "数量互斥（solo 与多人标签冲突）：`solo`"
+    ]
+   ]
+  },
+  {
+   "name": "pov",
+   "tags": [
+    "pov",
+    "full body",
+    "from above",
+    "looking up",
+    "from below",
+    "looking down"
+   ],
+   "lv": 2,
+   "result": [
+    [
+     "pov",
+     "from above",
+     "looking at viewer",
+     "looking down"
+    ],
+    [
+     "视角互斥（POV 看不到自身全身）：`full body`",
+     "视角互斥（俯拍与仰拍同现）：`from below`",
+     "视角互斥（俯拍时的抬眼）：`looking up` → `looking at viewer`"
+    ]
+   ]
+  },
+  {
+   "name": "stand_lie",
+   "tags": [
+    "standing sex",
+    "on all fours",
+    "lying on stomach"
+   ],
+   "lv": 3,
+   "result": [
+    [
+     "standing sex"
+    ],
+    [
+     "体位互斥（站立性行为与俯卧体态矛盾）：`on all fours`, `lying on stomach`"
+    ]
+   ]
+  },
+  {
+   "name": "dup_fmt",
+   "tags": [
+    "black_hair",
+    "black_hair",
+    "smile",
+    "score_tag"
+   ],
+   "lv": 0,
+   "result": [
+    [
+     "black hair",
+     "smile",
+     "score_tag"
+    ],
+    [
+     "格式：`black_hair` → `black hair`",
+     "格式：`black_hair` → `black hair`"
+    ]
+   ]
+  },
+  {
+   "name": "raise_tag",
+   "tags": [
+    "fishnet bodystocking",
+    "smile"
+   ],
+   "lv": 0,
+   "result": [
+    [
+     "smile"
+    ],
+    [
+     "档位：剔除超 0 档的 `fishnet bodystocking`"
+    ]
+   ]
+  }
+ ],
+ "collect": [
+  {
+   "name": "c0",
+   "input": {
+    "count": "1girl, solo",
+    "role": "hatsune miku, vocaloid",
+    "hair_color": "blue hair",
+    "outfit": "school uniform",
+    "socks": "white socks",
+    "pose_base": "standing",
+    "emotion": "smile",
+    "shot_size": "upper body",
+    "place": "classroom",
+    "light_fx": "soft lighting",
+    "nl": "looking at viewer"
+   },
+   "out": [
+    "1girl",
+    "solo",
+    "hatsune miku",
+    "vocaloid",
+    "blue hair",
+    "school uniform",
+    "white socks",
+    "standing",
+    "smile",
+    "upper body",
+    "classroom",
+    "soft lighting",
+    "looking at viewer"
+   ]
+  },
+  {
+   "name": "c1",
+   "input": {
+    "count": "2girls, yuri",
+    "n_state": "completely nude",
+    "n_act": "missionary",
+    "n_extra": "afternoon light, quiet",
+    "_preset_fields": [
+     "n_extra"
+    ]
+   },
+   "out": [
+    "2girls",
+    "yuri",
+    "completely nude",
+    "missionary",
+    "afternoon light",
+    "quiet"
+   ]
+  },
+  {
+   "name": "c2",
+   "input": {
+    "count": "1girl, solo",
+    "hair_acc": "hair ornament",
+    "makeup": "lipstick",
+    "skin_detail": "mole",
+    "leg": "thigh gap",
+    "texture_fx": "film grain",
+    "comp": "portrait"
+   },
+   "out": [
+    "1girl",
+    "solo",
+    "hair ornament",
+    "thigh gap",
+    "portrait",
+    "lipstick",
+    "mole",
+    "film grain"
+   ]
+  }
+ ]
+}

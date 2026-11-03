@@ -3,6 +3,7 @@ import {
   appendTokensToSlot,
   buildComposerPreview,
   composerTokens,
+  mergeComposerSlots,
   toApplyText,
 } from "./compose";
 import { emptyComposerValues } from "./persist";
@@ -56,5 +57,39 @@ describe("分区拼接台", () => {
   it("加入分区时去重，不反复堆同一个词", () => {
     expect(appendTokensToSlot("a, b", ["B", "c"])).toBe("a, b, c");
     expect(appendTokensToSlot("", ["x", "x"])).toBe("x");
+  });
+});
+
+describe("mergeComposerSlots：造型台结果并入工作台", () => {
+  it("append 模式逐分区追加并去重，未传分区保持原样", () => {
+    const values = {
+      ...emptyComposerValues(),
+      quality: "masterpiece",
+      artist: "@wlop",
+      clothing: "gown",
+    };
+    const next = mergeComposerSlots(values, {
+      character: ["1girl", "solo"],
+      clothing: ["gown", "jacket"],
+      extra: ["depth of field"],
+    });
+    expect(next.quality).toBe("masterpiece");
+    expect(next.artist).toBe("@wlop");
+    expect(next.clothing).toBe("gown, jacket");
+    expect(next.character).toBe("1girl, solo");
+    expect(next.extra).toBe("depth of field");
+  });
+
+  it("replace 模式整段替换该分区，其余不动", () => {
+    const values = { ...emptyComposerValues(), clothing: "old clothes", extra: "keep me" };
+    const next = mergeComposerSlots(values, { clothing: ["new dress", "new dress"] }, "replace");
+    expect(next.clothing).toBe("new dress");
+    expect(next.extra).toBe("keep me");
+  });
+
+  it("空 token 与空分区都不产生脏数据", () => {
+    const values = { ...emptyComposerValues(), character: "1girl" };
+    const next = mergeComposerSlots(values, { clothing: ["", "  "], artist: [] });
+    expect(next).toEqual(values);
   });
 });

@@ -118,3 +118,30 @@ export function appendTokensToSlot(current: string, tokens: readonly string[]): 
   const merged = dedupeTokens([...splitSectionTokens(current), ...tokens]);
   return merged.join(", ");
 }
+
+/**
+ * 把一批「已经分好区」的词合并进拼接台。
+ *
+ * - `append`：逐分区追加并去重，已有顺序不动（画师区因此不会被造型台结果冲掉）；
+ * - `replace`：整段替换该分区，用于「这套服装/姿势整体换掉」。
+ *
+ * 只处理传入的分区，未传的分区保持原样——调用方据此保住 quality / artist。
+ * 每个分区的值既可以是 token 数组，也可以是逗号分隔的原文（词库拼接台整份并入时直接传 values）。
+ */
+export function mergeComposerSlots(
+  values: AnimaComposerValues,
+  incoming: Partial<Record<AnimaComposerSlot, readonly string[] | string>>,
+  mode: "append" | "replace" = "append",
+): AnimaComposerValues {
+  const next: AnimaComposerValues = { ...values };
+  for (const slot of COMPOSER_SLOT_ORDER) {
+    const raw = incoming[slot];
+    if (raw === undefined) continue;
+    const tokens = (typeof raw === "string" ? splitSectionTokens(raw) : raw)
+      .map((token) => String(token ?? "").trim())
+      .filter(Boolean);
+    if (!tokens.length) continue;
+    next[slot] = mode === "replace" ? dedupeTokens(tokens).join(", ") : appendTokensToSlot(next[slot], tokens);
+  }
+  return next;
+}

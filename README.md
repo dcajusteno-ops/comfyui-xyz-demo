@@ -10,7 +10,8 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 目前项目已搭建完毕基础架构，并实现了以下核心标签页功能：
 
-> **🆕 v0.7.9 亮点**：**三视图** —— 侧边栏「生图模板」新增独立生成页，选 `Anima` 或 `SDXL · Illustrious / NoobAI` 后**自动挂对应三视图 LoRA、自动补触发词**（权重可调、可关、可叠加其它 LoRA），固定「正 / 侧 / 背」视角拼装提示词，支持参考图（Anima 走 `ImageResizeKJv2`、SDXL 走 `ImageScale + VAEEncode`）；Anima 有档位/阶段/放大，SDXL 有**与「高清修复」同一套的放大 + 全图/手/脸/眼/NSFW 修复**，两套参数与参考图互不污染。不新增工作流拓扑：Anima 复用 `buildAnimaPrompt`、SDXL 复用 `buildDefaultPrompt` / `buildHighresPrompt`。同时补齐 LoRA 卡片与详情弹窗的 **Anima / 三视图插入入口**，并修掉「触发词落点按钮的 target 被吞掉、全写默认生图」的老问题。详见下方「### 45. 三视图」。
+> **🆕 v0.8.0 亮点**：**Anima 造型台 + 独立工作台** —— 侧边栏「工具组件」新增独立页，把 Comfyui-Anima-Wardrobe-V4 的造型引擎完整移植到前端：15 段 / 57 字段 / 1128 选项、五级档位闸门、三层权重、2383 位角色、261 条场景、16 种服装风格与颜色合成。**同 seed 与插件逐字一致**（移植 CPython MT19937，187 条对拍夹具守门）；数据与 2374 张缩略图内置 exe，离线可用；结果只写 Anima 正向提示词，不改工作流拓扑。**新增独立「Anima 工作台」页**：词库与造型台的词在这里合流，画师快取按 Anima 官方格式（`@name`，质量词之后、角色之前）插入。详见下方「### 45. Anima 造型台」。
+> **🆕 v0.7.9 亮点**：**三视图** —— 侧边栏「生图模板」新增独立生成页，选 `Anima` 或 `SDXL · Illustrious / NoobAI` 后**自动挂对应三视图 LoRA、自动补触发词**（权重可调、可关、可叠加其它 LoRA），固定「正 / 侧 / 背」视角拼装提示词，支持参考图（Anima 走 `ImageResizeKJv2`、SDXL 走 `ImageScale + VAEEncode`）；Anima 有档位/阶段/放大，SDXL 有**与「高清修复」同一套的放大 + 全图/手/脸/眼/NSFW 修复**，两套参数与参考图互不污染。不新增工作流拓扑：Anima 复用 `buildAnimaPrompt`、SDXL 复用 `buildDefaultPrompt` / `buildHighresPrompt`。同时补齐 LoRA 卡片与详情弹窗的 **Anima / 三视图插入入口**，并修掉「触发词落点按钮的 target 被吞掉、全写默认生图」的老问题。详见下方「### 46. 三视图」。
 > **🆕 v0.7.8 亮点**：**Anima 词库** —— 把 Comfyui-Anima-Tools 的提示词能力整进面板：侧边栏新增「Anima 词库」标签页，**画廊**（画师 40,600 / 角色 8,000 / 服装 430 / 背景 1,087 / 姿势 297，搜索 / 筛选 / 排序 / 收藏 / 多选 / 随机抽 1）、**七分区拼接台**（实时预览，追加 / 覆盖到 Anima 正向提示词）、**随机抽卡**（三类种子、三种角色细节、服装四来源）、**Danbooru 随机图**（标签查询 + 分级多选 `rating:g,s` + 推荐屏蔽词一键补齐 + 一键写入提示词 / 设为 Anima 参考图）。词库内置 exe（约 6.6MB）离线可用；Danbooru 图片走**同源代理** `/xyz/anima/image`（TS + Go 双实现，仅放行 `*.donmai.us`）解决 CDN 热链 403 空白；面板下拉全部换成**自绘组件**，修掉深色主题下原生 select 弹层「灰底白字」看不清的问题。纯前端拼接、不改工作流拓扑、运行时不依赖插件安装。
 > **🆕 v0.7.7 亮点**：**图片文字水印** —— 输出面板点开结果图，查看器工具栏新增「印章」按钮打开水印弹窗：文字 / 字号 / 颜色 / 不透明度、**九宫格定位** + 边距 + 旋转（-90°~90°）、**平铺整图**防盗图样式，实时预览后一键下载 PNG，参数持久化。**「自动水印」开关把水印烙进工作流** —— 水印参数自动渲染成双图层上传 ComfyUI，在四条工作流链尾（手写层之上）用**内置节点**合成，**落盘的出图文件本身就带水印**，XYZ 组合同样生效；烙入失败自动回退前端叠加、不双重水印，关闭后工作流与未开启逐节点一致。
 > **🆕 v0.7.6 亮点**：「文字特效 & 水印」新增**手写板（笔迹水印）** —— 手写文字/签名**原样叠加**到生成图上（保留笔迹，不做 OCR 识别、不用字体重渲染），与文字特效相互独立、可同时开启。画布即当前生图尺寸，直接画在最终位置，板内画笔（颜色/粗细/不透明度）、橡皮、整层移动/缩放、撤销 20 步与清空齐全，支持鼠标与触摸；导出黑底彩笔 + 红通道遮罩两张 PNG，由 **ComfyUI 内置节点**（LoadImage → ImageScale → ImageToMask → ImageCompositeMasked）在四条工作流链尾合成，**零自定义节点改动**。同面板底栏补上「Anima」生成按钮，四入口并排。
@@ -376,6 +377,26 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 - **自绘下拉**：Anima 面板全部改用自绘 `AnimaSelect` / `AnimaMultiSelect`（实底弹层 + 选中项对勾 + 键盘导航）——原生 `<select>` 的弹层由系统绘制，深色主题下是浅灰底配主题亮字，几乎看不清，且 `color-scheme` 在 WebView2 里不可靠。
 - **测试**：`src/lib/anima/*.test.ts` 共 9 个文件 131 条（分词 / 随机 / 拼接 / 抽卡四类服装来源 / 角色细节与冲突色 / Danbooru 选图与重试 / 分级多选与旧档迁移 / 推荐屏蔽词整组切换 / 懒加载缓存 / 画廊索引 / 持久化修复），另有 `server/animaImage.test.ts` 与 Go `internal/api/anima_image_test.go` 守代理白名单；E2E 覆盖入口、五分区与拼接预览、自绘下拉、分级多选与推荐屏蔽词。
 
+### 45. Anima 造型台：把 Comfyui-Anima-Wardrobe-V4 的参数化造型引擎搬进面板
+
+- **新增「工具组件 → Anima 造型台」标签页**（Anima 生图面板底栏也有「造型台」快捷入口），左侧是 15 段参数树，右侧是角色库 / 场景库 / 预设与常驻结果区。
+- **参数树**：15 段 / 57 字段 / 1128 选项；五级档位（全年龄 / 擦边 / 成人 / 过激 / 极端）按 `section_floor` 做段闸门，段内再按选项档位收敛候选；段 / 字段 / 选项三层权重（0 = 关闭，3.0 = 必现）、锁定、强制选项、禁用段、标签上限、基础概率、seed。
+- **角色库**：2383 位角色 / 288 作品（含覆盖层的 122 条修正与 12 位自定义角色）；中文 / 英文 / tag 搜索、作品筛选、仅收藏、多选（上限 8，联动人数标签）；缩略图 2374 张内置，缺失自动占位。
+- **场景库**：261 条（SFW 92 / NSFW 70 / 特写 60 / 姿势 39）；分组 / 搜索 / 收藏 / 预览 / 一键套用（把 `n_canon` 权重顶到 3.0，场景档位高于当前档时自动升档，`no_role` 场景自动锁角色）。
+- **风格与颜色**：16 种服装风格 + 场景锚点 + 兼容度加权 + 铁律剔除；颜色只拼进经过矩阵验证的 `{color} {garment}` 组合，未命中则回退或跳过。
+- **独立公共工作台**：侧边栏新增「**Anima 工作台**」独立页——词库与造型台的词在这里合流。造型台结果区「工作台」按钮把抽取结果按槽位拆进分区（内容区整体替换、`extra` 追加、画师保留）；词库拼接台有「送入工作台」按钮，工作台页内也可随时「← 词库拼接台 / ← 造型台上一轮」回拉。画师分区自带 4 万条画师快取，点一下按 Anima 官方格式写成 `@name`；输出顺序固定 **质量 → 画师 → 角色 → 服装 → 背景 → 姿势 → 额外**。
+- **角色库计数口径**：「全部作品」右侧数字 = **角色数**（与插件面板一致），统计行里给作品数；作品列表比插件内置多出的几行来自角色覆盖层指向的新作品名（插件 v3.44.4 同款补行规则）。
+- **同 seed 逐字一致**：移植了 CPython `random.Random` 的 MT19937（`init_by_array` / `randrange` / `sample` 的拒绝采样与 pool 交换分支）与 `zlib.crc32` 派生种子；187 条对拍夹具（含 80 条随机压力用例）逐字比对 `text / tags / state / dropped` 全绿。
+- **数据内置**：`public/data/wardrobe/`（JSON 约 1.4MB + 缩略图 10.3MB，随 dist 打进 exe，离线可用）。来源为 [Comfyui-Anima-Wardrobe-V4](https://github.com/lingdongbudong/Comfyui-Anima-Wardrobe-V4) v4.0.0（MIT）。刷新数据：
+  ```bash
+  cd desktop-source
+  python -B scripts/export-wardrobe-tables.py --plugin "<插件根目录>"
+  node scripts/import-wardrobe-data.mjs --plugin "<插件根目录>"
+  node scripts/import-wardrobe-data.mjs --verify-only
+  ```
+  插件目录也可用环境变量 `ANIMA_WARDROBE_DIR`。导入脚本会校验选项档位覆盖、场景字段引用、缩略图缺失，并生成 `manifest.json`。
+- **不改工作流拓扑**：结果只写 `animaParams.positivePrompt`（追加 / 覆盖 / 复制，可选 Anima 画质前缀），`buildAnimaPrompt`、XYZ、预设、手机端均不受影响。
+
 ---
 
 ## 🚀 快速开始 (Quick Start)
@@ -428,7 +449,7 @@ ComfyUI-XYZ-Web.exe --web          # 兼容模式：本地服务 + 浏览器
 - **可写的东西统一落在 exe 同级的 `data/`**（首次运行自动创建）：笔记、通配符在线编辑（内置词库首次运行播种到 `data/wildcards/`，改完立刻生效）、主题与壁纸、窗口尺寸记忆、启动器清单、界面状态。exe 旁边**不会**生成 `public/`，也**不需要源码树**。
 - 设计与实施细节见 `任务书-Go单文件exe.md`（本地文档）。
 
-### 45. 三视图：角色三视图（character sheet）生成页（v0.7.9）
+### 46. 三视图：角色三视图（character sheet）生成页（v0.7.9）
 - **侧边栏「生图模板」新增「三视图」**（紧随 Anima 生图）：一个页面直接出角色三视图，不必再手动挂 LoRA、手写 `multiple views / reference sheet / front view / side view / back view` 那套触发词。
 - **按模型族切换生成模式**：`Anima` 与 `SDXL · Illustrious / NoobAI` 两套参数各自独立持久化（模型栈 / checkpoint / 步数 / CFG / 采样器 / 尺寸 / 负向 / 参考图互不干扰），首次打开从「Anima 生图」「默认生图」继承模型与采样参数。
 - **自动挂载三视图 LoRA + 自动补触发词**：Anima 用 `AnimaLora/三视图/Character Sheet for Anima.safetensors`（默认 0.70，推荐 0.6–0.8），Illustrious 用 `AnimaLora/三视图/TRcharactersheet-10.safetensors`（默认 0.90，推荐 0.8–1.0）；权重滑杆 0–2、触发词与背景词各自可关，仍可叠加其它 LoRA（底栏「添加 LoRA」复用简易 LoRA 管理器）。

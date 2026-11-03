@@ -50,3 +50,11 @@ ComfyUI-XYZ-Web.exe~
 desktop-source/public/data/*
 !desktop-source/public/data/anima/
 !desktop-source/public/data/anima/*.json
+
+# Anima 造型台内置数据（JSON + 2372 张角色缩略图；import-wardrobe-data.mjs 可重建）
+!desktop-source/public/data/wardrobe/
+desktop-source/public/data/wardrobe/*
+!desktop-source/public/data/wardrobe/*.json
+!desktop-source/public/data/wardrobe/thumbs/
+desktop-source/public/data/wardrobe/thumbs/*
+!desktop-source/public/data/wardrobe/thumbs/*.webp

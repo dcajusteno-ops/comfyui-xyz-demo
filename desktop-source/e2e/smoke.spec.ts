@@ -13,6 +13,8 @@ const NAV_LABELS = [
   "XYZ 控制器",
   "LoRA 管理",
   "Anima 词库",
+  "Anima 造型台",
+  "Anima 工作台",
   "记事本",
 ];
 

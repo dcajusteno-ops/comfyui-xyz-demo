@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from "react";
-import { Sparkles, Plus, Upload, RotateCcw, LibraryBig } from "lucide-react";
+import { Sparkles, Plus, Upload, RotateCcw, LibraryBig, Shirt } from "lucide-react";
 import { PanelTitle, BaseControls, SelectField, NumberField } from "../../ui";
 import { PresetBar } from "./PresetBar";
 import { DetailerControls } from "./DetailerControls";
@@ -40,6 +40,8 @@ interface AnimaGenerationPanelProps {
   onUploadImage: (file: File) => Promise<string>;
   /** 打开 Anima 词库（可选：老调用方/测试夹具不传） */
   onOpenAnimaLibrary?: () => void;
+  /** 打开 Anima 造型台（可选） */
+  onOpenWardrobe?: () => void;
 }
 
 /** 预计输出分辨率与放大链摘要（估算值：percent 是直传节点的，此处按模型标称倍率折算） */
@@ -92,6 +94,7 @@ export const AnimaGenerationPanel = React.memo(({
   onSetSimpleLoraTarget,
   onUploadImage,
   onOpenAnimaLibrary,
+  onOpenWardrobe,
 }: AnimaGenerationPanelProps) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const preview = useAnimaPreview(params);
@@ -444,6 +447,16 @@ export const AnimaGenerationPanel = React.memo(({
             className="secondary-action"
           >
             <LibraryBig size={16} /> 词库
+          </button>
+        )}
+        {onOpenWardrobe && (
+          <button
+            type="button"
+            onClick={onOpenWardrobe}
+            title="打开 Anima 造型台（段位 / 权重 / 角色 / 场景）"
+            className="secondary-action"
+          >
+            <Shirt size={16} /> 造型台
           </button>
         )}
         <button

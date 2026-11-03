@@ -1,4 +1,5 @@
 import {
+  Blocks,
   Boxes,
   Columns3,
   Disc3,
@@ -6,6 +7,7 @@ import {
   ImageUp,
   LibraryBig,
   ScanSearch,
+  Shirt,
   SlidersHorizontal,
   Sparkles,
   Type,
@@ -73,6 +75,9 @@ export const toolTabs: TabConfig[] = [
   { id: "loras", label: "LoRA 管理", icon: Boxes },
   // 该组从第 10 项起本来就不在数字键 1-9 的覆盖范围，插在记事本前不影响既有快捷键
   { id: "anima-library", label: "Anima 词库", icon: LibraryBig },
+  { id: "wardrobe", label: "Anima 造型台", icon: Shirt },
+  // 独立公共工作台：词库与造型台的词在这里合流（不是嵌在两边页面里）
+  { id: "workbench", label: "Anima 工作台", icon: Blocks },
   { id: "notes", label: "记事本", icon: FileText },
 ];
 

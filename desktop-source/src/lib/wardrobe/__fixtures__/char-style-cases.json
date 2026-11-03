@@ -1,0 +1,1063 @@
+{
+ "rolePoolCounts": {
+  "0": 2411,
+  "1": 2412,
+  "2": 2423,
+  "3": 2423,
+  "4": 2423
+ },
+ "rolePoolHead": {
+  "0": [
+   [
+    "四宫辉夜",
+    "shinomiya kaguya, kaguya-sama: love is war",
+    0
+   ],
+   [
+    "藤原千花",
+    "fujiwara chika, kaguya-sama: love is war",
+    0
+   ],
+   [
+    "樱岛麻衣",
+    "sakurajima mai, seishun buta yarou wa bunny girl senpai no yume wo minai",
+    0
+   ],
+   [
+    "雪之下雪乃",
+    "yukinoshita yukino, yahari ore no seishun love come wa machigatteiru.",
+    0
+   ],
+   [
+    "一色彩羽",
+    "isshiki iroha, yahari ore no seishun love come wa machigatteiru.",
+    0
+   ],
+   [
+    "中野二乃",
+    "nakano nino, go-toubun no hanayome",
+    0
+   ],
+   [
+    "中野一花",
+    "nakano ichika, go-toubun no hanayome",
+    0
+   ],
+   [
+    "中野四叶",
+    "nakano yotsuba, go-toubun no hanayome",
+    0
+   ]
+  ],
+  "2": [
+   [
+    "四宫辉夜",
+    "shinomiya kaguya, kaguya-sama: love is war",
+    0
+   ],
+   [
+    "藤原千花",
+    "fujiwara chika, kaguya-sama: love is war",
+    0
+   ],
+   [
+    "樱岛麻衣",
+    "sakurajima mai, seishun buta yarou wa bunny girl senpai no yume wo minai",
+    0
+   ],
+   [
+    "雪之下雪乃",
+    "yukinoshita yukino, yahari ore no seishun love come wa machigatteiru.",
+    0
+   ],
+   [
+    "一色彩羽",
+    "isshiki iroha, yahari ore no seishun love come wa machigatteiru.",
+    0
+   ],
+   [
+    "中野二乃",
+    "nakano nino, go-toubun no hanayome",
+    0
+   ],
+   [
+    "中野一花",
+    "nakano ichika, go-toubun no hanayome",
+    0
+   ],
+   [
+    "中野四叶",
+    "nakano yotsuba, go-toubun no hanayome",
+    0
+   ]
+  ],
+  "4": [
+   [
+    "四宫辉夜",
+    "shinomiya kaguya, kaguya-sama: love is war",
+    0
+   ],
+   [
+    "藤原千花",
+    "fujiwara chika, kaguya-sama: love is war",
+    0
+   ],
+   [
+    "樱岛麻衣",
+    "sakurajima mai, seishun buta yarou wa bunny girl senpai no yume wo minai",
+    0
+   ],
+   [
+    "雪之下雪乃",
+    "yukinoshita yukino, yahari ore no seishun love come wa machigatteiru.",
+    0
+   ],
+   [
+    "一色彩羽",
+    "isshiki iroha, yahari ore no seishun love come wa machigatteiru.",
+    0
+   ],
+   [
+    "中野二乃",
+    "nakano nino, go-toubun no hanayome",
+    0
+   ],
+   [
+    "中野一花",
+    "nakano ichika, go-toubun no hanayome",
+    0
+   ],
+   [
+    "中野四叶",
+    "nakano yotsuba, go-toubun no hanayome",
+    0
+   ]
+  ]
+ },
+ "pickRoles": [
+  {
+   "seed": 42,
+   "lv": 2,
+   "n": 3,
+   "roles": [
+    "sukuna shinmyoumaru, touhou",
+    "flandre scarlet, touhou",
+    "kasumi kai ni, kantai collection"
+   ]
+  },
+  {
+   "seed": 7,
+   "lv": 4,
+   "n": 1,
+   "roles": [
+    "dido, azur lane"
+   ]
+  },
+  {
+   "seed": 42,
+   "lv": 2,
+   "n": 2,
+   "works": [
+    "vocaloid"
+   ],
+   "roles": [
+    "meiko, vocaloid",
+    "hatsune miku, vocaloid"
+   ]
+  }
+ ],
+ "headcount": [
+  [
+   0,
+   0,
+   "1girl, solo",
+   ""
+  ],
+  [
+   0,
+   0,
+   "1girl, 1boy, hetero",
+   ""
+  ],
+  [
+   0,
+   0,
+   "",
+   ""
+  ],
+  [
+   0,
+   2,
+   "1girl, solo",
+   ""
+  ],
+  [
+   0,
+   2,
+   "1girl, 1boy, hetero",
+   ""
+  ],
+  [
+   0,
+   2,
+   "",
+   ""
+  ],
+  [
+   1,
+   0,
+   "1girl, solo",
+   ""
+  ],
+  [
+   1,
+   0,
+   "1girl, 1boy, hetero",
+   "1girl, solo"
+  ],
+  [
+   1,
+   0,
+   "",
+   "1girl, solo"
+  ],
+  [
+   1,
+   2,
+   "1girl, solo",
+   ""
+  ],
+  [
+   1,
+   2,
+   "1girl, 1boy, hetero",
+   "1girl, solo"
+  ],
+  [
+   1,
+   2,
+   "",
+   "1girl, solo"
+  ],
+  [
+   2,
+   0,
+   "1girl, solo",
+   "2girls, multiple girls"
+  ],
+  [
+   2,
+   0,
+   "1girl, 1boy, hetero",
+   "2girls, multiple girls"
+  ],
+  [
+   2,
+   0,
+   "",
+   "2girls, multiple girls"
+  ],
+  [
+   2,
+   2,
+   "1girl, solo",
+   "2girls, yuri"
+  ],
+  [
+   2,
+   2,
+   "1girl, 1boy, hetero",
+   "2girls, yuri"
+  ],
+  [
+   2,
+   2,
+   "",
+   "2girls, yuri"
+  ],
+  [
+   3,
+   0,
+   "1girl, solo",
+   "multiple girls"
+  ],
+  [
+   3,
+   0,
+   "1girl, 1boy, hetero",
+   "multiple girls"
+  ],
+  [
+   3,
+   0,
+   "",
+   "multiple girls"
+  ],
+  [
+   3,
+   2,
+   "1girl, solo",
+   "multiple girls"
+  ],
+  [
+   3,
+   2,
+   "1girl, 1boy, hetero",
+   "multiple girls"
+  ],
+  [
+   3,
+   2,
+   "",
+   "multiple girls"
+  ],
+  [
+   4,
+   0,
+   "1girl, solo",
+   "multiple girls"
+  ],
+  [
+   4,
+   0,
+   "1girl, 1boy, hetero",
+   "multiple girls"
+  ],
+  [
+   4,
+   0,
+   "",
+   "multiple girls"
+  ],
+  [
+   4,
+   2,
+   "1girl, solo",
+   "multiple girls"
+  ],
+  [
+   4,
+   2,
+   "1girl, 1boy, hetero",
+   "multiple girls"
+  ],
+  [
+   4,
+   2,
+   "",
+   "multiple girls"
+  ]
+ ],
+ "selected": [
+  {
+   "input": {
+    "count": "1girl, solo"
+   },
+   "triggers": [
+    "hatsune miku, vocaloid"
+   ],
+   "lv": 2,
+   "notes": [],
+   "state": {
+    "count": "1girl, solo",
+    "role": "hatsune miku, vocaloid",
+    "_role_triggers": [
+     "hatsune miku, vocaloid"
+    ]
+   }
+  },
+  {
+   "input": {
+    "count": "1girl, 1boy, hetero"
+   },
+   "triggers": [
+    "hatsune miku, vocaloid",
+    "hu tao, genshin impact"
+   ],
+   "lv": 2,
+   "notes": [
+    "按选中角色数（2 位）改写人数标签 → `2girls, yuri`",
+    "多人模式：已清空一对一正戏字段（体位 / 受方动作 / 精液）"
+   ],
+   "state": {
+    "count": "2girls, yuri",
+    "role": "hatsune miku, vocaloid, hu tao, genshin impact",
+    "_role_triggers": [
+     "hatsune miku, vocaloid",
+     "hu tao, genshin impact"
+    ],
+    "_cleared_for_multi": true
+   }
+  },
+  {
+   "input": {
+    "count": "1girl, solo",
+    "n_act": "missionary",
+    "n_pos": "against wall"
+   },
+   "triggers": [
+    "hu tao, genshin impact",
+    "ganyu, genshin impact"
+   ],
+   "lv": 1,
+   "notes": [
+    "按选中角色数（2 位）改写人数标签 → `2girls, multiple girls`",
+    "当前档位 ≤ 擦边：双人关系用中性的 `multiple girls`（`yuri` 属 2 档内容，写了会越档）",
+    "多人模式：已清空一对一正戏字段（体位 / 受方动作 / 精液）"
+   ],
+   "state": {
+    "count": "2girls, multiple girls",
+    "n_act": "",
+    "n_pos": "",
+    "role": "hu tao, genshin impact, ganyu, genshin impact",
+    "_role_triggers": [
+     "hu tao, genshin impact",
+     "ganyu, genshin impact"
+    ],
+    "_cleared_for_multi": true
+   }
+  }
+ ],
+ "hair": [
+  {
+   "trigger": "hatsune miku, vocaloid",
+   "style": {
+    "hair_len": "very long hair",
+    "hair_tie": "twintails"
+   },
+   "appearance": {
+    "hair": "aqua hair",
+    "eyes": "aqua eyes"
+   }
+  },
+  {
+   "trigger": "hu tao, genshin impact",
+   "style": {
+    "hair_len": "very long hair",
+    "hair_tie": "twintails"
+   },
+   "appearance": {
+    "hair": "brown hair",
+    "eyes": "red eyes"
+   }
+  },
+  {
+   "trigger": "emilia (re:zero), re:zero",
+   "style": {},
+   "appearance": {}
+  },
+  {
+   "trigger": "raiden shogun, genshin impact",
+   "style": {
+    "hair_len": "very long hair"
+   },
+   "appearance": {
+    "hair": "purple hair",
+    "eyes": "purple eyes",
+    "skin": "porcelain skin",
+    "figure": "slim, tall"
+   }
+  }
+ ],
+ "hairApply": [
+  {
+   "picks": {},
+   "changed": [
+    "hair_len",
+    "hair_tie"
+   ],
+   "state": {
+    "role": "hatsune miku, vocaloid",
+    "hair_len": "very long hair",
+    "hair_tie": "twintails",
+    "_hair_style_applied": true
+   }
+  },
+  {
+   "picks": {
+    "hair_len": "twin braids"
+   },
+   "changed": [
+    "hair_len",
+    "hair_tie"
+   ],
+   "state": {
+    "role": "hatsune miku, vocaloid",
+    "_hair_picks_explicit": [
+     "hair_len"
+    ],
+    "hair_len": "twin braids",
+    "hair_tie": "twintails",
+    "_hair_style_applied": true
+   }
+  },
+  {
+   "picks": {
+    "hair_tie": "twintails"
+   },
+   "changed": [
+    "hair_len",
+    "hair_tie"
+   ],
+   "state": {
+    "role": "hatsune miku, vocaloid",
+    "_hair_picks_explicit": [
+     "hair_tie"
+    ],
+    "hair_len": "very long hair",
+    "hair_tie": "twintails",
+    "_hair_style_applied": true
+   }
+  },
+  {
+   "picks": {
+    "hair_tie": "very long hair"
+   },
+   "changed": [
+    "hair_len",
+    "hair_tie"
+   ],
+   "state": {
+    "role": "hatsune miku, vocaloid",
+    "_hair_picks_explicit": [
+     "hair_tie"
+    ],
+    "hair_len": "very long hair",
+    "hair_tie": "very long hair",
+    "_hair_style_applied": true
+   }
+  }
+ ],
+ "feat": [
+  {
+   "tag": "emilia_(re:zero)",
+   "extras": [
+    "pointy ears"
+   ],
+   "drop": [
+    "hair_acc"
+   ],
+   "set": {}
+  },
+  {
+   "tag": "the_herta_(honkai:_star_rail)",
+   "extras": [
+    "witch hat",
+    "black choker",
+    "purple hair ribbon"
+   ],
+   "drop": [
+    "hair_acc"
+   ],
+   "set": {}
+  },
+  {
+   "tag": "raiden_shogun",
+   "extras": [],
+   "drop": [],
+   "set": {}
+  }
+ ],
+ "style": [
+  {
+   "state": {
+    "place": "classroom"
+   },
+   "choice": "随机",
+   "anchor": [
+    "academic",
+    "场景"
+   ],
+   "bansShoes": [
+    "high heel boots",
+    "thigh boots"
+   ],
+   "biasOutfit": 2.2,
+   "biasTop": 0.75,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "place": "classroom"
+   },
+   "choice": "不限",
+   "anchor": [
+    "",
+    ""
+   ],
+   "bansShoes": [],
+   "biasOutfit": 1.0,
+   "biasTop": 1.0,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "place": "classroom"
+   },
+   "choice": "学院",
+   "anchor": [
+    "academic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "high heel boots",
+    "thigh boots"
+   ],
+   "biasOutfit": 2.2,
+   "biasTop": 0.75,
+   "makeupBias": 0.02,
+   "placeBias": 4.0,
+   "colorBias": 8.0
+  },
+  {
+   "state": {
+    "place": "classroom"
+   },
+   "choice": "泳装",
+   "anchor": [
+    "swim",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "geta",
+    "high heel boots",
+    "knee boots",
+    "loafers",
+    "slippers",
+    "thigh boots",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.6,
+   "biasTop": 0.65,
+   "makeupBias": 0.02,
+   "placeBias": 0.06,
+   "colorBias": 0.08
+  },
+  {
+   "state": {
+    "place": "classroom"
+   },
+   "choice": "哥特",
+   "anchor": [
+    "gothic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "loafers",
+    "sandals",
+    "slippers",
+    "sneakers",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.4,
+   "biasTop": 0.45,
+   "makeupBias": 12.0,
+   "placeBias": 0.06,
+   "colorBias": 8.0
+  },
+  {
+   "state": {
+    "place": "beach",
+    "outfit": "school uniform"
+   },
+   "choice": "随机",
+   "anchor": [
+    "swim",
+    "场景"
+   ],
+   "bansShoes": [
+    "geta",
+    "high heel boots",
+    "knee boots",
+    "loafers",
+    "slippers",
+    "thigh boots",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.6,
+   "biasTop": 0.039,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "place": "beach",
+    "outfit": "school uniform"
+   },
+   "choice": "不限",
+   "anchor": [
+    "",
+    ""
+   ],
+   "bansShoes": [],
+   "biasOutfit": 1.0,
+   "biasTop": 1.0,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "place": "beach",
+    "outfit": "school uniform"
+   },
+   "choice": "学院",
+   "anchor": [
+    "academic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "high heel boots",
+    "thigh boots"
+   ],
+   "biasOutfit": 2.2,
+   "biasTop": 0.045,
+   "makeupBias": 0.02,
+   "placeBias": 4.0,
+   "colorBias": 8.0
+  },
+  {
+   "state": {
+    "place": "beach",
+    "outfit": "school uniform"
+   },
+   "choice": "泳装",
+   "anchor": [
+    "swim",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "geta",
+    "high heel boots",
+    "knee boots",
+    "loafers",
+    "slippers",
+    "thigh boots",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.6,
+   "biasTop": 0.039,
+   "makeupBias": 0.02,
+   "placeBias": 0.06,
+   "colorBias": 0.08
+  },
+  {
+   "state": {
+    "place": "beach",
+    "outfit": "school uniform"
+   },
+   "choice": "哥特",
+   "anchor": [
+    "gothic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "high heel boots",
+    "loafers",
+    "sandals",
+    "slippers",
+    "sneakers",
+    "thigh boots",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.4,
+   "biasTop": 0.027,
+   "makeupBias": 12.0,
+   "placeBias": 0.06,
+   "colorBias": 8.0
+  },
+  {
+   "state": {
+    "outfit": "wedding dress",
+    "shoes": "sneakers"
+   },
+   "choice": "随机",
+   "anchor": [
+    "office",
+    "整套服装"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "slippers",
+    "sneakers",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.35,
+   "biasTop": 0.041999999999999996,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "outfit": "wedding dress",
+    "shoes": "sneakers"
+   },
+   "choice": "不限",
+   "anchor": [
+    "",
+    ""
+   ],
+   "bansShoes": [],
+   "biasOutfit": 1.0,
+   "biasTop": 1.0,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "outfit": "wedding dress",
+    "shoes": "sneakers"
+   },
+   "choice": "学院",
+   "anchor": [
+    "academic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "high heel boots",
+    "slippers",
+    "sneakers",
+    "thigh boots",
+    "uwabaki"
+   ],
+   "biasOutfit": 2.2,
+   "biasTop": 0.045,
+   "makeupBias": 0.02,
+   "placeBias": 4.0,
+   "colorBias": 8.0
+  },
+  {
+   "state": {
+    "outfit": "wedding dress",
+    "shoes": "sneakers"
+   },
+   "choice": "泳装",
+   "anchor": [
+    "swim",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "high heel boots",
+    "knee boots",
+    "loafers",
+    "slippers",
+    "sneakers",
+    "thigh boots",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.6,
+   "biasTop": 0.039,
+   "makeupBias": 0.02,
+   "placeBias": 0.06,
+   "colorBias": 0.08
+  },
+  {
+   "state": {
+    "outfit": "wedding dress",
+    "shoes": "sneakers"
+   },
+   "choice": "哥特",
+   "anchor": [
+    "gothic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "loafers",
+    "sandals",
+    "slippers",
+    "sneakers",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.4,
+   "biasTop": 0.027,
+   "makeupBias": 12.0,
+   "placeBias": 0.06,
+   "colorBias": 8.0
+  },
+  {
+   "state": {
+    "place": "office"
+   },
+   "choice": "随机",
+   "anchor": [
+    "office",
+    "场景"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "slippers",
+    "sneakers",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.35,
+   "biasTop": 0.7,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "place": "office"
+   },
+   "choice": "不限",
+   "anchor": [
+    "",
+    ""
+   ],
+   "bansShoes": [],
+   "biasOutfit": 1.0,
+   "biasTop": 1.0,
+   "makeupBias": 1.0,
+   "placeBias": 1.0,
+   "colorBias": 1.0
+  },
+  {
+   "state": {
+    "place": "office"
+   },
+   "choice": "学院",
+   "anchor": [
+    "academic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "high heel boots",
+    "thigh boots"
+   ],
+   "biasOutfit": 2.2,
+   "biasTop": 0.75,
+   "makeupBias": 0.02,
+   "placeBias": 4.0,
+   "colorBias": 8.0
+  },
+  {
+   "state": {
+    "place": "office"
+   },
+   "choice": "泳装",
+   "anchor": [
+    "swim",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "geta",
+    "high heel boots",
+    "knee boots",
+    "loafers",
+    "slippers",
+    "thigh boots",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.6,
+   "biasTop": 0.65,
+   "makeupBias": 0.02,
+   "placeBias": 0.06,
+   "colorBias": 0.08
+  },
+  {
+   "state": {
+    "place": "office"
+   },
+   "choice": "哥特",
+   "anchor": [
+    "gothic",
+    "控件指定"
+   ],
+   "bansShoes": [
+    "bare feet",
+    "geta",
+    "loafers",
+    "sandals",
+    "slippers",
+    "sneakers",
+    "uwabaki"
+   ],
+   "biasOutfit": 0.4,
+   "biasTop": 0.45,
+   "makeupBias": 12.0,
+   "placeBias": 0.06,
+   "colorBias": 8.0
+  }
+ ],
+ "colorize": [
+  {
+   "input": {
+    "sock_color": "black",
+    "socks": "thighhighs"
+   },
+   "notes": [
+    "颜色合成：黑色 → black thighhighs（socks）"
+   ],
+   "state": {
+    "socks": "black thighhighs"
+   }
+  },
+  {
+   "input": {
+    "cloth_color": "black",
+    "skirt": "miniskirt"
+   },
+   "notes": [
+    "颜色「黑色」无落点（bottom/top/outfit 没有可着色的单品），已跳过"
+   ],
+   "state": {
+    "skirt": "miniskirt"
+   }
+  },
+  {
+   "input": {
+    "cloth_color": "yellow",
+    "socks": "thighhighs"
+   },
+   "notes": [
+    "颜色「黄色」无落点（bottom/top/outfit 没有可着色的单品），已跳过"
+   ],
+   "state": {
+    "socks": "thighhighs"
+   }
+  },
+  {
+   "input": {
+    "cloth_color": "black",
+    "skirt": "black skirt"
+   },
+   "notes": [
+    "颜色「黑色」无落点（bottom/top/outfit 没有可着色的单品），已跳过"
+   ],
+   "state": {
+    "skirt": "black skirt"
+   }
+  },
+  {
+   "input": {
+    "cloth_color": "red",
+    "kneehighs": "kneehighs"
+   },
+   "notes": [
+    "颜色「红色」无落点（bottom/top/outfit 没有可着色的单品），已跳过"
+   ],
+   "state": {
+    "kneehighs": "kneehighs"
+   }
+  }
+ ]
+}

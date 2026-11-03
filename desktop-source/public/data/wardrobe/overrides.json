@@ -1,0 +1,509 @@
+{
+ "_meta": {
+  "pluginVersion": "4.0.0",
+  "schema": "xyz-wardrobe/overrides@1",
+  "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_overrides.py"
+ },
+ "levelDemote": [
+  {
+   "en": "wet hair",
+   "field": "hair_fx",
+   "level": 0,
+   "why": "「湿发」是单纯的头发状态（刚洗完/淋过雨），画面里不含任何透视或裸露语义。判定表的 see_through 分类里有 ^wet 模式，本意是抓 wet clothes / wet shirt，在「头发」字段属于误命中 —— 不降级的话，全年龄档连湿发都抽不出来。"
+  },
+  {
+   "en": "wet hair, hair over eyes",
+   "field": "hair_fx",
+   "level": 0,
+   "why": "同上，「湿发贴脸」也只是发型状态。两个 wet hair 必须一起降，否则同一字段里两个选项档位不一致，用户无法理解为什么一个能选一个不能。"
+  },
+  {
+   "en": "handjob",
+   "field": "n_act",
+   "level": 2,
+   "why": "手交：非插入行为，属露骨层。"
+  },
+  {
+   "en": "blowjob",
+   "field": "n_act",
+   "level": 2,
+   "why": "口交：非插入行为，属露骨层。"
+  },
+  {
+   "en": "deepthroat",
+   "field": "n_act",
+   "level": 2,
+   "why": "深喉：口交的子类，仍是非插入行为。"
+  },
+  {
+   "en": "anilingus",
+   "field": "n_act",
+   "level": 2,
+   "why": "舔肛：非插入行为。"
+  },
+  {
+   "en": "footjob",
+   "field": "n_act",
+   "level": 2,
+   "why": "足交：非插入行为。"
+  },
+  {
+   "en": "ass job",
+   "field": "n_act",
+   "level": 2,
+   "why": "臀交：体外摩擦，非插入。"
+  },
+  {
+   "en": "sumata",
+   "field": "n_act",
+   "level": 2,
+   "why": "素股：体外摩擦，非插入。"
+  },
+  {
+   "en": "paizuri",
+   "field": "n_act",
+   "level": 2,
+   "why": "乳交：非插入行为。"
+  },
+  {
+   "en": "fingering",
+   "field": "n_act",
+   "level": 2,
+   "why": "指交：手指进入属露骨层（danbooru 亦归 explicit），但不属「性交」的硬核层。"
+  },
+  {
+   "en": "masturbation",
+   "field": "n_act",
+   "level": 2,
+   "why": "自慰：单人行为，非插入。"
+  },
+  {
+   "en": "mutual masturbation",
+   "field": "n_act",
+   "level": 2,
+   "why": "相互自慰：非插入行为。"
+  },
+  {
+   "en": "dildo riding",
+   "field": "n_act",
+   "level": 2,
+   "why": "骑假阳具：单人 + 道具，非真实插入。"
+  },
+  {
+   "en": "intercrural",
+   "field": "n_act",
+   "level": 2,
+   "why": "腿交：股间摩擦，非插入。"
+  },
+  {
+   "en": "facesitting",
+   "field": "n_act",
+   "level": 2,
+   "why": "颜骑：非插入行为（骑脸，不涉性交）。"
+  },
+  {
+   "en": "spread legs",
+   "field": "n_pos",
+   "level": 2,
+   "why": "张开双腿：姿态本身，非插入语境同样成立。"
+  },
+  {
+   "en": "legs up",
+   "field": "n_pos",
+   "level": 2,
+   "why": "双腿高举：姿态本身。"
+  },
+  {
+   "en": "bent over",
+   "field": "n_pos",
+   "level": 2,
+   "why": "弯腰撅臀：姿态本身（同一标签在「暗示姿势」字段里是 1 档，这里按 n_pos 的上下文判 2 档）。"
+  },
+  {
+   "en": "head down",
+   "field": "n_pos",
+   "level": 2,
+   "why": "低头：纯姿态。"
+  },
+  {
+   "en": "moaning",
+   "field": "n_orgasm",
+   "level": 2,
+   "why": "呻吟：声音表现，非插入专属。"
+  },
+  {
+   "en": "panting",
+   "field": "n_orgasm",
+   "level": 2,
+   "why": "喘息：同上。"
+  },
+  {
+   "en": "aroused",
+   "field": "n_orgasm",
+   "level": 2,
+   "why": "情动：状态词，未涉行为。"
+  },
+  {
+   "en": "bedroom eyes",
+   "field": "n_orgasm",
+   "level": 2,
+   "why": "魅惑眼神：表情层。"
+  },
+  {
+   "en": "after sex",
+   "field": "n_orgasm",
+   "level": 2,
+   "why": "事后余韵：状态层（不描述当下的插入行为）。"
+  },
+  {
+   "en": "facial",
+   "field": "n_cum",
+   "level": 2,
+   "why": "颜射：口交语境的结果。"
+  },
+  {
+   "en": "cum on breasts",
+   "field": "n_cum",
+   "level": 2,
+   "why": "射在胸口：乳交语境的常见结果。"
+  },
+  {
+   "en": "cum in mouth",
+   "field": "n_cum",
+   "level": 2,
+   "why": "口中含精：口交语境的常见结果。"
+  },
+  {
+   "en": "cum string",
+   "field": "n_cum",
+   "level": 2,
+   "why": "精液拉丝：同上，属细节呈现。"
+  },
+  {
+   "en": "pussy juice",
+   "field": "n_fluid",
+   "level": 2,
+   "why": "爱液：湿润表现，属露骨层。"
+  },
+  {
+   "en": "love juice trail",
+   "field": "n_fluid",
+   "level": 2,
+   "why": "爱液滴落：同上。"
+  },
+  {
+   "en": "saliva string",
+   "field": "n_fluid",
+   "level": 2,
+   "why": "唾液拉丝：同上。"
+  },
+  {
+   "en": "sweat",
+   "field": "n_fluid",
+   "level": 2,
+   "why": "香汗淋漓：体液呈现，本身不涉行为。"
+  },
+  {
+   "en": "tears",
+   "field": "n_fluid",
+   "level": 2,
+   "why": "泪痕：同上。"
+  }
+ ],
+ "levelRaise": [
+  {
+   "en": "fishnet bodystocking",
+   "field": "socks",
+   "level": 2,
+   "why": "渔网连身衣＝覆盖躯干+双腿的全身透视网装，裸露程度等同 bodystocking（2 档）。判定表只收了 bodystocking 整词，带前缀的变体落进 1 档 —— 属盲区。"
+  },
+  {
+   "en": "black bodystocking",
+   "field": "socks",
+   "level": 2,
+   "why": "同上：颜色前缀不改变连身网衣的裸露性质，必须与 bodystocking 同档。"
+  },
+  {
+   "en": "pov breasts",
+   "field": "viewpoint",
+   "level": 1,
+   "why": "第一人称俯视自己胸口：画面必然带到胸部轮廓，属轻度暗示（擦边档起）。判定表的裸体分类只收 `breasts out` / `underboob` 这类直接裸露词，`breasts` 单独出现判 0 —— 在「视角」字段属于盲区。"
+  },
+  {
+   "en": "pov legs",
+   "field": "viewpoint",
+   "level": 1,
+   "why": "第一人称俯视自己腿部：镜头直对腿部线条，属轻度暗示（擦边档起）。同上，判定表未收录 `legs` 单字，判 0 属盲区。"
+  },
+  {
+   "en": "pov crotch",
+   "field": "viewpoint",
+   "level": 2,
+   "why": "第一人称直视自己裆部：画面主体就是胯部特写，属明显暗示裸露（成人档起）。判定表的裸体分类只写了 `crotch cut` 模式，`crotch` 单字判 0 —— 盲区。"
+  },
+  {
+   "en": "bent over",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "弯腰撅臀：姿态本身即带性暗示（臀线突出），但无任何裸露 —— 擦边档起。"
+  },
+  {
+   "en": "leaning forward",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "前倾：常配合俯视/胸前视角，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "arched back",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "弓背挺胸：突出胸部与腰部曲线，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "leaning back",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "后仰：展开身体的邀请姿态，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "leg up",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "抬腿：腿部抬高，画面重心移向胯部，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "hand on own chest",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "手抚胸前：动作指向胸部，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "arm between breasts",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "手臂夹胸：强调胸部挤压，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "hands on own thighs",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "双手抚腿：手贴大腿内侧，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "stretching",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "伸展：双臂上举带出胸腰线条，属轻度暗示 —— 擦边档起。（它原来是 `action` 段的「伸懒腰」，v3.14.0 移到这里）"
+  },
+  {
+   "en": "tiptoes",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "踮脚：抬升重心、绷直小腿与臀线，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "top-down bottom-up",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "上下同框：从脚到头的纵向构图，常带腿部特写，属轻度暗示 —— 擦边档起。（原在 `n_pos`，v3.14.0 移到暗示姿势）"
+  },
+  {
+   "en": "hugging own legs",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "抱膝蜷坐：膝部贴近胸口、裙摆上收，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "hair flip",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "甩发：颈肩舒展、常用于展示侧身曲线，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "skirt pull",
+   "field": "pose_risque",
+   "level": 1,
+   "why": "拉拽裙摆：手持续牵动裙面，属轻度暗示 —— 擦边档起。"
+  },
+  {
+   "en": "panty pull",
+   "field": "pose_risque",
+   "level": 2,
+   "why": "拉扯内裤：动作直接作用于内衣，属明显暗示（成人档起）。"
+  },
+  {
+   "en": "bikini pull",
+   "field": "pose_risque",
+   "level": 2,
+   "why": "拉扯比基尼：同上，泳装版本，属明显暗示（成人档起）。"
+  },
+  {
+   "en": "undressing",
+   "field": "pose_risque",
+   "level": 2,
+   "why": "宽衣：正在脱掉衣物的过程，属明显暗示（成人档起）。"
+  },
+  {
+   "en": "after sex",
+   "field": "pose_risque",
+   "level": 2,
+   "why": "事后余韵：语境直接指向性行为之后，属明显暗示（成人档起）。"
+  },
+  {
+   "en": "sex from behind",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "reverse cowgirl position",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "mating press",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "full nelson",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "stand and carry",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "leg lock",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "clothed sex",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "irrumatio",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "penetration",
+   "field": "n_act",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "girl on top",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "boy on top",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "all fours, sex",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "legs behind head",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "squatting cowgirl position",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "upright straddle",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "against wall, sex",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "bound wrists",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "bound arms",
+   "field": "n_pos",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "orgasm, trembling",
+   "field": "n_orgasm",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "body writhe",
+   "field": "n_orgasm",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "heart-shaped pupils",
+   "field": "n_orgasm",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "fucked silly",
+   "field": "n_orgasm",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "mind break",
+   "field": "n_orgasm",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "ahegao, rolled back eyes",
+   "field": "n_orgasm",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  },
+  {
+   "en": "x-ray",
+   "field": "n_cum",
+   "level": 3,
+   "why": "硬核层：判定表对这类写法判 0（它按裸露程度分类，姿态/道具/状态词一条都收不进去），此前靠 `SECTION_FLOOR['pose_nsfw']=3` 一刀切兜着；v3.15.0 段下限降到 2 之后必须显式抬回，否则会漏进露骨档。"
+  }
+ ],
+ "sectionFloor": {
+  "canon": 2,
+  "cloth_nsfw": 2,
+  "pose_nsfw": 2,
+  "special_nsfw": 3
+ }
+}

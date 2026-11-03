@@ -270,8 +270,11 @@ export function GlobalModals(props: GlobalModalsProps) {
                 className="primary-action"
                 style={{ background: "var(--danger)", border: "1px solid var(--danger)", padding: "8px 16px" }}
                 onClick={() => {
-                  ui.confirmDialog?.onConfirm();
+                  // 先关再回调：若回调里又打开新的确认框，后执行的 setConfirmDialog(null)
+                  // 会把新框吞掉，看起来像「点了确定没反应」。先置空再执行则不会被覆盖。
+                  const onConfirm = ui.confirmDialog?.onConfirm;
                   ui.setConfirmDialog(null);
+                  onConfirm?.();
                 }}
               >
                 确定删除

@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.8.0] - 2026-11-03
+
+### ✨ 新功能 (Features)
+
+- **Anima 造型台（Wardrobe V4）**：侧边栏「工具组件」新增「Anima 造型台」，把 `Comfyui-Anima-Wardrobe-V4` 的参数化造型引擎完整移植到前端。
+  - **参数树**：15 段 / 57 字段 / 1128 选项，五级档位（`sfw / suggestive / explicit / hardcore / extreme`）+ 三层权重（段 / 字段 / 选项）+ 锁定 + 强制选项 + 禁用段 + 标签上限 + 基础概率 + seed；段闸门按 `section_floor` 过滤，被当前档位挡住的段会标「需 ≥ L2」。
+  - **角色库**：2383 位角色 / 288 作品（含插件覆盖层的 122 条修正与 12 位自定义角色），支持中文名 / 英文名 / tag 搜索、作品筛选、仅收藏、人气 / 名称排序、多选（上限 8，联动人数标签）；缩略图内置 2374 张（含 `user_thumbs`）。
+  - **场景库**：261 条（SFW 92 / NSFW 70 / 特写 60 / 姿势 39），支持分组、搜索、收藏、预览、一键套用（`n_canon` 权重顶到 3.0，场景档位高于当前档时自动升档，`no_role` 场景自动锁角色）。
+  - **风格与颜色**：16 种服装风格 + 场景锚点 + 兼容度加权 + 铁律剔除；颜色字段只在 `{color} {garment}` 是真实组合 tag 时拼进单品，否则回退为两个 tag 或跳过。
+  - **命名预设**：保存 / 套用 / 删除档位、权重、锁定、禁用段、已选角色与风格。
+  - **角色库计数对齐插件口径**：「全部作品」右侧数字 = 角色数（含自定义 2395），统计行附作品数；与插件面板的「全部作品 2383」同一含义。
+  - **独立公共工作台**：侧边栏「工具组件」新增独立页「**Anima 工作台**」（不嵌在词库 / 造型台里），输出顺序固定为 Anima 官方格式：**质量 → 画师 → 角色 → 服装 → 背景 → 姿势 → 额外**。
+    - 造型台结果区新增「工作台」按钮：按抽取状态把正文拆进分区（`FIELD_SLOT` → 拼接分区）送入工作台，内容分区整体替换、`extra` 追加、**画师分区永远保留**；拆分规则用 107 条对拍夹具验证「不丢词、不重复」。
+    - 词库「拼接台」新增「送入工作台」按钮：整份分区追加并入（重复词去重）；工作台页右上角也有「← 词库拼接台」「← 造型台上一轮」随时回拉。
+    - **画师快取**：画师分区下方内置 4 万条画师搜索（聚焦时才加载 3MB 数据），点一下按官方格式写成 `@name`（保留 Danbooru 括号转义），固定落在质量词之后、角色之前。
+  - **与插件同 seed 逐字一致**：移植了 CPython `random.Random` 的 MT19937（含 `init_by_array`、`randrange`、`sample` 的拒绝采样与 pool 交换分支）与 `zlib.crc32` 派生种子；187 条对拍夹具（含 80 条随机压力用例）逐字比对 `text / tags / state / dropped` 全绿。
+  - **数据内置**：`public/data/wardrobe/`（JSON 约 1.4MB + 缩略图 10.3MB，随 dist 打进 exe，离线可用）。来源为 [Comfyui-Anima-Wardrobe-V4](https://github.com/lingdongbudong/Comfyui-Anima-Wardrobe-V4) v4.0.0（MIT）；刷新命令：
+    ```bash
+    cd desktop-source
+    python -B scripts/export-wardrobe-tables.py --plugin "<插件根目录>"
+    node scripts/import-wardrobe-data.mjs --plugin "<插件根目录>"
+    node scripts/import-wardrobe-data.mjs --verify-only
+    ```
+    插件目录也可用环境变量 `ANIMA_WARDROBE_DIR`；导入脚本会做选项档位覆盖、场景字段引用、缩略图缺失等结构校验，并生成 `manifest.json`。
+  - **不改工作流拓扑**：结果只写 `animaParams.positivePrompt`（追加 / 覆盖 / 复制，可选 Anima 画质前缀），`buildAnimaPrompt`、XYZ、预设、手机端均不受影响。
+
+### 🐛 修复 (Fixed)
+
+- **Anima 工作台「清空」无效**：工作台页把清空回调又包了一层确认框，而全局确认弹窗是「先执行回调再关闭」——回调里打开的第二个确认框被随后的置空覆盖吞掉，真正的清空永远不会执行。现在清空只走一次确认（词库拼接台与工作台共用按钮，确认文案改为「清空分区」）；并把全局确认弹窗改为**先关闭再执行回调**，嵌套确认不再被吞。新增回归 E2E（填词 → 清空 → 一次确认 → 七个分区全空）。
+
+### 🧪 测试 (Tests)
+
+- 新增 `src/lib/wardrobe/*.test.ts`（9 个文件 276 条）：RNG 与 CPython 对齐、全量选项 / 标签档位、三层权重与脏数据、6 组互斥与显式优先、`sanitize` / `repair` / `collect` 逐例对拍、角色池与选中角色、发型 / 外貌 / 固定特征、261 条场景套用、`trimToCap`、187 条 draw 对拍、持久化与状态更新、**工作台拆分（含 107 条「不丢词不重复」性质校验）**。
+- 新增 `e2e/wardrobe.spec.ts`（4 条）：15 段参数树与档位闸门、内置数据、同 seed 可复现与写入 Anima、角色搜索 / 场景套用、**送入独立工作台 + 画师官方位置 + 词库再送入**；`DSH_EXE=1` 下同样通过。
+
 ## [v0.7.9] - 2026-10-21
 
 ### ✨ 新功能 (Features)

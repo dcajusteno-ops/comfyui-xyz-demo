@@ -3,6 +3,7 @@ import { LibraryBig } from "lucide-react";
 import { PanelTitle } from "../../ui";
 import type { Toast } from "../../../types";
 import { usePersistentState } from "../../../hooks/usePersistentState";
+import { useAnimaComposer } from "../../../hooks/useAnimaComposer";
 import { useAnimaData } from "../../../hooks/useAnimaData";
 import { loadAnimaData } from "../../../lib/anima/store";
 import { appendTokensToSlot, buildComposerPreview, toApplyText } from "../../../lib/anima/compose";
@@ -11,13 +12,11 @@ import { composeAnimaPrompt, composerValuesFromResult } from "../../../lib/anima
 import { fetchDanbooruImage, fetchRandomDanbooruPost } from "../../../lib/anima/danbooru";
 import { proxiedDanbooruImageUrl } from "../../../lib/anima/imageProxy";
 import {
-  defaultComposerState,
   defaultDanbooruState,
   defaultFavorites,
   defaultGachaState,
   defaultGalleryState,
   emptyComposerValues,
-  normalizeComposerState,
   normalizeDanbooruState,
   normalizeFavorites,
   normalizeGachaState,
@@ -25,7 +24,7 @@ import {
 } from "../../../lib/anima/persist";
 import type {
   AnimaApplyMode,
-  AnimaComposerState,
+  AnimaComposerValues,
   AnimaCostumeItem,
   AnimaDanbooruAttire,
   AnimaFavoritesState,
@@ -60,6 +59,8 @@ export type AnimaLibraryPanelProps = {
   onSetAnimaReference: (imageName: string) => void;
   onConfirm: (title: string, message: string, onConfirm: () => void) => void;
   pushToast: ToastFn;
+  /** 拼接台「送入工作台」：把当前分区值追加并进独立的 Anima 工作台页 */
+  onSendToWorkbench?: (values: AnimaComposerValues) => void;
 };
 
 export const AnimaLibraryPanel = React.memo(({
@@ -69,17 +70,14 @@ export const AnimaLibraryPanel = React.memo(({
   onSetAnimaReference,
   onConfirm,
   pushToast,
+  onSendToWorkbench,
 }: AnimaLibraryPanelProps) => {
   const [gallery, setGallery] = usePersistentState<AnimaGalleryState>(
     "comfyui_anima_gallery",
     defaultGalleryState,
     normalizeGalleryState,
   );
-  const [composer, setComposer] = usePersistentState<AnimaComposerState>(
-    "comfyui_anima_composer",
-    defaultComposerState,
-    normalizeComposerState,
-  );
+  const [composer, setComposer] = useAnimaComposer();
   const [favorites, setFavorites] = usePersistentState<AnimaFavoritesState>(
     "comfyui_anima_favorites",
     defaultFavorites,
@@ -351,6 +349,9 @@ export const AnimaLibraryPanel = React.memo(({
               setComposer((prev) => ({ ...prev, values: emptyComposerValues() }))
             }
             onConfirm={onConfirm}
+            onSendToWorkbench={
+              onSendToWorkbench ? () => onSendToWorkbench(composer.values) : undefined
+            }
             onOpenGallery={(section) => {
               setGallery((prev) => ({ ...prev, section, activeView: "gallery" }));
             }}
