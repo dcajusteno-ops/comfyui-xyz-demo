@@ -159,3 +159,31 @@ test("Anima 词库：入口、五分区与拼接预览", async ({ page }) => {
   await page.locator(".al-composer-section textarea").nth(1).fill("dairi, by wlop");
   await expect(page.locator(".al-preview-text")).toHaveValue("@dairi, @wlop");
 });
+
+test("侧边栏：三组归位、折叠状态持久化", async ({ page }) => {
+  await page.goto("/");
+  const generate = page.locator('[data-group="generate"]');
+  const anima = page.locator('[data-group="anima"]');
+  const tools = page.locator('[data-group="tools"]');
+
+  // 三组各管一类；Anima 工坊 3 项带同族圆点
+  await expect(generate.locator(".nav-item")).toHaveCount(5);
+  await expect(anima.locator(".nav-item")).toHaveCount(3);
+  await expect(anima.locator(".nav-item-dot")).toHaveCount(3);
+  await expect(tools.locator(".nav-item")).toHaveCount(6);
+
+  // Anima 工坊条目可达
+  await anima.locator(".nav-item", { hasText: "Anima 工作台" }).click();
+  await expect(page.locator(".wb-panel")).toBeVisible();
+
+  // 折叠「工具」组：条目隐藏，组头显示计数
+  await tools.locator(".nav-group-head").click();
+  await expect(tools.locator(".nav-item")).toHaveCount(0);
+  await expect(tools.locator(".nav-group-head")).toContainText("6 项");
+
+  // 折叠状态持久化（ui-state）：刷新后工具组仍折叠，其它组不受影响
+  await page.reload();
+  await expect(tools.locator(".nav-item")).toHaveCount(0);
+  await expect(tools.locator(".nav-group-head")).toContainText("6 项");
+  await expect(anima.locator(".nav-item")).toHaveCount(3);
+});

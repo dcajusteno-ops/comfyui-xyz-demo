@@ -81,11 +81,52 @@ export const toolTabs: TabConfig[] = [
   { id: "notes", label: "记事本", icon: FileText },
 ];
 
-/** 幸运大转盘：视觉上归入「生图模板」组，单独导出以标记其不属于前两组的语义 */
+/** 幸运大转盘：单独导出以标记其不属于生成模板（显示上归入「工具」组） */
 export const slotsTab: TabConfig = { id: "slots", label: "幸运大转盘", icon: Disc3 };
 
 /** 全部 tab，用于 `?tab=` 参数校验与非法值回落 */
 export const tabs: TabConfig[] = [...generationTabs, slotsTab, ...toolTabs];
+
+/** 侧边栏分组（只管**显示**；数字键 1–9 仍按 generationTabs + slotsTab + toolTabs 的旧顺序，见 App 的 digitTabs） */
+export type NavGroup = {
+  id: string;
+  label: string;
+  /** 该组页签可整体折叠 */
+  foldable: true;
+  /** Anima 工坊：条目带同族小圆点标记 */
+  accent?: boolean;
+  tabs: TabConfig[];
+};
+
+const pick = (list: TabConfig[], ids: TabId[]): TabConfig[] =>
+  ids.map((id) => {
+    const found = list.find((tab) => tab.id === id);
+    if (!found) throw new Error(`navGroups 引用了不存在的 tab：${id}`);
+    return found;
+  });
+
+export const navGroups: NavGroup[] = [
+  {
+    id: "generate",
+    label: "生成",
+    foldable: true,
+    tabs: pick(generationTabs, ["default", "multi", "highres", "anima", "sheet"]),
+  },
+  {
+    id: "anima",
+    label: "Anima 工坊",
+    foldable: true,
+    // 选词（词库）→ 造型（造型台）→ 合流（工作台），同族功能放一组
+    accent: true,
+    tabs: pick(toolTabs, ["anima-library", "wardrobe", "workbench"]),
+  },
+  {
+    id: "tools",
+    label: "工具",
+    foldable: true,
+    tabs: [...pick(generationTabs, ["wd14", "text", "xyz"]), slotsTab, ...pick(toolTabs, ["loras", "notes"])],
+  },
+];
 
 export const templateLabels: Record<TemplateKind, string> = {
   default: "默认生图",

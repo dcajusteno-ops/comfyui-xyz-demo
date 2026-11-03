@@ -679,9 +679,8 @@ function App() {
     return { positive: params.defaultParams.positivePrompt, negative: params.defaultParams.negativePrompt };
   }, [tab, params.defaultParams, params.multiParams, params.highresParams, params.animaParams, params.sheetParams]);
 
-  // 侧边栏 tab 定义统一来自 constants（历史上此处另有一份硬编码，导致新增入口时漏改）
-  const generationTabs = useMemo(() => [...generationTabConfig, slotsTab], []);
-  const toolTabs = useMemo(() => toolTabConfig, []);
+  // 侧边栏分组定义来自 constants 的 navGroups（历史上此处另有一份硬编码，导致新增入口时漏改；
+  // 数字键 1–9 仍按 generationTabConfig + slotsTab + toolTabConfig 的旧顺序，见下方 digitTabs）
 
   /** 三视图生成：面板按钮与 Ctrl+Enter 共用同一份参数/LoRA 解析结果 */
   const buildCurrentSheetPrompt = useCallback(() => {
@@ -757,8 +756,6 @@ function App() {
         onToggle={() => ui.setIsAppSidebarCollapsed(!ui.isAppSidebarCollapsed)}
         activeTab={tab}
         onTabChange={setTab}
-        generationTabs={generationTabs}
-        toolTabs={toolTabs}
         onOpenThemePanel={openThemePanel}
       />
       

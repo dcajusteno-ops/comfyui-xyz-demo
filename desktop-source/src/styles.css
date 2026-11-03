@@ -9010,3 +9010,77 @@ html.has-wallpaper .lm-folder-sidebar {
   min-height: 0;
   overflow-y: auto;
 }
+
+/* 侧边栏分组头（可点击折叠；折叠状态存 ui-state） */
+.nav-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 8px;
+}
+
+.nav-group-head:hover {
+  color: var(--text);
+  background: var(--surface-alt, rgba(128, 128, 128, 0.12));
+}
+
+.nav-group-head .nav-group-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-group-head.has-active:not(.is-folded) .nav-group-label {
+  color: var(--text);
+}
+
+.nav-group-head .nav-group-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.nav-group-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent, #378ADD);
+  flex: none;
+}
+
+/* Anima 工坊条目的同族小圆点 */
+.nav-item {
+  position: relative;
+}
+
+.nav-item .nav-item-dot {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #1D9E75;
+  transform: translateY(-50%);
+  opacity: 0.85;
+}
+
+.nav-item.active .nav-item-dot {
+  background: rgba(255, 255, 255, 0.9);
+}
