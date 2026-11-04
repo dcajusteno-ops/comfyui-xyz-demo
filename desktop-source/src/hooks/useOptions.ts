@@ -28,7 +28,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
     let canceled = false;
     async function load() {
       try {
-        const [checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, drawTextInfo, managerSettings, unetInfo, clipInfo, vaeInfo, easyHiresInfo, resizeInfo, upscaleLoaderInfo, cfgZeroInfo, diffDiffInfo, faceDetailerInfo, detailerForEachInfo, maskToSegsInfo, solidMaskInfo, samLoaderInfo, imageScaleInfo] = await Promise.all([
+        const [checkpointInfo, ksamplerInfo, wdInfo, clInfo, detectorInfo, upscaleInfo, drawTextInfo, managerSettings, unetInfo, clipInfo, vaeInfo, easyHiresInfo, resizeInfo, upscaleLoaderInfo, cfgZeroInfo, diffDiffInfo, faceDetailerInfo, detailerForEachInfo, maskToSegsInfo, solidMaskInfo, samLoaderInfo, imageScaleInfo, saveTextInfo] = await Promise.all([
           client.getObjectInfo("CheckpointLoaderSimple"),
           client.getObjectInfo("KSampler"),
           client.getObjectInfo("WD14Tagger|pysssss").catch(() => null),
@@ -51,6 +51,8 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           client.getObjectInfo("SolidMask").catch(() => null),
           client.getObjectInfo("SAMLoader").catch(() => null),
           client.getObjectInfo("ImageScale").catch(() => null),
+          // 数据集「边出图边写同名 .txt」依赖第三方节点「> Save Text」（ComfyUI_yanc）
+          client.getObjectInfo("> Save Text").catch(() => null),
         ]);
         if (canceled) return;
 
@@ -81,6 +83,10 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
         const animaCaps = {
           useEasyHiresFix: easyHiresInfo ? Boolean((easyHiresInfo as Record<string, { input?: unknown }>)["easy hiresFix"]?.input) : true,
           useImageResizeKJv2: resizeInfo ? Boolean((resizeInfo as Record<string, { input?: unknown }>)["ImageResizeKJv2"]?.input) : true,
+        };
+        // 严格判定：ComfyUI 对未知节点返回 {}，此时没有 input 字段
+        const datasetCaps = {
+          saveText: Boolean((saveTextInfo as Record<string, { input?: unknown }> | null)?.["> Save Text"]?.input),
         };
 
         // 节点依赖自检：探测结果里有该键但没有 input，说明节点没装（ComfyUI 对未知节点返回 {}）
@@ -124,6 +130,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
           upscaleModels: upscaleModelList,
           animaCaps,
           animaMissingNodes,
+          datasetCaps,
         };
 
         setOptions(nextOptions);

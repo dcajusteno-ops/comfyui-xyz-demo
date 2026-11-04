@@ -119,6 +119,22 @@ export function baseModelAbbreviation(value?: string) {
   return text.length > 14 ? `${text.slice(0, 12)}...` : text;
 }
 
+/**
+ * LoRA 与模型族的粗略匹配（三视图的兜底检索与数据集的选择器共用）。
+ *
+ * 只能按 `base_model` + 文件名做关键字判断：LoraManager 的 base_model 取值不统一
+ * （`Anima` / `Illustrious v1.0` / `NoobAI v1.1` / `SDXL 1.0` / `Pony`，也常为空），
+ * 因此调用方必须允许「关掉过滤」，不能把它当成硬校验。
+ */
+export function matchesLoraFamily(
+  family: "anima" | "sdxl",
+  item: Pick<LoraItem, "base_model" | "file_name">,
+): boolean {
+  const text = `${item.base_model ?? ""} ${item.file_name ?? ""}`.toLowerCase();
+  if (family === "anima") return /anima/.test(text);
+  return /illustrious|noob|sdxl|stable diffusion xl|pony/.test(text);
+}
+
 export function uniqueStrings(values: Array<string | undefined | null>) {
   const seen = new Set<string>();
   const result: string[] = [];

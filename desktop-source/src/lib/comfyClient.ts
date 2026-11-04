@@ -723,10 +723,33 @@ export class ComfyClient {
     return `${this.baseUrl}/api/view?${query}`;
   }
 
+  /**
+   * 取一次历史结果（不需要 WS 订阅）。用于「关窗后补齐」这类离线恢复：
+   * 任务可能早已在 ComfyUI 侧跑完，只有 promptId 还留在本地记录里。
+   */
+  async fetchJobResult(promptId: string): Promise<JobResult | null> {
+    try {
+      const history = await this.getHistory(promptId);
+      if (!history[promptId]) return null;
+      return this.extractHistory(promptId, history);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * 提交并等待一次生成。
+   *
+   * `opts.signal` 是**可选**的新增能力（既有调用方不传即行为不变）：
+   * ComfyUI 被 interrupt 后不一定回 `executing {node:null}`，而 1s 历史轮询只在
+   * outputs 非空时才 resolve —— 队列的「停止」若只靠 cancelRef 会永久卡在 await。
+   */
   async runPrompt(
     prompt: ComfyPrompt,
     onProgress: (progress: ProgressState) => void,
+    opts: { signal?: AbortSignal; onSubmitted?: (promptId: string) => void } = {},
   ): Promise<JobResult> {
+    const signal = opts.signal;
     // Ensure monitoring is active (shared WebSocket)
     if (!this.monitorSocket || this.monitorSocket.readyState !== WebSocket.OPEN) {
       await this.connectMonitor();
@@ -749,6 +772,8 @@ export class ComfyClient {
     if (!promptId) {
       throw new Error("ComfyUI 没有返回 prompt_id");
     }
+    // 交给调用方先落盘：进程被杀时仍能凭 promptId 从 history 补回结果
+    opts.onSubmitted?.(promptId);
 
     let lastProgress: ProgressState = {
       running: true,
@@ -792,8 +817,23 @@ export class ComfyClient {
 
     return new Promise<JobResult>((resolve, reject) => {
       let resultsFromExecuted: JobResult | null = null;
+      let fallbackTimer = 0;
+      let aborted = false;
 
-      const fallbackTimer = window.setInterval(async () => {
+      // 取消：立刻清定时器/监听并 reject。不这么做的话，被 interrupt 的任务
+      // 在 history 里没有 outputs，轮询永远不会 resolve，队列会卡死在 await 上。
+      const onAbort = () => {
+        if (aborted) return;
+        aborted = true;
+        window.clearInterval(fallbackTimer);
+        releasePreviewUrls();
+        this.promptListeners.delete(promptId);
+        const error = new Error("已取消该任务");
+        error.name = "AbortError";
+        reject(error);
+      };
+
+      fallbackTimer = window.setInterval(async () => {
         if (completed) return;
         try {
           const history = await this.getHistory(promptId);
@@ -807,6 +847,14 @@ export class ComfyClient {
           // Keep waiting
         }
       }, 1000);
+
+      if (signal) {
+        if (signal.aborted) {
+          onAbort();
+          return;
+        }
+        signal.addEventListener("abort", onAbort, { once: true });
+      }
 
       const messageHandler = async (message: any) => {
         try {

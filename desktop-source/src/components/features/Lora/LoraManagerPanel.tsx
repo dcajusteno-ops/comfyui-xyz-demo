@@ -61,6 +61,8 @@ export const LoraManagerPanel = memo(({
   apiBase,
   settings,
   isSimple,
+  simpleLabel,
+  onSimpleInsert,
 }: {
   modelType: ManagedModelType;
   onModelTypeChange: (modelType: ManagedModelType) => void;
@@ -87,6 +89,9 @@ export const LoraManagerPanel = memo(({
   apiBase: string;
   settings: LoraManagerSettings;
   isSimple?: boolean;
+  /** 简易模式下的插入目标名（只渲染一个「添加到 X」按钮，避免 6 个按钮指错目标） */
+  simpleLabel?: string;
+  onSimpleInsert?: (item: LoraItem) => void;
 }) => {
   const isLora = modelType === "loras";
   const modelLabel = managedModelLabel(modelType);
@@ -234,6 +239,8 @@ export const LoraManagerPanel = memo(({
                     apiBase={apiBase}
                     onDetail={onDetail}
                     onInsert={onInsert}
+                    simpleLabel={simpleLabel}
+                    onSimpleInsert={onSimpleInsert}
                   />
                 );
               })}

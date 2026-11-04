@@ -7,6 +7,7 @@ const NAV_LABELS = [
   "多人工作流",
   "高清修复",
   "三视图",
+  "数据集工作台",
   "幸运大转盘",
   "WD1.4",
   "文字特效",
@@ -47,16 +48,17 @@ test("三视图：模式切换与三视图 LoRA 的兜底挂载", async ({ page 
   await expect(page.getByText("三视图 LoRA（Illustrious）")).toBeVisible();
 });
 
-test("LoRA 卡片快捷插入：五个目标都可达（含 Anima / 三视图）", async ({ page }) => {
+test("LoRA 卡片快捷插入：六个目标都可达（含 Anima / 三视图 / 数据集）", async ({ page }) => {
   await page.goto("/");
   await page.locator(".nav-item", { hasText: "LoRA 管理" }).click();
 
   const card = page.locator(".lora-card").first();
   await card.hover();
   const actions = card.locator(".card-quick-actions button");
-  await expect(actions).toHaveCount(5);
+  await expect(actions).toHaveCount(6);
   await expect(actions.filter({ hasText: "Anima" })).toBeVisible();
   await expect(actions.filter({ hasText: "三视" })).toBeVisible();
+  await expect(actions.filter({ hasText: "数据" })).toBeVisible();
 
   // 点三视图必须落到三视图页的 LoRA 列表，而不是静默写进默认生图
   await actions.filter({ hasText: "三视" }).click();
@@ -166,8 +168,8 @@ test("侧边栏：三组归位、折叠状态持久化", async ({ page }) => {
   const anima = page.locator('[data-group="anima"]');
   const tools = page.locator('[data-group="tools"]');
 
-  // 三组各管一类；Anima 工坊 3 项带同族圆点
-  await expect(generate.locator(".nav-item")).toHaveCount(5);
+  // 三组各管一类；生成组 6 项（数据集工作台显示在生成组），Anima 工坊 3 项带同族圆点
+  await expect(generate.locator(".nav-item")).toHaveCount(6);
   await expect(anima.locator(".nav-item")).toHaveCount(3);
   await expect(anima.locator(".nav-item-dot")).toHaveCount(3);
   await expect(tools.locator(".nav-item")).toHaveCount(6);

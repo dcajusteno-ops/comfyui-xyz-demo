@@ -735,6 +735,103 @@ export type SheetParams = {
   sdxl: HighresParams;
 };
 
+/* ------------------------------------------------------------------ *
+ * 角色 LoRA 训练数据集工作台
+ *
+ * 与三视图同构：本页不新增工作流拓扑，只把「角色固定词 + 本张变化词」
+ * 拼成提示词，再按模型族分发给既有 builder。
+ * ------------------------------------------------------------------ */
+
+/** 数据集页的模型族（与三视图同语义，独立命名避免误以为共享参数） */
+export type DatasetMode = SheetMode;
+
+/** 变化轴：每条数据集样本在每个轴上抽若干 tag */
+export type DatasetAxisKey =
+  | "pose"
+  | "expression"
+  | "camera"
+  | "shot"
+  | "scene"
+  | "lighting"
+  | "outfit"
+  | "extra";
+
+export type DatasetAxisConfig = {
+  enabled: boolean;
+  /** 可编辑词池（一行一个，也接受逗号分隔；读取时统一 split） */
+  pool: string[];
+  /** 每条抽几个 tag（0 视作关闭） */
+  perItem: number;
+};
+
+export type DatasetItemStatus = "queued" | "running" | "success" | "failed" | "cancelled" | "interrupted";
+
+/** 落盘文件的引用（url 不入库：渲染时用 client.viewUrl() 现算，换机器/端口不失效） */
+export type DatasetFile = { filename: string; subfolder?: string; type?: string };
+
+export type DatasetItem = {
+  id: string;
+  /** 1 起，同时决定零填充文件名前缀 */
+  index: number;
+  seed: number;
+  tags: Partial<Record<DatasetAxisKey, string[]>>;
+  /** 实际提交的正向提示词（拼装结果） */
+  prompt: string;
+  /** 训练用 caption（触发词 + 角色固定词(可选) + 变化词） */
+  caption: string;
+  /** 去重签名：由去重后的有效 tags 排序拼接，用于计划内查重 */
+  fingerprint: string;
+  status: DatasetItemStatus;
+  promptId?: string;
+  files: DatasetFile[];
+  error?: string;
+};
+
+export type DatasetConfig = {
+  mode: DatasetMode;
+  subject: "1girl" | "1boy" | "1other" | "";
+  /** 角色固定描述：每条都进 prompt */
+  characterPrompt: string;
+  /** 训练目标词（逗号分隔）；只在真正挂了 LoRA 时进 prompt */
+  trigger: string;
+  style: Record<DatasetMode, string>;
+  /** 参考图：两条模型族共享一张，生成时映射到各自字段 */
+  reference: { enabled: boolean; imageName: string };
+  axes: Record<DatasetAxisKey, DatasetAxisConfig>;
+  /** 计划条数（4..300） */
+  targetCount: number;
+  /** 发牌种子：同种子 → 同一份计划 */
+  planSeed: number;
+  /** 每张 seed 的基数 */
+  seedBase: number;
+  /** ComfyUI 落盘子目录前缀，实际为 `<root>/<三位序号>` */
+  filenameRoot: string;
+  caption: {
+    includeTrigger: boolean;
+    includeCharacter: boolean;
+    /** 生成图片的同时让 ComfyUI 写一份同名 .txt（依赖「> Save Text」节点） */
+    saveTxt: boolean;
+    /** .txt 写训练用 caption，还是写完整正向提示词 */
+    saveTxtMode: "caption" | "prompt";
+  };
+  anima: AnimaGenerationParams;
+  sdxl: HighresParams;
+};
+
+/** 持久化的运行记录（只存可重建的轻量字段） */
+export type DatasetRunState = {
+  version: 1;
+  mode: DatasetMode;
+  planSeed: number;
+  createdAt: number;
+  /**
+   * 规划时的配置签名（见 lib/dataset/signature.ts）。
+   * 空串 = 旧存档没有该字段，界面不做「计划过期」提示。
+   */
+  signature: string;
+  items: DatasetItem[];
+};
+
 export type OutputImage = {
   filename: string;
   subfolder?: string;
@@ -775,6 +872,8 @@ export type ProgressBatchState = {
   current: number;
   total: number;
   itemLabel: string;
+  /** 批次来源徽章（XYZ / 数据集 …）；缺省时按历史行为显示 XYZ */
+  label?: string;
 };
 
 export type ProgressState = {
@@ -796,11 +895,11 @@ export type TemplateKind = "default" | "multi" | "highres" | "anima";
 export type SheetMode = "anima" | "sdxl";
 
 /**
- * LoRA 插入目标：4 个生成模板 + 三视图页。
- * 三视图刻意不进 `TemplateKind`——它不是「模板」而是独立页，进联合类型会连带
- * 打挂 XYZ / 生成预设 / 手机端应用目标等 20+ 处分派。
+ * LoRA 插入目标：4 个生成模板 + 三视图页 + 数据集工作台。
+ * 三视图与数据集刻意不进 `TemplateKind`——它们不是「模板」而是独立页，进联合类型会
+ * 连带打挂 XYZ / 生成预设 / 手机端应用目标等 20+ 处分派。
  */
-export type LoraInsertTarget = TemplateKind | "sheet";
+export type LoraInsertTarget = TemplateKind | "sheet" | "dataset";
 
 export type XyzField =
   | "seed"
@@ -925,7 +1024,7 @@ export type PromptLintIssue = {
   fix?: (text: string) => string;
 };
 
-export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima" | "anima-library" | "sheet" | "wardrobe" | "workbench";
+export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima" | "anima-library" | "sheet" | "wardrobe" | "workbench" | "dataset";
 
 export type LoraPreviewMedia = {
   url?: string;
@@ -964,6 +1063,8 @@ export type OptionsState = {
   };
   /** Anima 链路必需但本机未安装的节点（用于面板顶部提示），空数组表示齐全 */
   animaMissingNodes: string[];
+  /** 数据集页的能力探测：`> Save Text` 可用时才能边出图边写同名 .txt */
+  datasetCaps?: { saveText: boolean };
 };
 
 export type XyzRunItem = {

@@ -61,6 +61,16 @@ const OBJECT_INFO = {
   LatentUpscaleBy: { input: { required: { upscale_method: [["nearest-exact", "bilinear"]] } } },
   ImageScale: { input: { required: { upscale_method: [["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]] } } },
   DrawTextAdvanced: { input: { required: { font: [["default"]] } } },
+  // 数据集「边出图边写同名 .txt」依赖；存在即视为可用
+  "> Save Text": {
+    input: {
+      required: {
+        text: ["STRING", { forceInput: true }],
+        filename_prefix: ["STRING", { default: "ComfyUI" }],
+        folder: ["STRING", { default: "" }],
+      },
+    },
+  },
 };
 
 const stats = { system: { comfyui_version: "e2e-mock" }, devices: [{ name: "cpu", type: "CPU" }] };

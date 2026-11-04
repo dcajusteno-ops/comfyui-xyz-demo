@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generationTabs, slotsTab, tabs, toolTabs } from "./index";
+import { generationTabs, navGroups, slotsTab, tabs, toolTabs } from "./index";
 import type { TemplateKind } from "../types";
 
 /**
@@ -41,6 +41,16 @@ describe("侧边栏 tab 定义", () => {
 
   it("数字键只覆盖前 9 项（造型台插在工具组不会顺移快捷键）", () => {
     expect([...generationTabs, slotsTab]).toHaveLength(9);
+  });
+
+  it("数据集工作台定义在工具组、显示在生成组，且不占用数字键", () => {
+    // 放在 toolTabs 是刻意的：数字键 1–9 绑定在 generationTabs + slotsTab 上，
+    // 插进生成组会让 6 个既有快捷键整体顺移。
+    expect(toolTabs.map((tab) => tab.id)).toContain("dataset");
+    expect(generationTabs.map((tab) => tab.id)).not.toContain("dataset");
+    const generateGroup = navGroups.find((group) => group.id === "generate");
+    expect(generateGroup?.tabs.map((tab) => tab.id)).toContain("dataset");
+    expect(generateGroup?.tabs[generateGroup.tabs.length - 1]?.id).toBe("dataset");
   });
 
   it("每个 tab 都有 label 与 icon（AppSidebar 渲染依赖这两项）", () => {

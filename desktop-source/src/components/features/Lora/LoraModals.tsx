@@ -298,6 +298,7 @@ export function LoraDetailModal({
                     <button type="button" className="primary-action" onClick={() => onInsert("highres", strength)}><BadgePlus size={16} /> 高修</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("anima", strength)}><BadgePlus size={16} /> Anima</button>
                     <button type="button" className="primary-action" onClick={() => onInsert("sheet", strength)}><BadgePlus size={16} /> 三视图</button>
+                    <button type="button" className="primary-action" onClick={() => onInsert("dataset", strength)}><BadgePlus size={16} /> 数据集</button>
                   </div>
                 </div>
               </div>

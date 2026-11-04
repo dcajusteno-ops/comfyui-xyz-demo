@@ -16,6 +16,7 @@ import { WelcomeModal } from "./WelcomeModal";
 import { ImageComparerModal } from "./ImageComparerModal";
 import { ImageLightbox } from "./ImageLightbox";
 import { ModalFrame, FeatureModal } from "./ui";
+import { loraInsertTargetLabels } from "../constants";
 
 // 弹窗类里体量最大的几个改为按需加载（PromptEditorDialog / LoraModals 都是 50 KB 级）。
 // 注意：LoraManagerPanel 必须与 App.tsx 保持一致走 lazy——只要有一处静态引用，
@@ -184,7 +185,8 @@ export function GlobalModals(props: GlobalModalsProps) {
       
       {simpleLoraTarget && (
         <ModalFrame 
-          title="简易 LoRA 管理器" 
+          // 标题带上目标：原来的「简易 LoRA 管理器」不说明落点，用户不知道会加到哪个面板
+          title={`简易 LoRA 管理器 · 添加到「${loraInsertTargetLabels[simpleLoraTarget]}」`}
           onClose={() => setSimpleLoraTarget(null)}
           style={{ width: "90vw", maxWidth: "1400px", height: "85vh", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
         >
@@ -207,6 +209,12 @@ export function GlobalModals(props: GlobalModalsProps) {
               onLoadMore={loras.loadMoreManagedModels}
               onDetail={setLoraDetail}
               onInsert={(item) => onLoraInsert(item, simpleLoraTarget)}
+              // 简易模式只给一个明确的「添加到 X」按钮，插入后关闭弹窗给出确定反馈
+              simpleLabel={loraInsertTargetLabels[simpleLoraTarget]}
+              onSimpleInsert={(item) => {
+                onLoraInsert(item, simpleLoraTarget);
+                setSimpleLoraTarget(null);
+              }}
               exampleStatus={loras.exampleStatus}
               examplePending={loras.examplePending}
               pullingExampleHashes={loras.pullingExampleHashes}

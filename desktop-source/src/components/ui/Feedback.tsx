@@ -37,12 +37,12 @@ export function RunProgressStrip({ progress }: { progress: ProgressState }) {
     <div className="run-progress-strip" role="status" aria-live="polite">
       {batch && (
         <div className="run-progress-batch">
-          <span className="batch-badge">XYZ</span>
+          <span className="batch-badge">{batch.label ?? "XYZ"}</span>
           <strong>{batch.current}/{batch.total}</strong>
           <span className="batch-item" title={batch.itemLabel}>
             {batch.itemLabel || (progress.running ? "准备中" : "全部组合已处理")}
           </span>
-          <div className="progress-track slim" aria-label="XYZ 批次进度">
+          <div className="progress-track slim" aria-label={`${batch.label ?? "XYZ"} 批次进度`}>
             <span style={{ width: `${batchPercent}%` }} />
           </div>
         </div>

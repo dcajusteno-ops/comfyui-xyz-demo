@@ -18,7 +18,9 @@ export const LoraCard = memo(({
   settings, 
   apiBase, 
   onDetail, 
-  onInsert 
+  onInsert,
+  simpleLabel,
+  onSimpleInsert,
 }: {
   item: LoraItem;
   words: string[];
@@ -31,6 +33,9 @@ export const LoraCard = memo(({
   apiBase: string;
   onDetail: (item: LoraItem) => void;
   onInsert?: (item: LoraItem, target: LoraInsertTarget) => void;
+  /** 简易模式：只显示一个「添加到 X」按钮（6 个目标按钮在该模式下会指错落点） */
+  simpleLabel?: string;
+  onSimpleInsert?: (item: LoraItem) => void;
 }) => {
   const key = item.model_name || item.file_name;
   const previewMedia = useMemo(() => ({
@@ -69,11 +74,27 @@ export const LoraCard = memo(({
           </div>
         </div>
         <div className="card-quick-actions">
-          <button type="button" title="添加到默认生图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "default"); }}>默认</button>
-          <button type="button" title="添加到多人工作流" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "multi"); }}>多人</button>
-          <button type="button" title="添加到高清修复" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "highres"); }}>高修</button>
-          <button type="button" title="添加到 Anima 生图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "anima"); }}>Anima</button>
-          <button type="button" title="添加到三视图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "sheet"); }}>三视</button>
+          {simpleLabel && onSimpleInsert ? (
+            <button
+              type="button"
+              title={`添加到${simpleLabel}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSimpleInsert(item);
+              }}
+            >
+              添加到{simpleLabel}
+            </button>
+          ) : (
+            <>
+              <button type="button" title="添加到默认生图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "default"); }}>默认</button>
+              <button type="button" title="添加到多人工作流" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "multi"); }}>多人</button>
+              <button type="button" title="添加到高清修复" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "highres"); }}>高修</button>
+              <button type="button" title="添加到 Anima 生图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "anima"); }}>Anima</button>
+              <button type="button" title="添加到三视图" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "sheet"); }}>三视</button>
+              <button type="button" title="添加到数据集工作台" onClick={(e) => { e.stopPropagation(); onInsert?.(item, "dataset"); }}>数据</button>
+            </>
+          )}
         </div>
       </div>
       <div className="card-footer lm-card-footer">

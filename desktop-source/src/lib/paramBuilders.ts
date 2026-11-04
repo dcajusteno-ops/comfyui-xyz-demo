@@ -3,6 +3,10 @@ import type {
   AnimaGenerationParams,
   AnimaRefineParams,
   BaseGenerationParams,
+  DatasetAxisConfig,
+  DatasetAxisKey,
+  DatasetConfig,
+  DatasetMode,
   DetailerParams,
   HighresParams,
   Img2ImgParams,
@@ -17,6 +21,17 @@ import {
   SHEET_DEFAULT_STYLE,
   SHEET_LORAS,
 } from "./characterSheet";
+import {
+  DATASET_ANIMA_STAGES,
+  DATASET_AXIS_META,
+  DATASET_AXIS_ORDER,
+  DATASET_DEFAULT_NEGATIVE,
+  DATASET_DEFAULT_POOLS,
+  DATASET_DEFAULT_SIZE,
+  DATASET_DEFAULT_STYLE,
+  DATASET_LEGACY_POOLS_V1,
+} from "./dataset/pools";
+import { MAX_DATASET_COUNT, MIN_DATASET_COUNT, normalizePool } from "./dataset/plan";
 
 /** 图生图参数的默认值（默认**关闭**，保证既有用户行为零变化） */
 export function makeImg2ImgParams(): Img2ImgParams {
@@ -290,9 +305,9 @@ export function makeAnimaParams(): AnimaGenerationParams {
 
 /**
  * 深拷贝 Anima 参数（含 5 个 detailer / hires / refine / modelStack）。
- * 三视图页要独立于「Anima 生图」页的取值，共享嵌套对象会让两边互相污染。
+ * 三视图与数据集页都要独立于「Anima 生图」页的取值，共享嵌套对象会让两边互相污染。
  */
-function cloneAnimaForSheet(params: AnimaGenerationParams): AnimaGenerationParams {
+function cloneAnimaParams(params: AnimaGenerationParams): AnimaGenerationParams {
   return {
     ...params,
     modelStack: { ...params.modelStack },
@@ -309,7 +324,7 @@ function cloneAnimaForSheet(params: AnimaGenerationParams): AnimaGenerationParam
 }
 
 /** 深拷贝高清修复参数（SDXL 侧复用同一套 DetailerParams，同样不能共享引用） */
-function cloneHighresForSheet(params: HighresParams): HighresParams {
+function cloneHighresParams(params: HighresParams): HighresParams {
   return {
     ...params,
     img2img: { ...(params.img2img ?? makeImg2ImgParams()) },
@@ -347,7 +362,7 @@ export function makeSheetParams(
       override: {},
     },
     anima: {
-      ...cloneAnimaForSheet(anima),
+      ...cloneAnimaParams(anima),
       checkpoint: "",
       positivePrompt: "",
       negativePrompt: SHEET_DEFAULT_NEGATIVE.anima,
@@ -363,7 +378,7 @@ export function makeSheetParams(
       drawText: undefined,
     },
     sdxl: {
-      ...cloneHighresForSheet(sdxlFix),
+      ...cloneHighresParams(sdxlFix),
       checkpoint: sdxl.checkpoint,
       positivePrompt: "",
       negativePrompt: SHEET_DEFAULT_NEGATIVE.sdxl,
@@ -426,6 +441,158 @@ export function normalizeSheetParams(merged: SheetParams): SheetParams {
       includeTrigger: source.lora?.includeTrigger !== false,
       includeBackground: source.lora?.includeBackground !== false,
       override: source.lora?.override ?? {},
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * 角色 LoRA 训练数据集工作台
+ * ------------------------------------------------------------------ */
+
+const DATASET_SUBJECTS: Array<DatasetConfig["subject"]> = ["1girl", "1boy", "1other", ""];
+/** 固定的默认发牌种子：保证「首次打开 + 重置配置」得到同一份计划 */
+const DATASET_PLAN_SEED_DEFAULT = 20260101;
+
+function makeDatasetAxisConfigs(): Record<DatasetAxisKey, DatasetAxisConfig> {
+  const out = {} as Record<DatasetAxisKey, DatasetAxisConfig>;
+  for (const key of DATASET_AXIS_ORDER) {
+    out[key] = {
+      enabled: true,
+      pool: [...DATASET_DEFAULT_POOLS[key]],
+      perItem: DATASET_AXIS_META[key].defaultPerItem,
+    };
+  }
+  return out;
+}
+
+/**
+ * 数据集页初始值：模型栈 / 采样参数从现有模板**继承**，提示词、LoRA、
+ * 尺寸与阶段重置为本页专属值（与 makeSheetParams 同一套思路）。
+ *
+ * 关键差异：默认尺寸 1024×1024（训练集要求全批同尺寸，方图兼容性最好），
+ * 阶段只开 CFGZeroStar + 保存（100 张跑「完整复刻」档不现实）。
+ */
+export function makeDatasetParams(
+  anima: AnimaGenerationParams = makeAnimaParams(),
+  sdxl: BaseGenerationParams = makeBaseParams(),
+  sdxlFix: HighresParams = makeHighresParams(sdxl.checkpoint),
+): DatasetConfig {
+  return {
+    mode: "anima",
+    subject: "1girl",
+    characterPrompt: "",
+    trigger: "",
+    style: { ...DATASET_DEFAULT_STYLE },
+    reference: { enabled: false, imageName: "" },
+    axes: makeDatasetAxisConfigs(),
+    targetCount: 100,
+    planSeed: DATASET_PLAN_SEED_DEFAULT,
+    seedBase: 1000,
+    filenameRoot: "Datasets/dataset",
+    caption: { includeTrigger: true, includeCharacter: false, saveTxt: true, saveTxtMode: "caption" },
+    anima: {
+      ...cloneAnimaParams(anima),
+      checkpoint: "",
+      positivePrompt: "",
+      negativePrompt: DATASET_DEFAULT_NEGATIVE.anima,
+      width: DATASET_DEFAULT_SIZE.width,
+      height: DATASET_DEFAULT_SIZE.height,
+      batchSize: 1,
+      filenamePrefix: "Datasets/dataset",
+      loras: [],
+      stages: { ...DATASET_ANIMA_STAGES },
+      img2img: { ...anima.img2img, imageName: "" },
+      drawText: undefined,
+    },
+    sdxl: {
+      ...cloneHighresParams(sdxlFix),
+      checkpoint: sdxl.checkpoint,
+      positivePrompt: "",
+      negativePrompt: DATASET_DEFAULT_NEGATIVE.sdxl,
+      width: DATASET_DEFAULT_SIZE.width,
+      height: DATASET_DEFAULT_SIZE.height,
+      batchSize: 1,
+      seed: sdxl.seed,
+      randomizeSeed: sdxl.randomizeSeed,
+      highresSeed: sdxl.seed,
+      randomizeHighresSeed: false,
+      steps: sdxl.steps,
+      cfg: sdxl.cfg,
+      samplerName: sdxl.samplerName,
+      scheduler: sdxl.scheduler,
+      denoise: sdxl.denoise,
+      filenamePrefix: "Datasets/dataset",
+      loras: [],
+      img2img: makeImg2ImgParams(),
+      drawText: undefined,
+      enableUpscale: false,
+      enableSegsDetailer: false,
+      enableHandDetailer: false,
+      enableFaceDetailer: false,
+      enableEyesDetailer: false,
+      enableNsfwDetailer: false,
+    },
+  };
+}
+
+/**
+ * 持久化脏数据兜底。注意 `deepMerge` 对数组是**整体替换**，
+ * 所以这里必须逐字段重建（尤其是 axes 与 caption），不能依赖默认值合并。
+ */
+export function normalizeDatasetParams(merged: DatasetConfig): DatasetConfig {
+  const source = (merged ?? {}) as DatasetConfig;
+  const mode: DatasetMode = source.mode === "sdxl" ? "sdxl" : "anima";
+  const clampInt = (value: unknown, min: number, max: number, fallback: number) => {
+    const num = Math.trunc(Number(value));
+    return Number.isFinite(num) ? Math.min(max, Math.max(min, num)) : fallback;
+  };
+
+  const rawAxes = (source.axes ?? {}) as Partial<Record<DatasetAxisKey, DatasetAxisConfig>>;
+  const axes = {} as Record<DatasetAxisKey, DatasetAxisConfig>;
+  for (const key of DATASET_AXIS_ORDER) {
+    const meta = DATASET_AXIS_META[key];
+    const raw = rawAxes[key];
+    const rawPool = Array.isArray(raw?.pool)
+      ? raw!.pool.map((tag) => String(tag ?? "")).filter((tag) => tag.trim().length > 0)
+      : null;
+    // 词池扩容迁移：只有「与旧内置池逐字相同」的轴才换成新池，用户删改过的一律保留
+    let pool: string[];
+    if (!rawPool) {
+      pool = [...DATASET_DEFAULT_POOLS[key]];
+    } else {
+      const legacy = normalizePool(DATASET_LEGACY_POOLS_V1[key]);
+      const untouched =
+        rawPool.length === legacy.length && normalizePool(rawPool).join("\u0001") === legacy.join("\u0001");
+      pool = untouched ? [...DATASET_DEFAULT_POOLS[key]] : rawPool;
+    }
+    axes[key] = {
+      enabled: raw?.enabled !== false,
+      pool,
+      perItem: clampInt(raw?.perItem, 0, meta.maxPerItem, meta.defaultPerItem),
+    };
+  }
+
+  return {
+    ...source,
+    mode,
+    subject: DATASET_SUBJECTS.includes(source.subject) ? source.subject : "1girl",
+    characterPrompt: String(source.characterPrompt ?? ""),
+    trigger: String(source.trigger ?? ""),
+    style: { ...DATASET_DEFAULT_STYLE, ...(source.style ?? {}) },
+    reference: {
+      enabled: Boolean(source.reference?.enabled),
+      imageName: String(source.reference?.imageName ?? ""),
+    },
+    axes,
+    targetCount: clampInt(source.targetCount, MIN_DATASET_COUNT, MAX_DATASET_COUNT, 100),
+    planSeed: clampInt(source.planSeed, 0, 0x7fffffff, DATASET_PLAN_SEED_DEFAULT),
+    seedBase: clampInt(source.seedBase, 0, 0x7fffffff, 1000),
+    filenameRoot: String(source.filenameRoot ?? "").replace(/[\\/]+$/, ""),
+    caption: {
+      includeTrigger: source.caption?.includeTrigger !== false,
+      includeCharacter: source.caption?.includeCharacter === true,
+      saveTxt: source.caption?.saveTxt !== false,
+      saveTxtMode: source.caption?.saveTxtMode === "prompt" ? "prompt" : "caption",
     },
   };
 }

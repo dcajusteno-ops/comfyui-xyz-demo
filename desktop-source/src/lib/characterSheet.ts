@@ -114,12 +114,12 @@ export function splitPromptTags(text: string): string[] {
 }
 
 /** 去重键：大小写不敏感，`_` 视同空格（danbooru 两种写法等价） */
-function dedupeKey(tag: string): string {
+export function dedupeKey(tag: string): string {
   return tag.toLowerCase().replace(/_/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /** `(word:1.2)` / `[word:0.8]` 这类权重语法：不参与去重，避免误伤同一词的加权与裸用 */
-function isWeightedTag(tag: string): boolean {
+export function isWeightedTag(tag: string): boolean {
   return /^[([][^)\]]*:\s*-?\d+(?:\.\d+)?[)\]]$/.test(tag);
 }
 

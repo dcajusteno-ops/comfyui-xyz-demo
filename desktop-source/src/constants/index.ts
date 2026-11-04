@@ -4,6 +4,7 @@ import {
   Columns3,
   Disc3,
   FileText,
+  Images,
   ImageUp,
   LibraryBig,
   ScanSearch,
@@ -78,6 +79,9 @@ export const toolTabs: TabConfig[] = [
   { id: "wardrobe", label: "Anima 造型台", icon: Shirt },
   // 独立公共工作台：词库与造型台的词在这里合流（不是嵌在两边页面里）
   { id: "workbench", label: "Anima 工作台", icon: Blocks },
+  // 数据集工作台：本质是生成页，但**不能**放进 generationTabs——
+  // 数字键 1–9 的顺序绑定在那个数组上（tabs.test.ts 有硬断言），插进去会让既有快捷键整体顺移。
+  { id: "dataset", label: "数据集工作台", icon: Images },
   { id: "notes", label: "记事本", icon: FileText },
 ];
 
@@ -110,7 +114,11 @@ export const navGroups: NavGroup[] = [
     id: "generate",
     label: "生成",
     foldable: true,
-    tabs: pick(generationTabs, ["default", "multi", "highres", "anima", "sheet"]),
+    // 数据集工作台是生成页，显示在生成组末尾；但定义上仍属于 toolTabs（见上方注释）
+    tabs: [
+      ...pick(generationTabs, ["default", "multi", "highres", "anima", "sheet"]),
+      ...pick(toolTabs, ["dataset"]),
+    ],
   },
   {
     id: "anima",
@@ -143,6 +151,7 @@ export const templateLabels: Record<TemplateKind, string> = {
 export const loraInsertTargetLabels: Record<LoraInsertTarget, string> = {
   ...templateLabels,
   sheet: "三视图",
+  dataset: "数据集工作台",
 };
 
 /** 三视图页主体词选项 */

@@ -53,6 +53,9 @@ const WardrobePanel = lazy(() =>
 const WorkbenchPanel = lazy(() =>
   import("./components/features/Workbench").then((m) => ({ default: m.WorkbenchPanel })),
 );
+const DatasetPanel = lazy(() =>
+  import("./components/features/Dataset").then((m) => ({ default: m.DatasetPanel })),
+);
 const TextGenerationPanel = lazy(() =>
   import("./components/features/Generation/TextGenerationPanel").then((m) => ({ default: m.TextGenerationPanel })),
 );
@@ -133,6 +136,8 @@ import { useOptions } from "./hooks/useOptions";
 import { useMobileTasks } from "./hooks/useMobileTasks";
 import { useNotifier } from "./hooks/useNotifier";
 import { useSheetLora } from "./hooks/useSheetLora";
+import { useDatasetRun } from "./hooks/useDatasetRun";
+import type { DatasetRunCaps, DatasetStartMode } from "./hooks/useDatasetRun";
 
 import { loraSyntaxName, mergeLora } from "./lib/lora-helper";
 import { pickCardPreviewMedia } from "./lib/lora-media";
@@ -144,6 +149,8 @@ import {
   buildAnimaPrompt,
 } from "./lib/workflowBuilders";
 import { buildSheetPrompt, composeSheetPromptFromParams } from "./lib/characterSheet";
+import { buildCaptionsText, buildDatasetPlan, buildManifest, reseedDatasetConfig } from "./lib/dataset";
+import { downloadTextFile } from "./lib/file-helper";
 import {
   generationTabs as generationTabConfig,
   slotsTab,
@@ -180,6 +187,29 @@ function App() {
 
   const gen = useGeneration({ client, pushToast, notifyComplete: notifier.notifyComplete, watermark: watermarkSettings });
   const params = useParams();
+  /**
+   * 数据集队列放在 App 层：数据集面板是条件渲染，切走即卸载；
+   * 队列若挂在面板里，100 张跑到一半切页就断了。
+   */
+  const datasetRun = useDatasetRun({
+    client,
+    pushToast,
+    notifyComplete: notifier.notifyComplete,
+    setGlobalProgress: gen.setProgress,
+    setActiveTaskLabel: gen.setActiveTaskLabel,
+  });
+  const {
+    items: datasetItems,
+    run: datasetRunState,
+    running: datasetRunning,
+    current: datasetCurrent,
+    replacePlan: replaceDatasetPlan,
+    start: startDatasetRun,
+    stop: stopDatasetRun,
+    retryFailed: retryDatasetFailed,
+    rerunOne: rerunDatasetOne,
+    recoverFromHistory: recoverDatasetHistory,
+  } = datasetRun;
 
   // 应用启动即惰性加载内置通配符词库到动态提示的模块级注册表
   useEffect(() => {
@@ -337,6 +367,12 @@ function App() {
             ? { ...prev, anima: { ...prev.anima, loras: mergeLora(prev.anima.loras, value) } }
             : { ...prev, sdxl: { ...prev.sdxl, loras: mergeLora(prev.sdxl.loras, value) } },
         ),
+      dataset: (value) =>
+        params.setDatasetParams((prev) =>
+          prev.mode === "anima"
+            ? { ...prev, anima: { ...prev.anima, loras: mergeLora(prev.anima.loras, value) } }
+            : { ...prev, sdxl: { ...prev.sdxl, loras: mergeLora(prev.sdxl.loras, value) } },
+        ),
     };
 
     const insert = inserters[target];
@@ -425,9 +461,19 @@ function App() {
           ? { ...prev, anima: { ...prev.anima, negativePrompt: join(prev.anima.negativePrompt) } }
           : { ...prev, sdxl: { ...prev.sdxl, negativePrompt: join(prev.sdxl.negativePrompt) } };
       });
-    // negative 侧始终写 negativePrompt（multi 也没有单独的负向 globalPrompt），按 tab 落到对应面板
+    // 数据集页同理：正向落「角色固定词」（每条都带），负向落当前模型族
+    const appendToDataset = (side: "positive" | "negative") =>
+      params.setDatasetParams((prev) => {
+        const join = (current: string) => [current.trim(), text.trim()].filter(Boolean).join(", ");
+        if (side === "positive") return { ...prev, characterPrompt: join(prev.characterPrompt) };
+        return prev.mode === "anima"
+          ? { ...prev, anima: { ...prev.anima, negativePrompt: join(prev.anima.negativePrompt) } }
+          : { ...prev, sdxl: { ...prev.sdxl, negativePrompt: join(prev.sdxl.negativePrompt) } };
+      });
+    // 负向框始终写 negativePrompt（multi 也没有单独的负向 globalPrompt），按 tab 落到对应面板
     if (target === "negative") {
-      if (promptTab === "sheet") appendToSheet("negative");
+      if (promptTab === "dataset") appendToDataset("negative");
+      else if (promptTab === "sheet") appendToSheet("negative");
       else if (promptTab === "multi") params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: false, dedupe: false }));
       else if (promptTab === "highres") params.setHighresParams(appendPromptUpdater<HighresParams>(text, { useGlobal: false, dedupe: false }));
       else if (promptTab === "anima") params.setAnimaParams(appendPromptUpdater<AnimaGenerationParams>(text, { useGlobal: false, dedupe: false }));
@@ -435,7 +481,9 @@ function App() {
       pushToast("info", "提示词已添加", `${text.slice(0, 20)}...`);
       return;
     }
-    if (promptTab === "sheet") {
+    if (promptTab === "dataset") {
+      appendToDataset("positive");
+    } else if (promptTab === "sheet") {
       appendToSheet("positive");
     } else if (promptTab === "multi") {
       params.setMultiParams(appendPromptUpdater<MultiGenerationParams>(text, opts));
@@ -460,6 +508,16 @@ function App() {
         characterPrompt: [prev.characterPrompt.trim(), text].filter(Boolean).join(", "),
       }));
       pushToast("success", "触发词已应用", "已追加到 三视图 角色描述");
+      return;
+    }
+
+    // 数据集工作台有独立的触发词字段（只影响 caption 与「挂了 LoRA 时的正向提示词」）
+    if (target === "dataset") {
+      params.setDatasetParams((prev) => ({
+        ...prev,
+        trigger: [prev.trigger.trim(), text].filter(Boolean).join(", "),
+      }));
+      pushToast("success", "触发词已应用", "已写入 数据集工作台 的触发词");
       return;
     }
 
@@ -548,6 +606,96 @@ function App() {
     },
     [setWorkbench, pushToast],
   );
+
+  /* ---------------- 数据集工作台 ---------------- */
+
+  const datasetConfig = params.datasetParams;
+
+  /** 数据集提交需要的能力：Anima 节点能力 + 「> Save Text」是否可用（决定能否边出图边写 .txt） */
+  const datasetCaps = useMemo<DatasetRunCaps>(
+    () => ({ animaCaps: options.animaCaps, saveText: options.datasetCaps?.saveText === true }),
+    [options.animaCaps, options.datasetCaps?.saveText],
+  );
+
+  const handleDatasetRegenerate = useCallback(() => {
+    const apply = () => {
+      // 换一批：同时换发牌种子与每张 seed，否则点多少次都是同一份计划、同一组图
+      const next = reseedDatasetConfig(datasetConfig);
+      const items = buildDatasetPlan(next);
+      params.setDatasetParams((prev) => ({ ...prev, planSeed: next.planSeed, seedBase: next.seedBase }));
+      replaceDatasetPlan(next, items);
+      pushToast("success", "计划已重新生成", `${items.length} 条 · 新种子 ${next.seedBase}`);
+    };
+    if (datasetItems.some((item) => item.status === "success")) {
+      ui.confirm(
+        "重新规划会清空本页结果记录",
+        "已出的图仍留在 ComfyUI 的 output 目录，但本页的序号 / caption 对应关系会被重置。继续？",
+        apply,
+      );
+      return;
+    }
+    apply();
+  }, [datasetConfig, datasetItems, params.setDatasetParams, pushToast, replaceDatasetPlan, ui]);
+
+  const handleDatasetStart = useCallback(
+    (mode: DatasetStartMode) => {
+      if (gen.progress.running) {
+        pushToast("info", "正在生成中", "等当前任务结束再开始数据集队列");
+        return;
+      }
+      // 还没有计划时自动排一份再跑：不让「先点重新规划」变成开跑的前置条件
+      if (!datasetItems.length) {
+        const items = buildDatasetPlan(datasetConfig);
+        replaceDatasetPlan(datasetConfig, items);
+        pushToast("info", "已自动生成计划", `${items.length} 条 · 种子 ${datasetConfig.planSeed}`);
+        void startDatasetRun(mode, datasetConfig, datasetCaps, undefined, items);
+        return;
+      }
+      void startDatasetRun(mode, datasetConfig, datasetCaps);
+    },
+    [
+      datasetCaps,
+      datasetConfig,
+      datasetItems.length,
+      gen.progress.running,
+      pushToast,
+      replaceDatasetPlan,
+      startDatasetRun,
+    ],
+  );
+
+  const handleDatasetStop = useCallback(() => stopDatasetRun(), [stopDatasetRun]);
+
+  const handleDatasetRetryFailed = useCallback(() => {
+    void retryDatasetFailed(datasetConfig, datasetCaps);
+  }, [datasetCaps, datasetConfig, retryDatasetFailed]);
+
+  const handleDatasetRerunOne = useCallback(
+    (id: string) => {
+      void rerunDatasetOne(id, datasetConfig, datasetCaps);
+    },
+    [datasetCaps, datasetConfig, rerunDatasetOne],
+  );
+
+  const handleDatasetRecover = useCallback(() => {
+    void recoverDatasetHistory();
+  }, [recoverDatasetHistory]);
+
+  const handleDatasetExportCaptions = useCallback(() => {
+    const text = buildCaptionsText(datasetItems);
+    if (!text) {
+      pushToast("info", "没有可导出的 caption", "先成功生成至少一张");
+      return;
+    }
+    downloadTextFile(`dataset-captions-${Date.now()}.txt`, text, "text/plain");
+    pushToast("success", "已导出 caption 清单", "格式：文件路径<TAB>caption，按行拆分即可");
+  }, [datasetItems, pushToast]);
+
+  const handleDatasetExportManifest = useCallback(() => {
+    const payload = buildManifest(datasetConfig, datasetRunState);
+    downloadTextFile(`dataset-manifest-${Date.now()}.json`, JSON.stringify(payload, null, 2), "application/json");
+    pushToast("success", "已导出 manifest", `${payload.items.length} 条记录`);
+  }, [datasetConfig, datasetRunState, pushToast]);
 
   /**
    * Danbooru 随机图 → Anima 参考图。
@@ -676,8 +824,15 @@ function App() {
         negative: params.sheetParams[params.sheetParams.mode].negativePrompt,
       };
     }
+    if (tab === "dataset") {
+      // 数据集没有「当前一条」：正向框回显角色固定词，负向取当前模型族
+      return {
+        positive: params.datasetParams.characterPrompt,
+        negative: params.datasetParams[params.datasetParams.mode].negativePrompt,
+      };
+    }
     return { positive: params.defaultParams.positivePrompt, negative: params.defaultParams.negativePrompt };
-  }, [tab, params.defaultParams, params.multiParams, params.highresParams, params.animaParams, params.sheetParams]);
+  }, [tab, params.defaultParams, params.multiParams, params.highresParams, params.animaParams, params.sheetParams, params.datasetParams]);
 
   // 侧边栏分组定义来自 constants 的 navGroups（历史上此处另有一份硬编码，导致新增入口时漏改；
   // 数字键 1–9 仍按 generationTabConfig + slotsTab + toolTabConfig 的旧顺序，见下方 digitTabs）
@@ -694,6 +849,8 @@ function App() {
 
   /** 当前 tab 的「生成」动作（Ctrl+Enter 触发；与面板按钮完全同源） */
   const runCurrentTab = useCallback(() => {
+    // 数据集页刻意不接 Ctrl+Enter：一次要提交 100 张，误触代价太大（用工具栏按钮显式启动）
+    if (tab === "dataset") return undefined;
     if (tab === "default") return gen.runPrompt("默认生图", () => buildDefaultPrompt(params.defaultParams));
     if (tab === "multi") return gen.runPrompt("多人工作流", () => buildMultiPrompt(params.multiParams));
     if (tab === "highres") return gen.runPrompt("高清修复", () => buildHighresPrompt(params.highresParams));
@@ -822,7 +979,7 @@ function App() {
 
         <div className="layout-with-sidebar">
           {/* `lora-full` 是历史命名的「全宽无输出栏」布局，词库页同样需要 */}
-          <div className={["layout", gen.results.length > 0 ? "has-output" : "no-output", tab === "loras" || tab === "anima-library" || tab === "wardrobe" || tab === "workbench" ? "lora-full" : ""].filter(Boolean).join(" ")}>
+          <div className={["layout", gen.results.length > 0 ? "has-output" : "no-output", tab === "loras" || tab === "anima-library" || tab === "wardrobe" || tab === "workbench" || tab === "dataset" ? "lora-full" : ""].filter(Boolean).join(" ")}>
             <main className="workspace">
               <Suspense fallback={<PanelFallback />}>
               {tab === "default" && (
@@ -928,6 +1085,39 @@ function App() {
                   onOpenLoraDetail={handleOpenLoraDetail}
                   onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
                   onUploadImage={uploadImage}
+                  pushToast={pushToast}
+                />
+              )}
+
+              {tab === "dataset" && (
+                <DatasetPanel
+                  params={datasetConfig}
+                  setParams={params.setDatasetParams}
+                  options={options}
+                  apiBase={apiBase}
+                  loraSettings={loraSettings}
+                  loraExampleFilesByHash={loras.loraExampleFilesByHash}
+                  loraNames={loraNames}
+                  wildcardNames={wildcardNames}
+                  items={datasetItems}
+                  planMode={datasetRunState.mode}
+                  planSignature={datasetRunState.signature}
+                  running={datasetRunning}
+                  current={datasetCurrent}
+                  onStart={handleDatasetStart}
+                  onStop={handleDatasetStop}
+                  onRetryFailed={handleDatasetRetryFailed}
+                  onRerunOne={handleDatasetRerunOne}
+                  onRegeneratePlan={handleDatasetRegenerate}
+                  onRecover={handleDatasetRecover}
+                  onExportCaptions={handleDatasetExportCaptions}
+                  onExportManifest={handleDatasetExportManifest}
+                  onUploadImage={uploadImage}
+                  onOpenLoraDetail={handleOpenLoraDetail}
+                  onSetSimpleLoraTarget={loras.setSimpleLoraTarget}
+                  onOpenImage={(url) => ui.setOutputLightbox({ url })}
+                  resolveImageUrl={(file) => client.viewUrl(file)}
+                  confirm={ui.confirm}
                   pushToast={pushToast}
                 />
               )}
@@ -1099,7 +1289,7 @@ function App() {
               </Suspense>
             </main>
 
-            {tab !== "loras" && tab !== "anima-library" && tab !== "wardrobe" && tab !== "workbench" && !(tab === "notes" && notesHook.isNotesWide) && (
+            {tab !== "loras" && tab !== "anima-library" && tab !== "wardrobe" && tab !== "workbench" && tab !== "dataset" && !(tab === "notes" && notesHook.isNotesWide) && (
               <aside className={gen.results.length > 0 || gen.progress.previewUrl ? "output-panel" : "output-panel is-empty"}>
                 <div className="gallery">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -1267,6 +1457,19 @@ function App() {
           if (tab === "sheet") {
             // 三视图页的正向落点是「角色描述」，不是 positivePrompt
             params.setSheetParams((prev) => {
+              const join = (current: string, addition: string) =>
+                [current.trim(), addition.trim()].filter(Boolean).join(", ");
+              const next: typeof prev = { ...prev, characterPrompt: join(prev.characterPrompt, pos) };
+              if (prev.mode === "anima") {
+                next.anima = { ...prev.anima, negativePrompt: join(prev.anima.negativePrompt, neg) };
+              } else {
+                next.sdxl = { ...prev.sdxl, negativePrompt: join(prev.sdxl.negativePrompt, neg) };
+              }
+              return next;
+            });
+          } else if (tab === "dataset") {
+            // 数据集页同理：正向落「角色固定词」，负向落当前模型族
+            params.setDatasetParams((prev) => {
               const join = (current: string, addition: string) =>
                 [current.trim(), addition.trim()].filter(Boolean).join(", ");
               const next: typeof prev = { ...prev, characterPrompt: join(prev.characterPrompt, pos) };

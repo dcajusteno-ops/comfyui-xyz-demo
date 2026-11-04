@@ -6,7 +6,9 @@ import {
   makeHighresParams,
   makeAnimaParams,
   makeSheetParams,
+  makeDatasetParams,
   normalizeSheetParams,
+  normalizeDatasetParams,
 } from "../lib/paramBuilders";
 import { fallbackOptions } from "../constants";
 import type { 
@@ -15,6 +17,7 @@ import type {
   HighresParams, 
   AnimaGenerationParams,
   SheetParams,
+  DatasetConfig,
   OptionsState 
 } from "../types";
 
@@ -36,6 +39,17 @@ export function useParams() {
     normalizeSheetParams,
   );
 
+  /**
+   * 数据集工作台同理：首次挂载取一份快照，之后自维护。
+   * 计划与运行记录不在这里（见 useDatasetRun 的 `comfyui_dataset_run`）。
+   */
+  const [datasetDefaults] = useState<DatasetConfig>(() => makeDatasetParams(animaParams, defaultParams, highresParams));
+  const [datasetParams, setDatasetParams] = usePersistentState<DatasetConfig>(
+    "comfyui_dataset_params",
+    datasetDefaults,
+    normalizeDatasetParams,
+  );
+
   const allActiveLoraHashes = useMemo(() => {
     return [
       ...defaultParams.loras,
@@ -44,6 +58,8 @@ export function useParams() {
       ...animaParams.loras,
       ...sheetParams.anima.loras,
       ...sheetParams.sdxl.loras,
+      ...datasetParams.anima.loras,
+      ...datasetParams.sdxl.loras,
     ].map(l => l.sha256?.toLowerCase()).filter((h): h is string => Boolean(h));
   }, [
     defaultParams.loras,
@@ -52,6 +68,8 @@ export function useParams() {
     animaParams.loras,
     sheetParams.anima.loras,
     sheetParams.sdxl.loras,
+    datasetParams.anima.loras,
+    datasetParams.sdxl.loras,
   ]);
 
   return useMemo(() => ({
@@ -67,6 +85,8 @@ export function useParams() {
     setAnimaParams,
     sheetParams,
     setSheetParams,
+    datasetParams,
+    setDatasetParams,
     allActiveLoraHashes,
-  }), [options, setOptions, defaultParams, setDefaultParams, multiParams, setMultiParams, highresParams, setHighresParams, animaParams, setAnimaParams, sheetParams, setSheetParams, allActiveLoraHashes]);
+  }), [options, setOptions, defaultParams, setDefaultParams, multiParams, setMultiParams, highresParams, setHighresParams, animaParams, setAnimaParams, sheetParams, setSheetParams, datasetParams, setDatasetParams, allActiveLoraHashes]);
 }

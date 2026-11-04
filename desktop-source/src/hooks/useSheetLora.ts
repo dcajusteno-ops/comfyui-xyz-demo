@@ -2,17 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ComfyClient } from "../lib/comfyClient";
 import type { LoraItem, SheetMode } from "../types";
 import { resolveSheetLora, type SheetLoraResolution } from "../lib/characterSheet";
+import { matchesLoraFamily } from "../lib/lora-helper";
 
 /** 兜底按目录检索时用的路径（与内置 LoRA 规格里的相对路径同源） */
 const SHEET_LORA_FOLDER = "AnimaLora/三视图";
 
 type SheetLoraCandidates = Record<SheetMode, LoraItem[]>;
-
-function baseModelMatches(mode: SheetMode, item: LoraItem): boolean {
-  const text = `${item.base_model ?? ""} ${item.file_name ?? ""}`.toLowerCase();
-  if (mode === "anima") return /anima/.test(text);
-  return /illustrious|noob|sdxl|stable diffusion xl|pony/.test(text);
-}
 
 /**
  * 三视图 LoRA 检索。
@@ -78,7 +73,7 @@ export function useSheetLora(
 
   const candidates = useMemo<SheetLoraCandidates>(() => {
     const pick = (mode: SheetMode) =>
-      items.filter((item) => baseModelMatches(mode, item) && /sheet|三视图/i.test(item.file_name ?? ""));
+      items.filter((item) => matchesLoraFamily(mode, item) && /sheet|三视图/i.test(item.file_name ?? ""));
     return { anima: pick("anima"), sdxl: pick("sdxl") };
   }, [items]);
 

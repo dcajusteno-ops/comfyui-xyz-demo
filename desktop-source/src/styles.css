@@ -9084,3 +9084,487 @@ html.has-wallpaper .lm-folder-sidebar {
 .nav-item.active .nav-item-dot {
   background: rgba(255, 255, 255, 0.9);
 }
+
+/* ------------------------------------------------------------------ *
+ * 数据集工作台（Dataset）
+ *
+ * 全宽页：`.layout.lora-full .panel` 默认只有两行（header + body），
+ * 这里多了一行工具栏，必须显式补第三行——否则 body 会落到隐式行、和工具栏重叠
+ * （造型台 `.wd-panel` 踩过同一个坑）。
+ * ------------------------------------------------------------------ */
+.layout.lora-full .ds-panel {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.ds-panel {
+  min-height: 0;
+}
+
+.ds-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ds-segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ds-segmented button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ds-segmented button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ds-segmented button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ds-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ds-toolbar .field {
+  min-width: 92px;
+}
+
+.ds-spacer {
+  flex: 1;
+}
+
+.ds-body {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px 16px 0;
+}
+
+.ds-side,
+.ds-main {
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ds-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ds-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ds-card-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.ds-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+.ds-warn {
+  color: var(--warning);
+  font-size: 0.78rem;
+}
+
+.ds-empty {
+  margin: 0;
+  padding: 14px 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.ds-axis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ds-axis {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: var(--surface-alt);
+}
+
+.ds-axis.off {
+  opacity: 0.62;
+}
+
+.ds-axis-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 0;
+  list-style: none;
+}
+
+.ds-axis-head::-webkit-details-marker {
+  display: none;
+}
+
+.ds-axis-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.ds-axis-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.ds-axis-body {
+  padding: 4px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ds-axis-tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ds-axis-pool {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.ds-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.ds-inline input[type="number"] {
+  width: 58px;
+}
+
+.ds-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.ds-row {
+  display: grid;
+  grid-template-columns: 44px minmax(120px, 1.3fr) 100px minmax(110px, 1.4fr) 74px 58px;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  /* 窄窗口下列不塌：宁可横向滚动，也不把标签/状态挤成竖排 */
+  min-width: 680px;
+}
+
+.ds-row-head {
+  color: var(--muted);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+
+.ds-row:not(.ds-row-head):hover {
+  background: var(--surface-hover);
+}
+
+.ds-status-row-running {
+  background: var(--accent-soft);
+}
+
+.ds-status-row-failed {
+  background: var(--danger-soft);
+}
+
+.ds-index,
+.ds-seed {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ds-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ds-tags em {
+  font-style: normal;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+}
+
+.ds-caption {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ds-status {
+  font-weight: 600;
+}
+
+.ds-status-success {
+  color: var(--success);
+}
+
+.ds-status-failed {
+  color: var(--danger);
+}
+
+.ds-status-running {
+  color: var(--accent);
+}
+
+.ds-status-queued,
+.ds-status-cancelled,
+.ds-status-interrupted {
+  color: var(--muted);
+}
+
+.ds-row-actions {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+}
+
+.ds-pager {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+.ds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.ds-thumb {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-alt);
+}
+
+.ds-thumb-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.ds-thumb-btn img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.ds-thumb-index {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 0.7rem;
+}
+
+.ds-thumb figcaption {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.ds-thumb figcaption span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ds-anchor-chip {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.ds-anchor-chip.ok {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.ds-anchor-chip.warn {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.ds-anchor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ds-running {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.ds-preview {
+  font-size: 0.78rem;
+}
+
+.ds-preview p {
+  margin: 4px 0;
+  word-break: break-word;
+}
+
+.ds-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .ds-body {
+    grid-template-columns: minmax(0, 1fr);
+    /* 单列时两行必须按内容高度排：默认 auto 行会被 stretch 均分容器高度，
+       左栏溢出后压到右栏上（表现为卡片被裁 + 横幅盖住内容）。 */
+    grid-auto-rows: max-content;
+    align-content: start;
+    overflow-y: auto;
+  }
+
+  .ds-side,
+  .ds-main {
+    overflow: visible;
+  }
+}
+
+/* --- 数据集工作台：角色锚点里的 LoRA 入口 --- */
+.ds-lora {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ds-lora-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ds-lora-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ds-lora-head .ds-hint {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+}
+
+/* --- 计划过期横幅 --- */
+.ds-stale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--warning);
+  border-radius: 8px;
+  background: var(--warning-soft);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.ds-stale svg {
+  color: var(--warning);
+  flex: none;
+}
+
+.ds-stale span {
+  flex: 1;
+  min-width: 180px;
+}
