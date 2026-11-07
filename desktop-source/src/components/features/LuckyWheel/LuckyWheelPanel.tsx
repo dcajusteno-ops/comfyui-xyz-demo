@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Copy, Disc3, Lock, Plus, RotateCcw, Send, Sparkles, Trash2, Unlock, X } from "lucide-react";
 
-import { PanelTitle } from "../../ui";
+import { PanelTitle, Select } from "../../ui";
 import { templateLabels } from "../../../constants";
 import type { TemplateKind } from "../../../types";
 import { usePersistentState } from "../../../hooks/usePersistentState";
@@ -585,17 +585,13 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
             </div>
 
             <div className="wheel-apply-bar">
-              <select
+              <Select
+                ariaLabel="抽取结果的目标模板"
                 className="wheel-target"
                 value={target}
-                onChange={(event) => setTarget(event.target.value as TemplateKind)}
-              >
-                {Object.entries(templateLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                options={Object.entries(templateLabels).map(([value, label]) => ({ value, label }))}
+                onChange={(next) => setTarget(next as TemplateKind)}
+              />
               <button type="button" className="icon-button" disabled={visibleTags.length === 0} onClick={apply}>
                 <Send size={16} /> 应用
               </button>

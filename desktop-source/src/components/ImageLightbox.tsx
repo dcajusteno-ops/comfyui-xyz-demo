@@ -1,5 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { X, ZoomIn, ZoomOut, Download, Copy, RefreshCw, Stamp } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Download,
+  RefreshCw,
+  Stamp,
+  Trash2,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 
 interface ImageLightboxProps {
   url: string;
@@ -8,11 +20,35 @@ interface ImageLightboxProps {
   onClose: () => void;
   /** 打开文字水印弹窗（传入源图 URL；不传则不显示入口） */
   onWatermark?: (url: string) => void;
+  /** 图片管理器专属：上一张 / 下一张（不传则不显示箭头、不响应方向键） */
+  onPrev?: () => void;
+  onNext?: () => void;
+  /** 图片管理器专属：当前序号（1-based）与总数 */
+  position?: { index: number; total: number };
+  /** 图片管理器专属：文件名（底部条显示） */
+  caption?: string;
+  /** 图片管理器专属：是否已标记为删除备选 */
+  marked?: boolean;
+  onToggleMark?: () => void;
+  /** 图片管理器专属：已标记数量 */
+  markedCount?: number;
 }
 
-export function ImageLightbox({ url, originalUrl, onClose, onWatermark }: ImageLightboxProps) {
+export function ImageLightbox({
+  url,
+  originalUrl,
+  onClose,
+  onWatermark,
+  onPrev,
+  onNext,
+  position,
+  caption,
+  marked = false,
+  onToggleMark,
+  markedCount = 0,
+}: ImageLightboxProps) {
   const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imgRef = useRef<HTMLImageElement>(null);
@@ -21,8 +57,13 @@ export function ImageLightbox({ url, originalUrl, onClose, onWatermark }: ImageL
   const handleZoomOut = useCallback(() => setScale(s => Math.max(s - 0.2, 0.5)), []);
   const handleReset = useCallback(() => {
     setScale(1);
-    setPosition({ x: 0, y: 0 });
+    setOffset({ x: 0, y: 0 });
   }, []);
+
+  // 换图时重置缩放，否则上一张的放大状态会带到下一张
+  useEffect(() => {
+    handleReset();
+  }, [url, handleReset]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -31,10 +72,18 @@ export function ImageLightbox({ url, originalUrl, onClose, onWatermark }: ImageL
       if (e.key === "+" || e.key === "=") handleZoomIn();
       if (e.key === "-" || e.key === "_") handleZoomOut();
       if (e.key === "0") handleReset();
+      if (e.key === "ArrowLeft" && onPrev) {
+        e.preventDefault();
+        onPrev();
+      }
+      if (e.key === "ArrowRight" && onNext) {
+        e.preventDefault();
+        onNext();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, handleZoomIn, handleZoomOut, handleReset]);
+  }, [onClose, onPrev, onNext, handleZoomIn, handleZoomOut, handleReset]);
 
   const handleWheel = (e: React.WheelEvent) => {
     // Zoom relative to mouse position would be better but let's keep it simple for now
@@ -45,13 +94,13 @@ export function ImageLightbox({ url, originalUrl, onClose, onWatermark }: ImageL
   const handleMouseDown = (e: React.MouseEvent) => {
     if (scale > 1) {
       setIsDragging(true);
-      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+      setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging) {
-      setPosition({
+      setOffset({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y
       });
@@ -114,29 +163,67 @@ export function ImageLightbox({ url, originalUrl, onClose, onWatermark }: ImageL
             <button onClick={onClose} title="关闭 (Esc)"><X size={18} /></button>
           </div>
         </div>
-        <div 
-          className="lm-lightbox-media-container" 
+
+        {onPrev && (
+          <button type="button" className="lm-lightbox-nav prev" onClick={onPrev} title="上一张（←）">
+            <ChevronLeft size={24} />
+          </button>
+        )}
+        {onNext && (
+          <button type="button" className="lm-lightbox-nav next" onClick={onNext} title="下一张（→）">
+            <ChevronRight size={24} />
+          </button>
+        )}
+
+        <div
+          className="lm-lightbox-media-container"
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ 
+          style={{
             cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
           }}
         >
-          <img 
+          <img
             ref={imgRef}
-            src={url} 
-            alt="Preview" 
-            className="lm-media-asset" 
-            style={{ 
-              transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            src={url}
+            alt="Preview"
+            className="lm-media-asset"
+            style={{
+              transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
               transition: isDragging ? 'none' : 'transform 0.1s ease-out',
             }}
             draggable={false}
           />
         </div>
+
+        {(caption || position || onToggleMark) && (
+          <div className="lm-lightbox-footer">
+            <span className="lm-lightbox-caption" title={caption}>
+              {caption ?? ""}
+            </span>
+            {position && (
+              <span className="lm-lightbox-counter">
+                {position.index} / {position.total}
+              </span>
+            )}
+            <span className="lm-lightbox-footer-spacer" />
+            {markedCount > 0 && <span className="lm-lightbox-marked">已标记 {markedCount} 张</span>}
+            {onToggleMark && (
+              <button
+                type="button"
+                className={`lm-lightbox-mark${marked ? " is-marked" : ""}`}
+                onClick={onToggleMark}
+                title={marked ? "取消删除标记" : "标记为删除备选（关闭灯箱后可统一删除）"}
+              >
+                {marked ? <Check size={15} /> : <Trash2 size={15} />}
+                {marked ? "取消标记" : "标记删除"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

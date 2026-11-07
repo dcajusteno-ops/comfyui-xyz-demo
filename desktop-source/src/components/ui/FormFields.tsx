@@ -5,6 +5,7 @@ import { translateText, defaultTranslationSettings } from "../../lib/translation
 import type { TranslationSettings } from "../../lib/translation";
 import { usePersistentState } from "../../hooks/usePersistentState";
 import { PromptTagBlocks } from "../PromptTagBlocks";
+import { Select } from "./Select";
 
 export function NumberField({ label, value, min, max, step, disabled, onChange }: { label: string; value: number; min?: number; max?: number; step?: number; disabled?: boolean; onChange: (value: number) => void }) {
   return (
@@ -33,13 +34,15 @@ export function SelectField({ label, value, options, onChange }: {
   return (
     <label className="field">
       <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map((option) => {
-          const val = typeof option === 'string' ? option : option.value;
-          const lab = typeof option === 'string' ? option : option.label;
-          return <option key={val} value={val}>{lab}</option>;
-        })}
-      </select>
+      <Select
+        ariaLabel={label}
+        block
+        value={value}
+        onChange={onChange}
+        options={options.map((option) =>
+          typeof option === "string" ? { value: option, label: option } : { value: option.value, label: option.label },
+        )}
+      />
     </label>
   );
 }

@@ -5,6 +5,7 @@ import {
   CopyableTextarea,
   NumberField,
   PanelTitle,
+  Select,
   SelectField,
   TextAreaField,
 } from "../../ui";
@@ -363,24 +364,21 @@ export const SheetGenerationPanel = React.memo(({
             </div>
             <label className="field" style={{ gridColumn: "span 3" }}>
               <span>改用其它三视图 LoRA</span>
-              <select
+              <Select
+                ariaLabel="改用其它三视图 LoRA"
+                block
                 value={overrideValue}
-                onChange={(event) =>
+                options={overrideOptions}
+                onChange={(next) =>
                   setParams((prev) => ({
                     ...prev,
                     lora: {
                       ...prev.lora,
-                      override: { ...prev.lora.override, [mode]: event.target.value || undefined },
+                      override: { ...prev.lora.override, [mode]: next || undefined },
                     },
                   }))
                 }
-              >
-                {overrideOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
           </div>
           <div style={{ fontSize: "12px", color: resolution.matched || !params.lora.enabled ? "var(--muted)" : "var(--warning)" }}>
@@ -392,16 +390,13 @@ export const SheetGenerationPanel = React.memo(({
         <div className="form-grid three">
           <label className="field">
             <span>主体</span>
-            <select
+            <Select
+              ariaLabel="主体"
+              block
               value={params.subject}
-              onChange={(event) => patchSheet({ subject: event.target.value as SheetParams["subject"] })}
-            >
-              {sheetSubjectOptions.map((option) => (
-                <option key={option.value || "none"} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              options={sheetSubjectOptions}
+              onChange={(next) => patchSheet({ subject: next as SheetParams["subject"] })}
+            />
           </label>
           <div className="field" style={{ gridColumn: "span 2" }}>
             <span>固定视角（正 / 侧 / 背）</span>
@@ -523,23 +518,19 @@ export const SheetGenerationPanel = React.memo(({
             <div className="form-grid three" style={{ marginTop: "10px" }}>
               <label className="field">
                 <span>档位预设</span>
-                <select
+                <Select
+                  ariaLabel="档位预设"
+                  block
                   value={matchAnimaPreset(params.anima.stages)}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    if (value === "custom") return;
+                  options={animaPresetLabels.map((preset) => ({ value: preset.id, label: preset.label }))}
+                  onChange={(next) => {
+                    if (next === "custom") return;
                     setParams((prev) => ({
                       ...prev,
-                      anima: { ...prev.anima, stages: { ...ANIMA_STAGE_PRESETS[value as AnimaPresetId] } },
+                      anima: { ...prev.anima, stages: { ...ANIMA_STAGE_PRESETS[next as AnimaPresetId] } },
                     }));
                   }}
-                >
-                  {animaPresetLabels.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </label>
               <SelectField
                 label="放大模型"

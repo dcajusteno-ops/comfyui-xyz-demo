@@ -3,6 +3,7 @@ import { ImagePlus, Link2, Trash2, Upload } from "lucide-react";
 import { CONFIG } from "../../config";
 import { DEFAULT_WALLPAPER_DIM, WALLPAPER_REF_RE, WALLPAPER_ROUTE_PREFIX, sanitizeUrl } from "../../lib/theme";
 import type { WallpaperConfig, WallpaperFit } from "../../lib/theme";
+import { Select } from "../ui";
 
 const MAX_WALLPAPER_BYTES = CONFIG.THEME.MAX_WALLPAPER_BYTES;
 const ACCEPTED_TYPES = CONFIG.THEME.WALLPAPER_ACCEPT;
@@ -171,17 +172,14 @@ export function WallpaperEditor({
         <div className="theme-wallpaper-controls">
           <label className="theme-field">
             <span>填充方式</span>
-            <select
+            <Select
+              ariaLabel="填充方式"
+              block
               value={wallpaper.fit ?? "cover"}
               disabled={disabled}
-              onChange={(e) => patch({ fit: e.target.value as WallpaperFit })}
-            >
-              {FIT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              options={FIT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+              onChange={(next) => patch({ fit: next as WallpaperFit })}
+            />
           </label>
 
           <label className="theme-field">

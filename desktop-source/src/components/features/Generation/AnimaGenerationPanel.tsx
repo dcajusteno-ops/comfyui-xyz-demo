@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from "react";
 import { Sparkles, Plus, Upload, RotateCcw, LibraryBig, Shirt } from "lucide-react";
-import { PanelTitle, BaseControls, SelectField, NumberField } from "../../ui";
+import { PanelTitle, BaseControls, Select, SelectField, NumberField } from "../../ui";
 import { PresetBar } from "./PresetBar";
 import { DetailerControls } from "./DetailerControls";
 import {
@@ -185,19 +185,15 @@ export const AnimaGenerationPanel = React.memo(({
         <div className="form-grid three">
           <label className="field">
             <span>档位预设</span>
-            <select
+            <Select
+              ariaLabel="档位预设"
+              block
               value={stagePreset}
-              onChange={(event) => {
-                const value = event.target.value;
-                if (value !== "custom") applyPreset(value as AnimaPresetId);
+              options={animaPresetLabels.map((preset) => ({ value: preset.id, label: preset.label }))}
+              onChange={(next) => {
+                if (next !== "custom") applyPreset(next as AnimaPresetId);
               }}
-            >
-              {animaPresetLabels.map((preset) => (
-                <option key={preset.id} value={preset.id}>
-                  {preset.label}
-                </option>
-              ))}
-            </select>
+            />
           </label>
           <div className="field" style={{ gridColumn: "span 3", justifyContent: "flex-end" }}>
             <button

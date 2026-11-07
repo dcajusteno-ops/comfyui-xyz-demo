@@ -1,6 +1,6 @@
 import React from "react";
-import { AlertTriangle, Download, FileJson, Images, Play, RefreshCw, RotateCcw, Square } from "lucide-react";
-import { BaseControls, NumberField, PanelTitle, SelectField, TextAreaField, TextField } from "../../ui";
+import { AlertTriangle, Download, FileJson, FolderOpen, Images, Play, RefreshCw, RotateCcw, Square } from "lucide-react";
+import { BaseControls, NumberField, PanelTitle, Select, SelectField, TextAreaField, TextField } from "../../ui";
 import { sheetSubjectOptions } from "../../../constants";
 import { DATASET_AXIS_ORDER } from "../../../lib/dataset/pools";
 import { buildDatasetSignature } from "../../../lib/dataset/signature";
@@ -51,6 +51,8 @@ export type DatasetPanelProps = {
   onRecover: () => void;
   onExportCaptions: () => void;
   onExportManifest: () => void;
+  /** 跳转图片管理器并定位到本数据集的落盘目录（传 filenameRoot，不是它的父目录） */
+  onOpenImageManager?: (relativeDir?: string) => void;
   onUploadImage: (file: File) => Promise<string>;
   onOpenLoraDetail: (item: LoraItem) => void;
   onSetSimpleLoraTarget: (target: LoraInsertTarget) => void;
@@ -88,6 +90,7 @@ export const DatasetPanel = React.memo(function DatasetPanel({
   onRecover,
   onExportCaptions,
   onExportManifest,
+  onOpenImageManager,
   onUploadImage,
   onOpenLoraDetail,
   onSetSimpleLoraTarget,
@@ -277,6 +280,14 @@ export const DatasetPanel = React.memo(function DatasetPanel({
           </button>
         )}
         <span className="ds-spacer" />
+        <button
+          type="button"
+          className="secondary-action"
+          title={`在浏览器中打开图片管理，并定位到 ${params.filenameRoot || "ComfyUI 输出目录"}`}
+          onClick={() => onOpenImageManager?.(params.filenameRoot)}
+        >
+          <FolderOpen size={14} /> 图片管理
+        </button>
         <button type="button" className="ghost-btn" disabled={successCount === 0} onClick={onExportCaptions}>
           <Download size={14} /> caption 清单
         </button>
@@ -294,19 +305,16 @@ export const DatasetPanel = React.memo(function DatasetPanel({
             <div className="form-grid">
               <label className="field">
                 <span>主体词</span>
-                <select
+                <Select
+                  ariaLabel="主体词"
+                  block
                   value={params.subject}
                   disabled={running}
-                  onChange={(event) =>
-                    setParams((prev) => ({ ...prev, subject: event.target.value as DatasetConfig["subject"] }))
+                  options={sheetSubjectOptions}
+                  onChange={(next) =>
+                    setParams((prev) => ({ ...prev, subject: next as DatasetConfig["subject"] }))
                   }
-                >
-                  {sheetSubjectOptions.map((option) => (
-                    <option key={option.value || "none"} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </label>
             </div>
             <TextAreaField
@@ -421,19 +429,22 @@ export const DatasetPanel = React.memo(function DatasetPanel({
             </label>
             <label className="field">
               <span>.txt 内容</span>
-              <select
+              <Select
+                ariaLabel=".txt 内容"
+                block
                 value={params.caption.saveTxtMode ?? "caption"}
                 disabled={running || !saveTextAvailable || params.caption.saveTxt === false}
-                onChange={(event) =>
+                options={[
+                  { value: "caption", label: "训练用 caption（触发词 + 变化词）" },
+                  { value: "prompt", label: "完整正向提示词" },
+                ]}
+                onChange={(next) =>
                   setParams((prev) => ({
                     ...prev,
-                    caption: { ...prev.caption, saveTxtMode: event.target.value === "prompt" ? "prompt" : "caption" },
+                    caption: { ...prev.caption, saveTxtMode: next === "prompt" ? "prompt" : "caption" },
                   }))
                 }
-              >
-                <option value="caption">训练用 caption（触发词 + 变化词）</option>
-                <option value="prompt">完整正向提示词</option>
-              </select>
+              />
             </label>
             {saveTextAvailable ? (
               <p className="ds-hint">

@@ -75,9 +75,115 @@ const OBJECT_INFO = {
 
 const stats = { system: { comfyui_version: "e2e-mock" }, devices: [{ name: "cpu", type: "CPU" }] };
 
+/** 图片管理器的假输出目录树：只放 png（服务端本身会过滤非图片） */
+const IMAGE_ROOT = "F:\\mock\\ComfyUI\\output";
+const IMAGE_DATASET_DIR = `${IMAGE_ROOT}\\Datasets\\dataset\\Baixiuxiu_anima`;
+const IMAGE_FOLDERS: Record<string, string[]> = {
+  [IMAGE_ROOT]: ["Datasets", "2026-01-01"],
+  [`${IMAGE_ROOT}\\Datasets`]: ["dataset"],
+  [`${IMAGE_ROOT}\\Datasets\\dataset`]: ["Baixiuxiu_anima"],
+  [IMAGE_DATASET_DIR]: [],
+  [`${IMAGE_ROOT}\\2026-01-01`]: [],
+};
+
+/** 1×1 透明 png：`<img>` 能正常解码，且不需要额外夹具文件 */
+const TINY_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+
 // 拦截全部 ComfyUI 代理请求（lm API 实际由 ComfyUI 侧 LoraManager 插件提供）
 export async function installApiMocks(page: Page) {
   const json = (data: unknown) => ({ status: 200, contentType: "application/json", body: JSON.stringify(data) });
+
+  // 图片管理器：config / browse / file / delete。delete 有状态，删完网格真的会少条目。
+  let imageRoot = IMAGE_ROOT;
+  let trashEnabled = true;
+  const imageFiles: Record<string, string[]> = {
+    [IMAGE_ROOT]: ["root_00001_.png"],
+    [IMAGE_DATASET_DIR]: ["001_00001_.png", "002_00001_.png", "010_00001_.png"],
+  };
+  const imageConfig = () => ({
+    success: true,
+    rootDir: imageRoot,
+    rootSource: imageRoot === IMAGE_ROOT ? "detected" : "saved",
+    savedRootDir: imageRoot === IMAGE_ROOT ? "" : imageRoot,
+    outputDir: IMAGE_ROOT,
+    outputDirSource: "argv-main",
+    outputDirExists: true,
+    rootExists: true,
+    trashEnabled,
+    drives: ["C:\\", "D:\\", "F:\\"],
+  });
+
+  await page.route(/\/xyz\/images\/service/, (route) =>
+    route.fulfill(json({ success: true, url: "http://127.0.0.1:9124/" })),
+  );
+
+  await page.route(/\/xyz\/images\/config/, async (route) => {
+    if ((route.request().method() ?? "GET").toUpperCase() === "POST") {
+      const body = route.request().postDataJSON() as { rootDir?: string; trashEnabled?: boolean } | null;
+      if (typeof body?.rootDir === "string" && body.rootDir.trim()) imageRoot = body.rootDir.trim();
+      if (typeof body?.trashEnabled === "boolean") trashEnabled = body.trashEnabled;
+    }
+    await route.fulfill(json(imageConfig()));
+  });
+
+  await page.route(/\/xyz\/images\/browse/, async (route) => {
+    const requestUrl = new URL(route.request().url());
+    const dir = requestUrl.searchParams.get("dir") || imageRoot;
+    const folders = IMAGE_FOLDERS[dir];
+    if (!folders) {
+      await route.fulfill(
+        json({
+          success: false,
+          dir,
+          parent: null,
+          folders: [],
+          images: [],
+          total: 0,
+          truncated: false,
+          error: "ENOENT: no such file or directory",
+          nearest: imageRoot,
+        }),
+      );
+      return;
+    }
+    const names = imageFiles[dir] ?? [];
+    await route.fulfill(
+      json({
+        success: true,
+        dir,
+        parent: dir === imageRoot ? "F:\\mock\\ComfyUI" : dir.slice(0, dir.lastIndexOf("\\")),
+        folders,
+        images: names.map((name, index) => ({ name, size: 1024 * (index + 1), mtime: 1_760_000_000_000 + index * 60_000 })),
+        total: names.length,
+        truncated: false,
+        error: "",
+        nearest: "",
+      }),
+    );
+  });
+
+  await page.route(/\/xyz\/images\/file/, (route) =>
+    route.fulfill({ status: 200, contentType: "image/png", body: TINY_PNG }),
+  );
+
+  await page.route(/\/xyz\/images\/delete/, async (route) => {
+    const body = route.request().postDataJSON() as { paths?: string[] } | null;
+    const deleted: string[] = [];
+    for (const path of body?.paths ?? []) {
+      const dir = path.slice(0, path.lastIndexOf("\\"));
+      const name = path.slice(path.lastIndexOf("\\") + 1);
+      const list = imageFiles[dir] ?? [];
+      const index = list.indexOf(name);
+      if (index >= 0) {
+        list.splice(index, 1);
+        deleted.push(path);
+      }
+    }
+    await route.fulfill(json({ success: true, deleted, failed: [], mode: trashEnabled ? "trash" : "delete" }));
+  });
 
   await page.route(/\/comfy\/api\/lm\/loras\/list/, (route) =>
     route.fulfill(json({ ...emptyList, items: MOCK_ITEMS, total: MOCK_ITEMS.length }))

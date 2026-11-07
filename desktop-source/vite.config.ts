@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { xyzExampleImagesPlugin } from "./server/exampleImages";
 import { xyzAnimaImagePlugin } from "./server/animaImage";
 import { xyzFsBrowsePlugin } from "./server/fsBrowse";
+import { xyzImageManagerPlugin } from "./server/imageManager";
 import { xyzLauncherPlugin } from "./server/launcher";
 import { xyzLoraPlugin } from "./server/lora";
 import { xyzMobileGenPlugin } from "./server/mobileGen";
@@ -19,9 +20,14 @@ const comfyTarget = process.env.COMFYUI_URL ?? "http://127.0.0.1:8188";
 export default defineConfig({
   // 注意：mobileGen 必须注册在 mobileSync **之前**——mobileSync 的中间件拦截所有 /api/mobile/*，
   // 若它先注册，/api/mobile/gen 永远到不了 mobileGen，只会得到 404。
-  plugins: [xyzNotesPlugin(), xyzPromptsPlugin(), xyzWildcardsPlugin(), xyzFsBrowsePlugin(), xyzAnimaImagePlugin(), xyzExampleImagesPlugin(comfyTarget), xyzLoraPlugin(), xyzLauncherPlugin(), xyzUiStatePlugin(), xyzWindowPlugin(), xyzThemePlugin(), xyzMobileGenPlugin(comfyTarget), xyzMobileSyncPlugin(comfyTarget), react()],
+  plugins: [xyzNotesPlugin(), xyzPromptsPlugin(), xyzWildcardsPlugin(), xyzFsBrowsePlugin(), xyzImageManagerPlugin(comfyTarget), xyzAnimaImagePlugin(), xyzExampleImagesPlugin(comfyTarget), xyzLoraPlugin(), xyzLauncherPlugin(), xyzUiStatePlugin(), xyzWindowPlugin(), xyzThemePlugin(), xyzMobileGenPlugin(comfyTarget), xyzMobileSyncPlugin(comfyTarget), react()],
   build: {
     rollupOptions: {
+      // 多页：主应用 + 外置图片管理器（独立端口直接打开 standalone.html，不挂主壳）
+      input: {
+        main: "index.html",
+        standalone: "standalone.html",
+      },
       output: {
         // 主 chunk 瘦身：react-dom 与 sanitizer 拆为独立 chunk（同步加载、行为零变化，稳定缓存并消除 500kB chunk 警告）
         manualChunks: {

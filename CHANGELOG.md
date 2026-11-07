@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.8.3] - 2026-11-07
+
+### ✨ 新功能 (Features)
+
+- **外置图片管理器（独立端口网页）**：图片管理不再占用主应用的标签页——它是**单独监听端口的网页**，浏览器打开就是一个只有图片管理器的页面（`http://127.0.0.1:9124/`，被占用时 9125…9133 顺延），不加载侧边栏 / 顶栏 / 输出栏。数据集工作台工具栏的「图片管理」按钮会把外置地址交给**系统默认浏览器**打开，并定位到该数据集的落盘目录。
+  - **页面形态**：新增 `standalone.html` + `src/standalone.tsx` 独立入口（Vite 多页构建），复用同一个 `ImageManagerPanel`；确认框、toast、灯箱由独立页自己补齐（主应用那层 `AppProvider` 不会被加载）。
+  - **默认根目录**：启动时自动从 ComfyUI `/api/system_stats` 的 `argv` 推导输出目录（依次认 `COMFYUI_OUTPUT_DIR` / `--output-directory` / `--base-directory` / `main.py` 同级 `output`），探测不到时明确提示手选。「根目录…」对话框可自由浏览全盘（盘符快捷入口 + 路径输入 + 子文件夹列表），选择结果存 `data/image-settings.json`。
+  - **浏览**：面包屑（从根目录起逐段可点）+ 左侧子文件夹列表 + 右侧图片网格（名称自然序 / 修改时间两种排序，48 张/页「加载更多」），点击图片复用现有灯箱预览。
+  - **删除**：多选 / 全选 / 反选后移到 **Windows 回收站**（Go 端 `SHFileOperationW`，`FOF_ALLOWUNDO`，按块调用并逐条复验），不是永久删除；dev 环境移入 `data/.trash-images/`，两端 `mode` 恒为 `trash`，文案只有一套。
+  - **边界**：`file` / `delete` 只允许「默认根目录」内的图片文件；`config` / `delete` 是写操作，只接受本机回环请求。外置服务只监听 `127.0.0.1`（不暴露到局域网）。非固定磁盘 / UNC / 超长路径一律明确报错，**不静默降级为永久删除**。
+  - **打开方式**：桌面窗口里由 Go 绑定 `openExternal`（`ShellExecute`，只放行本机地址）拉起系统浏览器；dev / `--web` 模式退回 `window.open`。外置页与主应用共用 `/api/ui-state`，主题与「当前目录 / 排序」是同一份状态。
+  - **数据集跳转**：按钮传的是 `filenameRoot` 本身（ComfyUI 的 `filename_prefix` 最后一段是文件名），落点 = `<output>/<filenameRoot>`，通过 `?dir=` 传给独立页面；目标不在当前根目录内时自动切换根目录并提示。
+  - **灯箱增强（图片管理器专属）**：大图预览左右两侧加了圆形切换按钮，支持 `←` / `→` 方向键环形翻图（走完整目录，不只当前加载的 48 张）；底部条显示文件名、`当前 / 总数`、已标记数量，并提供「标记删除 / 取消标记」——标记与网格勾选、删除计数同源，关掉灯箱即可统一删除。
+  - **删除方式可切换**：工具栏新增「移到回收站」开关（默认开，配置存 `data/image-settings.json` 的 `trashEnabled`）。关闭后删除按钮变「永久删除（N）」、确认框改为「无法恢复」、toast 同步切换，后端返回 `mode: "delete"` 并直接 `unlink` / `os.Remove`；开关是乐观更新，保存失败自动回滚。
+  - 端点：`/xyz/images/{config,browse,file,delete,service}`，TS 中间件（SSOT）+ Go 双实现；`service` 返回外置页面地址，`parity.mjs` 已接入 `config` 与 `service`。
+- **全局按钮样式重做**：`.ghost-btn` 此前**没有任何 CSS 规则**（全项目 19 处退化成浏览器默认灰按钮），`.secondary-action` 是一块平涂灰底。现在统一成四级：
+  - `.primary-action`（实心强调，圆角 10、悬浮微抬升）
+  - `.secondary-action`（描边 + 轻投影，hover 变强调色 + 柔光）
+  - `.ghost-btn`（描边式轻按钮，hover 才有底色，不再是默认灰块）
+  - `.icon-button` / `.lm-text-btn`（统一圆角与 hover）
+  - 另加全局 `:focus-visible` 焦点环、统一高度/字号/间距与禁用态；只动公共按钮类，不改 tab / 分段 / 导航等功能性按钮。图片管理器的排序下拉、危险按钮、回收站开关也按同一套令牌重做。
+  - **图片管理头部间距修正**：`.im-header` 此前只写了 `gap` 没写 `display: flex`（gap 完全不生效），「根目录…/回到根目录/刷新」三个按钮零间距挤成一排。现在改成 flex + 10px 间距、操作组右对齐，`secondary-action` 内边距 13→14、图标与文字间距 7→8。
+- **全局下拉菜单重做**：项目里 **29 处原生 `<select>` 全部替换**为自带弹层的 `Select`（`src/components/ui/Select.tsx`，由 Anima 词库的 `AnimaSelect` 提升而来，旧组件名保留 re-export，既有面板 import 不动）。
+  - **原因**：原生 `<select>` 的弹层由系统渲染，深色主题下列表仍是浅底，而选项文字继承主题亮色 → 灰底白字几乎看不清；`color-scheme` 在 WebView2 也不可靠。
+  - **范围**：图片管理器排序、数据集工作台（主体词 / `.txt` 内容）、LoRA 管理器四个筛选、三视图（LoRA 覆盖 / 主体 / 档位预设）、XYZ（目标模板 / 轴参数）、幸运大转盘、Anima 生图档位、默认生图「作为输入图」、公共 `SelectField` 与 `BaseControls`（宽高 / 保存路径预设）、LoRA 设置弹窗（模糊阈值 / 翻译服务商）、壁纸填充方式、词库编辑器（四个筛选 + 每页条数）、手机同步目标 —— 改完后项目内已无原生 `<select>`。
+  - **视觉**：统一触发器（34 / 28px 两档、8px 圆角、主题描边、hover 变强调色、展开时 3px 焦点环）；弹层实底 + 轻微淡入下沉、选项 hover 过渡、选中项左侧强调条 + 对勾；表单字段用 `block` 撑满父容器，工具栏位置可 `align="right"` 防溢出。
+  - **可访问性**：`aria-haspopup="listbox"` / `aria-expanded` / `role="option"` / `aria-selected`，支持 `↑ ↓ Home End Enter Space Esc Tab` 键盘操作。
+
+### 🧪 测试 (Tests)
+
+- 新增 **39 条单测**（`server/imageManager.test.ts` 19：输出目录探测的各参数形态 / 相对路径不瞎猜 / 根目录边界 / 扩展名白名单 / 删除计划校验 / `trashEnabled` 缺省与局部更新；`src/lib/imageManager.test.ts` 20：路径拼接与越界 / 中文空格 / 面包屑 / 自然序 / `datasetRootToDir` 回归锁 / ui-state 归一化）。
+- 新增 **14 条 Go 单测**（输出目录探测、配置键集与不可达同键集、只允许本机保存、回收站开关的局部更新、浏览过滤与缺失目录回落、读图的 ETag/nosniff/HEAD、删除分账、关闭回收站后永久删除且不调用回收站、非 JSON 拒绝、外置服务地址、独立端口页与同源 API、`SHFILEOPSTRUCTW` 56 字节逐字段布局、危险路径拒绝）与 **10 条 E2E**（外置页独立渲染 / `?dir=` 深链 / 子文件夹切换 / 选择计数 / 取消确认 / 确认后移入回收站 / 根目录对话框 / 灯箱左右切换与标记 / 关闭回收站后永久删除 / 数据集按钮交给浏览器并带上 `filenameRoot`）。
+- 全量：**1046 单测（69 文件）**、**48 E2E**、`tsc --noEmit` 与 `eslint src server e2e` 均 0 error；`parity.mjs` 12 项全 PASS；实机 exe 验证 9124 页面与 API、灯箱翻图/标记、`mode:"delete"` 永久删除，以及回收站路径下文件可在 `F:\$Recycle.Bin` 中找回。
+- 下拉替换后同步修正 2 条既有 E2E：`默认生图：下拉选项由 object_info 填充` 改为「打开弹层数选项」（原断言数原生 `option`）；转盘下拉的 `ariaLabel` 由「应用目标」改为「抽取结果的目标模板」，避免与「应用」按钮重名导致 `getByRole` 命中两个元素。
+
 ## [v0.8.2] - 2026-11-04
 
 ### ✨ 新功能 (Features)

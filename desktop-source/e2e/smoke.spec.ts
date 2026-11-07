@@ -69,10 +69,14 @@ test("LoRA 卡片快捷插入：六个目标都可达（含 Anima / 三视图 / 
 
 test("默认生图：下拉选项由 object_info 填充（useOptions 解构错位回归防线）", async ({ page }) => {
   await page.goto("/");
-  // 此前 useOptions 的 Promise.all 解构错位导致全部下拉为空——此断言守住选项填充
-  await expect(page.getByLabel("大模型").locator("option")).toHaveCount(2);
-  await expect(page.getByLabel("采样器").locator("option")).toHaveCount(2);
-  await expect(page.getByLabel("调度器").locator("option")).toHaveCount(2);
+  // 此前 useOptions 的 Promise.all 解构错位导致全部下拉为空——此断言守住选项填充。
+  // 下拉已换成自带弹层的自定义组件（原生 select 在深色下是灰底白字），
+  // 因此改为「打开弹层 → 数选项」：数量不对同样是解构错位的信号。
+  for (const label of ["大模型", "采样器", "调度器"]) {
+    await page.getByRole("button", { name: label, exact: true }).click();
+    await expect(page.locator(".al-select-popup .al-select-option")).toHaveCount(2);
+    await page.keyboard.press("Escape");
+  }
 });
 
 test("标签切换：LoRA 管理器侧边栏折叠与持久化（D5）", async ({ page }) => {

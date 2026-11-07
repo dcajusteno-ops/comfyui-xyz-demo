@@ -29,7 +29,7 @@ import {
 } from "../../../lib/nsfw";
 import { pickCardPreviewMedia } from "../../../lib/lora-media";
 import { managedModelLabel } from "../../../constants";
-import { ExampleImagesProgressBar } from "../../ui";
+import { ExampleImagesProgressBar, Select } from "../../ui";
 import { FolderSidebar } from "./FolderSidebar";
 import { LoraCard } from "./LoraCard";
 
@@ -120,16 +120,16 @@ export const LoraManagerPanel = memo(({
      updateQuery({ folder });
    }, [updateQuery]);
 
-   const handleBaseModelSelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    updateQuery({ baseModel: event.target.value });
+   const handleBaseModelSelect = useCallback((value: string) => {
+    updateQuery({ baseModel: value });
   }, [updateQuery]);
 
-  const handleTagSelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    updateQuery({ tag: event.target.value });
+  const handleTagSelect = useCallback((value: string) => {
+    updateQuery({ tag: value });
   }, [updateQuery]);
 
-  const handleDensityChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setDensity(event.target.value as "compact" | "medium" | "large");
+  const handleDensityChange = useCallback((value: string) => {
+    setDensity(value as "compact" | "medium" | "large");
   }, [setDensity]);
 
   useEffect(() => {
@@ -183,23 +183,41 @@ export const LoraManagerPanel = memo(({
         />
         <div className="lm-model-area">
           <div className="lora-filter-row lm-filter-row">
-            <select value={query.folder} onChange={(e) => handleFolderSelect(e.target.value)}>
-              <option value="">全部文件夹</option>
-              {folders.map((folder) => <option key={folder} value={folder}>{folder}</option>)}
-            </select>
-            <select value={query.baseModel} onChange={handleBaseModelSelect}>
-              <option value="">全部模型类型</option>
-              {baseModels.map((item) => <option key={item.name} value={item.name}>{item.name} ({item.count})</option>)}
-            </select>
-            <select value={query.tag} onChange={handleTagSelect}>
-              <option value="">全部标签</option>
-              {tags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
-            </select>
-            <select value={density} onChange={handleDensityChange}>
-              <option value="compact">紧凑</option>
-              <option value="medium">中等</option>
-              <option value="large">大图</option>
-            </select>
+            <Select
+              ariaLabel="按文件夹筛选"
+              block
+              value={query.folder}
+              onChange={handleFolderSelect}
+              options={[{ value: "", label: "全部文件夹" }, ...folders.map((folder) => ({ value: folder, label: folder }))]}
+            />
+            <Select
+              ariaLabel="按模型类型筛选"
+              block
+              value={query.baseModel}
+              onChange={handleBaseModelSelect}
+              options={[
+                { value: "", label: "全部模型类型" },
+                ...baseModels.map((item) => ({ value: item.name, label: `${item.name} (${item.count})` })),
+              ]}
+            />
+            <Select
+              ariaLabel="按标签筛选"
+              block
+              value={query.tag}
+              onChange={handleTagSelect}
+              options={[{ value: "", label: "全部标签" }, ...tags.map((tag) => ({ value: tag, label: tag }))]}
+            />
+            <Select
+              ariaLabel="卡片密度"
+              block
+              value={density}
+              onChange={handleDensityChange}
+              options={[
+                { value: "compact", label: "紧凑" },
+                { value: "medium", label: "中等" },
+                { value: "large", label: "大图" },
+              ]}
+            />
           </div>
 
           <div className="lora-summary lm-summary">

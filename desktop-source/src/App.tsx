@@ -19,7 +19,7 @@ import { AppSidebar } from "./components/layout/AppSidebar";
 import { GlobalModals } from "./components/GlobalModals";
 import { PromptSidebar } from "./components/PromptSidebar";
 import { QueuePanel } from "./components/QueuePanel";
-import { ToastViewport, RunProgressStrip, VramBadge } from "./components/ui";
+import { ToastViewport, RunProgressStrip, VramBadge, Select } from "./components/ui";
 import { useWatermarkSettings } from "./hooks/useWatermarkSettings";
 
 // 首屏必需，随主包同步加载；**必须从具体文件引**，走 `features/Generation` 的
@@ -166,6 +166,7 @@ import { applyWardrobeSplitToValues } from "./lib/wardrobe/workbench";
 import type { WardrobeWorkbenchSplit } from "./lib/wardrobe/types";
 import { renderWatermarkLayers } from "./lib/watermark";
 import { applySpecialXyzPatch } from "./lib/xyz";
+import { openImageManagerService } from "./lib/imageService";
 import { img2imgUpdater } from "./lib/paramBuilders";
 import { loadWildcards } from "./lib/wildcards";
 import { WILDCARD_FILES } from "./lib/wildcards";
@@ -865,6 +866,18 @@ function App() {
     return undefined;
   }, [tab, gen, params, options.animaCaps, buildCurrentSheetPrompt]);
 
+  /** 打开外置图片管理服务：可选带上数据集落点（filenameRoot），在系统浏览器里打开 */
+  const openImageManager = useCallback(
+    async (dir?: string) => {
+      try {
+        await openImageManagerService(dir);
+      } catch (error) {
+        pushToast("error", "打开图片管理失败", error instanceof Error ? error.message : String(error));
+      }
+    },
+    [pushToast],
+  );
+
   // 全局快捷键（T10-②）：Ctrl+Enter 生成 · Ctrl+S 存预设 · 数字键切 tab
   useEffect(() => {
     const digitTabs = [...generationTabConfig, slotsTab, ...toolTabConfig];
@@ -1119,6 +1132,7 @@ function App() {
                   resolveImageUrl={(file) => client.viewUrl(file)}
                   confirm={ui.confirm}
                   pushToast={pushToast}
+                  onOpenImageManager={openImageManager}
                 />
               )}
 
@@ -1361,26 +1375,29 @@ function App() {
                               const key = `${result.promptId}-${image.filename}`;
                               const busy = uploadingImageKey === key;
                               return (
-                                <select
+                                <Select
+                                  ariaLabel="作为输入图"
+                                  block
+                                  title="把这张图作为其它面板的参考图"
                                   value=""
                                   disabled={busy}
-                                  title="把这张图作为其它面板的参考图"
-                                  style={{ width: "100%" }}
-                                  onChange={(event) => {
-                                    const target = event.target.value as TemplateKind | "wd14" | "sheet";
-                                    if (!target) return;
+                                  options={[
+                                    { value: "", label: busy ? "上传中…" : "作为输入图 ▾" },
+                                    { value: "default", label: "→ 默认生图" },
+                                    { value: "multi", label: "→ 多人工作流" },
+                                    { value: "highres", label: "→ 高清修复" },
+                                    { value: "anima", label: "→ Anima 生图" },
+                                    { value: "sheet", label: "→ 三视图" },
+                                    { value: "wd14", label: "→ 图片识别（反推）" },
+                                  ]}
+                                  onChange={(next) => {
+                                    if (!next) return;
                                     setUploadingImageKey(key);
-                                    void handleSendImageTo(image, target).finally(() => setUploadingImageKey(null));
+                                    void handleSendImageTo(image, next as TemplateKind | "wd14" | "sheet").finally(() =>
+                                      setUploadingImageKey(null),
+                                    );
                                   }}
-                                >
-                                  <option value="">{busy ? "上传中…" : "作为输入图 ▾"}</option>
-                                  <option value="default">→ 默认生图</option>
-                                  <option value="multi">→ 多人工作流</option>
-                                  <option value="highres">→ 高清修复</option>
-                                  <option value="anima">→ Anima 生图</option>
-                                  <option value="sheet">→ 三视图</option>
-                                  <option value="wd14">→ 图片识别（反推）</option>
-                                </select>
+                                />
                               );
                             })()}
                           </div>

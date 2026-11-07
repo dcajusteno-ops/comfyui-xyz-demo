@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 	"unsafe"
 
@@ -94,7 +95,7 @@ func main() {
 	// 内部就 ShowWindow，之后再改色会先亮一帧系统默认色。
 	chrome := winchrome.New()
 	startupAppearance := api.LoadPersistedAppearance(filepath.Join(root, "data", "ui-state.json"))
-	mux := buildMux(root, dist, comfyTarget, aliyunTarget, chrome)
+	mux, imageServiceURL := buildMux(root, dist, comfyTarget, aliyunTarget, chrome)
 
 	// 桌面窗口模式绑定**专用固定端口 9123**（而非 dev 的 9999）：dev/exe 可共存互不干扰，
 	// 且每次启动 origin 稳定 → localStorage（预设/面板状态）不会因端口漂移而"重置"。
@@ -128,6 +129,16 @@ func main() {
 	// 窗口此刻已经可见（go-webview2 内部即 ShowWindow），所以立刻着色
 	chrome.Attach(uintptr(w.Window()))
 	chrome.Apply(startupAppearance)
+	// 外置图片管理页由系统浏览器打开：WebView2 没有原生能力，绑定 ShellExecute 给前端调用。
+	// 只放行本机地址，避免这个绑定变成任意 URL 的启动器。
+	if imageServiceURL != "" {
+		_ = w.Bind("openExternal", func(target string) error {
+			if !strings.HasPrefix(target, "http://127.0.0.1:") && !strings.HasPrefix(target, "http://localhost:") {
+				return fmt.Errorf("只允许打开本机地址")
+			}
+			return windows.ShellExecute(0, windows.StringToUTF16Ptr("open"), windows.StringToUTF16Ptr(target), nil, nil, windows.SW_SHOWNORMAL)
+		})
+	}
 	w.SetSize(winMinWidth, winMinHight, webview2.HintMin)
 	w.Navigate(base)
 	go watchWindowSize(w, filepath.Join(root, "data", "window-state.json"), ww, hh)
@@ -264,7 +275,7 @@ func runWebMode(port string, comfyTarget, aliyunTarget *url.URL, openBrowser boo
 	}
 	dist := embeddedDist()
 	// 浏览器模式没有桌面窗口：chrome 传 nil → /xyz/window/appearance 返回 desktop:false
-	mux := buildMux(root, dist, comfyTarget, aliyunTarget, nil)
+	mux, _ := buildMux(root, dist, comfyTarget, aliyunTarget, nil)
 
 	addr := "0.0.0.0:" + port
 	ln, err := net.Listen("tcp", addr)
@@ -314,7 +325,8 @@ func embeddedDist() fs.FS {
 
 // buildMux 汇总全部路由。两种运行形态共用同一套 handler，行为完全一致。
 // chrome 为 nil 表示非桌面窗口形态（runWebMode / --web / DSH_E2E）。
-func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrome *winchrome.Applier) *http.ServeMux {
+// 第二个返回值 = 外置图片管理页地址（独立端口；启动失败时为空串）。
+func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrome *winchrome.Applier) (*http.ServeMux, string) {
 	stores := &api.Stores{RepoRoot: root, Queue: storage.NewWriteQueue()}
 	// 单文件 exe 旁边没有 public/：把内嵌的内置通配符词库播种到 data/wildcards，
 	// 「在线编辑」才读得到内容、存得下去。种子只在文件缺失时写，不覆盖用户改动。
@@ -341,6 +353,27 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrom
 	mux.HandleFunc("/xyz/wildcards/", stores.HandleWildcards)
 	mux.HandleFunc("/xyz/fs/folders", stores.HandleFsBrowse)
 	mux.HandleFunc("/xyz/fs/folders/", stores.HandleFsBrowse)
+	// 前端持久化状态（data/ui-state.json，替代 localStorage）；E2E 内存态防污染真实数据
+	// 窗口外观也写这个文件，所以两个 handler 必须共用同一个写队列，否则并发写会互相覆盖
+	uiQueue := storage.NewWriteQueue()
+	uiStateStore := &api.UiStateStore{RepoRoot: root, Queue: uiQueue, InMemory: os.Getenv("DSH_E2E") == "1"}
+	mux.HandleFunc("/api/ui-state", uiStateStore.Handle)
+	mux.HandleFunc("/api/ui-state/", uiStateStore.Handle)
+	// 图片管理器（数据集清理）：默认根目录 = ComfyUI 输出目录，删除走 Windows 回收站。
+	// 界面本身是**独立端口的外置页面**（见下方 ImageService），主应用只提供 /service 地址。
+	imageHandler := &api.ImageHandler{RepoRoot: root, ComfyBase: comfyBaseURL}
+	mux.HandleFunc(api.ImageRoutePrefix+"/config", imageHandler.HandleConfig)
+	mux.HandleFunc(api.ImageRoutePrefix+"/config/", imageHandler.HandleConfig)
+	mux.HandleFunc(api.ImageRoutePrefix+"/browse", imageHandler.HandleBrowse)
+	mux.HandleFunc(api.ImageRoutePrefix+"/browse/", imageHandler.HandleBrowse)
+	mux.HandleFunc(api.ImageRoutePrefix+"/file", imageHandler.HandleFile)
+	mux.HandleFunc(api.ImageRoutePrefix+"/file/", imageHandler.HandleFile)
+	mux.HandleFunc(api.ImageRoutePrefix+"/delete", imageHandler.HandleDelete)
+	mux.HandleFunc(api.ImageRoutePrefix+"/delete/", imageHandler.HandleDelete)
+	mux.HandleFunc(api.ImageRoutePrefix+"/service", imageHandler.HandleService)
+	imageService := api.NewImageService(dist, imageHandler, uiStateStore)
+	imageService.Start()
+	imageHandler.ServiceURL = imageService.URL
 	// Danbooru 图片同源代理：浏览器直连 CDN 会被 Sec-Fetch 热链保护拦成 403
 	mux.HandleFunc(api.AnimaImageRoute, stores.HandleAnimaImage)
 	mux.HandleFunc(api.AnimaImageRoute+"/", stores.HandleAnimaImage)
@@ -348,12 +381,6 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrom
 	launcherStore := launcher.NewStore(root)
 	mux.HandleFunc("/xyz/launcher", launcherStore.Handle)
 	mux.HandleFunc("/xyz/launcher/", launcherStore.Handle)
-	// 前端持久化状态（data/ui-state.json，替代 localStorage）；E2E 内存态防污染真实数据
-	// 窗口外观也写这个文件，所以两个 handler 必须共用同一个写队列，否则并发写会互相覆盖
-	uiQueue := storage.NewWriteQueue()
-	uiStateStore := &api.UiStateStore{RepoRoot: root, Queue: uiQueue, InMemory: os.Getenv("DSH_E2E") == "1"}
-	mux.HandleFunc("/api/ui-state", uiStateStore.Handle)
-	mux.HandleFunc("/api/ui-state/", uiStateStore.Handle)
 	// 桌面窗口外观：原生标题栏 / 边框跟随主题（DWM）。非桌面形态 chrome 为 nil → desktop:false
 	windowHandler := &api.WindowHandler{
 		Chrome:   chrome,
@@ -382,7 +409,7 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrom
 		stores.ServeWildcardFile(w, r, dist)
 	})
 	mux.Handle("/", http.FileServerFS(dist))
-	return mux
+	return mux, imageService.URL()
 }
 
 // setDPIAware 声明进程级 DPI 感知，避免 WebView2 内容被系统拉伸发糊。

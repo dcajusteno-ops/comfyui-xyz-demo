@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { RefreshCw, Braces } from "lucide-react";
 import { NumberField, SelectField, TextAreaField } from "./FormFields";
+import { Select } from "./Select";
 import { PromptTagBlocks } from "../PromptTagBlocks";
 import { PromptLintBadge } from "./PromptLintBadge";
 import { LoraChips } from "../features/Lora/LoraChips";
@@ -82,22 +83,21 @@ export function BaseControls<T extends BaseGenerationParams>({
         )}
         <label className="field">
           <span>宽高预设</span>
-          <select
+          <Select
+            ariaLabel="宽高预设"
+            block
             value={findResolutionPreset(params.width, params.height)}
-            onChange={(event) => {
-              const preset = resolutionPresets.find((item) => item.label === event.target.value);
+            options={[
+              ...resolutionPresets.map((preset) => ({ value: preset.label, label: preset.label })),
+              { value: "custom", label: "自定义" },
+            ]}
+            onChange={(next) => {
+              const preset = resolutionPresets.find((item) => item.label === next);
               if (preset) {
                 setParams((prev) => ({ ...prev, width: preset.width, height: preset.height }));
               }
             }}
-          >
-            {resolutionPresets.map((preset) => (
-              <option key={preset.label} value={preset.label}>
-                {preset.label}
-              </option>
-            ))}
-            <option value="custom">自定义</option>
-          </select>
+          />
         </label>
         <NumberField
           label="宽"
@@ -184,21 +184,18 @@ export function BaseControls<T extends BaseGenerationParams>({
         />
         <label className="field">
           <span>保存路径预设</span>
-          <select
+          <Select
+            ariaLabel="保存路径预设"
+            block
             value={findPathPreset(params.filenamePrefix)}
-            onChange={(event) => {
-              if (event.target.value !== "custom") {
-                setField("filenamePrefix", event.target.value as T["filenamePrefix"]);
-              }
+            options={[
+              ...pathPresets.map((preset) => ({ value: preset.value, label: preset.label })),
+              { value: "custom", label: "自定义" },
+            ]}
+            onChange={(next) => {
+              if (next !== "custom") setField("filenamePrefix", next as T["filenamePrefix"]);
             }}
-          >
-            {pathPresets.map((preset) => (
-              <option key={preset.value} value={preset.value}>
-                {preset.label}
-              </option>
-            ))}
-            <option value="custom">自定义</option>
-          </select>
+          />
         </label>
         <label className="field">
           <span>保存前缀</span>

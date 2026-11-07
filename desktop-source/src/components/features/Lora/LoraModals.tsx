@@ -50,7 +50,7 @@ import {
 import { validMatureBlurLevels } from "../../../constants";
 import { buildLoraExamples } from "../../../lib/lora-media";
 import { operationTitle } from "../../../lib/app-utils";
-import { ModalFrame, InfoItem, TagCloud, NumberField } from "../../ui";
+import { ModalFrame, InfoItem, TagCloud, NumberField, Select } from "../../ui";
 import { LoraRecipesPanel } from "./LoraRecipesPanel";
 
 import { DoctorPane, DuplicatePane, ItemList, TextInput, UpdatesPane } from "./LoraModalsPanes";
@@ -787,12 +787,13 @@ export function LoraOperationModal({
                     </label>
                     <label className="field">
                       <span>限制级模糊阈值</span>
-                      <select
+                      <Select
+                        ariaLabel="限制级模糊阈值"
+                        block
                         value={normalizeMatureBlurLevel(settings.mature_blur_level)}
-                        onChange={(event) => setSettings((prev) => ({ ...prev, mature_blur_level: event.target.value }))}
-                      >
-                        {validMatureBlurLevels.map((level) => <option key={level} value={level}>{level}</option>)}
-                      </select>
+                        options={validMatureBlurLevels.map((level) => ({ value: level, label: level }))}
+                        onChange={(next) => setSettings((prev) => ({ ...prev, mature_blur_level: next }))}
+                      />
                     </label>
                   </div>
 
@@ -806,14 +807,19 @@ export function LoraOperationModal({
                   <div className="form-grid two compact">
                     <label className="field">
                       <span>翻译服务商</span>
-                      <select 
-                        value={localTranslationSettings.provider} 
-                        onChange={(e) => setLocalTranslationSettings(prev => ({ ...prev, provider: e.target.value as TranslationProvider }))}
-                      >
-                        <option value="mymemory">MyMemory (免费)</option>
-                        <option value="baidu">百度翻译 (Baidu)</option>
-                        <option value="aliyun">阿里云翻译 (Alibaba)</option>
-                      </select>
+                      <Select
+                        ariaLabel="翻译服务商"
+                        block
+                        value={localTranslationSettings.provider}
+                        options={[
+                          { value: "mymemory", label: "MyMemory (免费)" },
+                          { value: "baidu", label: "百度翻译 (Baidu)" },
+                          { value: "aliyun", label: "阿里云翻译 (Alibaba)" },
+                        ]}
+                        onChange={(next) =>
+                          setLocalTranslationSettings((prev) => ({ ...prev, provider: next as TranslationProvider }))
+                        }
+                      />
                     </label>
                   </div>
 

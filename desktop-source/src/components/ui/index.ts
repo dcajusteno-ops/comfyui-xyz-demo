@@ -1,5 +1,7 @@
 export { ToastIcon, ToastViewport, RunProgressStrip, ExampleImagesProgressBar } from "./Feedback";
 export { ModalFrame, PanelTitle, FeatureModal } from "./Modal";
+export { Select } from "./Select";
+export type { SelectOption } from "./Select";
 export { NumberField, TextField, SelectField, MultiSelectField, TextAreaField, CopyableTextarea } from "./FormFields";
 export { ColorAlphaField } from "./ColorAlphaField";
 export { RichTextEditor } from "./RichTextEditor";

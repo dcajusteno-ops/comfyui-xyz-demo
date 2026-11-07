@@ -5,6 +5,7 @@ import { usePresets } from "../../../hooks/usePresets";
 import { applySnapshot, exportPresetsJson, snapshotForSave } from "../../../lib/generationPresets";
 import { downloadTextFile } from "../../../lib/file-helper";
 import { ModalFrame } from "../../ui/Modal";
+import { Select } from "../../ui/Select";
 import type { OptionsState, TemplateKind } from "../../../types";
 
 interface PresetBarProps<T extends Record<string, unknown>> {
@@ -154,27 +155,18 @@ export function PresetBar<T extends Record<string, unknown>>({ target, params, o
     <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginLeft: "auto", paddingLeft: "12px" }}>
       {status && <span style={{ fontSize: "11px", color: "var(--accent)", maxWidth: "240px" }}>{status}</span>}
 
-      <select
+      <Select
+        ariaLabel="选择预设"
         title="选择预设"
+        size="sm"
+        className="preset-select"
         value={selectedId}
-        onChange={(e) => setSelectedId(e.target.value)}
-        style={{
-          padding: "4px 8px",
-          fontSize: "12px",
-          borderRadius: "6px",
-          border: "1px solid var(--border)",
-          background: "var(--surface-alt)",
-          color: "var(--text)",
-          maxWidth: "160px",
-        }}
-      >
-        <option value="">{presets.length ? "选择预设…" : "暂无预设"}</option>
-        {presets.map((preset) => (
-          <option key={preset.id} value={preset.id}>
-            {preset.name}
-          </option>
-        ))}
-      </select>
+        onChange={setSelectedId}
+        options={[
+          { value: "", label: presets.length ? "选择预设…" : "暂无预设" },
+          ...presets.map((preset) => ({ value: preset.id, label: preset.name })),
+        ]}
+      />
 
       <button type="button" style={primaryBtnStyle} onClick={handleApply} title="应用选中的预设">
         <Play size={13} /> 应用

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { Sparkles, X, Plus, Search, Bookmark, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Heart, Copy, Globe2, Upload, Download, Braces } from "lucide-react";
 import { handlePromptWeightAdjustment } from "../lib/promptUtils";
+import { Select } from "./ui";
 import {
   EditorPart,
   negativePresetPacks,
@@ -641,25 +642,49 @@ export function PromptEditorDialog({
                 />
               </div>
               
-              <select value={activeSource} onChange={e => { setActiveSource(e.target.value); setPage(1); }} style={{ padding: "0.5rem", borderRadius: "6px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.85rem", minWidth: "100px" }}>
-                <option value="">全部来源</option>
-                {sources.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-              </select>
-              
-              <select value={activeCategory} onChange={e => { setActiveCategory(e.target.value); setPage(1); }} style={{ padding: "0.5rem", borderRadius: "6px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.85rem", minWidth: "100px" }}>
-                <option value="">全部分类</option>
-                {categories.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-              </select>
-              
-              <select value={activeSubcategory} onChange={e => { setActiveSubcategory(e.target.value); setPage(1); }} style={{ padding: "0.5rem", borderRadius: "6px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.85rem", minWidth: "100px" }}>
-                <option value="">全部子分类</option>
-                {subcategories.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-              </select>
-              
-              <select value={activeScope} onChange={e => { setActiveScope(e.target.value); setPage(1); }} style={{ padding: "0.5rem", borderRadius: "6px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.85rem", minWidth: "100px" }}>
-                <option value="">全部作用域</option>
-                {scopes.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-              </select>
+              <Select
+                ariaLabel="词库来源"
+                className="pm-filter-select"
+                value={activeSource}
+                options={[{ value: "", label: "全部来源" }, ...sources.map((s) => ({ value: s.name, label: s.name }))]}
+                onChange={(next) => {
+                  setActiveSource(next);
+                  setPage(1);
+                }}
+              />
+
+              <Select
+                ariaLabel="词库分类"
+                className="pm-filter-select"
+                value={activeCategory}
+                options={[{ value: "", label: "全部分类" }, ...categories.map((s) => ({ value: s.name, label: s.name }))]}
+                onChange={(next) => {
+                  setActiveCategory(next);
+                  setPage(1);
+                }}
+              />
+
+              <Select
+                ariaLabel="词库子分类"
+                className="pm-filter-select"
+                value={activeSubcategory}
+                options={[{ value: "", label: "全部子分类" }, ...subcategories.map((s) => ({ value: s.name, label: s.name }))]}
+                onChange={(next) => {
+                  setActiveSubcategory(next);
+                  setPage(1);
+                }}
+              />
+
+              <Select
+                ariaLabel="词库作用域"
+                className="pm-filter-select"
+                value={activeScope}
+                options={[{ value: "", label: "全部作用域" }, ...scopes.map((s) => ({ value: s.name, label: s.name }))]}
+                onChange={(next) => {
+                  setActiveScope(next);
+                  setPage(1);
+                }}
+              />
             </div>
 
             <div style={{ flex: 1, overflowY: "auto", padding: "1rem", position: "relative" }}>
@@ -703,12 +728,16 @@ export function PromptEditorDialog({
             <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-alt)" }}>
               <div style={{ fontSize: "0.85rem", color: "var(--muted)", display: "flex", alignItems: "center", gap: "1rem" }}>
                 <span>共 {filteredEntries.length} 条结果</span>
-                <select value={itemsPerPage} onChange={e => { setItemsPerPage(Number(e.target.value)); setPage(1); }} style={{ padding: "0.2rem 0.5rem", borderRadius: "4px", border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--text)", fontSize: "0.8rem" }}>
-                  <option value={8}>8 / 页</option>
-                  <option value={12}>12 / 页</option>
-                  <option value={24}>24 / 页</option>
-                  <option value={48}>48 / 页</option>
-                </select>
+                <Select
+                  ariaLabel="每页条数"
+                  size="sm"
+                  value={String(itemsPerPage)}
+                  options={[8, 12, 24, 48].map((count) => ({ value: String(count), label: `${count} / 页` }))}
+                  onChange={(next) => {
+                    setItemsPerPage(Number(next));
+                    setPage(1);
+                  }}
+                />
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
                 <button disabled={page <= 1} onClick={() => setPage(1)} className="icon-button" style={{ border: "none", color: page <= 1 ? "var(--border)" : "var(--muted)" }}><ChevronsLeft size={16} /></button>

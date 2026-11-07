@@ -9,7 +9,7 @@ import {
   Gauge,
   RotateCw,
 } from "lucide-react";
-import { PanelTitle } from "../../ui";
+import { PanelTitle, Select } from "../../ui";
 import { XyzPreview } from "./XyzPreview";
 import { XyzReviewBar, XyzCellBadge } from "./XyzReviewOverlay";
 import { useXyzReview } from "../../../hooks/useXyzReview";
@@ -226,16 +226,13 @@ export const XyzController = React.memo(({
       <div className="xyz-head">
         <label className="field">
           <span>目标模板</span>
-          <select
+          <Select
+            ariaLabel="目标模板"
+            block
             value={xyzTarget}
-            onChange={(event) => setXyzTarget(event.target.value as TemplateKind)}
-          >
-            {Object.entries(templateLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            options={Object.entries(templateLabels).map(([value, label]) => ({ value, label }))}
+            onChange={(next) => setXyzTarget(next as TemplateKind)}
+          />
         </label>
         <div className="metric-card">
           <strong>{buildXyzCombinations(xyzAxes, lorasOfTarget, undefined, loraNames).length}</strong>
@@ -268,16 +265,13 @@ export const XyzController = React.memo(({
               />{" "}
               {["X", "Y", "Z"][index]}
             </label>
-            <select
+            <Select
+              ariaLabel={`${["X", "Y", "Z"][index]} 轴参数`}
+              block
               value={axis.field}
-              onChange={(event) => updateAxis(index, { field: event.target.value as XyzField })}
-            >
-              {xyzFields.map((field) => (
-                <option key={field} value={field}>
-                  {fieldLabel(field, lorasOfTarget)}
-                </option>
-              ))}
-            </select>
+              options={xyzFields.map((field) => ({ value: field, label: fieldLabel(field, lorasOfTarget) }))}
+              onChange={(next) => updateAxis(index, { field: next as XyzField })}
+            />
             <input
               value={axis.values}
               onChange={(event) => updateAxis(index, { values: event.target.value })}

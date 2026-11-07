@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#1c1917" />
+    <title>图片管理 · ComfyUI XYZ</title>
+    <script>
+      // 与主应用同款首帧主题预绘制：读 localStorage 缓存，避免深色用户看到一帧浅色。
+      (function () {
+        try {
+          var cache = JSON.parse(localStorage.getItem("comfyui_xyz_theme_cache") || "null");
+          if (!cache) return;
+          var root = document.documentElement;
+          if (cache.base === "dark") root.classList.add("dark");
+          var vars = cache.vars || {};
+          for (var name in vars) {
+            if (Object.prototype.hasOwnProperty.call(vars, name)) {
+              root.style.setProperty("--" + name, vars[name]);
+            }
+          }
+        } catch (e) {
+          /* 缓存损坏：退回默认配色 */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; color: #888; background: var(--surface-alt, #fafaf9);">
+        加载中…
+      </div>
+    </div>
+    <script type="module" src="/src/standalone.tsx"></script>
+  </body>
+</html>

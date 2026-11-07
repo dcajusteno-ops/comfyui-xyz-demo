@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 import { Check, ChevronDown, ChevronUp, Copy, Loader2, Smartphone, Trash2, X } from "lucide-react";
 import type { MobileTask, MobileTaskStatus, TemplateKind } from "../../../types";
 import { MobileQrBox } from "./MobileQrBox";
+import { Select } from "../../ui";
 
 const STATUS_META: Record<MobileTaskStatus, { label: string; color: string }> = {
   queued: { label: "排队中", color: "var(--muted)" },
@@ -145,15 +146,13 @@ export const MobileSyncFeed = ({ tasks, onRemove, onClear, onApplyTags }: Mobile
                       {task.tags}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
-                      <select
+                      <Select
+                        ariaLabel="应用目标"
+                        size="sm"
                         value={target}
-                        onChange={(e) => setTargets((prev) => ({ ...prev, [task.id]: e.target.value as TemplateKind }))}
-                        style={{ padding: "4px 6px", fontSize: 12, borderRadius: 6, border: "1px solid var(--input-border)", background: "var(--input-bg)", color: "var(--text)" }}
-                      >
-                        {APPLY_TARGETS.map((t) => (
-                          <option key={t.id} value={t.id}>{t.label}</option>
-                        ))}
-                      </select>
+                        options={APPLY_TARGETS.map((t) => ({ value: t.id, label: t.label }))}
+                        onChange={(next) => setTargets((prev) => ({ ...prev, [task.id]: next as TemplateKind }))}
+                      />
                       <button className="primary-action" onClick={() => onApplyTags(task.tags, target)} style={{ padding: "4px 10px", height: 28, fontSize: 12 }}>
                         应用到工作流
                       </button>
