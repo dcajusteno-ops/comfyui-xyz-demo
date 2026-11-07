@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [未发布] - 2026-11-07
+## [v0.8.5] - 2026-11-07
 
 ### 🏗️ 工程质量 (Engineering)
 

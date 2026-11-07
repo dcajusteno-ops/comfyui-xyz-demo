@@ -10,6 +10,7 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
 
 目前项目已搭建完毕基础架构，并实现了以下核心标签页功能：
 
+> **🆕 v0.8.5 亮点**：**工程质量收口 + 内置数据瘦身** —— 修复 Node 22+ 内置 `localStorage` 遮蔽 jsdom 导致 116 条单测全红；ESLint 56 warning 清零并纳入 0 warning 门禁；提示词词库从 4 份独立加载收敛为单份缓存（翻译改 Map 索引）；`App.tsx` 1,476 → 1,099 行；生图进度不再击穿面板 memo；exe 静态资源支持 immutable / ETag / 304。内置数据同步瘦身：2416 张缩略图 21.95 → 14.35MB、29 个 JSON 无损压缩 16.14 → 15.04MB，**exe 46.7 → 38.2MB（-18.2%）**。单测 1064 / E2E 49 全绿。详见下方「### 51」。
 > **🆕 v0.8.4 亮点**：**Anima 造型台同步到 Comfyui-Anima-Wardrobe-V5（v5.0.12）** —— 数据从 2383 角色 / 261 场景扩到 **2390 / 361**（新增「🎨 艺术构图」90 条），并补齐 6 张旁挂表（正文角色 tag 映射、改名别名、**角色服装预设**、场景画幅、词条自然语言补充、服装模板）。**角色正文改成 Anima 官方写法** `texas, arknights`（角色 + 作品两个独立 tag、零下划线，作品名不再被删）。场景新增**推荐画幅**（竖 / 横 / 通 + 三段筛选），「随机抽场景」从 60% 概率改成**明确开关**（不勾一条不出、勾上必出且锁档）；角色新增「不指定角色」、**作品 IP 收藏**与**👗 服装预设**（启用后 13 个服装字段闭麦）；权重侧「同字段只能有一个 3.0 必现」、点名词条自动抬档、点名性行为自动抬人数、0 权重彻底关闭。同 seed 仍与插件逐字一致（187 条对拍）。详见下方「### 50」。
 > **🆕 v0.8.3 亮点**：**外置图片管理器 + 全局 UI 统一** —— 数据集产物的清理不再挤进主界面：新增**独立端口的网页**（`http://127.0.0.1:9124/`，占用则顺延），浏览器打开就是一个纯图片管理器，数据集工作台的「图片管理」按钮会带着该数据集的目录直接打开。**默认根目录自动识别 ComfyUI 输出目录**（从 `/api/system_stats` 的 `argv` 推导，依次认 `COMFYUI_OUTPUT_DIR` / `--output-directory` / `--base-directory` / `main.py` 同级 `output`），也可全盘另选并记住；子文件夹切换 + 面包屑 + 网格预览（名称自然序 / 修改时间两种排序、48 张/页「加载更多」）、多选 / 全选 / 反选，**删除默认进 Windows 回收站**（可关掉改为永久删除，确认文案与按钮同步切换）。灯箱支持 **← / → 环形翻图**与**预览内标记删除**（与网格勾选、删除计数同一份状态）。同时把**按钮与下拉整体重做**：`.ghost-btn` 此前没有任何 CSS 规则（全项目 19 处退化成浏览器默认灰按钮），**29 处原生 `<select>`** 在深色主题下弹层是系统渲染的浅底 + 主题亮色文字（灰底白字几乎看不清）—— 现在统一成四级按钮体系与自绘下拉组件。详见下方「### 48」「### 49」。
 > **🆕 v0.8.2 亮点**：**数据集工作台** —— 侧边栏「生成」组新增独立页，一次规划约 100 张**同角色、多维变化**的 LoRA 训练集图片，并把 caption 一起产出。8 个变化轴（姿势 / 表情 / 机位 / 景别 / 场景 / 光线 / 服装 / 附加，内置 **476 词**、面板可整池替换）按轴独立随机流 + 分块洗牌发牌：同 seed 可复现、每个取值的覆盖次数极差 ≤1，并自动跳过与其他固定词重复、跨轴互斥的词。Anima / SDXL 双模型族参数各自持久化，复用既有 builder，**不新增工作流拓扑**；角色锚点支持角色 LoRA（触发词自动进 prompt）或参考图锁人物，两样都没配时开跑前弹确认。顺序队列可停止 / 重试失败 / 单条重跑 / 试跑 3 张，切页不中断；每条独立 caption，可导出 `captions.txt` + `manifest.json`，并在出图后**同目录写同名 `.txt`**（`001_00001_.png` + `001_00001_.txt`，训练集直接可用）。详见下方「### 47. 数据集工作台」。
@@ -551,6 +552,18 @@ ComfyUI-XYZ-Web.exe --web          # 兼容模式：本地服务 + 浏览器
 - **Anima 底模（三段式）**：UNet 放 `models/unet/`（部分版本为 `models/diffusion_models/`），文本编码器放 `models/clip/`，VAE 放 `models/vae/`。三者都在「Anima 生图」面板的下拉里选择，**不绑定具体文件名**。
 - **Anima 放大模型** (`models/upscale_models/`)：任意 ESRGAN 系列（如 `4x_foolhardy_Remacri.pth`），用于「放大①/②」。
 - **Anima 检测器**：与上表同源，可用 `bbox/face_yolov9c.pt`、`bbox/hand_yolov9c.pt`、`bbox/Eyeful_v2-Individual.pt`、`segm/ntd11_anime_nsfw_segm_v5-variant1.pt`，也可继续用 `yolov8` 系列——面板默认按关键词模糊命中，缺哪个都会回退到列表首项。
+
+### 51. 工程质量与体积收口（v0.8.5）
+
+这一版不加新功能，只把「能不能稳定交付」和「包有多大」两件事收口：
+
+- **测试门禁恢复**：Node 22+ 内置的 `localStorage` 会遮蔽 jsdom 实现（没有 `--localstorage-file` 时读取结果为 `undefined`），曾导致 6 个测试文件 / 116 条用例全红。`src/test/setup.ts` 现在只在全局缺失时安装内存版 `Storage`，全量单测恢复全绿；`package.json` 增加 `engines` 与 `npm run check`（tsc + eslint + vitest），pre-commit 同步升级为 `--max-warnings 0`。
+- **词库单一数据源**：`promptLibrary` 新增原始全量加载器（模块级缓存 + 并发去重），`translation` / 提示词侧栏 / 提示词编辑器共用同一份 6.35MB 词库；翻译查找从数组 `find` 改为 Map 索引，同名 key 仍取第一条。
+- **Go 静态缓存**：新增 `internal/api/static.go`，`assets/*`（文件名带 hash）返回 `public, max-age=31536000, immutable`，`/data/*` 返回 `no-cache` + 内容 SHA256 派生的 `ETag`（命中 304）；主应用与外置图片管理页共用。
+- **生图进度重渲染**：App 传给 `React.memo` 面板的回调全部稳定化，并把 `ui / gen / loras / tagging / params` 的稳定成员解构为具体依赖，进度 tick 不再击穿面板 memo。
+- **App.tsx 拆分**：拆为 `AppTopbar` / `OutputPanel` / `WorkspacePanels` / `ConnectionOverlay` / `AppModals` + `app-context`，同口径 1,476 → 1,099 行，import 回到顶部。
+- **P3 内置数据瘦身**：`npm run optimize:data` 对 29 个 `public/data/**/*.json` 做无损压缩（16.14 → 15.04MB，其中词库 6.35 → 5.26MB），并把造型台 2416 张缩略图保持原尺寸重编码为 WebP q=78（21.95 → 14.35MB）。内置数据合计 38.08 → 29.38MB，**exe 从 46.7MB 降到 38.2MB（-18.2%）**。
+- **验证**：`tsc` 0 error、`eslint src server --max-warnings 0` 0 warning、单测 **1064/1064**、E2E **49/49**、`go vet/test` 全绿；29 个 JSON 与备份语义比对 0 差异，缩略图尺寸逐一一致。
 
 ---
 
