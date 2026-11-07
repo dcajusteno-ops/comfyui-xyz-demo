@@ -1,8 +1,8 @@
 {
  "_meta": {
-  "pluginVersion": "4.0.0",
+  "pluginVersion": "5.0.12",
   "schema": "xyz-wardrobe/outfit-style@1",
-  "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_outfit_style.py"
+  "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_outfit_style.py"
  },
  "anchorBans": [
   {
@@ -1127,19 +1127,29 @@
   },
   "shoes": {
    "ankle boots": "casual gothic lolita punk jirai",
+   "ankle strap high heels": "office",
    "bare feet": "",
    "boots": "casual gothic punk",
+   "chunky heels": "casual",
+   "clear heels": "night",
    "geta": "traditional",
    "high heel boots": "night gothic punk jirai",
    "high heels": "office gothic night gyaru",
+   "kitten heels": "office",
    "knee boots": "casual",
    "loafers": "academic",
    "mary janes": "academic lolita maid",
+   "open-toe heels": "night",
+   "platform high heels": "night",
+   "pointed toe high heels": "office",
    "sandals": "casual",
+   "slingback heels": "office",
    "slippers": "home",
    "sneakers": "casual sporty techwear gyaru",
+   "stiletto heels": "night",
    "thigh boots": "night gothic",
-   "uwabaki": "academic"
+   "uwabaki": "academic",
+   "wedge heels": "casual"
   },
   "socks": {
    "ankle socks": "casual techwear sporty gyaru",

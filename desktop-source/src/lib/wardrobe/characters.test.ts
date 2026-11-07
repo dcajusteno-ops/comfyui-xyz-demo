@@ -106,11 +106,13 @@ describe("角色固定特征", () => {
   });
 });
 
-describe("角色名去作品名", () => {
-  it("非重名角色在正文里只留名字", () => {
+describe("角色名去作品名（v5.0.11 起改为直通）", () => {
+  it("正文保留作品名：Anima 官方要求角色名后紧跟作品（anchor）", () => {
+    // v3.18.6 的「正文只写角色名」是「部分人物识别不了」的根因，v5.0.11 反转
     expect(roleNeedsWork("hatsune miku, vocaloid")).toBe(false);
     expect(stripRoleWorks(["hatsune miku", "vocaloid", "smile"], { _role_triggers: ["hatsune miku, vocaloid"] })).toEqual([
       "hatsune miku",
+      "vocaloid",
       "smile",
     ]);
   });

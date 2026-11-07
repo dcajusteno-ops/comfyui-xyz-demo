@@ -10,16 +10,20 @@ import { usePersistentState } from "./usePersistentState";
 import { draw } from "../lib/wardrobe/draw";
 import {
   WARDROBE_FAVORITES_KEY,
+  WARDROBE_OUTFITS_KEY,
   WARDROBE_PRESETS_KEY,
   WARDROBE_STATE_KEY,
   defaultFavorites,
+  defaultOutfits,
   defaultPresets,
   defaultWardrobeState,
   normalizeFavorites,
+  normalizeOutfits,
   normalizePresets,
   normalizeWardrobeState,
   WARDROBE_SECTION_IDS,
 } from "../lib/wardrobe/persist";
+import { deleteOutfit, enableOutfit, upsertOutfit } from "../lib/wardrobe/outfits";
 import { applyPresetToState, capturePreset } from "../lib/wardrobe/presets";
 import { targetNum } from "../lib/wardrobe/levels";
 import { enabledSections, toggleSelectedRole } from "../lib/wardrobe/state";
@@ -46,9 +50,15 @@ export function useWardrobe(pushToast: ToastFn) {
     defaultPresets(),
     normalizePresets,
   );
+  const [outfits, setOutfits] = usePersistentState(
+    WARDROBE_OUTFITS_KEY,
+    defaultOutfits(),
+    normalizeOutfits,
+  );
 
   const favoriteChars = useMemo(() => new Set(favorites.characters), [favorites.characters]);
   const favoriteScenes = useMemo(() => new Set(favorites.scenes), [favorites.scenes]);
+  const favoriteWorks = useMemo(() => new Set(favorites.works), [favorites.works]);
   const selectedRoles = useMemo(() => new Set(state.selectedRoles), [state.selectedRoles]);
 
   const run = useCallback((): WardrobeDrawResult | null => {
@@ -72,6 +82,8 @@ export function useWardrobe(pushToast: ToastFn) {
         roleWorks: state.roleWorks,
         outfitStyle: state.outfitStyle,
         roleFavOnly: state.roleFavOnly,
+        rolePick: state.rolePick,
+        scenePick: state.scenePick,
         favorites: favorites.characters,
       });
       setState((prev) => ({
@@ -118,6 +130,19 @@ export function useWardrobe(pushToast: ToastFn) {
         return {
           ...prev,
           scenes: has ? prev.scenes.filter((x) => x !== id) : [id, ...prev.scenes].slice(0, 2000),
+        };
+      });
+    },
+    [setFavorites],
+  );
+
+  const toggleFavoriteWork = useCallback(
+    (slug: string) => {
+      setFavorites((prev) => {
+        const has = prev.works.includes(slug);
+        return {
+          ...prev,
+          works: has ? prev.works.filter((x) => x !== slug) : [slug, ...prev.works].slice(0, 200),
         };
       });
     },
@@ -176,6 +201,30 @@ export function useWardrobe(pushToast: ToastFn) {
     pushToast("info", "已清除场景", "n_canon 权重已恢复默认");
   }, [pushToast, setState]);
 
+  const saveOutfit = useCallback(
+    (roleTag: string, item: import("../lib/wardrobe/types").WardrobeOutfitSet, isNew: boolean) => {
+      setOutfits((prev) => upsertOutfit(prev, roleTag, item, isNew).store);
+      pushToast("success", isNew ? "服装预设已新增" : "服装预设已更新", item.zh || item.id);
+    },
+    [pushToast, setOutfits],
+  );
+
+  const removeOutfit = useCallback(
+    (roleTag: string, id: string) => {
+      setOutfits((prev) => deleteOutfit(prev, roleTag, id));
+      pushToast("info", "服装预设已删除", id);
+    },
+    [pushToast, setOutfits],
+  );
+
+  const toggleOutfit = useCallback(
+    (roleTag: string, id: string) => {
+      setOutfits((prev) => enableOutfit(prev, roleTag, id));
+      pushToast("info", id ? "已启用服装预设" : "已取消启用", "随机抽到的衣服不会再出现");
+    },
+    [pushToast, setOutfits],
+  );
+
   const savePreset = useCallback(
     (name: string) => {
       const preset = capturePreset(state, name);
@@ -212,17 +261,23 @@ export function useWardrobe(pushToast: ToastFn) {
     favorites,
     favoriteChars,
     favoriteScenes,
+    favoriteWorks,
     presets,
+    outfits,
     selectedRoles,
     run,
     toggleRole,
     toggleFavoriteCharacter,
     toggleFavoriteScene,
+    toggleFavoriteWork,
     applyScene,
     clearScene,
     savePreset,
     loadPreset,
     deletePreset,
+    saveOutfit,
+    removeOutfit,
+    toggleOutfit,
     sectionIds: WARDROBE_SECTION_IDS,
   };
 }

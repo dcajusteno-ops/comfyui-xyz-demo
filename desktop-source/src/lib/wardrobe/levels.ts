@@ -9,7 +9,13 @@
  *  3. `optionLevel` 每次都要重新叠加 `section_floor` 与 `LEVEL_RAISE`，
  *     即使 levels.json 已经写过一遍（磁盘表可能比 overrides 旧）。
  */
-import { countHasPartner, rolePool } from "./characters";
+import {
+  COUNT_LOCK_EXTRA,
+  PARTNER_GATED_FIELDS,
+  SOLO_OK_PARTNER_OPTS,
+  countHasPartner,
+  rolePool,
+} from "./characters";
 import { sceneOptions } from "./scenes";
 import { gradeNsfw, resolveLevel, levelLabel, levelNum, targetNum } from "./nsfw";
 import { levelDemoteRows, levelRaiseRows, raiseLevel, sectionFloorOf } from "./overrides";
@@ -190,8 +196,28 @@ export function fieldValueNum(fieldKey: string, value: string): number {
 }
 
 /** 人数上不可能成立的字段（solo 时不计入实际档位）。 */
-export const PARTNER_GATED_FIELDS = ["n_act", "n_cum"];
-export const SOLO_OK_PARTNER_OPTS = new Set(["masturbation", "fingering", "dildo riding"]);
+export { PARTNER_GATED_FIELDS, SOLO_OK_PARTNER_OPTS };
+
+/** 档位数字 → key（v5.0.1「点名词条自动上调档位」用）。 */
+export function levelKeyForNum(num: number): string {
+  for (const [key, value] of Object.entries(targetNum())) {
+    if (value === num) return key;
+  }
+  return "";
+}
+
+/**
+ * 场景人数锁的档位（build 校验 / 自检 / 引擎写入三处共用）。
+ *
+ * `COUNT_LOCK_EXTRA` 里的中性写法（`2girls`）不在 levels.json 里，
+ * `optionLevel` 会返回 0 —— 那是巧合正确，这里显式取值。
+ */
+export function countLockLevel(lock: string): number {
+  const value = String(lock ?? "").trim();
+  if (!value) return 0;
+  if (Object.prototype.hasOwnProperty.call(COUNT_LOCK_EXTRA, value)) return COUNT_LOCK_EXTRA[value];
+  return optionLevel("count", value);
+}
 
 /**
  * 画面**真能成立**的最高档位。

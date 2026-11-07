@@ -5,12 +5,18 @@
  * 写进 state，并与普通抽取共享**三条闸门**（档位 / 权重 / 锁定）。
  * `manual_only`（特写 60 条）默认不进随机池。
  */
-import { blockedByWeight, HAIR_STYLE_FIELDS } from "./characters";
+import {
+  blockedByWeight,
+  countSatisfies,
+  EXPRESSION_FIELDS,
+  forcedSexCountTarget,
+  HAIR_STYLE_FIELDS,
+} from "./characters";
 import { bansFor } from "./link";
-import { optionLevel } from "./levels";
+import { canonLevel, countLockLevel, optionLevel } from "./levels";
 import { deriveSeed, WardrobeRandom } from "./rng";
 import { DROP_ORDER } from "./slots";
-import { fieldWeight, optionWeight, emptyWeights, WEIGHT_MAX } from "./weights";
+import { fieldWeight, optionWeight, emptyWeights, tunedWeightFields, WEIGHT_MAX } from "./weights";
 import { gradeNsfw } from "./nsfw";
 import { requireWardrobeData } from "./store";
 import type { WardrobeScene, WardrobeWeights } from "./types";
@@ -62,7 +68,36 @@ export function scenePreset(id: string): Record<string, string> {
   }
   const extra = String(scene.extra ?? "").trim();
   if (extra) out.n_extra = extra;
+  // v4.4.2：场景级自然语言（可选键 scene_nl）。键名不能叫 `nl` —— 词库里
+  // 已经有 `nl` 字段，同名会被当成真实字段写进 state 并被密度裁剪削掉。
+  const nl = String(scene.scene_nl ?? "").trim();
+  if (nl) out.scene_nl = nl;
   return out;
+}
+
+/* ------------------------------------------------------------------ *
+ * 场景推荐画幅（v5.0.1 旁挂表）
+ * ------------------------------------------------------------------ */
+
+let aspectsCache: Record<string, { a: string; why?: string }> | null = null;
+
+export function sceneAspects(): Record<string, { a: string; why?: string }> {
+  if (aspectsCache) return aspectsCache;
+  aspectsCache = {};
+  for (const [id, rec] of Object.entries(requireWardrobeData("sceneAspects").aspects ?? {})) {
+    const aspect = String(rec?.a ?? "").trim().toLowerCase();
+    aspectsCache[id] = {
+      a: ["portrait", "landscape", "both"].includes(aspect) ? aspect : "both",
+      why: String(rec?.why ?? ""),
+    };
+  }
+  return aspectsCache;
+}
+
+/** 单条场景的推荐画幅；没标注的按 `both`（竖横都行）。 */
+export function sceneAspect(presetId: string): "portrait" | "landscape" | "both" {
+  const aspect = sceneAspects()[String(presetId ?? "")]?.a;
+  return aspect === "portrait" || aspect === "landscape" ? aspect : "both";
 }
 
 /** 全部预设：法典 14 组 + 场景库，合并成唯一入口。 */
@@ -87,7 +122,7 @@ export function sceneSaysNoRole(id: unknown): boolean {
 export type WardrobeSceneVariantPool = {
   key: string;
   label: string;
-  items: Array<{ zh: string; extra: string }>;
+  items: Array<{ zh: string; extra: string; nl?: string; nlExtra?: string }>;
 };
 
 export function sceneRandomVariants(id: string): WardrobeSceneVariantPool[] {
@@ -95,13 +130,24 @@ export function sceneRandomVariants(id: string): WardrobeSceneVariantPool[] {
   const raw = scene?.random_variants;
   if (!raw) return [];
 
-  const itemsOf = (value: unknown): Array<{ zh: string; extra: string }> => {
-    const out: Array<{ zh: string; extra: string }> = [];
+  const itemsOf = (value: unknown): WardrobeSceneVariantPool["items"] => {
+    const out: WardrobeSceneVariantPool["items"] = [];
     for (const item of (value as unknown[]) ?? []) {
       if (!item || typeof item !== "object") continue;
       const rec = item as Record<string, unknown>;
       const extra = String(rec.extra ?? "").trim();
-      if (extra) out.push({ zh: String(rec.zh ?? "").trim() || "变体", extra });
+      if (!extra) continue;
+      const row: WardrobeSceneVariantPool["items"][number] = {
+        zh: String(rec.zh ?? "").trim() || "变体",
+        extra,
+      };
+      // v4.4.5：变体也能带自然语言。`nl` 覆盖场景 scene_nl（主维度），
+      // `nl_extra` 追加在场景 scene_nl 之后（副维度）。
+      const nl = String(rec.nl ?? "").trim();
+      if (nl) row.nl = nl;
+      const nlExtra = String(rec.nl_extra ?? "").trim();
+      if (nlExtra) row.nlExtra = nlExtra;
+      out.push(row);
     }
     return out;
   };
@@ -241,30 +287,65 @@ export function applyPreset(
   const filled: string[] = [];
   const written: string[] = [];
   const fields = fieldsByKey();
+  const forcedKeys = new Set(((state._forced_tags as Array<[string, string, string]> | undefined) ?? []).map((f) => f[0]));
+  const tunedKeys = tunedWeightFields(weights);
+
+  // v4.4.2：场景级自然语言 → 下划线键，由 collectWithFeat 拼进 tail_extra
+  const sceneNl = String(preset.scene_nl ?? "").trim();
+  if (sceneNl) state._scene_nl = sceneNl;
+
+  // v4.2.0：场景档位决定「表情谁说了算」—— L2+ 场景表情优先；L0/L1 权重点名优先
+  const sceneLv = canonLevel(presetId);
+  const exprSceneWins = sceneLv >= 2;
+  const overrode: string[] = [];
 
   for (const [key, value] of Object.entries(preset)) {
     const field = fields.get(key);
     if (!field || !value) continue;
-    if (key === "n_extra") continue;
+    if (key === "n_extra" || key === "scene_nl") continue;
     if (lockSet.has(key)) continue;
+    if (forcedKeys.has(key)) {
+      if (!(EXPRESSION_FIELDS.has(key) && exprSceneWins)) continue;
+      overrode.push(key);
+    }
     if (blockedByWeight(weights, key)) continue;
+    // v4.3.0：选项权重 0 = 这一项永不出现（场景写死也不能绕过）
+    if (optionWeight(weights, key, String(value)) <= 0) {
+      filled.push(`${field.lab ?? key} 让路（该选项权重 0）`);
+      continue;
+    }
     if (fieldOkUnder(key, value, lv)) {
       state[key] = value;
       written.push(key);
       filled.push(field.lab ?? key);
+      if (tunedKeys.has(key)) filled.push(`${field.lab ?? key} 由场景决定（选项权重本次未参与）`);
     }
   }
 
   const scene = sceneIndex().get(presetId) ?? ({} as WardrobeScene);
   const countLock = String(scene.count_lock ?? "").trim();
-  if (countLock && !lockSet.has("count") && !blockedByWeight(weights, "count") && fieldOkUnder("count", countLock, lv)) {
+  // v4.2.1：点名的性行为压过场景的人数固定值
+  const need = forcedSexCountTarget(weights);
+  const lockConflict = Boolean(countLock) && !countSatisfies(countLock, need);
+  if (
+    countLock &&
+    !lockSet.has("count") &&
+    !forcedKeys.has("count") &&
+    !lockConflict &&
+    !blockedByWeight(weights, "count") &&
+    countLockLevel(countLock) <= lv
+  ) {
     state.count = countLock;
     written.push("count");
     filled.push(`人数·${countLock}`);
+  } else if (countLock && lockConflict) {
+    filled.push(`人数让路（点名的性行为需要 \`${need}\`，未写 ${countLock}）`);
   }
 
   for (const key of scene.drop_fields ?? []) {
     if (SCENE_FORBIDDEN_FIELDS.has(key) || lockSet.has(key)) continue;
+    // v4.1.1：被选项权重 3.0 点名的字段，场景闭麦声明不该撤掉（显式 > 预设）
+    if (forcedKeys.has(key)) continue;
     if (state[key]) {
       state[key] = "";
       filled.push(`闭麦·${key}`);
@@ -306,6 +387,8 @@ export function applyPreset(
   const variants = sceneRandomVariants(presetId);
   if (variants.length && !lockSet.has("n_extra") && !blockedByWeight(weights, "n_extra")) {
     const names: string[] = [];
+    let variantNl = "";
+    const variantAdds: string[] = [];
     for (const pool of variants) {
       let x: number;
       if (variantSeed !== undefined) x = new WardrobeRandom(deriveSeed(variantSeed, `variant:${pool.key}`, 0)).random();
@@ -315,8 +398,15 @@ export function applyPreset(
       const item = pool.items[index];
       names.push(item.zh);
       extra = extra ? `${extra}, ${item.extra}` : item.extra;
+      if (item.nl) variantNl = item.nl;
+      if (item.nlExtra) variantAdds.push(item.nlExtra);
     }
     variantZh = names.join(" / ");
+    if (variantNl || variantAdds.length) {
+      const base = variantNl || String(state._scene_nl ?? "").trim();
+      const joined = [base, ...variantAdds].filter(Boolean).join(" ");
+      if (joined) state._scene_nl = joined;
+    }
   }
 
   if (extra && !lockSet.has("n_extra") && !blockedByWeight(weights, "n_extra")) {
@@ -336,6 +426,8 @@ export function applyPreset(
   for (const key of applyBans(state, presetId)) filled.push(`禁项·${key}`);
   state._preset_fields = written;
   state.n_canon = presetId;
+  // v4.2.0：被场景表情盖掉的「用户点名必现」字段 —— 报告里要如实说明
+  if (overrode.length) state._preset_overrode_forced = overrode;
   return filled;
 }
 
@@ -395,6 +487,12 @@ export function trimToCap(state: Record<string, unknown>, cap: number, weights: 
     protectedKeys.add("hair_color");
     protectedKeys.add("eyes_color");
   }
+  // v4.1.1：被选项权重 3.0 点名的字段不参与密度裁剪（用户点名 = 这张必须有）
+  for (const row of (state._forced_tags as Array<[string, string, string]> | undefined) ?? []) {
+    protectedKeys.add(row[0]);
+  }
+  // v4.2.2：双女正戏补上来的穿戴式道具同样不参与裁剪
+  if (state._toy_rule) protectedKeys.add("n_theme");
 
   const softness = new Map(DROP_ORDER.map((key, index) => [key, index]));
   const candidates = Object.entries(state)

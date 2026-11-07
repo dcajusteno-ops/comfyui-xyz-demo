@@ -45,6 +45,8 @@ function toInput(raw: Record<string, unknown>): WardrobeDrawInput {
     roleFavOnly: (raw.role_fav_only ?? raw.roleFavOnly) as boolean | undefined,
     hairFollow: (raw.hair_follow ?? raw.hairFollow) as boolean | undefined,
     hairPicks: (raw.hair_picks ?? raw.hairPicks) as Record<string, string> | undefined,
+    rolePick: (raw.role_pick ?? raw.rolePick) as boolean | undefined,
+    scenePick: (raw.scene_pick ?? raw.scenePick) as boolean | undefined,
   };
 }
 

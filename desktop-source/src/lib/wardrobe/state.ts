@@ -32,14 +32,18 @@ export function setOptionWeight(
   weight: number,
 ): WardrobeUiState {
   const key = en.trim().toLowerCase();
+  const bag: Record<string, number> = { ...(state.weights.options[fieldKey] ?? {}), [key]: weight };
+  // v5.0.1：同一字段只允许一个「必现」（权重 3）；点第二个 3 时把之前的降为 1
+  if (weight >= 3) {
+    for (const other of Object.keys(bag)) {
+      if (other !== key && bag[other] >= 3) bag[other] = 1;
+    }
+  }
   return {
     ...state,
     weights: {
       ...state.weights,
-      options: {
-        ...state.weights.options,
-        [fieldKey]: { ...(state.weights.options[fieldKey] ?? {}), [key]: weight },
-      },
+      options: { ...state.weights.options, [fieldKey]: bag },
     },
   };
 }

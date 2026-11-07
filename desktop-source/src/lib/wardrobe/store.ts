@@ -8,8 +8,11 @@
  * 测试可以通过 `setWardrobeData()` 直接播种，避免在 jsdom 里 mock fetch。
  */
 import type {
+  WardrobeCharAliases,
   WardrobeCharFeat,
+  WardrobeCharOutputTags,
   WardrobeCharacters,
+  WardrobeCharacterOutfits,
   WardrobeColorMatrix,
   WardrobeHairStyle,
   WardrobeLevels,
@@ -17,9 +20,12 @@ import type {
   WardrobeManifest,
   WardrobeNsfwTables,
   WardrobeOutfitStyle,
+  WardrobeOutfitTemplates,
   WardrobeOverrides,
   WardrobePools,
   WardrobeScenes,
+  WardrobeSceneAspects,
+  WardrobeTermHints,
   WardrobeUserCharacters,
 } from "./types";
 
@@ -29,9 +35,15 @@ export type WardrobeDataKey =
   | "characters"
   | "userCharacters"
   | "scenes"
+  | "sceneAspects"
   | "colorMatrix"
   | "hairStyle"
   | "charFeat"
+  | "charOutputTags"
+  | "charAliases"
+  | "characterOutfits"
+  | "termHints"
+  | "outfitTemplates"
   | "nsfwTables"
   | "overrides"
   | "outfitStyle"
@@ -44,9 +56,15 @@ export type WardrobeDataMap = {
   characters: WardrobeCharacters;
   userCharacters: WardrobeUserCharacters;
   scenes: WardrobeScenes;
+  sceneAspects: WardrobeSceneAspects;
   colorMatrix: WardrobeColorMatrix;
   hairStyle: WardrobeHairStyle;
   charFeat: WardrobeCharFeat;
+  charOutputTags: WardrobeCharOutputTags;
+  charAliases: WardrobeCharAliases;
+  characterOutfits: WardrobeCharacterOutfits;
+  termHints: WardrobeTermHints;
+  outfitTemplates: WardrobeOutfitTemplates;
   nsfwTables: WardrobeNsfwTables;
   overrides: WardrobeOverrides;
   outfitStyle: WardrobeOutfitStyle;
@@ -60,9 +78,15 @@ const FILES: Record<WardrobeDataKey, string> = {
   characters: "characters.json",
   userCharacters: "user-characters.json",
   scenes: "scenes.json",
+  sceneAspects: "scene-aspects.json",
   colorMatrix: "color-matrix.json",
   hairStyle: "char-hair-style.json",
   charFeat: "char-feat.json",
+  charOutputTags: "char-output-tags.json",
+  charAliases: "char-aliases.json",
+  characterOutfits: "character-outfits.json",
+  termHints: "term-hints.json",
+  outfitTemplates: "outfit-templates.json",
   nsfwTables: "nsfw-tables.json",
   overrides: "overrides.json",
   outfitStyle: "outfit-style.json",
@@ -76,9 +100,15 @@ const ENGINE_KEYS: WardrobeDataKey[] = [
   "characters",
   "userCharacters",
   "scenes",
+  "sceneAspects",
   "colorMatrix",
   "hairStyle",
   "charFeat",
+  "charOutputTags",
+  "charAliases",
+  "characterOutfits",
+  "termHints",
+  "outfitTemplates",
   "nsfwTables",
   "overrides",
   "outfitStyle",

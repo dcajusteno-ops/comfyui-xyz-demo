@@ -1,8 +1,8 @@
 {
  "_meta": {
-  "pluginVersion": "4.0.0",
+  "pluginVersion": "5.0.12",
   "schema": "xyz-wardrobe/link@1",
-  "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_link.py"
+  "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_link.py"
  },
  "actPosBan": {
   "cowgirl position": [

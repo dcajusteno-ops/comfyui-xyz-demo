@@ -10,6 +10,8 @@ import { emptyWeights, parseWeights } from "./weights";
 import type {
   WardrobeFavorites,
   WardrobeLastResult,
+  WardrobeOutfitSet,
+  WardrobeOutfitStore,
   WardrobePreset,
   WardrobePresetStore,
   WardrobeUiState,
@@ -19,6 +21,7 @@ import type {
 export const WARDROBE_STATE_KEY = "comfyui_wardrobe_state";
 export const WARDROBE_FAVORITES_KEY = "comfyui_wardrobe_favorites";
 export const WARDROBE_PRESETS_KEY = "comfyui_wardrobe_presets";
+export const WARDROBE_OUTFITS_KEY = "comfyui_wardrobe_outfits";
 
 export const WARDROBE_SECTION_IDS = [
   "count",
@@ -71,6 +74,8 @@ export function defaultWardrobeState(): WardrobeUiState {
     selectedRoles: [],
     roleWorks: [],
     roleFavOnly: false,
+    rolePick: true,
+    scenePick: false,
     forceRole: "",
     applyMode: "append",
     qualityPrefix: false,
@@ -147,6 +152,8 @@ export function normalizeWardrobeState(merged: WardrobeUiState): WardrobeUiState
   state.applyMode = state.applyMode === "replace" ? "replace" : "append";
   state.qualityPrefix = state.qualityPrefix === true;
   state.roleFavOnly = state.roleFavOnly === true;
+  state.rolePick = state.rolePick !== false;
+  state.scenePick = state.scenePick === true;
 
   const hairPicks = { ...base.hairPicks, ...(state.hairPicks ?? {}) };
   for (const key of WARDROBE_HAIR_PICKS) hairPicks[key] = String(hairPicks[key] || "角色标签发型");
@@ -199,17 +206,62 @@ export function normalizeWardrobeState(merged: WardrobeUiState): WardrobeUiState
 }
 
 export function defaultFavorites(): WardrobeFavorites {
-  return { version: 1, characters: [], scenes: [] };
+  return { version: 1, characters: [], scenes: [], works: [] };
 }
 
 export function normalizeFavorites(merged: WardrobeFavorites): WardrobeFavorites {
   const chars = Array.isArray(merged?.characters) ? merged.characters.map(String).filter(Boolean) : [];
   const scenes = Array.isArray(merged?.scenes) ? merged.scenes.map(String).filter(Boolean) : [];
+  const works = Array.isArray(merged?.works) ? merged.works.map(String).filter(Boolean) : [];
   return {
     version: 1,
     characters: Array.from(new Set(chars)).slice(0, 2000),
     scenes: Array.from(new Set(scenes)).slice(0, 2000),
+    works: Array.from(new Set(works)).slice(0, 200),
   };
+}
+
+export function defaultOutfits(): WardrobeOutfitStore {
+  return { version: 1, roles: {} };
+}
+
+export function normalizeOutfits(merged: WardrobeOutfitStore): WardrobeOutfitStore {
+  const roles: WardrobeOutfitStore["roles"] = {};
+  const source = merged?.roles && typeof merged.roles === "object" ? merged.roles : {};
+  for (const [role, raw] of Object.entries(source)) {
+    if (!raw || typeof raw !== "object") continue;
+    const list = Array.isArray(raw.list) ? raw.list : [];
+    const clean: WardrobeOutfitSet[] = [];
+    for (const row of list) {
+      if (!row || typeof row !== "object") continue;
+      const id = String(row.id ?? "").trim();
+      if (!id) continue;
+      clean.push({
+        id,
+        zh: String(row.zh ?? "").slice(0, 60),
+        level: Math.max(0, Math.min(4, Math.trunc(Number(row.level) || 0))),
+        tags: Array.isArray(row.tags)
+          ? row.tags.map((tag) => String(tag).trim().toLowerCase()).filter(Boolean).slice(0, 60)
+          : [],
+        fields:
+          row.fields && typeof row.fields === "object"
+            ? Object.fromEntries(
+                Object.entries(row.fields as Record<string, unknown>)
+                  .map(([key, value]) => [String(key), String(value).trim().toLowerCase()])
+                  .filter(([, value]) => value),
+              )
+            : {},
+        drop: Array.isArray(row.drop) ? row.drop.map(String).slice(0, 20) : undefined,
+        verified: row.verified === true,
+        note: String(row.note ?? "").slice(0, 300) || undefined,
+      });
+      if (clean.length >= 20) break;
+    }
+    const enabled = String(raw.enabled ?? "").trim();
+    roles[role] = { ...(enabled ? { enabled } : {}), list: clean };
+    if (Object.keys(roles).length >= 400) break;
+  }
+  return { version: 1, roles };
 }
 
 export function defaultPresets(): WardrobePresetStore {

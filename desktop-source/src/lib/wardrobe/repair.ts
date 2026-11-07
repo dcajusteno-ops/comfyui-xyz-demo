@@ -8,7 +8,9 @@
  *
  * 三条纪律：只修可判定项、优先剔除而非改写、对同一输入幂等。
  */
+import { charOutputTagSet, termHints } from "./characters";
 import { tagLevel } from "./levels";
+import { sceneIndex, sceneRandomVariants } from "./scenes";
 import { requireWardrobeData } from "./store";
 
 const STAND_TAGS = new Set(["standing sex", "stand and carry"]);
@@ -29,10 +31,12 @@ const MULTI_TAGS = new Set([
 
 let fieldTagCache: Map<string, Set<string>> | null = null;
 let calibratedCache: Set<string> | null = null;
+let nlCache: Set<string> | null = null;
 
 export function resetRepairCache(): void {
   fieldTagCache = null;
   calibratedCache = null;
+  nlCache = null;
 }
 
 function fieldTags(fieldKey: string): Set<string> {
@@ -68,17 +72,65 @@ export function calibratedTags(): Set<string> {
   return bag;
 }
 
-export function repairTags(tags: readonly string[], lv: number): [string[], string[]] {
+/**
+ * 全部「自然语言整句」的集合（term_hints + 场景 scene_nl / 变体 nl）。
+ *
+ * 整句不是 tag：`tagLevel()` 拿它查判定表会误判档位，F11 也会当成超长标签。
+ * 用**精确集合**而不是"长且含句号"这类启发式 —— 后者会把真实长 tag 也放过。
+ */
+export function nlSentences(extra: Iterable<string> = []): Set<string> {
+  if (!nlCache) {
+    const set = new Set<string>();
+    for (const sub of Object.values(termHints())) {
+      for (const value of Object.values(sub)) {
+        const text = String(value ?? "").trim().toLowerCase();
+        if (text) set.add(text);
+      }
+    }
+    for (const scene of sceneIndex().values()) {
+      const bases: string[] = [];
+      const extras: string[] = [];
+      const base = String(scene.scene_nl ?? "").trim().toLowerCase();
+      if (base) bases.push(base);
+      for (const pool of sceneRandomVariants(scene.id)) {
+        for (const item of pool.items) {
+          const nl = String(item.nl ?? "").trim().toLowerCase();
+          if (nl) bases.push(nl);
+          const add = String(item.nlExtra ?? "").trim().toLowerCase();
+          if (add) extras.push(add);
+        }
+      }
+      for (const text of bases) set.add(text);
+      for (const add of extras) {
+        set.add(add);
+        for (const text of bases) set.add(`${text} ${add}`.trim());
+      }
+    }
+    nlCache = set;
+  }
+  const out = new Set(nlCache);
+  for (const raw of extra) {
+    const text = String(raw ?? "").trim().toLowerCase();
+    if (text) out.add(text);
+  }
+  return out;
+}
+
+export function repairTags(tags: readonly string[], lv: number, extraNl: Iterable<string> = []): [string[], string[]] {
   const fixes: string[] = [];
   let out: string[] = [];
 
   // ③-a 格式：下划线归一 + 去重保序（与 F12 完全一致，score_ 例外）
+  // v5.0.10：角色 tag（映射表里的两段式）例外 —— 下划线与括号是 tag 的组成部分
+  const roleOk = charOutputTagSet();
   const seen = new Set<string>();
   for (const raw of tags) {
     let tag = String(raw ?? "").trim().toLowerCase();
     if (!tag) continue;
     const before = tag;
-    if (tag.includes("_") && !tag.includes("score_")) tag = tag.replace(/[\s_]+/g, " ").trim();
+    if (tag.includes("_") && !tag.includes("score_") && !roleOk.has(tag)) {
+      tag = tag.replace(/[\s_]+/g, " ").trim();
+    }
     if (tag !== before) fixes.push(`格式：\`${before}\` → \`${tag}\``);
     if (tag && !seen.has(tag)) {
       seen.add(tag);
@@ -86,10 +138,15 @@ export function repairTags(tags: readonly string[], lv: number): [string[], stri
     }
   }
 
-  // ① 档位：超档剔除（已登记校准项除外）
+  // ① 档位：超档剔除（已登记校准项与自然语言整句除外）
   const calibrated = calibratedTags();
+  const nl = nlSentences(extraNl);
   const kept: string[] = [];
   for (const tag of out) {
+    if (!calibrated.has(tag) && nl.has(tag)) {
+      kept.push(tag);
+      continue;
+    }
     if (tagLevel(tag) > lv && !calibrated.has(tag)) {
       fixes.push(`档位：剔除超 ${lv} 档的 \`${tag}\``);
       continue;

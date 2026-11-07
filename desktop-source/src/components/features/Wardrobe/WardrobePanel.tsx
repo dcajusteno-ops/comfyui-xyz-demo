@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dice5, Loader2, Play, RefreshCw, Shirt, Sparkles } from "lucide-react";
 import { PanelTitle } from "../../ui";
 import type { Toast } from "../../../types";
@@ -6,10 +6,12 @@ import type { AnimaApplyMode } from "../../../lib/anima/types";
 import { useWardrobeData } from "../../../hooks/useWardrobeData";
 import { useWardrobe } from "../../../hooks/useWardrobe";
 import { targetNum } from "../../../lib/wardrobe/levels";
+import { getWardrobeData } from "../../../lib/wardrobe/store";
 import { styleChoices } from "../../../lib/wardrobe/outfitStyle";
 import { hairPickOptions } from "../../../lib/wardrobe/characters";
 import { setLevel, setUi } from "../../../lib/wardrobe/state";
 import { splitWardrobeToWorkbench } from "../../../lib/wardrobe/workbench";
+import { applyOutfitOverlay } from "../../../lib/wardrobe/outfits";
 import {
   WARDROBE_BREAST_SIZES,
   WARDROBE_HAIR_PICKS,
@@ -70,6 +72,11 @@ export function WardrobePanel({
   const wardrobe = useWardrobe(pushToast);
   const [result, setResult] = useState<WardrobeDrawResult | null>(null);
 
+  // 服装预设覆盖层要在数据就绪后合并进引擎（否则读不到 character-outfits.json）
+  useEffect(() => {
+    if (data.ready) applyOutfitOverlay(wardrobe.outfits);
+  }, [data.ready, wardrobe.outfits]);
+
   const state = wardrobe.state;
   const lv = LEVEL_NUM[state.level] ?? 0;
   const shownText = result?.text ?? state.lastResult?.text ?? "";
@@ -92,6 +99,8 @@ export function WardrobePanel({
         dropped: state.lastResult?.dropped ?? [],
         repaired: state.lastResult?.repaired ?? [],
       };
+
+  const outfitTemplates = () => getWardrobeData("outfitTemplates")?.outfits ?? [];
 
   const outfitOptions = useMemo(
     () => (data.ready ? styleChoices().map((choice) => ({ value: choice, label: choice })) : []),
@@ -294,6 +303,14 @@ export function WardrobePanel({
           />
           角色仅收藏
         </label>
+        <label className="wd-mini-check" title="勾上 = 这一抽完全不抽角色（手填/已选也一并让路）">
+          <input
+            type="checkbox"
+            checked={!state.rolePick}
+            onChange={(event) => wardrobe.setState((prev) => ({ ...prev, rolePick: !event.target.checked }))}
+          />
+          不指定角色
+        </label>
       </div>
 
       <div className="wd-body">
@@ -369,8 +386,15 @@ export function WardrobePanel({
                 setState={wardrobe.setState}
                 selected={wardrobe.selectedRoles}
                 favorites={wardrobe.favoriteChars}
+                favoriteWorks={wardrobe.favoriteWorks}
+                outfits={wardrobe.outfits}
+                outfitTemplates={data.ready ? outfitTemplates() : []}
                 onToggleRole={wardrobe.toggleRole}
                 onToggleFavorite={wardrobe.toggleFavoriteCharacter}
+                onToggleWork={wardrobe.toggleFavoriteWork}
+                onSaveOutfit={wardrobe.saveOutfit}
+                onDeleteOutfit={wardrobe.removeOutfit}
+                onEnableOutfit={wardrobe.toggleOutfit}
               />
             )}
             {state.ui.view === "scenes" && (

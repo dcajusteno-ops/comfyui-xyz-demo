@@ -105,6 +105,83 @@ export function optionWeight(weights: WardrobeWeights, fieldKey: string, en: str
   return weights.options[fieldKey]?.[String(en).trim().toLowerCase()] ?? DEFAULT_WEIGHT;
 }
 
+/**
+ * 同一字段内**只允许一个「必现」**（选项权重 3.0）—— 原地降级，返回说明。
+ *
+ * `forcedOptionPool()` 会把所有 3.0 项收进候选池再抽一个，于是两个 3.0
+ * 里必有一个永远出不来（"假必现"）。保留**字典里最后出现**的那个，
+ * 其余降到 1.0。没有冲突时是恒等变换（零漂移）。
+ */
+export function enforceOptionMutex(weights: WardrobeWeights): string[] {
+  const notes: string[] = [];
+  for (const [fieldKey, sub] of Object.entries(weights.options ?? {})) {
+    if (!sub || typeof sub !== "object") continue;
+    const forced = Object.entries(sub)
+      .filter(([, value]) => Number(value) >= WEIGHT_MAX)
+      .map(([key]) => key);
+    if (forced.length < 2) continue;
+    const keep = forced[forced.length - 1];
+    const field = requireWardrobeData("pools").sections.flatMap((s) => s.fields).find((f) => f.key === fieldKey);
+    const label = field?.lab || fieldKey;
+    for (const key of forced.slice(0, -1)) {
+      sub[key] = DEFAULT_WEIGHT;
+      notes.push(
+        `字段「${label}」同类型互斥，只能有一个必现（权重 3）：「${key}」已自动从 3.0 降为 1.0，保留最后设置的「${keep}」`,
+      );
+    }
+  }
+  return notes;
+}
+
+/** 池子里选项权重顶到 3.0 的那些项（选项级「必现」）。 */
+export function forcedOptionPool<T>(pool: readonly T[], fieldKey: string, weights: WardrobeWeights): T[] {
+  return pool.filter((item) => {
+    const tuple = item as unknown as unknown[];
+    const en = Array.isArray(tuple) ? String(tuple[1] ?? "") : "";
+    return en !== "" && optionWeight(weights, fieldKey, en) >= WEIGHT_MAX;
+  });
+}
+
+/** 被调过权重（≠1.0 且 >0）的字段 —— 这些字段一律必抽。 */
+export function tunedWeightFields(weights: WardrobeWeights): Set<string> {
+  const out = new Set<string>();
+  for (const [fieldKey, sub] of Object.entries(weights.options ?? {})) {
+    for (const value of Object.values(sub ?? {})) {
+      const n = Number(value);
+      if (n > 0 && Math.abs(n - DEFAULT_WEIGHT) > 1e-9) {
+        out.add(fieldKey);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * 把「权重 = 0」的选项从最终 state 里清掉（v4.3.0）。
+ *
+ * 抽取期 `weightedPick` 已经排除 0 权重，但自动写入路径（场景写死、
+ * 角色对齐、保底）会绕过它。只扫用户真调过的字段；locks / forced 跳过。
+ */
+export function sweptZeroWeight(
+  state: Record<string, unknown>,
+  weights: WardrobeWeights,
+  protect: Iterable<string> = [],
+): string[] {
+  const keep = new Set(protect);
+  const tuned = new Set(Object.keys(weights.options ?? {}));
+  const out: string[] = [];
+  for (const key of Object.keys(state)) {
+    if (key.startsWith("_") || !tuned.has(key) || keep.has(key)) continue;
+    const value = state[key];
+    if (!value) continue;
+    if (optionWeight(weights, key, String(value)) > 0) continue;
+    state[key] = "";
+    out.push(`${key}（\`${String(value)}\` 权重 0，已关闭）`);
+  }
+  return out;
+}
+
 /** 加权随机取一项；全 0 权重返回 null（= 本字段不出现）。 */
 export function weightedPick<T>(
   rng: WardrobeRandom,

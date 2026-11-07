@@ -1,8 +1,8 @@
 {
  "_meta": {
-  "pluginVersion": "4.0.0",
+  "pluginVersion": "5.0.12",
   "schema": "xyz-wardrobe/overrides@1",
-  "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_overrides.py"
+  "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_overrides.py"
  },
  "levelDemote": [
   {
@@ -208,6 +208,12 @@
    "field": "n_fluid",
    "level": 2,
    "why": "泪痕：同上。"
+  },
+  {
+   "en": "2girls, yuri",
+   "field": "count",
+   "level": 1,
+   "why": "双女**关系**标签：`yuri` 在判定表里与接吻同属「百合」分类（2 档），但「两个女孩在一起」这件事本身在擦边档成立，真正需要 2 档的是接吻等行为词。 降到 1 档后，擦边档能出双女亲密（拥抱 / 牵手 / 依偎），全年龄档仍走中性写法。"
   }
  ],
  "levelRaise": [

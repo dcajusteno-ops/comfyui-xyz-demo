@@ -63,10 +63,12 @@ describe("造型台持久化", () => {
       version: 1,
       characters: ["a", "a", "b"],
       scenes: ["s1", "s1"],
+      works: ["w", "w"],
     });
     expect(favorites.characters).toEqual(["a", "b"]);
     expect(favorites.scenes).toEqual(["s1"]);
-    expect(defaultFavorites()).toEqual({ version: 1, characters: [], scenes: [] });
+    expect(favorites.works).toEqual(["w"]);
+    expect(defaultFavorites()).toEqual({ version: 1, characters: [], scenes: [], works: [] });
   });
 
   it("预设坏数据被丢弃，合法项保留", () => {

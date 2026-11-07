@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 从已安装的 Comfyui-Anima-Wardrobe-V4 插件导入造型台数据。
+ * 从已安装的 Comfyui-Anima-Wardrobe-V5 插件导入造型台数据。
  *
  * 用法（在 desktop-source 目录执行）：
  *   node scripts/import-wardrobe-data.mjs --plugin "<插件根目录>"
@@ -8,8 +8,16 @@
  *   node scripts/import-wardrobe-data.mjs --verify-only
  *
  * 与 import-anima-data.mjs 的差别：Wardrobe 的数据是「结构化段/字段/选项池」+
- * 2383 位角色 + 261 条场景 + 2372 张缩略图，需要按语义做交叉校验（选项档位、
+ * 2390 位角色 + 361 条场景 + 2414 张缩略图，需要按语义做交叉校验（选项档位、
  * 场景引用、缩略图缺失），不能只数条数。
+ *
+ * v5.0.12 新增的旁挂表（都来自插件 presets/，缺一不可）：
+ *   char_output_tags.json     正文角色 tag（角色 + 作品两段式，Anima 官方顺序）
+ *   char_aliases.json         角色改名兼容表
+ *   character_outfits.json    角色服装预设（用户数据，启用后锁服装）
+ *   anima_v4_scene_aspects.json 场景推荐画幅（竖/横/通用）
+ *   term_hints.json           复杂词条的自然语言补充句
+ *   outfit_templates_日常六套.json 服装预设模板
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -18,7 +26,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUT = path.join(ROOT, "public", "data", "wardrobe");
-const SOURCE_REPO = "https://github.com/lingdongbudong/Comfyui-Anima-Wardrobe-V4";
+const SOURCE_REPO = "https://github.com/lingdongbudong/Comfyui-Anima-Wardrobe-V5";
 const SOURCE_LICENSE = "MIT";
 
 const DATASETS = {
@@ -27,9 +35,15 @@ const DATASETS = {
   characters: "anima_v4_characters.json",
   userCharacters: "user_characters.json",
   scenes: "anima_v4_scenes.json",
+  sceneAspects: "anima_v4_scene_aspects.json",
   colorMatrix: "anima_v4_color_matrix.json",
   hairStyle: "char_hair_style.json",
   charFeat: "char_feat.json",
+  charOutputTags: "char_output_tags.json",
+  charAliases: "char_aliases.json",
+  characterOutfits: "character_outfits.json",
+  termHints: "term_hints.json",
+  outfitTemplates: "outfit_templates_日常六套.json",
 };
 
 /** 数据集键 → 输出文件名（与运行时 store.ts 的 FILES 表一一对应） */
@@ -39,9 +53,15 @@ const OUTPUT_FILES = {
   characters: "characters.json",
   userCharacters: "user-characters.json",
   scenes: "scenes.json",
+  sceneAspects: "scene-aspects.json",
   colorMatrix: "color-matrix.json",
   hairStyle: "char-hair-style.json",
   charFeat: "char-feat.json",
+  charOutputTags: "char-output-tags.json",
+  charAliases: "char-aliases.json",
+  characterOutfits: "character-outfits.json",
+  termHints: "term-hints.json",
+  outfitTemplates: "outfit-templates.json",
 };
 
 /** 由 export-wardrobe-tables.py 生成，导入时只校验存在性与哈希 */
@@ -149,7 +169,7 @@ function validatePools(pools) {
   const mutex = (pools.mutex_groups ?? []).length;
   if (sections.length !== 15) fail(`段数应为 15，实际 ${sections.length}`);
   if (fields.length !== 57) fail(`字段数应为 57，实际 ${fields.length}`);
-  if (options !== 1128) fail(`选项数应为 1128，实际 ${options}`);
+  if (options !== 1134) fail(`选项数应为 1134，实际 ${options}`);
   if (canon !== 14) fail(`canon 应为 14，实际 ${canon}`);
   if (appear !== 221) fail(`appear 应为 221，实际 ${appear}`);
   if (mutex !== 6) fail(`mutex 应为 6，实际 ${mutex}`);
@@ -176,7 +196,7 @@ function validateLevels(levels, pools) {
   if (uncovered.length) fail(`有 ${uncovered.length} 个选项没有档位：${uncovered.slice(0, 5).join(" / ")}`);
 
   const tagCount = Object.keys(levels.tag_levels ?? {}).length;
-  if (tagCount !== 1166) warn(`tag_levels 数量为 ${tagCount}（预期 1166，插件升级时会变）`);
+  if (tagCount !== 1171) warn(`tag_levels 数量为 ${tagCount}（预期 1171，插件升级时会变）`);
   for (const sec of pools.sections ?? []) {
     if (!Object.prototype.hasOwnProperty.call(levels.section_floor ?? {}, sec.id)) {
       fail(`section_floor 缺段：${sec.id}`);
@@ -187,7 +207,7 @@ function validateLevels(levels, pools) {
 
 function validateCharacters(characters) {
   const rows = characters.characters ?? [];
-  if (rows.length !== 2383) warn(`角色数 ${rows.length}（预期 2383，插件升级时会变）`);
+  if (rows.length !== 2390) warn(`角色数 ${rows.length}（预期 2390，插件升级时会变）`);
   for (const row of rows) {
     if (!row.tag || !row.name) fail(`角色记录缺 tag/name：${JSON.stringify(row).slice(0, 120)}`);
     if (!row.thumb) fail(`角色 ${row.tag} 缺 thumb 字段`);
@@ -199,7 +219,7 @@ function validateCharacters(characters) {
 function validateUserCharacters(overlay) {
   const edits = overlay.edits ?? {};
   const custom = overlay.custom ?? [];
-  if (Object.keys(edits).length !== 122) warn(`角色覆盖层 edits=${Object.keys(edits).length}（预期 122）`);
+  if (Object.keys(edits).length !== 123) warn(`角色覆盖层 edits=${Object.keys(edits).length}（预期 123）`);
   if (custom.length !== 12) warn(`角色覆盖层 custom=${custom.length}（预期 12）`);
   for (const row of custom) {
     if (!row.tag || !row.trigger) fail(`自定义角色缺 tag/trigger：${JSON.stringify(row).slice(0, 120)}`);
@@ -240,16 +260,93 @@ function validateScenes(scenes, pools) {
       const en = new Set((field.opts ?? []).map(([, v]) => v));
       if (!en.has(value)) problems.push(`${scene.id}: ${key} 没有选项 "${value}"`);
     }
+    if (scene.count_lock && scene.count_lock !== "2girls" && !fieldMap.get("count")) {
+      problems.push(`${scene.id}: count_lock 无法校验`);
+    }
     if (!scene.id || !scene.zh) problems.push(`场景缺 id/zh：${JSON.stringify(scene).slice(0, 80)}`);
   }
   if (problems.length) fail(`场景引用有 ${problems.length} 处不合法：\n  ${problems.slice(0, 8).join("\n  ")}`);
 
   const groups = {};
   for (const scene of rows) groups[scene.group] = (groups[scene.group] ?? 0) + 1;
-  for (const [group, count] of Object.entries({ sfw: 92, nsfw: 70, near: 60, pose: 39 })) {
+  for (const [group, count] of Object.entries({ sfw: 100, nsfw: 71, near: 60, pose: 40, art: 90 })) {
     if ((groups[group] ?? 0) !== count) warn(`场景组 ${group} 数量 ${groups[group] ?? 0}（预期 ${count}）`);
   }
   return { scenes: rows.length, groups };
+}
+
+/** 场景画幅旁挂表（v5.0.1）：缺条目只影响徽标，不阻断。 */
+function validateSceneAspects(aspects, scenes) {
+  const rows = aspects?.aspects ?? {};
+  const ids = new Set((scenes.scenes ?? []).map((s) => s.id));
+  const unknown = Object.keys(rows).filter((id) => !ids.has(id));
+  if (unknown.length) warn(`画幅表有 ${unknown.length} 条对不上场景 id：${unknown.slice(0, 3).join(", ")}`);
+  const buckets = { portrait: 0, landscape: 0, both: 0 };
+  for (const row of Object.values(rows)) {
+    const a = String(row?.a ?? "").trim().toLowerCase();
+    if (a in buckets) buckets[a] += 1;
+  }
+  return { aspects: Object.keys(rows).length, ...buckets };
+}
+
+/** 正文角色 tag 映射（v5.0.11）：必须是「角色, 作品」两段式、零下划线。 */
+function validateCharOutputTags(doc, characters, overlay) {
+  const tags = doc?.tags ?? {};
+  const rows = [...(characters.characters ?? []), ...(overlay.custom ?? [])];
+  const triggers = new Set(rows.map((row) => String(row.trigger ?? "")));
+  let missing = 0;
+  let underscore = 0;
+  let total = 0;
+  for (const [trigger, rec] of Object.entries(tags)) {
+    total += 1;
+    if (!triggers.has(trigger)) missing += 1;
+    const out = String(rec?.out ?? "");
+    if (out.includes("_")) underscore += 1;
+  }
+  if (!total) fail("char_output_tags.json 是空表");
+  if (underscore) fail(`char_output_tags 有 ${underscore} 条含下划线（Anima 官方禁止下划线）`);
+  if (missing) warn(`char_output_tags 有 ${missing} 条 trigger 不在角色库（改名/删角色时会变）`);
+  return { mappings: total, missing };
+}
+
+function validateCharAliases(doc, characters) {
+  const aliases = doc?.aliases ?? {};
+  const tags = new Set((characters.characters ?? []).map((row) => String(row.tag ?? "")));
+  for (const [from, to] of Object.entries(aliases)) {
+    if (!tags.has(String(to))) warn(`别名 ${from} → ${to} 的目标不在内置角色库`);
+  }
+  return { aliases: Object.keys(aliases).length };
+}
+
+function validateTermHints(doc) {
+  let count = 0;
+  for (const [field, sub] of Object.entries(doc ?? {})) {
+    if (field.startsWith("_") || !sub || typeof sub !== "object") continue;
+    count += Object.keys(sub).length;
+  }
+  if (!count) fail("term_hints.json 没有任何词条");
+  return { termHints: count };
+}
+
+function validateOutfits(doc, characters) {
+  const roles = doc?.outfits ?? {};
+  const tags = new Set((characters.characters ?? []).map((row) => String(row.tag ?? "")));
+  let sets = 0;
+  let enabled = 0;
+  const orphans = [];
+  for (const [role, rec] of Object.entries(roles)) {
+    if (!tags.has(role)) orphans.push(role);
+    if (rec?.enabled) enabled += 1;
+    sets += (rec?.list ?? []).length;
+  }
+  if (orphans.length) warn(`服装预设里 ${orphans.length} 个角色不在内置库：${orphans.slice(0, 3).join(", ")}`);
+  return { outfitRoles: Object.keys(roles).length, outfitSets: sets, outfitEnabled: enabled };
+}
+
+function validateOutfitTemplates(doc) {
+  const rows = doc?.outfits ?? [];
+  if (!Array.isArray(rows) || rows.length !== 6) warn(`服装模板应为 6 套，实际 ${Array.isArray(rows) ? rows.length : 0}`);
+  return { outfitTemplates: Array.isArray(rows) ? rows.length : 0 };
 }
 
 /* ------------------------------------------------------------------ *
@@ -328,7 +425,7 @@ function buildManifest({ source, counts, derived, outDir, version, poolsHash, po
   return {
     schema: "xyz-wardrobe/1",
     source: {
-      plugin: "Comfyui-Anima-Wardrobe-V4",
+      plugin: "Comfyui-Anima-Wardrobe-V5",
       repo: SOURCE_REPO,
       version,
       license: SOURCE_LICENSE,
@@ -364,6 +461,12 @@ function main() {
     readJson(path.join(outDir, "color-matrix.json"), "color-matrix");
     readJson(path.join(outDir, "char-hair-style.json"), "char-hair-style");
     readJson(path.join(outDir, "char-feat.json"), "char-feat");
+    const sceneAspects = readJson(path.join(outDir, "scene-aspects.json"), "scene-aspects");
+    const charOutputTags = readJson(path.join(outDir, "char-output-tags.json"), "char-output-tags");
+    const charAliases = readJson(path.join(outDir, "char-aliases.json"), "char-aliases");
+    const characterOutfits = readJson(path.join(outDir, "character-outfits.json"), "character-outfits");
+    const termHints = readJson(path.join(outDir, "term-hints.json"), "term-hints");
+    readJson(path.join(outDir, "outfit-templates.json"), "outfit-templates");
 
     const counts = {
       ...validatePools(pools),
@@ -371,6 +474,11 @@ function main() {
       ...validateCharacters(characters),
       ...validateUserCharacters(userCharacters),
       ...validateScenes(scenes, pools),
+      ...validateSceneAspects(sceneAspects, scenes),
+      ...validateCharOutputTags(charOutputTags, characters, userCharacters),
+      ...validateCharAliases(charAliases, characters),
+      ...validateOutfits(characterOutfits, characters),
+      ...validateTermHints(termHints),
     };
     counts.charactersMerged = mergeCharacters(characters, userCharacters).length;
 
@@ -404,6 +512,12 @@ function main() {
     ...validateCharacters(source.characters),
     ...validateUserCharacters(source.userCharacters),
     ...validateScenes(source.scenes, source.pools),
+    ...validateSceneAspects(source.sceneAspects, source.scenes),
+    ...validateCharOutputTags(source.charOutputTags, source.characters, source.userCharacters),
+    ...validateCharAliases(source.charAliases, source.characters),
+    ...validateOutfits(source.characterOutfits, source.characters),
+    ...validateTermHints(source.termHints),
+    ...validateOutfitTemplates(source.outfitTemplates),
   };
   const mergedCharacters = mergeCharacters(source.characters, source.userCharacters);
   counts.charactersMerged = mergedCharacters.length;
@@ -429,15 +543,10 @@ function main() {
   }
 
   if (!args.thumbsOnly) {
-    writeJson(path.join(args.out, OUTPUT_FILES.pools), source.pools);
-    writeJson(path.join(args.out, OUTPUT_FILES.levels), source.levels);
-    writeJson(path.join(args.out, OUTPUT_FILES.characters), source.characters);
-    writeJson(path.join(args.out, OUTPUT_FILES.userCharacters), source.userCharacters);
-    writeJson(path.join(args.out, OUTPUT_FILES.scenes), source.scenes);
-    writeJson(path.join(args.out, OUTPUT_FILES.colorMatrix), source.colorMatrix);
-    writeJson(path.join(args.out, OUTPUT_FILES.hairStyle), source.hairStyle);
-    writeJson(path.join(args.out, OUTPUT_FILES.charFeat), source.charFeat);
-    info("写入 8 个 JSON");
+    for (const [key, out] of Object.entries(OUTPUT_FILES)) {
+      writeJson(path.join(args.out, out), source[key]);
+    }
+    info(`写入 ${Object.keys(OUTPUT_FILES).length} 个 JSON`);
   }
 
   const characters = mergedCharacters;

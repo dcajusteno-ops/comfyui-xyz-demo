@@ -12,10 +12,15 @@ import {
   HAIR_PICK_AUTO,
   HAIR_STYLE_FIELDS,
   HAIR_TIE_TAGS,
-  PARTNER_GATED_FIELDS,
-  SOLO_OK_PARTNER_OPTS,
+  CHAR_APPEAR_FIELDS,
   MULTI_CLEAR_FIELDS,
+  PARTNER_GATED_FIELDS,
+  SEX_CONTENT_FIELDS,
+  SOLO_OK_PARTNER_OPTS,
   GROUP_ONLY_TAGS,
+  TOY_THEME_OPTS,
+  TOY_YURI,
+  YURI_TOY_TAGS,
   applyAppearance,
   applyHairStyle,
   applySelectedRoles,
@@ -23,20 +28,32 @@ import {
   charFeatFor,
   countHasPartner,
   countIsGroup,
+  countSatisfies,
+  duoAppearanceText,
+  duoFeatText,
+  duoOutfitText,
   appearanceFor,
   expandRoles,
+  forcedSexCountTarget,
   girlCountFor,
   hairStyleFor,
+  hasForcedSexContent,
+  isYuriCount,
+  outfitFor,
+  outfitItem,
   pickRandomRoles,
   parseSelectedRoles,
   stripRoleWorks,
+  termHintText,
 } from "./characters";
 import { collect } from "./collect";
 import {
+  canonLevel,
   eligibleOptions,
   effectiveLevel as effectiveLevelImpl,
   fieldByKey,
   fieldValueNum,
+  levelKeyForNum,
   levelLabel,
   optionLevel,
   resolveLevel,
@@ -74,10 +91,14 @@ import type { WardrobeDrawInput, WardrobeDrawResult, WardrobeDrawnItem, Wardrobe
 import {
   DEFAULT_BASE_PROB,
   emptyWeights,
+  enforceOptionMutex,
   fieldWeight,
+  forcedOptionPool,
   optionWeight,
   parseWeights,
   sectionWeight,
+  sweptZeroWeight,
+  tunedWeightFields,
   validateWeights,
   WEIGHT_MAX,
   weightedPick,
@@ -101,8 +122,103 @@ const LEVEL_FLOOR_ORDER = [
   "cloth_state_sfw",
 ];
 
-const SCENE_APPEAR_P = 0.12;
-const SCENE_ALWAYS = false;
+/** 「姿势 / 体位 / 主题」字段（v4.3.0：只有这十组点名词条会抬档、挡自动场景） */
+const POSE_WEIGHT_FIELDS = [
+  "pose_base",
+  "arms_hands",
+  "action",
+  "pose_risque",
+  "n_act",
+  "n_pos",
+  "n_orgasm",
+  "n_cum",
+  "n_fluid",
+  "n_theme",
+];
+
+function forcedPoseWeightFields(weights: WardrobeWeights): string[] {
+  const out: string[] = [];
+  for (const key of POSE_WEIGHT_FIELDS) {
+    const found = fieldByKey(key);
+    for (const [, en] of found?.field.opts ?? []) {
+      if (optionWeight(weights, key, en) >= WEIGHT_MAX) {
+        out.push(key);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/** 点名（3.0）的姿势/体位/主题词条要用的最高档位。0 = 不用抬档。 */
+function forcedPoseLevel(weights: WardrobeWeights): number {
+  let need = 0;
+  for (const key of POSE_WEIGHT_FIELDS) {
+    const found = fieldByKey(key);
+    for (const [, en] of found?.field.opts ?? []) {
+      if (optionWeight(weights, key, en) >= WEIGHT_MAX) need = Math.max(need, optionLevel(key, en));
+    }
+  }
+  return need;
+}
+
+/** 用户是否自己点名了场景（显式套用 / forced / 锁定 n_canon）。 */
+function userPinnedScene(
+  weights: WardrobeWeights,
+  forced: Record<string, string>,
+  locks: Set<string>,
+): boolean {
+  if (Object.prototype.hasOwnProperty.call(forced, "n_canon")) return true;
+  if (locks.has("n_canon")) return true;
+  return Object.values(weights.options.n_canon ?? {}).some((value) => Number(value) >= WEIGHT_MAX);
+}
+
+/**
+ * 人数 ↔ 穿戴式道具联动（v4.2.2）。
+ *
+ * 双女 + 正戏 → 补 `strap-on`；一男一女 → 清玩具类；solo/群交 → 清穿戴式。
+ * 用户点名的（`_forced_tags`）优先；档位闸门与权重 0 照常生效。
+ */
+export function applyCountToyRule(
+  state: Record<string, unknown>,
+  lv: number,
+  weights: WardrobeWeights,
+): string[] {
+  const notes: string[] = [];
+  const count = String(state.count ?? "");
+  const sexGoing = Boolean(state.n_act || state.n_pos);
+  const forcedKeys = new Set(
+    ((state._forced_tags as Array<[string, string, string]> | undefined) ?? []).map((f) => f[0]),
+  );
+  const current = String(state.n_theme ?? "").trim().toLowerCase();
+
+  if (isYuriCount(count)) {
+    if (!sexGoing) return notes;
+    if (TOY_THEME_OPTS.has(current)) return notes;
+    if (forcedKeys.has("n_theme")) return notes;
+    if (blockedByWeight(weights, "n_theme")) return notes;
+    if (optionLevel("n_theme", TOY_YURI) > lv) return notes;
+    state.n_theme = TOY_YURI;
+    state._toy_rule = true;
+    notes.push(`双女正戏 → 补穿戴式道具 \`${TOY_YURI}\`（没有对方，用穿戴式才立得住）`);
+  } else if (countHasPartner(count)) {
+    if (!TOY_THEME_OPTS.has(current)) return notes;
+    if (forcedKeys.has("n_theme")) {
+      notes.push(`⚠️ 一男一女正戏但「主题元素」点名了 \`${current}\` —— 显式指令优先，保留（画面会同时有道具）`);
+    } else {
+      state.n_theme = "";
+      notes.push(`一男一女 → 清空穿戴式道具 \`${current}\`（不需要）`);
+    }
+  } else if (YURI_TOY_TAGS.has(current)) {
+    if (forcedKeys.has("n_theme")) {
+      notes.push(`⚠️ 单人/群交但点名了 \`${current}\` —— 显式指令优先，保留`);
+    } else {
+      state.n_theme = "";
+      notes.push(`单人/群交 → 清空 \`${current}\`（穿戴式需要另一名女性承受）`);
+    }
+  }
+  return notes;
+}
 
 function has(obj: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
@@ -117,13 +233,35 @@ function enabledOrDefault(value: string[] | null | undefined): Set<string> {
 
 export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
   const weights: WardrobeWeights = input.weights ? parseWeights(input.weights) : emptyWeights();
-  const levelKey = resolveLevel(input.level ?? "suggestive");
-  const lv = targetNum()[levelKey] ?? 1;
+  let levelKey = resolveLevel(input.level ?? "suggestive");
+  let lv = targetNum()[levelKey] ?? 1;
   const locks = new Set(input.locks ?? []);
   const forced: Record<string, string> = { ...(input.forced ?? {}) };
   const notes: string[] = [];
   const seeded = input.seed !== null && input.seed !== undefined && Number(input.seed) >= 0;
   const seed = seeded ? Math.trunc(Number(input.seed)) : undefined;
+  const rolePick = input.rolePick !== false;
+  const scenePick = input.scenePick === true;
+
+  // v5.0.1：同字段只能有一个「必现」—— 必须在 forcedPoseLevel 之前降级
+  notes.push(...enforceOptionMutex(weights));
+
+  // v4.3.0：点名越档词 → 整张图按该词档位抽（档位闸门本身不拆）
+  const needLv = forcedPoseLevel(weights);
+  if (needLv > lv) {
+    const oldLv = lv;
+    const oldKey = levelKey;
+    lv = needLv;
+    levelKey = resolveLevel(levelKeyForNum(lv) || oldKey);
+    notes.push(
+      `档位按点名词条自动上调：L${oldLv} ${levelLabel(oldKey)} → L${lv} ${levelLabel(levelKey)}` +
+        "（词条档位高于所选档位，本张整体按新档抽取）",
+    );
+  }
+
+  // v4.2.1：点名了性内容 → 本次不自动套场景（自动场景的人数/闭麦会覆盖点名项）
+  const forcedPoseFields = forcedPoseWeightFields(weights);
+  const blockAutoScene = forcedPoseFields.length > 0 && !userPinnedScene(weights, forced, locks);
 
   const baseProb =
     typeof input.baseProb === "number" && Number.isFinite(input.baseProb) && input.baseProb > 0
@@ -192,12 +330,17 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
     variantPickValue: number | undefined,
     variantSeedValue: number,
   ): [Record<string, unknown>, Drawn5[], string[]] => {
+    // v4.4.6：点名了正戏动作 / 主题 → 闭麦「动态动作」与「情绪」
+    // （日常动作词在 CLIP 里权重更高，会把点名的长尾动作抢走）
+    const skipFields = hasForcedSexContent(weights) ? new Set(["action", "emotion"]) : new Set<string>();
     const st: Record<string, unknown> = {};
     const dr: Drawn5[] = [];
     const nt: string[] = [];
     const pre = new Map<string, Pick3>();
     const F = forced;
     const preRng = passRng.clone();
+    // v4.3.0：被调过权重的字段一律必抽（中间值才有意义）
+    const tuned = tunedWeightFields(weights);
 
     const prePlace = () => {
       const key = "place";
@@ -217,15 +360,22 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
       if (sw <= 0 || fw <= 0) return;
       const pool = eligibleOptions(key, lv);
       if (!pool.length) return;
-      if (!(field.req || fw >= WEIGHT_MAX)) {
+      const forcedPool =
+        rolePick && CHAR_APPEAR_FIELDS.has(key) ? [] : forcedOptionPool(pool, key, weights);
+      if (!(field.req || fw >= WEIGHT_MAX || forcedPool.length || tuned.has(key))) {
         if (!(passRng.random() < clampProb(effP * sw * fw))) return;
       }
-      const pick = weightedPick(passRng, pool, (it) =>
+      const pick = weightedPick(passRng, forcedPool.length ? forcedPool : pool, (it) =>
         optionWeight(weights, key, it[1]) * sw * fw * fieldOptionBias(key, outfitStyle, it[1]),
       );
       if (!pick) return;
       pre.set(key, pick);
       st[key] = pick[1];
+      if (forcedPool.length) {
+        const list = (st._forced_tags as Array<[string, string, string]> | undefined) ?? [];
+        list.push([key, pick[0], pick[1]]);
+        st._forced_tags = list;
+      }
     };
 
     const preOutfit = () => {
@@ -246,23 +396,33 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         const fw = fieldWeight(weights, key);
         if (sw <= 0 || fw <= 0) continue;
         let pool = eligibleOptions(key, lv);
-        if (key === "outfit") pool = allowedOutfit(pool, outfitStyle);
-        const sbans = styleBans(st, key, outfitStyle);
-        if (sbans.size) {
-          const kept = pool.filter((it) => !sbans.has(it[1]));
-          if (kept.length) pool = kept;
+        const forcedPool =
+          rolePick && CHAR_APPEAR_FIELDS.has(key) ? [] : forcedOptionPool(pool, key, weights);
+        // 显式指令 > 风格收敛：有必现项时不再做风格收窄/剔除
+        if (!forcedPool.length) {
+          if (key === "outfit") pool = allowedOutfit(pool, outfitStyle);
+          const sbans = styleBans(st, key, outfitStyle);
+          if (sbans.size) {
+            const kept = pool.filter((it) => !sbans.has(it[1]));
+            if (kept.length) pool = kept;
+          }
         }
         if (!pool.length) continue;
         const lb = layerBias(st, key, outfitStyle);
-        if (!(field.req || fw >= WEIGHT_MAX)) {
+        if (!(field.req || fw >= WEIGHT_MAX || forcedPool.length || tuned.has(key))) {
           if (!(preRng.random() < clampProb(effP * sw * fw * lb))) continue;
         }
-        const pick = weightedPick(preRng, pool, (it) =>
+        const pick = weightedPick(preRng, forcedPool.length ? forcedPool : pool, (it) =>
           optionWeight(weights, key, it[1]) * sw * fw * styleBias(st, key, it[1], outfitStyle),
         );
         if (!pick) continue;
         pre.set(key, pick);
         st[key] = pick[1];
+        if (forcedPool.length) {
+          const list = (st._forced_tags as Array<[string, string, string]> | undefined) ?? [];
+          list.push([key, pick[0], pick[1]]);
+          st._forced_tags = list;
+        }
       }
     };
 
@@ -285,7 +445,11 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         if (sw <= 0 || fw <= 0) continue;
         let pool = eligibleOptions(key, lv);
         if (!pool.length) continue;
-        const bans = new Set([...bansFor(st, key), ...styleBans(st, key, outfitStyle)]);
+        const forcedPool =
+          rolePick && CHAR_APPEAR_FIELDS.has(key) ? [] : forcedOptionPool(pool, key, weights);
+        const bans = forcedPool.length
+          ? new Set<string>()
+          : new Set([...bansFor(st, key), ...styleBans(st, key, outfitStyle)]);
         if (bans.size) {
           const kept = pool.filter((it) => !bans.has(it[1]));
           if (kept.length && kept.length !== pool.length) {
@@ -293,11 +457,11 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
             pool = kept;
           }
         }
-        const take = field.req || fw >= WEIGHT_MAX
+        const take = field.req || fw >= WEIGHT_MAX || forcedPool.length || tuned.has(key)
           ? true
           : preRng.random() < clampProb(effP * sw * fw * layerBias(st, key, outfitStyle));
         if (!take) continue;
-        const pick = weightedPick(preRng, pool, (it) =>
+        const pick = weightedPick(preRng, forcedPool.length ? forcedPool : pool, (it) =>
           optionWeight(weights, key, it[1]) *
           sw *
           fw *
@@ -308,6 +472,11 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         if (!pick) continue;
         pre.set(key, pick);
         st[key] = pick[1];
+        if (forcedPool.length) {
+          const list = (st._forced_tags as Array<[string, string, string]> | undefined) ?? [];
+          list.push([key, pick[0], pick[1]]);
+          st._forced_tags = list;
+        }
       }
     };
 
@@ -323,6 +492,13 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         const key = field.key;
         if (key === "role") continue;
         if (locks.has(key)) continue;
+        if (skipFields.has(key)) {
+          if (!st._action_muted) {
+            st._action_muted = true;
+            nt.push("动作优先：已点名性行为/主题 → 本次不随机抽「动态动作」与「情绪」（日常动作词会压掉点名的动作）");
+          }
+          continue;
+        }
         if (pre.has(key)) {
           const [zh, en, num] = pre.get(key)!;
           st[key] = en;
@@ -339,6 +515,24 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         if (fw <= 0) continue;
 
         let pool = eligibleOptions(key, lv);
+        // v4.2.1：点名性行为 → 先把人数抬到能成立的下限（在人数相容过滤之前）
+        if (SEX_CONTENT_FIELDS.includes(key) && !st._sex_count_fix) {
+          st._sex_count_fix = true;
+          const target = forcedSexCountTarget(weights);
+          const current = String(st.count ?? "");
+          const countForced = ((st._forced_tags as Array<[string, string, string]> | undefined) ?? []).some(
+            (row) => row[0] === "count",
+          );
+          const curOk = countForced || countSatisfies(current, target);
+          if (target && !curOk) {
+            if (countForced) {
+              nt.push(`⚠️ 性行为已点名必现，但人数被点名成 \`${current}\` —— 两者矛盾，本次按人数走（性行为可能立不起来）`);
+            } else {
+              st.count = target;
+              nt.push(`性行为已点名必现 → 人数由 \`${current || "(空)"}\` 抬到 \`${target}\``);
+            }
+          }
+        }
         if (
           PARTNER_GATED_FIELDS.includes(key) &&
           !(selectedRoles.length || forceRole) &&
@@ -351,8 +545,34 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
           }
           if (!pool.length) continue;
         }
+        // v4.5.43：穿戴式 / 扶她只在双女里抽取（用户显式点名时例外）
+        const toyNamed = pool.some(
+          (it) => optionWeight(weights, key, String(it[1])) >= WEIGHT_MAX && YURI_TOY_TAGS.has(String(it[1]).trim().toLowerCase()),
+        );
+        if (key === "n_theme" && !toyNamed && !isYuriCount(String(st.count ?? ""))) {
+          const kept = pool.filter((it) => !YURI_TOY_TAGS.has(String(it[1]).trim().toLowerCase()));
+          if (kept.length !== pool.length) {
+            nt.push(
+              `穿戴式只在双女里抽取：${field.lab || key} 剔除 ${pool.length - kept.length} 项（当前 ${String(st.count ?? "") || "(空)"}）`,
+            );
+            pool = kept;
+          }
+          if (!pool.length) continue;
+        }
         if (key === "outfit") pool = allowedOutfit(pool, outfitStyle);
         if (key === "n_canon") {
+          if (blockAutoScene) {
+            if (!st._auto_scene_skipped) {
+              st._auto_scene_skipped = true;
+              const labels = forcedPoseFields
+                .map((k) => fieldByKey(k)?.field.lab || k)
+                .join("、");
+              nt.push(
+                `已点名 ${labels}（权重 3.0）→ 本次不自动套场景（自动场景的人数/闭麦/写死值会覆盖点名项；要场景请在面板显式套用）`,
+              );
+            }
+            continue;
+          }
           pool = canonPoolForDraw(pool, lv, weights);
           const [layered, note] = sceneLevelLayered(pool, lv, weights, sceneCoin);
           pool = layered;
@@ -360,19 +580,40 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         }
         if (!pool.length) continue;
 
-        const bans = new Set([...bansFor(st, key), ...styleBans(st, key, outfitStyle)]);
+        let bans = new Set([...bansFor(st, key), ...styleBans(st, key, outfitStyle)]);
+        // 点名了「体位」时，动作候选还要额外避让那一条（以及它避让的动作）
+        if (key === "n_act") {
+          const forcedPos = forcedOptionPool(fieldByKey("n_pos")?.field.opts ?? [], "n_pos", weights);
+          if (forcedPos.length === 1) {
+            bans = new Set([...bans, ...bansFor({ ...st, n_pos: forcedPos[0][1] }, key)]);
+            for (const it of pool) {
+              if (bansFor({ ...st, n_act: it[1] }, "n_pos").has(forcedPos[0][1])) bans.add(it[1]);
+            }
+          }
+        }
         if (bans.size) {
+          const lostForced = pool
+            .filter((it) => bans.has(it[1]) && optionWeight(weights, key, it[1]) >= WEIGHT_MAX)
+            .map((it) => it[1]);
           const kept = pool.filter((it) => !bans.has(it[1]));
           if (kept.length && kept.length !== pool.length) {
             nt.push(`联动：${field.lab || key} 剔除 ${pool.length - kept.length} 项矛盾的候选`);
+            if (lostForced.length) {
+              nt.push(`⚠️ 「${field.lab || key}」点名的 ${lostForced.join("、")} 与当前状态矛盾，本次未生效`);
+            }
             pool = kept;
           }
         }
 
+        const forcedPool =
+          rolePick && CHAR_APPEAR_FIELDS.has(key) ? [] : forcedOptionPool(pool, key, weights);
+
         let take: boolean;
-        if (field.req || fw >= WEIGHT_MAX) take = true;
-        else if (key === "n_canon" && lv >= 1) {
-          take = SCENE_ALWAYS ? true : passRng.random() < SCENE_APPEAR_P;
+        if (field.req || fw >= WEIGHT_MAX || forcedPool.length || tuned.has(key)) take = true;
+        else if (key === "n_canon") {
+          // v5.0.1：概率抽签改为明确开关；这里仍然消耗一次随机数，保持序列一致
+          passRng.random();
+          take = scenePick;
         } else if (
           (key === "outfit" || key === "makeup") &&
           !["", "auto"].includes(resolveChoice(outfitStyle))
@@ -383,7 +624,7 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         }
         if (!take) continue;
 
-        const pick = weightedPick(passRng, pool, (it) =>
+        const pick = weightedPick(passRng, forcedPool.length ? forcedPool : pool, (it) =>
           optionWeight(weights, key, it[1]) *
           sw *
           fw *
@@ -397,6 +638,11 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         }
         st[key] = pick[1];
         dr.push([key, pick[0], pick[1], pick[2], optionWeight(weights, key, pick[1])]);
+        if (forcedPool.length) {
+          const list = (st._forced_tags as Array<[string, string, string]> | undefined) ?? [];
+          list.push([key, pick[0], pick[1]]);
+          st._forced_tags = list;
+        }
       }
     }
 
@@ -408,14 +654,42 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
       if (filled.length) nt.push(`已应用法典场景：${filled.join("、")}`);
     }
 
+    // v4.2.0：报告里如实说明「点名的 3.0 是否真的进了正文」
+    const forcedTags = (st._forced_tags as Array<[string, string, string]> | undefined) ?? [];
+    const overrode = new Set((st._preset_overrode_forced as string[] | undefined) ?? []);
+    const NO_EMIT = new Set(["n_canon", "n_extra", "nl"]);
+    const effectiveForced = forcedTags.filter((row) => !overrode.has(row[0]) && !NO_EMIT.has(row[0]));
+    if (effectiveForced.length) {
+      nt.push(`按选项权重 ${WEIGHT_MAX} 强制出现：${effectiveForced.map((row) => row[1]).join("、")}`);
+    }
+    if (overrode.size) {
+      nt.push(
+        `场景表情优先（L${canonLevel(presetId)} 场景）→ 权重点名的 ${forcedTags
+          .filter((row) => overrode.has(row[0]))
+          .map((row) => row[1])
+          .join("、")} 已让路`,
+      );
+    }
+
     const sel = expandRoles(selectedRoles);
     let triggers: string[] = [];
     let autoRole = false;
-    if (forceRole) {
+    if (!rolePick) {
+      const fr = String(forceRole ?? "").trim();
+      if (fr) nt.push(`已勾选「不指定角色」→ 手填的 \`${fr}\` 本次不生效（清空「指定角色」或取消勾选即恢复）`);
+      if (sel.length) nt.push(`已勾选「不指定角色」→ 角色库里已选的 ${sel.length} 位本次不生效（取消勾选即恢复）`);
+      nt.push("已勾选「不指定角色」→ 不抽角色，发色 / 瞳色 / 体型 / 发型全部按词库权重抽取");
+    } else if (forceRole) {
       triggers = expandRoles([forceRole]);
       if (sel.length) nt.push("手填角色已覆盖角色库里的选择");
+      if (sceneSaysNoRole(st.n_canon)) {
+        nt.push("⚠️ 该场景声明「画框里没有脸」，但手填了角色 —— 角色名会把镜头拉回脸部，建议清空「指定角色」");
+      }
     } else if (sel.length) {
       triggers = sel;
+      if (sceneSaysNoRole(st.n_canon)) {
+        nt.push("⚠️ 该场景声明「画框里没有脸」，但角色库里选了角色 —— 角色名会把镜头拉回脸部，建议取消选择");
+      }
     } else if (locks.has("role")) {
       nt.push("角色字段已锁定 → 不自动抽角色（特写搭配用这招把画框锁在局部）");
     } else if (sceneSaysNoRole(st.n_canon)) {
@@ -457,18 +731,76 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
     }
 
     if (triggers.length) {
-      // ⚠️ 与插件逐字对齐：Python 这里读的是**外层** `state`（在一次抽取内始终是
-      //    空 dict，best-of-8 结束后才赋值），所以 `_count_locked` 恒为 False，
-      //    选中角色总会改写人数标签。虽然注释声称要保护场景 count_lock，
-      //    但实现没生效 —— 我们选择复刻实现，保证同 seed 同结果。
       nt.push(...applySelectedRoles(st, triggers, lv, !autoRole));
       st._role_count = triggers.length;
+      // v5.0.2：报告里说明「哪些角色锁了服装」
+      if (!nt.some((x) => x.startsWith("已锁定服装") || x.startsWith("已启用服装"))) {
+        const names: string[] = [];
+        for (const trigger of triggers.slice(0, 3)) {
+          const item = outfitItem(trigger);
+          if (item) names.push(`${item.zh || item.id || ""}（${trigger.split(",")[0].trim()}）`);
+        }
+        if (names.length) {
+          if (triggers.length >= 2) {
+            nt.push(`已启用服装：${names.join(" / ")} —— 多人时按人绑定成整句（共享服装字段已清空，随机抽不到别的衣服）`);
+          } else {
+            nt.push(`已锁定服装：${names[0]} —— 本张服装字段全部闭麦，随机抽不到别的衣服`);
+          }
+        }
+      }
+    }
+    // v4.2.1：角色联动改写人数后，若仍不满足点名性行为的要求，再抬一次
+    const sexTarget = forcedSexCountTarget(weights);
+    if (
+      sexTarget &&
+      st._sex_count_fix &&
+      !((st._forced_tags as Array<[string, string, string]> | undefined) ?? []).some((row) => row[0] === "count")
+    ) {
+      const current = String(st.count ?? "");
+      if (!countSatisfies(current, sexTarget) && girlCountFor(current) === 1) {
+        st.count = sexTarget;
+        nt.push(`性行为已点名必现 → 人数由 \`${current}\`（按角色数改写）抬到 \`${sexTarget}\``);
+      }
     }
 
     if (st.role) {
       if (triggers.length >= 2) {
-        st._appearance = "multi";
-        nt.push("多位角色：已跳过外貌对齐（各自保留官方特征）");
+        // ⚠️ 与插件逐字对齐：Python 的 `_count_locked` 读的是**外层** state
+        //     （一次抽取内恒为空），所以「场景已锁人数就不改写」从未生效。
+        //     这里照抄实现，保证同 seed 同结果。
+        const forcedKeys = new Set(((st._forced_tags as Array<[string, string, string]> | undefined) ?? []).map((f) => f[0]));
+        const dynamic = new Set<string>((st._nl_dynamic as Set<string> | undefined) ?? []);
+        const duoAppearance = appearanceFollow ? duoAppearanceText(triggers) : "";
+        if (duoAppearance) {
+          st._duo_appearance = duoAppearance;
+          dynamic.add(duoAppearance.trim().toLowerCase());
+          for (const key of ["hair_color", "eyes_color"]) {
+            if (!forcedKeys.has(key) && st[key]) st[key] = "";
+          }
+          st._appearance = "duo";
+          nt.push(`多位角色：外貌按人绑定（${triggers.join(" / ")}）`);
+        } else {
+          st._appearance = "multi";
+          nt.push("多位角色：已跳过外貌对齐（各自保留官方特征）");
+        }
+        const duoOutfit = duoOutfitText(triggers, lv);
+        if (duoOutfit) {
+          st._duo_outfit = duoOutfit;
+          dynamic.add(duoOutfit.trim().toLowerCase());
+          for (const key of ["outfit", "top", "bottom", "cloth_color", "cloth_mat", "cloth_state_sfw"]) {
+            if (!forcedKeys.has(key) && st[key]) st[key] = "";
+          }
+          nt.push("多位角色：服装按人绑定（各自启用中的预设）");
+        }
+        if (appearanceFollow) {
+          const duoFeat = duoFeatText(triggers, seed, lv);
+          if (duoFeat) {
+            st._duo_feat = duoFeat;
+            dynamic.add(duoFeat.trim().toLowerCase());
+            nt.push("多位角色：官方配件按人绑定");
+          }
+        }
+        if (dynamic.size) st._nl_dynamic = dynamic;
       } else if (!appearanceFollow) {
         st._appearance = "off";
         nt.push("角色外貌对齐已关闭 —— 发色/瞳色按随机与权重决定");
@@ -482,14 +814,14 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
       }
     }
 
+    const hp = hairPicks;
+    const explicitHair = HAIR_STYLE_FIELDS.some(
+      (k) => ![HAIR_PICK_AUTO, ""].includes(String(hp[k] ?? HAIR_PICK_AUTO).trim()),
+    );
     if (st.role) {
-      const hp = hairPicks;
-      const explicit = HAIR_STYLE_FIELDS.some(
-        (k) => ![HAIR_PICK_AUTO, ""].includes(String(hp[k] ?? HAIR_PICK_AUTO).trim()),
-      );
       if (triggers.length >= 2) {
         st._hair_style = "multi";
-      } else if (explicit) {
+      } else if (explicitHair) {
         const changed = applyHairStyle(st, weights, hp);
         st._hair_style = changed.length ? "picked" : "blocked";
         if (changed.length) nt.push(`发型按选择器指定：${changed.join("、")}`);
@@ -504,6 +836,10 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
         st._hair_style = changed.length ? "applied" : "blocked";
         if (changed.length) nt.push(`角色发型已对齐（长度 / 束法 / 卷度）：${changed.join("、")}`);
       }
+    } else if (explicitHair) {
+      const changed = applyHairStyle(st, weights, hp);
+      st._hair_style = changed.length ? "picked" : "blocked";
+      if (changed.length) nt.push(`发型按选择器指定（本次不抽角色）：${changed.join("、")}`);
     }
 
     const breast = String(input.breastSize ?? "").trim();
@@ -529,8 +865,11 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
     const ban2 = applyBans(st, presetId);
     if (ban2.length) nt.push(`禁项·参数复核后清空：${ban2.join("、")}`);
 
-    const cleared = sanitize(st);
+    const cleared = sanitize(st, weights);
     if (cleared.length) nt.push(`互斥消解清空：${cleared.join("、")}`);
+
+    // v4.2.2：人数 ↔ 穿戴式道具联动（放在消解之后：sanitize 会清矛盾项）
+    for (const note of applyCountToyRule(st, lv, weights)) nt.push(note);
 
     for (const n of colorize(st)) nt.push(n);
     return [st, dr, nt];
@@ -538,9 +877,29 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
 
   const collectWithFeat = (st: Record<string, unknown>, extraBody: string): string[] => {
     let eb = extraBody;
+    // v4.4.0：复杂词条的自然语言补充句（只对点名且抽中的词条生效）
+    let hint = termHintText(st);
+    const sceneNl = String(st._scene_nl ?? "").trim();
+    if (sceneNl) hint = hint ? `${hint} ${sceneNl}` : sceneNl;
+    if (hint) eb = eb.trim() ? `${eb.trim()}, ${hint}` : hint;
+    // v4.5.0 / v5.0.7：多人「按人绑定」整句
+    for (const key of ["_duo_appearance", "_duo_outfit", "_duo_feat"]) {
+      const duo = String(st[key] ?? "").trim();
+      if (duo) eb = eb.trim() ? `${eb.trim()}, ${duo}` : duo;
+    }
     if (appearanceFollow && Number(st._role_count ?? 1) < 2) {
-      const [featRaw, drops, sets] = charFeatFor(String(st.role ?? ""), seed);
+      const [featRaw, dropList, setMap] = charFeatFor(String(st.role ?? ""), seed);
       let feat = featRaw;
+      let drops = dropList;
+      let sets = setMap;
+      // v5.0.2：启用中的角色服装预设 → 与 char_feat 合并（同一三元组）
+      const [outfitExtras, outfitDrops, outfitSets] = outfitFor(String(st.role ?? ""), lv);
+      if (outfitExtras.length) {
+        feat = [...feat, ...outfitExtras.filter((x) => !feat.includes(x))];
+        st._outfit_tags = outfitExtras.join(", ");
+      }
+      if (outfitDrops.length) drops = [...drops, ...outfitDrops.filter((x) => !drops.includes(x))];
+      if (Object.keys(outfitSets).length) sets = { ...sets, ...outfitSets };
       const explicit = new Set((st._hair_picks_explicit as string[] | undefined) ?? []);
       if (feat.length && explicit.has("hair_len")) feat = feat.filter((x) => !HAIR_LEN_TAGS.has(x));
       if (feat.length && explicit.has("hair_tie")) feat = feat.filter((x) => !HAIR_TIE_TAGS.has(x));
@@ -582,7 +941,7 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
     const [state, drawn, stepNotes] = onePass(rng, effP, variantPick, variantSeed);
     const cap = autoCap ? tagCapFor(String(state.count ?? "")) : fixedCap;
     const tags = collectWithFeat(state, extraBody);
-    const n = repairTags(tags, lv)[0].length;
+    const n = repairTags(tags, lv, (state._nl_dynamic as Set<string> | undefined) ?? [])[0].length;
 
     if (!autoCap) {
       best = { sc: [0, 0], state, drawn, stepNotes, tags, cap };
@@ -637,15 +996,23 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
   );
   if (floor.length) {
     notes.push(...floor);
-    const clearedAfterFloor = sanitize(state);
+    const clearedAfterFloor = sanitize(state, weights);
     if (clearedAfterFloor.length) notes.push(`保底后消解：${clearedAfterFloor.join("、")}`);
     if (floor[0].includes("补 `") && effectiveLevelOf(state) < lv) {
       notes.push(`高等级保底失效：补的锚点被互斥消解清掉，本张实际 L${effectiveLevelOf(state)} < 选 L${lv}`);
     }
   }
 
+  // v4.3.0：权重 0 = 永不出现。抽取期已排除，但场景写死/角色对齐/保底会绕过它。
+  const zeroProtect = new Set<string>([...locks, ...Object.keys(forced)]);
+  if (state.role && appearanceFollow) {
+    for (const key of CHAR_APPEAR_FIELDS) zeroProtect.add(key);
+  }
+  const zeroed = sweptZeroWeight(state, weights, zeroProtect);
+  if (zeroed.length) notes.push(`权重 0（关闭）清空：${zeroed.join("、")}`);
+
   let tags = collectWithFeat(state, extraBody);
-  const [repairedTags, fixNotes] = repairTags(tags, lv);
+  const [repairedTags, fixNotes] = repairTags(tags, lv, (state._nl_dynamic as Set<string> | undefined) ?? []);
   tags = repairedTags;
 
   state._weights_tuned = weightStats(weights).total;
@@ -662,7 +1029,7 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
       if (pick) state[key] = pick[1];
     }
     tags = collectWithFeat(state, extraBody);
-    const [fixed, moreFix] = repairTags(tags, lv);
+    const [fixed, moreFix] = repairTags(tags, lv, (state._nl_dynamic as Set<string> | undefined) ?? []);
     tags = fixed;
     for (const note of moreFix) if (!fixNotes.includes(note)) fixNotes.push(note);
     report = checkAdmission(tags, state, lv);
@@ -672,6 +1039,11 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
     notes.push(`成品自动修复 ${fixNotes.length} 项：${fixNotes.slice(0, 8).join("；")}${fixNotes.length > 8 ? "…" : ""}`);
   }
 
+  // v5.0.3：`_nl_dynamic` 在插件里是 set，HTTP 出口会转成排序后的 list；
+  // 这里直接以排序 list 返回，保证同 seed 的 state 可 JSON 对拍。
+  if (state._nl_dynamic instanceof Set) {
+    state._nl_dynamic = [...(state._nl_dynamic as Set<string>)].sort();
+  }
   const outTags = stripRoleWorks(tags, state);
   const outText = outTags.join(", ");
   const drawnItems: WardrobeDrawnItem[] = chosen.drawn.map(([field, zh, en, num, weight]) => ({
@@ -730,6 +1102,8 @@ export function levelFloorCandidates(fieldKey: string, lv: number, state: Record
     if (MULTI_CLEAR_FIELDS.includes(fieldKey) && multi) continue;
     if (solo && PARTNER_GATED_FIELDS.includes(fieldKey) && !SOLO_OK_PARTNER_OPTS.has(low)) continue;
     if (GROUP_ONLY_TAGS.has(low) && !countIsGroup(count)) continue;
+    // v4.5.43：穿戴式 / 扶她只在双女里成立
+    if (YURI_TOY_TAGS.has(low) && !isYuriCount(count)) continue;
     out.push([zh, en]);
   }
   return out;
@@ -751,9 +1125,11 @@ export function ensureLevelFloor(
   const real = effectiveLevelImpl(state);
   if (real >= lv) return [];
   const dropped = new Set(sceneIndex().get(String(presetId ?? ""))?.drop_fields ?? []);
+  const forcedKeys = new Set(((state._forced_tags as Array<[string, string, string]> | undefined) ?? []).map((f) => f[0]));
   const tried: string[] = [];
   for (const key of LEVEL_FLOOR_ORDER) {
-    if (locks.has(key) || dropped.has(key)) continue;
+    // v4.2.1：被点名的字段保底不得改写（跳过它继续看后面的载体）
+    if (locks.has(key) || dropped.has(key) || forcedKeys.has(key)) continue;
     if (blockedByWeight(weights, key)) continue;
     const found = fieldByKey(key);
     if (!found) continue;

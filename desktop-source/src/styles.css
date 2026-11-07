@@ -10455,3 +10455,320 @@ button:disabled {
   background: var(--danger);
   color: #fff;
 }
+
+/* ------------------------------------------------------------------ *
+ * 造型台 v5：场景画幅 / 随机场景开关 / 作品收藏 / 服装预设弹窗
+ * ------------------------------------------------------------------ */
+
+.wd-scene-aspects {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-alt);
+}
+
+.wd-scene-aspect {
+  height: 22px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.wd-scene-aspect.is-on {
+  background: var(--accent);
+  color: #fff;
+}
+
+.wd-scene-aspect-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 16px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--surface-alt);
+}
+
+.wd-scene-aspect-badge.is-portrait {
+  color: #6366f1;
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.wd-scene-aspect-badge.is-landscape {
+  color: #0ea5e9;
+  border-color: rgba(14, 165, 233, 0.4);
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.wd-scene-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 2px 8px;
+  border-bottom: 1px dashed var(--border);
+  margin-bottom: 8px;
+}
+
+.wd-scene-pick .wd-mini-check {
+  font-weight: 600;
+}
+
+.wd-scene-pick-hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-work-fav {
+  position: static;
+  opacity: 1;
+  background: var(--surface-alt);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  width: 26px;
+  height: 26px;
+}
+
+.wd-work-fav.is-on {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.wd-work-fav:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wd-work-favs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 2px 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-work-favs .wd-chip-btn.is-on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.wd-outfit-btn {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.wd-char:hover .wd-outfit-btn,
+.wd-outfit-btn.is-on {
+  opacity: 1;
+}
+
+.wd-outfit-btn.is-on {
+  color: #34d399;
+}
+
+.wd-modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(10, 18, 32, 0.55);
+}
+
+.wd-modal {
+  width: min(860px, 100%);
+  max-height: min(86vh, 900px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  padding: 14px 16px 16px;
+}
+
+.wd-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wd-modal-head b {
+  display: block;
+  font-size: 14px;
+}
+
+.wd-modal-head em {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-style: normal;
+}
+
+.wd-outfit-status {
+  margin: 10px 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.wd-outfit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.wd-outfit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+}
+
+.wd-outfit-row.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.wd-outfit-dot {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  cursor: pointer;
+}
+
+.wd-outfit-dot.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+
+.wd-outfit-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.wd-outfit-main b {
+  font-size: 12px;
+}
+
+.wd-outfit-main em {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: normal;
+}
+
+.wd-outfit-main span {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wd-outfit-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.wd-outfit-editor {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+}
+
+.wd-outfit-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.wd-outfit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.wd-outfit-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.wd-outfit-templates {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-outfit-templates > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wd-outfit-editor-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.wd-outfit-hint {
+  font-size: 11px;
+  color: var(--muted);
+}

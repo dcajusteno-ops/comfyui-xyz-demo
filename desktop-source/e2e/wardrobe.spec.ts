@@ -19,8 +19,9 @@ test("造型台：15 段参数树、档位闸门与内置数据", async ({ page 
     const response = await fetch("/data/wardrobe/manifest.json");
     return response.json();
   });
-  expect(manifest.counts.characters).toBe(2383);
-  expect(manifest.counts.thumbs).toBe(2374);
+  expect(manifest.counts.characters).toBe(2390);
+  expect(manifest.counts.scenes).toBe(361);
+  expect(manifest.counts.thumbs).toBeGreaterThan(2400);
 
   // L0：cloth_nsfw / pose_nsfw / special_nsfw 三段没有可用选项；canon 含 L0 场景仍可用
   await page.locator(".wd-level", { hasText: "全年龄" }).click();
@@ -142,4 +143,51 @@ test("工作台：清空一次确认后生效（回归：双重确认被吞）",
   const values = await page.locator(".wb-panel .al-composer-section textarea").evaluateAll((nodes) => nodes.map((node) => (node as HTMLTextAreaElement).value));
   expect(values).toEqual(["", "", "", "", "", "", ""]);
   await expect(page.locator(".al-preview-text")).toHaveValue("");
+});
+
+test("造型台 v5：场景画幅 / 随机场景开关 / 作品收藏 / 服装预设弹窗", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "Anima 造型台" }).click();
+  await expect(page.locator(".wd-panel")).toBeVisible();
+
+  // ① 场景画幅徽标 + 三段筛选
+  await page.locator(".wd-view-tab", { hasText: "场景库" }).click();
+  await expect(page.locator(".wd-scene-aspect-badge").first()).toBeVisible();
+  const badges = await page.locator(".wd-scene-aspect-badge").allTextContents();
+  expect(badges.every((text) => ["竖", "横", "通"].includes(text.trim()))).toBe(true);
+
+  await page.locator(".wd-scene-aspect", { hasText: "竖屏·通用" }).click();
+  const portraitBadges = await page.locator(".wd-scene-aspect-badge").allTextContents();
+  expect(portraitBadges.length).toBeGreaterThan(0);
+  expect(portraitBadges.every((text) => ["竖", "通"].includes(text.trim()))).toBe(true);
+
+  // ② 随机场景开关（v5.0.1：不勾 = 一条都不出）
+  const scenePick = page.locator(".wd-scene-pick input[type=checkbox]");
+  await expect(scenePick).not.toBeChecked();
+  await scenePick.check();
+  await expect(scenePick).toBeChecked();
+  await scenePick.uncheck();
+
+  // ③ 作品 IP 收藏：选一个作品 → 星标 → 出现在收藏条并带 ★ 前缀
+  await page.locator(".wd-view-tab", { hasText: "角色库" }).click();
+  await page.locator(".wd-work-select .al-select-trigger").click();
+  await page.locator(".al-select-popup [role=option]").nth(1).click();
+  await expect(page.locator(".wd-work-fav")).toBeEnabled();
+  await page.locator(".wd-work-fav").click();
+  await expect(page.locator(".wd-work-favs")).toContainText("★");
+
+  // ④ 服装预设弹窗：tifa 有内置预设（先把作品筛选清回「全部」）
+  await page.locator(".wd-work-select .al-select-trigger").click();
+  await page.locator(".al-select-popup [role=option]").nth(0).click();
+  await page.locator(".wd-chars .wd-search input").fill("tifa");
+  const card = page.locator(".wd-char").first();
+  await expect(card).toBeVisible();
+  await card.hover();
+  await card.locator(".wd-outfit-btn").click();
+  await expect(page.locator(".wd-outfit-modal")).toBeVisible();
+  await expect(page.locator(".wd-outfit-row").first()).toBeVisible();
+  await page.locator(".wd-outfit-row").first().locator(".wd-outfit-dot").click();
+  await expect(page.locator(".wd-outfit-status")).toContainText("当前已启用");
+  await page.locator(".wd-modal-head .wd-icon-btn").click();
+  await expect(page.locator(".wd-outfit-modal")).toHaveCount(0);
 });

@@ -206,6 +206,8 @@ export type WardrobeScene = {
   ban_tags?: string[];
   no_role?: boolean;
   role_ok?: boolean;
+  /** v4.4.2：场景级自然语言（不是 tag，repair 与自检要放行整句） */
+  scene_nl?: string;
 };
 
 export type WardrobeScenes = {
@@ -240,6 +242,73 @@ export type WardrobeCharFeat = {
     }
   >;
 };
+
+/** 场景推荐画幅（v5.0.1 旁挂表）：portrait / landscape / both。 */
+export type WardrobeSceneAspect = "portrait" | "landscape" | "both";
+
+export type WardrobeSceneAspects = {
+  _meta?: Record<string, unknown>;
+  aspects: Record<string, { a: WardrobeSceneAspect | string; why?: string }>;
+};
+
+/** 正文角色 tag（v5.0.11）：`{trigger: {out: "texas, arknights"}}`。 */
+export type WardrobeCharOutputTags = {
+  _meta?: Record<string, unknown>;
+  tags: Record<string, { out: string; ref?: string; src?: string; posts?: number }>;
+};
+
+export type WardrobeCharAliases = {
+  _meta?: Record<string, unknown>;
+  aliases: Record<string, string>;
+};
+
+/** 角色服装预设（用户数据）：启用后锁死该角色的服装字段。 */
+export type WardrobeOutfitSet = {
+  id: string;
+  zh?: string;
+  level?: number;
+  tags?: string[];
+  fields?: Record<string, string>;
+  drop?: string[];
+  verified?: boolean;
+  note?: string;
+};
+
+export type WardrobeOutfitRecord = {
+  enabled?: string;
+  list?: WardrobeOutfitSet[];
+};
+
+export type WardrobeCharacterOutfits = {
+  _meta?: Record<string, unknown>;
+  outfits: Record<string, WardrobeOutfitRecord>;
+};
+
+/** 用户编辑的服装预设（ui-state 里存的覆盖层）。 */
+export type WardrobeOutfitStore = {
+  version: 1;
+  roles: Record<string, WardrobeOutfitRecord>;
+};
+
+/** 服装预设模板（六套日常），弹窗「一键模板」用。 */
+export type WardrobeOutfitTemplate = {
+  id: string;
+  zh?: string;
+  level?: number;
+  tags?: string[];
+  fields?: Record<string, string>;
+  drop?: string[];
+  verified?: boolean;
+  note?: string;
+};
+
+export type WardrobeOutfitTemplates = {
+  _meta?: Record<string, unknown>;
+  outfits: WardrobeOutfitTemplate[];
+};
+
+/** 复杂词条的自然语言补充句：`{n_act: {"irrumatio": "整句"}}`。 */
+export type WardrobeTermHints = Record<string, unknown>;
 
 export type WardrobeManifest = {
   schema: string;
@@ -321,6 +390,10 @@ export type WardrobeUiState = {
   selectedRoles: string[];
   roleWorks: string[];
   roleFavOnly: boolean;
+  /** v4.1.0：这一抽要不要角色（压过 forceRole / selectedRoles） */
+  rolePick: boolean;
+  /** v5.0.1：是否随机抽取场景搭配（不勾 = 一条都不出） */
+  scenePick: boolean;
   forceRole: string;
   applyMode: WardrobeApplyMode;
   qualityPrefix: boolean;
@@ -343,6 +416,8 @@ export type WardrobeFavorites = {
   version: 1;
   characters: string[];
   scenes: string[];
+  /** v5.0.4：作品 IP 收藏（值是作品 slug） */
+  works: string[];
 };
 
 export type WardrobePreset = {
@@ -382,6 +457,10 @@ export type WardrobeDrawInput = {
   roleWorks?: string | string[];
   outfitStyle?: string;
   roleFavOnly?: boolean;
+  /** v4.1.0：False = 一个角色都不抽（forceRole / selectedRoles 一并让路） */
+  rolePick?: boolean;
+  /** v5.0.1：True = 必抽一条场景；False = 一条都不出 */
+  scenePick?: boolean;
   hairFollow?: boolean;
   hairPicks?: Record<string, string>;
   favorites?: string[];

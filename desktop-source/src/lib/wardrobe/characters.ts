@@ -7,7 +7,7 @@
  * 两边按 trigger 去重，源脚本的条目优先。
  */
 import { deriveSeed, WardrobeRandom } from "./rng";
-import { fieldWeight, sectionWeight } from "./weights";
+import { fieldWeight, optionWeight, sectionWeight, WEIGHT_MAX } from "./weights";
 import { gradeNsfw } from "./nsfw";
 import { requireWardrobeData } from "./store";
 import type { WardrobeCharacter, WardrobeWeights } from "./types";
@@ -22,8 +22,21 @@ export const MULTI_CLEAR_FIELDS = ["n_act", "n_pos", "n_cum"];
 export const MULTI_CLEAR_OPTIONS: Record<string, Set<string>> = {
   n_theme: new Set(["threesome", "foursome", "gangbang"]),
 };
+/** solo 下也成立的体位（其余 n_pos 选项默认需要对方）。v4.2.1 */
+export const SOLO_OK_POS_OPTS = new Set(["spread legs", "bound wrists", "bound arms", "head down"]);
 export const SOLO_OK_PARTNER_OPTS = new Set(["masturbation", "fingering", "dildo riding"]);
 export const PARTNER_GATED_FIELDS = ["n_act", "n_cum"];
+/** 点名性行为时的人数目标（都是 count 字段的真实选项原文） */
+export const COUNT_PARTNER = "1girl, 1boy, hetero";
+export const COUNT_YURI = "2girls, yuri";
+/** v4.5.0 中性双女写法：不进随机池，只给场景 count_lock 与 L0 角色联动用 */
+export const COUNT_DUO_NEUTRAL = "2girls";
+export const COUNT_LOCK_EXTRA: Record<string, number> = { [COUNT_DUO_NEUTRAL]: 0 };
+export const COUNT_GROUP_SEX = "1girl, multiple boys, group sex";
+export const YURI_TOY_TAGS = new Set(["strap-on", "futanari"]);
+export const TOY_THEME_OPTS = new Set(["strap-on", "dildo", "sex toys"]);
+export const TOY_YURI = "strap-on";
+export const SEX_CONTENT_FIELDS = ["n_act", "n_pos", "n_cum", "n_theme"];
 export const GROUP_ONLY_TAGS = new Set([
   "threesome",
   "foursome",
@@ -34,6 +47,32 @@ export const GROUP_ONLY_TAGS = new Set([
 ]);
 
 export const HAIR_STYLE_FIELDS = ["hair_len", "hair_tie", "hair_curl", "hair_acc"] as const;
+/** 外貌对齐会覆盖的字段（角色 tag 出现时这些字段的 3.0 让位给官方设定） */
+export const CHAR_APPEAR_FIELDS = new Set([
+  "hair_color",
+  "eyes_color",
+  "figure",
+  "skin",
+  "face_shape",
+  ...HAIR_STYLE_FIELDS,
+]);
+export const EXPRESSION_FIELDS = new Set(["emotion", "mouth", "eye_gaze"]);
+/** 服装字段全集：启用角色服装预设时默认全部闭麦 */
+export const OUTFIT_FIELDS = [
+  "outfit",
+  "top",
+  "bottom",
+  "socks",
+  "sock_color",
+  "shoes",
+  "accessory",
+  "cloth_color",
+  "cloth_mat",
+  "cloth_state_sfw",
+  "cloth_nsfw",
+  "n_fabric",
+  "n_shoes_keep",
+];
 export const HAIR_PICK_AUTO = "角色标签发型";
 export const HAIR_PICK_ALIASES = ["角色官方", "官方发型", "auto"];
 export const HAIR_PICK_RANDOM = "随机";
@@ -96,12 +135,29 @@ export function girlCountFor(countEn: string): number {
 export function countHasPartner(countEn: string): boolean {
   const tags = tagSet(countEn);
   if (tags.has("solo")) return false;
-  return ["1boy", "2boys", "multiple boys", "hetero", "group sex"].some((t) => tags.has(t));
+  // v4.2.1：群交（`multiple girls, orgy`）也算"有对方"—— 否则群交向的
+  // 精液表现会被人数相容过滤清空。
+  return ["1boy", "2boys", "multiple boys", "hetero", "group sex", "orgy"].some((t) => tags.has(t));
 }
 
 export function countIsGroup(countEn: string): boolean {
   const tags = tagSet(countEn);
   return ["multiple boys", "multiple girls", "orgy", "group sex"].some((t) => tags.has(t));
+}
+
+/** 双女（2girls / yuri）且不是群交、也没有男性伴侣。 */
+export function isYuriCount(countEn: string): boolean {
+  const tags = tagSet(countEn);
+  if (countIsGroup(countEn) || countHasPartner(countEn)) return false;
+  return tags.has("2girls") || tags.has("yuri");
+}
+
+/** 人数组合是否满足点名性行为所需的人数下限（抬升 / count_lock / 末尾复核共用）。 */
+export function countSatisfies(countEn: string, target: string): boolean {
+  if (target === COUNT_GROUP_SEX) return countIsGroup(countEn);
+  if (target === COUNT_PARTNER) return countHasPartner(countEn);
+  if (target === COUNT_YURI) return isYuriCount(countEn);
+  return true;
 }
 
 /* ------------------------------------------------------------------ *
@@ -117,6 +173,10 @@ let roleWorkIndexCache: Map<string, string> | null = null;
 let roleNameWorksCache: Map<string, Set<string>> | null = null;
 let fieldOptsCache: Map<string, Set<string>> | null = null;
 let mergedCache: { characters: WardrobeCharacter[]; works: import("./types").WardrobeWork[] } | null = null;
+let aliasCache: Map<string, string> | null = null;
+let outputTagCache: Map<string, string> | null = null;
+let outputTagSetCache: Set<string> | null = null;
+let outfitIndexCache: Map<string, import("./types").WardrobeOutfitRecord> | null = null;
 
 export function resetRoleIndexes(): void {
   roleCache = null;
@@ -126,6 +186,10 @@ export function resetRoleIndexes(): void {
   roleNameWorksCache = null;
   fieldOptsCache = null;
   mergedCache = null;
+  aliasCache = null;
+  outputTagCache = null;
+  outputTagSetCache = null;
+  outfitIndexCache = null;
 }
 
 const WORK_ZH_HINT: Record<string, string> = { "fx senshi kurumi-chan": "FX战士久留美" };
@@ -410,13 +474,32 @@ export function normalizeRoleToken(token: string): string {
   return t.replace(/_/g, " ").trim();
 }
 
+/** 角色改名兼容表：`{旧 tag: 新 tag}`（`presets/char_aliases.json`）。 */
+export function charAliases(): Map<string, string> {
+  if (aliasCache) return aliasCache;
+  aliasCache = new Map();
+  const raw = requireWardrobeData("charAliases").aliases ?? {};
+  for (const [from, to] of Object.entries(raw)) {
+    const a = String(from).trim().toLowerCase();
+    const b = String(to).trim().toLowerCase();
+    if (a && b) aliasCache.set(a, b);
+  }
+  return aliasCache;
+}
+
 export function expandRoles(tokens: readonly string[]): string[] {
   const idx = charIndex();
+  const aliases = charAliases();
   const out: string[] = [];
   for (const raw of tokens) {
     const token = String(raw ?? "").trim();
     if (!token) continue;
-    const rec = idx.get(token) ?? idx.get(token.toLowerCase());
+    let rec = idx.get(token) ?? idx.get(token.toLowerCase());
+    if (!rec) {
+      const alt = aliases.get(token) ?? aliases.get(token.toLowerCase());
+      // 别名表的值是 tag 形态（下划线），charIndex 的键就是 tag，直接查得到
+      if (alt) rec = idx.get(alt) ?? idx.get(alt.toLowerCase());
+    }
     const trigger = String(rec?.trigger ?? "").trim() || normalizeRoleToken(token);
     if (trigger && !out.includes(trigger)) out.push(trigger);
   }
@@ -430,7 +513,9 @@ export function headcountTags(n: number, lv: number, current = ""): string {
     const singleOk = cur.includes("1girl") && !cur.includes("multiple") && !cur.includes("2girls") && !cur.includes("1boy");
     return singleOk ? "" : "1girl, solo";
   }
-  if (n === 2) return lv <= 1 ? "2girls, multiple girls" : "2girls, yuri";
+  // v4.5.0：yuri 自擦边档起可用；全年龄用中性的 `2girls`（不带 multiple girls，
+  // 否则 girlCountFor 会读成 3 位群像）。
+  if (n === 2) return lv <= 0 ? COUNT_DUO_NEUTRAL : COUNT_YURI;
   return "multiple girls";
 }
 
@@ -473,17 +558,61 @@ export function roleOutputText(state: Record<string, unknown>): string {
   return triggers.map(roleOutputName).filter(Boolean).join(", ");
 }
 
-export function stripRoleWorks(tags: readonly string[], state: Record<string, unknown>): string[] {
-  const triggers = (state._role_triggers as string[] | undefined) ?? [];
-  if (!triggers.length) return [...tags];
-  const drop = new Set<string>();
-  for (const trigger of triggers) {
-    const parts = String(trigger).split(",").map((p) => p.trim().toLowerCase()).filter(Boolean);
-    if (parts.length < 2 || roleNeedsWork(trigger)) continue;
-    for (const part of parts.slice(1)) drop.add(part);
+/** trigger → 正文 tag 映射（`char_output_tags.json`，缓存）。 */
+function charOutputTagMap(): Map<string, string> {
+  if (outputTagCache) return outputTagCache;
+  outputTagCache = new Map();
+  const tags = requireWardrobeData("charOutputTags").tags ?? {};
+  for (const [trigger, rec] of Object.entries(tags)) {
+    const out = String(rec?.out ?? "").trim();
+    if (trigger && out) outputTagCache.set(trigger, out);
   }
-  if (drop.size === 0) return [...tags];
-  return tags.filter((tag) => !drop.has(tag));
+  return outputTagCache;
+}
+
+/**
+ * 单条 trigger → 正文 tag（v5.0.11）。
+ *
+ * 有映射用映射（`texas, arknights` —— 角色与作品两个独立 tag、空格不用下划线）；
+ * 没映射回退旧行为（重名才带作品名），保证增量可控。
+ */
+export function roleOutputTag(trigger: string): string {
+  const trig = String(trigger ?? "").trim();
+  if (!trig) return "";
+  const map = charOutputTagMap();
+  return map.get(trig) ?? map.get(trig.toLowerCase()) ?? roleOutputName(trig);
+}
+
+/** 本轮写进正文的角色 tag 列表（按 _role_triggers 顺序、去重）。 */
+export function roleOutputTags(state: Record<string, unknown>): string[] {
+  const triggers = (state._role_triggers as string[] | undefined) ?? [];
+  const out: string[] = [];
+  for (const trigger of triggers) {
+    const tag = roleOutputTag(trigger);
+    if (tag && !out.includes(tag)) out.push(tag);
+  }
+  return out;
+}
+
+/** 映射表的全文集合（已按逗号拆开）：repair 的下划线归一与互斥 keep 用。 */
+export function charOutputTagSet(): Set<string> {
+  if (outputTagSetCache) return outputTagSetCache;
+  outputTagSetCache = new Set();
+  for (const value of charOutputTagMap().values()) {
+    for (const part of String(value).split(",")) {
+      const tag = part.trim().toLowerCase();
+      if (tag) outputTagSetCache.add(tag);
+    }
+  }
+  return outputTagSetCache;
+}
+
+/**
+ * v5.0.11 起**原样返回**：Anima 官方要求角色名后紧跟作品名（anchor），
+ * 删掉作品名正是「部分人物识别不了」的根因。保留函数只为兼容调用点。
+ */
+export function stripRoleWorks(tags: readonly string[], _state?: Record<string, unknown>): string[] {
+  return [...tags];
 }
 
 export function applySelectedRoles(
@@ -506,8 +635,8 @@ export function applySelectedRoles(
       notes.push(`按选中角色数（${n} 位）改写人数标签 → \`${head}\``);
     }
     if (n >= 3) notes.push("多人群像模式：已写 `multiple girls`，不再使用双人关系标签");
-    else if (n === 2 && lv <= 1) {
-      notes.push("当前档位 ≤ 擦边：双人关系用中性的 `multiple girls`（`yuri` 属 2 档内容，写了会越档）");
+    else if (n === 2 && lv <= 0) {
+      notes.push(`当前档位是全年龄：双人关系用中性的 \`${COUNT_DUO_NEUTRAL}\`（\`yuri\` 自 v4.5.0 起属擦边档）`);
     }
   } else {
     notes.push(`人数组合由「人数构成」决定，已填入 ${n} 位角色（未改写人数标签）`);
@@ -758,4 +887,232 @@ export function charFeatFor(
     if ((field.opts ?? []).some(([, en]) => String(en).trim().toLowerCase() === value)) sets[fieldKey] = value;
   }
   return [extras, drops, sets];
+}
+
+/* ------------------------------------------------------------------ *
+ * 复杂词条的自然语言补充（term_hints.json，v4.4.0）
+ * ------------------------------------------------------------------ */
+
+export function termHints(): Record<string, Record<string, string>> {
+  const doc = requireWardrobeData("termHints") as Record<string, unknown>;
+  const out: Record<string, Record<string, string>> = {};
+  for (const [field, sub] of Object.entries(doc ?? {})) {
+    if (field.startsWith("_") || !sub || typeof sub !== "object" || Array.isArray(sub)) continue;
+    const bag: Record<string, string> = {};
+    for (const [key, value] of Object.entries(sub as Record<string, unknown>)) {
+      const text = String(value ?? "").trim();
+      if (text) bag[String(key).trim().toLowerCase()] = text;
+    }
+    out[field] = bag;
+  }
+  return out;
+}
+
+/**
+ * 本轮**被点名（3.0）且抽中**的 n_act / n_theme 词条 → 拼成补充句。
+ *
+ * 只看 `_forced_tags`：它记的是"这一轮真的写进正文的点名项"，
+ * 所以 hint 与正文严格同源；走随机时不加（既有路径零漂移）。
+ */
+export function termHintText(state: Record<string, unknown>): string {
+  const hints = termHints();
+  const out: string[] = [];
+  for (const row of (state._forced_tags as Array<[string, string, string]> | undefined) ?? []) {
+    const [key, , en] = row;
+    const text = hints[key]?.[String(en).trim().toLowerCase()];
+    if (text) out.push(text);
+  }
+  return out.join(" ");
+}
+
+/* ------------------------------------------------------------------ *
+ * 角色服装预设（character_outfits.json，v5.0.2）
+ * ------------------------------------------------------------------ */
+
+function outfitIndex(): Map<string, import("./types").WardrobeOutfitRecord> {
+  if (outfitIndexCache) return outfitIndexCache;
+  outfitIndexCache = new Map();
+  const data = requireWardrobeData("characterOutfits").outfits ?? {};
+  for (const [role, rec] of Object.entries(data)) {
+    if (rec && typeof rec === "object") outfitIndexCache.set(role, rec);
+  }
+  return outfitIndexCache;
+}
+
+/** 角色 → `{enabled, list}`；三种写法（tag 形态 / 完整 trigger / 裸名）都认。 */
+export function outfitRec(roleTrigger: string): import("./types").WardrobeOutfitRecord {
+  const trig = String(roleTrigger ?? "").trim().toLowerCase();
+  if (!trig) return {};
+  const data = outfitIndex();
+  const head = trig.split(",")[0].trim();
+  const cands = [trig];
+  if (head && head !== trig) cands.push(head);
+  for (const c of [...cands]) {
+    const u = c.replace(/ /g, "_");
+    if (!cands.includes(u)) cands.push(u);
+  }
+  for (const c of cands) {
+    const rec = data.get(c);
+    if (rec) return rec;
+  }
+  // 兜底：`furina` → `furina_(genshin_impact)`；只认「裸名 + 作品后缀」
+  for (const c of cands) {
+    for (const suffix of ["_(", " ("]) {
+      for (const [key, rec] of data) {
+        if (key.startsWith(c + suffix)) return rec;
+      }
+    }
+  }
+  return {};
+}
+
+/** 启用中的那一套；没启用 / id 对不上 → null。 */
+export function outfitItem(roleTrigger: string): import("./types").WardrobeOutfitSet | null {
+  const rec = outfitRec(roleTrigger);
+  const eid = String(rec.enabled ?? "").trim();
+  if (!eid) return null;
+  for (const item of rec.list ?? []) {
+    if (String(item?.id ?? "") === eid) return item;
+  }
+  return null;
+}
+
+/**
+ * 启用中的那套服装 → `(extra 标签, 要清空的字段, 要强设的字段)`。
+ *
+ * 与 `charFeatFor()` 同一个返回形状，调用方直接合并三元组。
+ * 服装 tag 基本都在词库外，只能走 extra 尾部通道。
+ */
+export function outfitFor(
+  roleTrigger: string,
+  lv = 99,
+): [string[], string[], Record<string, string>] {
+  const item = outfitItem(roleTrigger);
+  if (!item) return [[], [], {}];
+  const olevel = Math.trunc(Number(item.level ?? 0)) || 0;
+  if (lv < olevel) return [[], [], {}];
+
+  const extras: string[] = [];
+  for (const raw of item.tags ?? []) {
+    const tag = String(raw).trim().toLowerCase();
+    if (tag && !extras.includes(tag)) extras.push(tag);
+  }
+
+  const drops: string[] = [];
+  for (const raw of item.drop ?? OUTFIT_FIELDS) {
+    const key = String(raw).trim();
+    if (key && !drops.includes(key)) drops.push(key);
+  }
+
+  const sets: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(item.fields ?? {})) {
+    const fieldKey = String(key).trim();
+    const value = String(raw).trim().toLowerCase();
+    if (!fieldKey || !value) continue;
+    if (!fieldOpts(fieldKey).size) continue;
+    if (!fieldOpts(fieldKey).has(value)) continue;
+    sets[fieldKey] = value;
+    if (!drops.includes(fieldKey)) drops.push(fieldKey);
+  }
+  return [extras, drops, sets];
+}
+
+/* ------------------------------------------------------------------ *
+ * 点名性行为 → 人数下限（v4.2.1）
+ * ------------------------------------------------------------------ */
+
+/** 点名性行为时，人数至少要抬到哪一档（"" = 不用动）。 */
+export function forcedSexCountTarget(weights: WardrobeWeights): string {
+  let need = "";
+  let yuri = false;
+  const fields = requireWardrobeData("pools").sections.flatMap((s) => s.fields);
+  for (const key of SEX_CONTENT_FIELDS) {
+    const field = fields.find((f) => f.key === key);
+    for (const [, en] of field?.opts ?? []) {
+      if (optionWeight(weights, key, en) < WEIGHT_MAX) continue;
+      const e = String(en).trim().toLowerCase();
+      if (GROUP_ONLY_TAGS.has(e)) return COUNT_GROUP_SEX;
+      if (key === "n_theme" && YURI_TOY_TAGS.has(e)) {
+        yuri = true;
+        continue;
+      }
+      if (PARTNER_GATED_FIELDS.includes(key) && !SOLO_OK_PARTNER_OPTS.has(e)) need = "partner";
+      else if (key === "n_pos" && !SOLO_OK_POS_OPTS.has(e)) need = "partner";
+    }
+  }
+  if (need === "partner") return COUNT_PARTNER;
+  return yuri ? COUNT_YURI : "";
+}
+
+/** 四个性内容字段里有没有被点名的选项（权重 ≥ 3.0）。 */
+export function hasForcedSexContent(weights: WardrobeWeights): boolean {
+  const fields = requireWardrobeData("pools").sections.flatMap((s) => s.fields);
+  for (const key of SEX_CONTENT_FIELDS) {
+    const field = fields.find((f) => f.key === key);
+    for (const [, en] of field?.opts ?? []) {
+      if (optionWeight(weights, key, en) >= WEIGHT_MAX) return true;
+    }
+  }
+  return false;
+}
+
+/* ------------------------------------------------------------------ *
+ * 多人「按人绑定」整句（v4.5.0 / v5.0.7）
+ * ------------------------------------------------------------------ */
+
+function duoName(trigger: string): string {
+  const name = roleOutputName(trigger) || String(trigger ?? "").split(",")[0].trim();
+  return name.replace(/[_,;\n]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function duoJoin(parts: string[]): string {
+  if (parts.length < 2) return "";
+  return `${parts.join(". ")}.`.replace(/[,\n;]+/g, " ").trim();
+}
+
+/** 多位角色**各自**的外貌整句（只有一位有数据时不写）。 */
+export function duoAppearanceText(triggers: readonly string[]): string {
+  const parts: string[] = [];
+  for (const raw of triggers.slice(0, 3)) {
+    const trigger = String(raw ?? "").trim();
+    if (!trigger) continue;
+    const appearance = appearanceFor(trigger);
+    if (!Object.keys(appearance).length) continue;
+    const bits = ["hair", "eyes"].map((k) => String(appearance[k] ?? "").trim()).filter(Boolean);
+    if (!bits.length) continue;
+    parts.push(`${duoName(trigger)} has ${bits.join(" and ")}`);
+  }
+  return duoJoin(parts);
+}
+
+/** 双人时**各自**启用中的服装整句（不受 appearance_follow 控制）。 */
+export function duoOutfitText(triggers: readonly string[], lv = 99): string {
+  const parts: string[] = [];
+  for (const raw of triggers.slice(0, 3)) {
+    const trigger = String(raw ?? "").trim();
+    if (!trigger) continue;
+    const [extras] = outfitFor(trigger, lv);
+    const bits = extras.slice(0, 5).map((x) => String(x).trim()).filter(Boolean);
+    if (!bits.length) continue;
+    parts.push(`${duoName(trigger)} wears ${bits.join(" and ")}`);
+  }
+  return duoJoin(parts);
+}
+
+/** 双人时**各自**的角色固定特征整句（排除服装句已经写过的标签）。 */
+export function duoFeatText(triggers: readonly string[], seed?: number, lv = 99): string {
+  const parts: string[] = [];
+  for (const raw of triggers.slice(0, 3)) {
+    const trigger = String(raw ?? "").trim();
+    if (!trigger) continue;
+    const [extras] = charFeatFor(trigger, seed);
+    const outfitTags = new Set(outfitFor(trigger, lv)[0].map((x) => String(x).trim().toLowerCase()));
+    const bits = extras
+      .map((x) => String(x).trim())
+      .filter((x) => x && !outfitTags.has(x.toLowerCase()))
+      .slice(0, 6);
+    if (!bits.length) continue;
+    parts.push(`${duoName(trigger)} has ${bits.slice(0, 5).join(" and ")}`);
+  }
+  return duoJoin(parts);
 }

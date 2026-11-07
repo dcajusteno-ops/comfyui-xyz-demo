@@ -47,7 +47,24 @@ def load_package(plugin_dir: str, name: str = "awv4"):
     return pkg
 
 
+def jsonable(value):
+    """set/frozenset → 排序后的 list（与插件 `_jsonable()` 同口径）。
+
+    v5.0.3 起 `draw()` 的 state 里会出现 `_nl_dynamic`（多人外貌绑定句，set），
+    直接 json.dumps 会抛 TypeError；插件在 HTTP 出口用 `sorted(obj, key=str)` 转，
+    夹具必须同口径，否则对拍永远对不上。
+    """
+    if isinstance(value, dict):
+        return {k: jsonable(v) for k, v in value.items()}
+    if isinstance(value, (set, frozenset)):
+        return sorted(value, key=str)
+    if isinstance(value, (list, tuple)):
+        return [jsonable(v) for v in value]
+    return value
+
+
 def dump(value, compact=False) -> str:
+    value = jsonable(value)
     if compact:
         return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return json.dumps(value, ensure_ascii=False, indent=1)

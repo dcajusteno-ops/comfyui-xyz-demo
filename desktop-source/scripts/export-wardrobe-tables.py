@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""把 Comfyui-Anima-Wardrobe-V4 的「语义知识表」导出为前端可读 JSON。
+"""把 Comfyui-Anima-Wardrobe-V5 的「语义知识表」导出为前端可读 JSON。
 
 为什么单独导出而不是手抄：
   anima_v4_nsfw.py（16 类判定表）、anima_v4_overrides.py（34 条降档 + 48 条抬档）、
@@ -124,7 +124,7 @@ def build_nsfw(N, version: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/nsfw-tables@1",
-            "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_nsfw.py",
+            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_nsfw.py",
             "pluginVersion": version,
         },
         "levels": list(N.LEVELS),
@@ -156,7 +156,7 @@ def build_overrides(OV, version: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/overrides@1",
-            "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_overrides.py",
+            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_overrides.py",
             "pluginVersion": version,
         },
         "sectionFloor": json_safe(OV.SECTION_FLOOR),
@@ -169,7 +169,7 @@ def build_outfit_style(OS, version: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/outfit-style@1",
-            "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_outfit_style.py",
+            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_outfit_style.py",
             "pluginVersion": version,
         },
         "styles": [{"key": row[0], "zh": row[1]} for row in OS.STYLES],
@@ -211,7 +211,7 @@ def build_link(L, version: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/link@1",
-            "source": "Comfyui-Anima-Wardrobe-V4/anima_v4_link.py",
+            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_link.py",
             "pluginVersion": version,
         },
         "actPosBan": {key: sorted_set(val) for key, val in L.ACT_POS_BAN.items()},
