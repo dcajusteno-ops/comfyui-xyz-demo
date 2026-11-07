@@ -39,6 +39,7 @@ export function TriggerWordsPanel({
 
   useEffect(() => {
     if (!editing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 非编辑态跟随 props 同步草稿
       setDraftWords(words);
     }
   }, [editing, words]);

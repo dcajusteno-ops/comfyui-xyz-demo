@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [未发布] - 2026-11-07
+
+### 🏗️ 工程质量 (Engineering)
+
+- **测试门禁恢复（Node 22+）**：Node 26 内置的 `localStorage` 访问器会遮蔽 jsdom 实现（无 `--localstorage-file` 时返回 `undefined`），导致 6 个测试文件、116 条用例挂在 `localStorage.clear()`。`src/test/setup.ts` 现在只在全局缺失时安装内存版 `Storage`，全量单测恢复全绿；`package.json` 补 `engines.node >= 20` 与 `check` 脚本，pre-commit 的 ESLint 门槛同步为 `--max-warnings 0`。
+- **提示词词库单一数据源**：`promptLibrary` 新增 `loadRawPromptDictionary()`（模块级缓存 + 并发去重，返回未过滤的 17,222 条原始词库）与 `buildTranslationIndex()`；`translation` / `PromptSidebar` / `PromptEditorDialog` 不再各自 fetch + parse 6.35MB JSON，翻译查找从数组 `find` 改为 Map 索引（同 key 保留第一条，语义与旧实现一致）。侧栏词典改为独立 effect，分页重置移到 tab / 搜索事件里。
+- **exe 静态资源可缓存**：新增 `internal/api/static.go`，给内嵌 dist 补缓存语义——`assets/*`（Vite 文件名带 hash）返回 `public, max-age=31536000, immutable`；`/data/*` 返回 `no-cache` + 内容 SHA256 派生的 `ETag`（命中返回 304）；主应用 mux 与外置图片管理服务共用同一套规则。原先 embed FS 的 modtime 恒零，既无 `Last-Modified` 也无校验器。
+- **生图进度不再击穿面板 memo**：App 中传给 `React.memo` 面板的回调统一 `useCallback` 化，并把 `ui` / `gen` / `loras` / `tagging` / `params` 中的稳定成员解构为具体依赖；进度 tick 时面板不会再收到新回调。
+- **App.tsx 拆分**：新增 `layout/AppTopbar`、`layout/OutputPanel`、`layout/ConnectionOverlay`、`layout/WorkspacePanels`、`layout/AppModals` 与 `app-context.ts`；`App.tsx` 从 1,476 行（同口径）降到 1,099 行，所有 import 回到文件顶部，JSX 与 props 逐字搬运、无行为改动。
+- **lint 清零**：`eslint src server --max-warnings 0` 通过（0 error / 0 warning）。除真实修复（`useWardrobeData` 的同步 reset 移入 `reload`、`useGeneration` cleanup 捕获 ref、`MultiWorkspace` 拖拽回调改 `useCallback`、`any` 改为 `unknown` + 局部收窄、`useAppContext` 抽到独立文件）外，仅对「打开弹窗初始化 state / 异步加载 loading 态」保留带中文理由的单行豁免。
+
+### 🧪 测试 (Tests)
+
+- 新增 2 条单测：原始词库并发只 fetch 一次且保留未过滤条目；翻译索引同 key 取第一条、中英双向可查。
+- 全量：**1064 单测（70 文件）全绿**、**49 E2E 全绿**、`tsc --noEmit` 0 error、`eslint src server --max-warnings 0` 0 error/0 warning、`go vet ./...` 与 `go test ./...` 全绿。
+- 真机校验：exe `--web` 模式下 `assets/main-*.js` 返回 `immutable`，`/data/prompt-library/*.json` 带 `ETag`，条件请求返回 304；优化后缩略图仍返回 `image/webp` 且可解码。
+- 数据完整性：29 个 JSON 与备份逐文件语义比对 **0 差异**；2416 张缩略图尺寸与备份逐一一致；抽样 PSNR 均值 33.84 / 最低 32.57。
+
+### 🏗️ 构建 (Build)
+
+- **P3 内置数据瘦身**：新增 `scripts/optimize-data.py`（幂等，可重复执行）——造型台 2416 张缩略图保持原尺寸重编码为 WebP `quality=78`，**21.95MB → 14.35MB（-7.60MB）**；`public/data` 下 29 个 JSON 做无损压缩（词库 6.35 → 5.26MB），**16.14MB → 15.04MB（-1.10MB）**。内置数据合计 38.08 → **29.38MB**。
+- 重建 `ComfyUI-XYZ-Web.exe`（**38.2MB / 40,073,216 B**；上一版 48,996,864 B，**-8.92MB / -18.2%**），GUI 子系统；主 chunk 318.81 kB 不变。
+
 ## [v0.8.4] - 2026-11-07
 
 ### ✨ 新功能 (Features)

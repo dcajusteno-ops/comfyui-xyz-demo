@@ -91,5 +91,13 @@ export function useTagging() {
     clSingleParams,
     clBatchParams,
     wdBatchParams,
+    setWd14,
+    setWd14Tab,
+    setWdFile,
+    setWdTags,
+    setClFile,
+    setClSingleParams,
+    setClBatchParams,
+    setWdBatchParams,
   ]);
 }

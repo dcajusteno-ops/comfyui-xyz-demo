@@ -38,6 +38,7 @@ export function QueuePanel({
   }, [client]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 挂载/切换 client 时立即拉一次队列
     void refresh();
     const timer = window.setInterval(() => void refresh(), 4000);
     return () => window.clearInterval(timer);

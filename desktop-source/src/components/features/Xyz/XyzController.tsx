@@ -86,11 +86,12 @@ export const XyzController = React.memo(({
   onApplyCombo,
 }: XyzControllerProps) => {
   const review = useXyzReview();
+  const clearReview = review.clearReview;
 
   // XYZ 结果数据集发生变化（新运行 / 重跑 / 重试）时，清掉上一轮的复盘状态
   useEffect(() => {
-    review.clearReview();
-  }, [gen.xyzResults]);
+    clearReview();
+  }, [gen.xyzResults, clearReview]);
 
   const xyzFields: XyzField[] = useMemo(() => {
     const common: XyzField[] = [

@@ -31,6 +31,10 @@ export const R18_SCOPES = new Set(["r18"]);
 /** 词条最大长度：超出此长度的是整句/整段提示词，不适合做词条。 */
 export const MAX_TAG_LENGTH = 80;
 
+/** 翻译索引的 key 前缀：en: 英文 → 中文；zh: 中文 → 英文。 */
+const EN_KEY = "en:";
+const ZH_KEY = "zh:";
+
 /**
  * 多词条整句的判据：真正的「一个词条」不会自带逗号分隔。
  * 库里有 189 条形如 `looking at viewer,(from side:1.2),( head tilt:1.65)`、
@@ -62,8 +66,63 @@ export function isCandidateRecord(record: PromptRecord, options: { allowR18?: bo
   return Boolean(text) && !MULTI_TAG_PATTERN.test(text) && Boolean(record.category?.trim());
 }
 
+let rawCache: PromptRecord[] | null = null;
+let rawInflight: Promise<PromptRecord[]> | null = null;
 let libraryCache: PromptRecord[] | null = null;
 let inflight: Promise<PromptRecord[]> | null = null;
+
+/**
+ * 内置词库原始全量（17,222 条，不过滤）：词库侧栏 / 提示词编辑器 / 翻译
+ * 需要看到所有条目，不能套用转盘的候选判据。
+ *
+ * 模块级缓存 + 并发去重：同一份 6.35MB JSON 全局只 fetch / parse 一次。
+ * 失败时清空 inflight，调用方可以重试。
+ */
+export async function loadRawPromptDictionary(): Promise<PromptRecord[]> {
+  if (rawCache) return rawCache;
+  if (rawInflight) return rawInflight;
+
+  const task = (async () => {
+    const response = await fetch(PROMPT_LIBRARY_URL);
+    if (!response.ok) throw new Error(`词库加载失败（HTTP ${response.status}）`);
+    const data = (await response.json()) as unknown;
+    if (!Array.isArray(data)) throw new Error("词库数据结构异常");
+    rawCache = data as PromptRecord[];
+    return rawCache;
+  })();
+
+  rawInflight = task;
+  try {
+    return await task;
+  } finally {
+    if (rawInflight === task) rawInflight = null;
+  }
+}
+
+/**
+ * 翻译用的精确匹配索引：同一条词条同时登记英文与中文两个 key，
+ * 同名 key 只保留**最先出现**的那条（与旧的 Array.find 语义一致）。
+ */
+export function buildTranslationIndex(records: readonly PromptRecord[]): Map<string, PromptRecord> {
+  const index = new Map<string, PromptRecord>();
+  for (const record of records) {
+    const en = record.text_en?.toLowerCase();
+    if (en && !index.has(EN_KEY + en)) index.set(EN_KEY + en, record);
+    const zh = record.text_zh?.toLowerCase();
+    if (zh && !index.has(ZH_KEY + zh)) index.set(ZH_KEY + zh, record);
+  }
+  return index;
+}
+
+/** 从索引取一条：direction 与 key 前缀一一对应。 */
+export function lookupTranslation(
+  index: Map<string, PromptRecord>,
+  text: string,
+  direction: "zh2en" | "en2zh",
+): PromptRecord | undefined {
+  const lower = text.trim().toLowerCase();
+  return index.get((direction === "en2zh" ? EN_KEY : ZH_KEY) + lower);
+}
 
 /**
  * 读用户词条（`/api/prompts` 的 `customEntries`），过同一套候选判据。
@@ -87,36 +146,32 @@ async function fetchCustomEntries(): Promise<PromptRecord[]> {
  * 加载词库（内置 + 我的词条，模块级缓存 + 并发去重），只保留候选词条。失败后允许重试。
  * 内置词库失败视为失败（走面板的错误态）；我的词条失败静默忽略。
  */
-export function loadPromptLibrary(): Promise<PromptRecord[]> {
-  if (libraryCache) return Promise.resolve(libraryCache);
+export async function loadPromptLibrary(): Promise<PromptRecord[]> {
+  if (libraryCache) return libraryCache;
   if (inflight) return inflight;
 
-  const builtin = fetch(PROMPT_LIBRARY_URL).then((response) => {
-    if (!response.ok) throw new Error(`词库加载失败（HTTP ${response.status}）`);
-    return response.json() as Promise<unknown>;
-  });
+  const task = (async () => {
+    const [data, custom] = await Promise.all([loadRawPromptDictionary(), fetchCustomEntries()]);
+    // 这里**放行 R18**（只有负面词恒剔）：是否真的用 r18 词由扇区的 allowR18 决定，
+    // 在加载阶段就丢掉的话，开启了开关的扇区也无词可抽。
+    const records = data.filter((record) => isCandidateRecord(record, { allowR18: true }));
+    // 我的词条在前：词池按 text_en 去重时保留先出现的那条，让用户自己的中英对照优先
+    libraryCache = [...custom, ...records];
+    return libraryCache;
+  })();
 
-  inflight = Promise.all([builtin, fetchCustomEntries()])
-    .then(([data, custom]) => {
-      // 这里**放行 R18**（只有负面词恒剔）：是否真的用 r18 词由扇区的 allowR18 决定，
-      // 在加载阶段就丢掉的话，开启了开关的扇区也无词可抽。
-      const records = Array.isArray(data)
-        ? (data as PromptRecord[]).filter((record) => isCandidateRecord(record, { allowR18: true }))
-        : [];
-      // 我的词条在前：词池按 text_en 去重时保留先出现的那条，让用户自己的中英对照优先
-      libraryCache = [...custom, ...records];
-      return libraryCache;
-    })
-    .catch((error: unknown) => {
-      inflight = null;
-      throw error;
-    });
-
-  return inflight;
+  inflight = task;
+  try {
+    return await task;
+  } finally {
+    if (inflight === task) inflight = null;
+  }
 }
 
-/** 仅供测试：清空缓存，让下一次调用重新 fetch。 */
+/** 仅供测试：清空全部缓存，让下一次调用重新 fetch。 */
 export function resetPromptLibraryCache() {
+  rawCache = null;
+  rawInflight = null;
   libraryCache = null;
   inflight = null;
 }

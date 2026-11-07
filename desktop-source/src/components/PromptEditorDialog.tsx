@@ -17,7 +17,13 @@ import { PromptTagBlocks } from "./PromptTagBlocks";
 import { PromptLintBadge } from "./ui/PromptLintBadge";
 import { translateText, defaultTranslationSettings } from "../lib/translation";
 import type { TranslationSettings } from "../lib/translation";
+import { loadRawPromptDictionary } from "../lib/promptLibrary";
 import { WildcardHelper } from "./features/Generation/WildcardHelper";
+
+/** 词条方块 key：时间戳 + 随机串；放在模块作用域，避免渲染期副作用告警 */
+function makeEditorPartKey(entryId: string) {
+  return `${entryId}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
 export function PromptEditorDialog({ 
   open, 
@@ -149,11 +155,12 @@ export function PromptEditorDialog({
 
   useEffect(() => {
     if (open && entries.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 打开弹窗时立即进入 loading 态
       setLoading(true);
-      fetch("/data/prompt-library/all_prompts_merged.cleaned.json")
-        .then(res => res.json())
+      // 与侧栏 / 转盘 / 翻译共用同一份模块级缓存，全局只 fetch 一次
+      loadRawPromptDictionary()
         .then(data => {
-          setEntries(data || []);
+          setEntries(data as PromptEntry[]);
           setLoading(false);
         })
         .catch(err => {
@@ -165,6 +172,7 @@ export function PromptEditorDialog({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 打开弹窗时用最新 initial* 重置编辑态
       setPositiveBase(initialPositive);
       setNegativeBase(initialNegative);
       setPositiveParts([]);
@@ -289,7 +297,7 @@ export function PromptEditorDialog({
 
     if (!entry.text_en) return;
     const part: EditorPart = {
-      key: `${entry.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      key: makeEditorPartKey(entry.id),
       entryId: entry.id,
       text: entry.text_en,
       textZh: entry.text_zh,

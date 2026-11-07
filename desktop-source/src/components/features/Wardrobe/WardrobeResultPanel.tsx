@@ -37,6 +37,7 @@ export function WardrobeResultPanel({
   onOpenAnima,
 }: Props) {
   const [draft, setDraft] = useState(text);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- 外部文本变化时同步草稿
   useEffect(() => setDraft(text), [text]);
 
   const output = toApplyText(draft, qualityPrefix);

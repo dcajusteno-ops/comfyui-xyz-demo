@@ -74,6 +74,7 @@ export function RootDirDialog({
     if (booted.current) return;
     booted.current = true;
     const start = normalizeDir(initialDir) || normalizeDir(detectedDir);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 首次打开时自动浏览初始目录
     if (start) void browse(start);
   }, [initialDir, detectedDir, browse]);
 

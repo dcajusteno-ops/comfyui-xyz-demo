@@ -150,6 +150,7 @@ export const LuckyWheelPanel = React.memo(({ onApplyPrompt }: LuckyWheelPanelPro
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 挂载时立即加载词库
     load();
   }, [load]);
 

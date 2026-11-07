@@ -2,6 +2,12 @@
 import MD5 from "crypto-js/md5";
 import HmacSHA1 from "crypto-js/hmac-sha1";
 import Base64 from "crypto-js/enc-base64";
+import {
+  buildTranslationIndex,
+  loadRawPromptDictionary,
+  lookupTranslation,
+  type PromptRecord,
+} from "./promptLibrary";
 
 export type TranslationProvider = "mymemory" | "baidu" | "aliyun";
 
@@ -14,52 +20,43 @@ export interface TranslationSettings {
 
 }
 
-export type DictionaryEntry = { text_en?: string; text_zh?: string; [key: string]: unknown };
-
 type JsonPayload = { error_code?: unknown; error_msg?: unknown; trans_result?: Array<{ dst?: unknown }> };
 
 export const defaultTranslationSettings: TranslationSettings = {
   provider: "mymemory",
 };
 
-let localDictionary: DictionaryEntry[] | null = null;
-let dictionaryPromise: Promise<DictionaryEntry[]> | null = null;
+let translationIndexPromise: Promise<Map<string, PromptRecord>> | null = null;
 
-async function getLocalDictionary() {
-  if (localDictionary) return localDictionary;
-  if (dictionaryPromise) return dictionaryPromise;
-
-  dictionaryPromise = fetch("/data/prompt-library/all_prompts_merged.cleaned.json")
-    .then(res => res.json())
-    .then(data => {
-      localDictionary = data;
-      return data;
-    })
-    .catch(err => {
-      console.error("Failed to load local dictionary for translation", err);
-      return [];
-    });
-  
-  return dictionaryPromise;
+/**
+ * 本地词典的精确匹配索引。词库本体由 `promptLibrary` 统一加载（模块级缓存），
+ * 这里只负责一次性建索引；失败时与旧行为一致：静默降级为「没有本地词条」。
+ */
+function getTranslationIndex(): Promise<Map<string, PromptRecord>> {
+  if (!translationIndexPromise) {
+    translationIndexPromise = loadRawPromptDictionary()
+      .then((records) => buildTranslationIndex(records))
+      .catch((err) => {
+        console.error("Failed to load local dictionary for translation", err);
+        return new Map<string, PromptRecord>();
+      });
+  }
+  return translationIndexPromise;
 }
 
 export async function translateText(text: string, settings: TranslationSettings, direction: "zh2en" | "en2zh" = "zh2en"): Promise<string> {
   if (!text || !text.trim()) return text;
 
   try {
-    const dict = await getLocalDictionary();
-    if (dict && dict.length > 0) {
-      const lowerText = text.trim().toLowerCase();
+    const index = await getTranslationIndex();
+    if (index.size > 0) {
+      const entry = lookupTranslation(index, text, direction);
       if (direction === "en2zh") {
-        const entry = dict.find(e => e.text_en && e.text_en.toLowerCase() === lowerText);
-        if (entry && entry.text_zh) {
+        if (entry?.text_zh) {
           return entry.text_zh;
         }
-      } else if (direction === "zh2en") {
-        const entry = dict.find(e => e.text_zh && e.text_zh.toLowerCase() === lowerText);
-        if (entry && entry.text_en) {
-          return entry.text_en;
-        }
+      } else if (entry?.text_en) {
+        return entry.text_en;
       }
     }
   } catch {

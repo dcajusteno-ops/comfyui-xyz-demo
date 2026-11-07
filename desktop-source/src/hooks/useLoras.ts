@@ -475,11 +475,13 @@ export function useLoras({
     }
   }, [client, stopExampleStatusPolling, refreshExampleImageInfo, pushToast]);
 
+  const loraDetailPath = loraDetail?.file_path;
+
   const renameLora = useCallback(async (item: LoraItem, newName: string) => {
     try {
       const result = await client.renameManagedModel(managedModelType, item.file_path, newName);
       if (result.success === false) throw new Error(result.error || "重命名失败");
-      if (loraDetail?.file_path === item.file_path) {
+      if (loraDetailPath === item.file_path) {
         setLoraDetail(null);
       }
       await refreshLoraListsAfterMutation("LoRA 已重命名");
@@ -487,7 +489,7 @@ export function useLoras({
       pushToast("error", "重命名失败", error instanceof Error ? error.message : String(error));
       throw error;
     }
-  }, [client, managedModelType, refreshLoraListsAfterMutation, pushToast]);
+  }, [client, managedModelType, refreshLoraListsAfterMutation, pushToast, loraDetailPath]);
 
   const moveLora = useCallback(async (item: LoraItem, targetFolder: string) => {
     try {
@@ -556,7 +558,7 @@ export function useLoras({
       pushToast("error", "设置保存失败", error instanceof Error ? error.message : String(error));
       throw error;
     }
-  }, [client, pushToast]);
+  }, [client, pushToast, setLoraSettings]);
 
   const doctorAction = useCallback(async (action: "repair" | "resolve" | "export") => {
     try {
@@ -580,7 +582,7 @@ export function useLoras({
       refreshLoras(loraQuery).catch(() => undefined);
     }, 220);
     return () => window.clearTimeout(timer);
-  }, [client, managedModelType, loraQuery.search, loraQuery.folder, loraQuery.baseModel, loraQuery.tag, loraQuery.pageSize, refreshLoras]);
+  }, [client, managedModelType, loraQuery, refreshLoras]);
 
   useEffect(() => {
     let canceled = false;
@@ -612,10 +614,11 @@ export function useLoras({
 
   useEffect(() => {
     if (tab !== "loras") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 进入 loras 页时立即刷新示例图状态
     refreshExampleImageInfo().catch((infoError) => {
       pushToast("error", "示例图状态读取失败", infoError instanceof Error ? infoError.message : String(infoError));
     });
-  }, [client, tab, managedModelType, refreshExampleImageInfo]);
+  }, [client, tab, managedModelType, refreshExampleImageInfo, pushToast]);
 
   useEffect(() => {
     return () => {
@@ -693,6 +696,7 @@ export function useLoras({
     loraTarget,
     loraDensity,
     loraDetail,
+    setLoraSettings,
     selectedLoraPaths,
     loraOperation,
     loraSettings,

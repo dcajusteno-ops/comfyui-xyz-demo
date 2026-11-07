@@ -408,7 +408,8 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrom
 	mux.HandleFunc("/wildcards/", func(w http.ResponseWriter, r *http.Request) {
 		stores.ServeWildcardFile(w, r, dist)
 	})
-	mux.Handle("/", http.FileServerFS(dist))
+	// 静态资源：带 hash 的 assets 长缓存，词库/缩略图走 ETag + 304（embed 文件没有 modtime）
+	mux.Handle("/", api.NewStaticHandler(dist))
 	return mux, imageService.URL()
 }
 

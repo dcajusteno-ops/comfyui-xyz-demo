@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  buildTranslationIndex,
   loadPromptLibrary,
+  loadRawPromptDictionary,
+  lookupTranslation,
   resetPromptLibraryCache,
   type PromptRecord,
 } from "./promptLibrary";
@@ -96,5 +99,38 @@ describe("词库加载：内置 + 我的词条", () => {
     await loadPromptLibrary();
     await loadPromptLibrary();
     expect(calls).toHaveLength(2); // 内置 1 次 + 我的词条 1 次
+  });
+});
+
+describe("原始词库与翻译索引", () => {
+  afterEach(() => {
+    resetPromptLibraryCache();
+    vi.unstubAllGlobals();
+  });
+
+  it("并发调用只 fetch 一次，且保留未过滤的原始条目", async () => {
+    const calls = stubFetch({ custom: [] });
+    const [first, second] = await Promise.all([loadRawPromptDictionary(), loadRawPromptDictionary()]);
+
+    expect(calls.filter((url) => url.includes("prompt-library"))).toHaveLength(1);
+    expect(calls.filter((url) => url.includes("/api/prompts"))).toHaveLength(0);
+    // 转盘候选会剔掉整句与负面词，原始词库必须原样保留
+    expect(first.map((r) => r.text_en)).toEqual(BUILTIN.map((r) => r.text_en));
+    expect(first).toBe(second);
+  });
+
+  it("翻译索引：同 key 保留第一条，中英双向可查", () => {
+    const records: PromptRecord[] = [
+      { text_en: "Jumping", text_zh: "跳跃" },
+      { text_en: "jumping", text_zh: "第二条" },
+      { text_en: "no-zh" },
+    ];
+    const index = buildTranslationIndex(records);
+
+    expect(lookupTranslation(index, " jumping ", "en2zh")?.text_zh).toBe("跳跃");
+    expect(lookupTranslation(index, "跳跃", "zh2en")?.text_en).toBe("Jumping");
+    // 没有中文的条目仍可被英文命中，但调用方拿不到 text_zh 时会回退外部 API
+    expect(lookupTranslation(index, "NO-ZH", "en2zh")?.text_zh).toBeUndefined();
+    expect(lookupTranslation(index, "not-exist", "zh2en")).toBeUndefined();
   });
 });

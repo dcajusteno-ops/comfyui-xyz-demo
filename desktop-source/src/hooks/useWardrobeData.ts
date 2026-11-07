@@ -9,8 +9,6 @@ export function useWardrobeData() {
 
   useEffect(() => {
     let cancelled = false;
-    setReady(false);
-    setError(null);
     loadWardrobeEngine()
       .then(() => {
         if (!cancelled) setReady(true);
@@ -28,6 +26,8 @@ export function useWardrobeData() {
     error,
     reload: () => {
       resetWardrobeCache();
+      setReady(false);
+      setError(null);
       setRevision((v) => v + 1);
     },
   };

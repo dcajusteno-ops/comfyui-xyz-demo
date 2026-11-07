@@ -8,6 +8,11 @@ import { ModalFrame } from "../../ui/Modal";
 import { Select } from "../../ui/Select";
 import type { OptionsState, TemplateKind } from "../../../types";
 
+/** 导出文件名带时间戳；放在模块作用域，避免 React 编译器把它当成渲染期副作用 */
+function presetExportName(target: TemplateKind) {
+  return `presets-${target}-${Date.now()}.json`;
+}
+
 interface PresetBarProps<T extends Record<string, unknown>> {
   target: TemplateKind;
   params: T;
@@ -86,7 +91,6 @@ export function PresetBar<T extends Record<string, unknown>>({ target, params, o
     const onSavePreset = () => openSave();
     window.addEventListener("dsh:save-preset", onSavePreset);
     return () => window.removeEventListener("dsh:save-preset", onSavePreset);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openRename = () => {
@@ -137,7 +141,7 @@ export function PresetBar<T extends Record<string, unknown>>({ target, params, o
       flash("暂无预设可导出");
       return;
     }
-    downloadTextFile(`presets-${target}-${Date.now()}.json`, exportPresetsJson(presets), "application/json");
+    downloadTextFile(presetExportName(target), exportPresetsJson(presets), "application/json");
   };
 
   const handleImport = (file: File) => {

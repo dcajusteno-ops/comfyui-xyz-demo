@@ -1,5 +1,5 @@
-import { useAppContext } from "../AppContext";
-import type { ThemeActions } from "../AppContext";
+import { useAppContext } from "../app-context";
+import type { ThemeActions } from "../app-context";
 import type { ThemeLibraryState } from "../lib/theme";
 
 /**

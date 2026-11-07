@@ -13,10 +13,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "[pre-commit] eslint src server ..."
-node node_modules/eslint/bin/eslint.js src server
+echo "[pre-commit] eslint src server (0 warning 门槛) ..."
+node node_modules/eslint/bin/eslint.js src server --max-warnings 0
 if [ $? -ne 0 ]; then
-  echo "[pre-commit] ✗ ESLint 存在 error，提交已中止"
+  echo "[pre-commit] ✗ ESLint 存在 error / warning，提交已中止"
   exit 1
 fi
 

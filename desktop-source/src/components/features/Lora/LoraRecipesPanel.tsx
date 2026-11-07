@@ -30,6 +30,7 @@ export function LoraRecipesPanel({
   useEffect(() => {
     if (!hash) return;
     let canceled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hash 变化时立即进入 loading 态
     setLoading(true);
     setFailed(false);
     client

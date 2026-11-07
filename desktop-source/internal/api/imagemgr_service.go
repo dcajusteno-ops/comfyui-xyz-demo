@@ -25,6 +25,7 @@ const (
 // ImageService 持有外置图片管理页的监听与地址。
 type ImageService struct {
 	dist    fs.FS
+	static  http.Handler
 	handler *ImageHandler
 	uiState *UiStateStore
 
@@ -34,7 +35,12 @@ type ImageService struct {
 }
 
 func NewImageService(dist fs.FS, handler *ImageHandler, uiState *UiStateStore) *ImageService {
-	return &ImageService{dist: dist, handler: handler, uiState: uiState}
+	var static http.Handler
+	if dist != nil {
+		// 与主应用同一套缓存头规则（assets immutable / data ETag）
+		static = NewStaticHandler(dist)
+	}
+	return &ImageService{dist: dist, static: static, handler: handler, uiState: uiState}
 }
 
 // Start 绑定 127.0.0.1:9124~9133 中第一个可用端口，返回页面地址；全部被占用时返回空串。
@@ -104,10 +110,10 @@ func (s *ImageService) serveApp(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		_, _ = w.Write(data)
 	default:
-		if s.dist == nil {
+		if s.dist == nil || s.static == nil {
 			http.NotFound(w, r)
 			return
 		}
-		http.FileServerFS(s.dist).ServeHTTP(w, r)
+		s.static.ServeHTTP(w, r)
 	}
 }

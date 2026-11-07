@@ -219,6 +219,7 @@ export function LoraDetailModal({
     return () => {
       canceled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- detailError 仅用于去重；进入依赖会与 setDetailError 形成重复拉取
   }, [client, modelType, item]);
 
   return (
@@ -490,7 +491,9 @@ export function LoraOperationModal({
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 切换操作类型时立即重新加载数据
     loadOperationData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在 operation.type 变化时加载；组件内函数入依赖会每次渲染重跑
   }, [operation.type]);
 
   async function submitRename() {

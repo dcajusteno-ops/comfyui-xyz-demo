@@ -71,7 +71,7 @@ export class ComfyClient {
   private heartbeatTimer: number | null = null;
   private reconnectTimer: number | null = null;
   private clientId: string = this.generateId();
-  private promptListeners = new Map<string, (message: any) => void>();
+  private promptListeners = new Map<string, (message: { type?: string; data?: unknown }) => void>();
   private currentExecutingPromptId: string | null = null;
 
   constructor(private readonly baseUrl = "/comfy") {}
@@ -856,19 +856,19 @@ export class ComfyClient {
         signal.addEventListener("abort", onAbort, { once: true });
       }
 
-      const messageHandler = async (message: any) => {
+      const messageHandler = async (message: { type?: string; data?: unknown }) => {
         try {
           if (completed) return;
-          const data = message.data ?? {};
+          const rawData = message.data;
           
           if (message.type === "preview") {
             // 二进制帧结构：8 字节头（[事件类型 u32][图片类型 u32]，图片类型 1=JPEG / 2=PNG / 3=WEBP）+ 图片字节。
             // 必须显式设置 MIME：WS 帧 slice 出的 Blob type 为空，blob: URL 无嗅探，<img> 会直接裂图。
             let buffer: ArrayBuffer | null = null;
-            if (data instanceof Blob) {
-              buffer = await data.arrayBuffer();
-            } else if (data instanceof ArrayBuffer) {
-              buffer = data;
+            if (rawData instanceof Blob) {
+              buffer = await rawData.arrayBuffer();
+            } else if (rawData instanceof ArrayBuffer) {
+              buffer = rawData;
             } else {
               return;
             }
@@ -890,6 +890,18 @@ export class ComfyClient {
             }
             return;
           }
+
+          // 预览分支之后才把 data 当作消息字段使用（预览的 data 是二进制帧）
+          const data = (rawData ?? {}) as {
+            prompt_id?: string;
+            node?: string;
+            value?: number;
+            max?: number;
+            text?: string;
+            exception_message?: string;
+            output?: Record<string, unknown>;
+            [key: string]: unknown;
+          };
 
           if (message.type === "progress") {
             const nodeId = data.node;
@@ -936,8 +948,8 @@ export class ComfyClient {
             reject(new Error(data.exception_message || "ComfyUI 执行失败"));
           }
           if (message.type === "executed" && data.prompt_id === promptId) {
-            const outputs = data.output ?? {};
-            const nodeId = data.node;
+            const outputs = (data.output ?? {}) as Record<string, unknown>;
+            const nodeId = data.node ?? "";
             const nodeDef = prompt[nodeId];
             const nodeTitle = String(nodeDef?._meta?.title || nodeId);
 

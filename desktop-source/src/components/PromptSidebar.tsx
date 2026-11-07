@@ -1,24 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Search, Heart, Clock, Bookmark, ChevronRight, ChevronLeft, Layout, Tag, Plus, Trash2, X } from 'lucide-react';
-
-export type PromptEntry = {
-  id: string;
-  source: string;
-  category: string;
-  subcategory: string;
-  scope: string;
-  text_en: string;
-  text_zh: string;
-  search_text?: string;
-};
-
-export type PromptTemplate = {
-  id: string;
-  name: string;
-  category: string;
-  positive: string;
-  negative: string;
-};
+import { loadRawPromptDictionary } from '../lib/promptLibrary';
+import type { PromptEntry, PromptTemplate } from './PromptEditorData';
 
 interface PromptSidebarProps {
   isOpen: boolean;
@@ -155,6 +138,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 打开侧栏时立即进入 loading 态
       setLoading(true);
       fetch("/api/prompts")
         .then(r => r.json())
@@ -170,14 +154,16 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
         .catch(e => console.error("Failed to load prompts state", e))
         .finally(() => setLoading(false));
 
-      if (dictionary.length === 0) {
-        fetch("/data/prompt-library/all_prompts_merged.cleaned.json")
-          .then(res => res.json())
-          .then(data => setDictionary(data || []))
-          .catch(err => console.error("Failed to load prompt dictionary", err));
-      }
     }
   }, [isOpen]);
+
+  // 词典单独一个 effect：打开侧栏后按需加载一次，之后复用 promptLibrary 的模块级缓存
+  useEffect(() => {
+    if (!isOpen || dictionary.length > 0) return;
+    void loadRawPromptDictionary()
+      .then(items => setDictionary(items as PromptEntry[]))
+      .catch(err => console.error("Failed to load prompt dictionary", err));
+  }, [isOpen, dictionary.length]);
 
   const allEntries = useMemo(() => [...customEntries, ...dictionary], [customEntries, dictionary]);
 
@@ -212,11 +198,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
     const paginatedList = list.slice(start, start + itemsPerPage);
 
     return { filteredItems: paginatedList, totalCount: total };
-  }, [activeTab, favorites, recents, customEntries, templates, allEntries, search, page]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [activeTab, search]);
+  }, [activeTab, favorites, recents, templates, allEntries, search, page]);
 
   if (!isOpen) return null;
 
@@ -250,7 +232,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
           <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} />
           <input 
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
             placeholder="搜索提示词..."
             style={{ 
               width: '100%', 
@@ -365,7 +347,7 @@ export function PromptSidebar({ isOpen, onClose, onSelect, currentPositive, curr
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as "favorites" | "recents" | "templates" | "library")}
+            onClick={() => { setActiveTab(tab.id as "favorites" | "recents" | "templates" | "library"); setPage(1); }}
             style={{
               flex: 1,
               padding: '0.6rem 0.2rem',

@@ -115,6 +115,7 @@ export function MobileGenPanel() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 挂载时拉取最近任务
     void refreshRecent();
   }, [refreshRecent]);
 

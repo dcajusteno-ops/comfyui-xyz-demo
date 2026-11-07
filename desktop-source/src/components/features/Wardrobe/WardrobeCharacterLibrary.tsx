@@ -76,6 +76,7 @@ export function WardrobeCharacterLibrary({
   }, [characters, favorites, query, state.ui.charFavOnly, state.ui.charSort, workId, workIndex]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 筛选变化时重置分页上限
     setLimit(state.ui.charPageSize);
   }, [query, workId, state.ui.charFavOnly, state.ui.charSort, state.ui.charPageSize]);
 

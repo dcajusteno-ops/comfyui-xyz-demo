@@ -67,10 +67,11 @@ export function useGeneration({ client, pushToast, notifyComplete, watermark }: 
   const watermarkUrlsRef = useRef<Map<string, string[]>>(new Map());
 
   useEffect(() => {
+    const urls = watermarkUrlsRef.current;
     return () => {
       // 卸载时清掉所有还活着的 blob URL
-      watermarkUrlsRef.current.forEach((urls) => urls.forEach((u) => URL.revokeObjectURL(u)));
-      watermarkUrlsRef.current.clear();
+      urls.forEach((items) => items.forEach((u) => URL.revokeObjectURL(u)));
+      urls.clear();
     };
   }, []);
 

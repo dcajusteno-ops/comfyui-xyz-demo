@@ -268,6 +268,7 @@ export function useOptions({ client, pushToast, setDefaultParams, setMultiParams
     }
     load();
     return () => { canceled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在 client 变化时加载 /object_info；setX 来自 props，入依赖会重复请求
   }, [client]);
 
   return {

@@ -76,7 +76,7 @@ export const FolderSidebar = memo(({
     setCollapsedPaths((prev) => (
       prev.includes(path) ? prev.filter((item) => item !== path) : [...prev, path]
     ));
-  }, []);
+  }, [setCollapsedPaths]);
 
   // 祖先自动展开：选中项位于折叠父级内时，移除其全部祖先的折叠状态（任务书 3.2.2）
   useEffect(() => {
@@ -86,7 +86,7 @@ export const FolderSidebar = memo(({
       const next = prev.filter((path) => !ancestors.includes(path));
       return next.length === prev.length ? prev : next;
     });
-  }, [selected]);
+  }, [selected, setCollapsedPaths]);
 
   // 挂载记忆滚动 + 选中/折叠状态变化后滚动到选中项（block: nearest 幂等，任务书 3.2.3）
   useEffect(() => {

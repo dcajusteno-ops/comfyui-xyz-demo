@@ -5,7 +5,7 @@ import { ThemeLibraryList } from "./ThemeLibraryList";
 import { PaletteEditor } from "./PaletteEditor";
 import { WallpaperEditor } from "./WallpaperEditor";
 import { useThemeLibrary } from "../../hooks/useThemeLibrary";
-import { useAppContext } from "../../AppContext";
+import { useAppContext } from "../../app-context";
 import {
   DEFAULT_CAPTION_MODE,
   deriveWindowAppearance,

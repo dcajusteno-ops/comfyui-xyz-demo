@@ -2,17 +2,22 @@
   "name": "comfyui-xyz-demo",
   "private": true,
   "version": "0.8.4",
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "test": "vitest run",
-    "lint": "eslint src server",
+    "lint": "eslint src server --max-warnings 0",
+    "check": "tsc -p tsconfig.json --noEmit && eslint src server --max-warnings 0 && vitest run",
     "test:e2e": "playwright test",
     "preview": "vite preview",
     "import:anima": "node scripts/import-anima-data.mjs",
     "import:wardrobe": "node scripts/import-wardrobe-data.mjs",
     "import:wardrobe:verify": "node scripts/import-wardrobe-data.mjs --verify-only",
+    "optimize:data": "python scripts/optimize-data.py",
     "export:wardrobe-tables": "python scripts/export-wardrobe-tables.py",
     "fixtures:wardrobe": "python scripts/export-wardrobe-fixtures.py"
   },

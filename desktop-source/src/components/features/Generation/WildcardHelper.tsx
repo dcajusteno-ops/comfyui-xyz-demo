@@ -42,6 +42,7 @@ export function WildcardHelper({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 挂载时立即加载内置词库
     refresh().catch(() => setError("通配符词库加载失败"));
   }, [refresh]);
 

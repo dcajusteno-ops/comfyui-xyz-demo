@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, PointerEvent, MouseEvent, CSSProperties } from "react";
+import React, { useState, useEffect, useRef, useCallback, PointerEvent, MouseEvent, CSSProperties } from "react";
 import { Boxes, Copy, Trash2 } from "lucide-react";
 import { NumberField, SelectField, TextAreaField } from "../../ui/FormFields";
 import {
@@ -43,6 +43,7 @@ export function MultiWorkspace({
   useEffect(() => {
     if (selectedId && !characters.some((character) => character.id === selectedId)) {
       const visible = enabledCanvasCharacters(characters);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 角色被删除后同步修正选中项
       setSelectedId(visible[0]?.id ?? "");
     }
   }, [characters, selectedId]);
@@ -87,6 +88,32 @@ function MultiCanvasEditor({
   const visibleCharacters = enabledCanvasCharacters(characters);
   const [interaction, setInteraction] = useState<CanvasInteraction | null>(null);
 
+  const updateMask = useCallback(
+    (id: string, mask: MultiCharacter["mask"]) => {
+      onChange(
+        characters.map((character) =>
+          character.id === id ? { ...character, mask: roundCanvasMask(mask) } : character,
+        ),
+      );
+    },
+    [characters, onChange],
+  );
+
+  const applyInteraction = useCallback(
+    (clientX: number, clientY: number) => {
+      const current = interactionRef.current;
+      if (!current) return;
+      const deltaX = (clientX - current.startX) / current.rect.width;
+      const deltaY = (clientY - current.startY) / current.rect.height;
+      const nextMask =
+        current.mode === "move"
+          ? moveMaskRect(current.startMask, deltaX, deltaY)
+          : resizeMaskRect(current.startMask, current.mode, deltaX, deltaY);
+      updateMask(current.id, nextMask);
+    },
+    [updateMask],
+  );
+
   useEffect(() => {
     if (!interaction) return;
     const move = (event: globalThis.MouseEvent | globalThis.PointerEvent) => {
@@ -108,15 +135,7 @@ function MultiCanvasEditor({
       window.removeEventListener("pointerup", end);
       window.removeEventListener("pointercancel", end);
     };
-  }, [interaction]);
-
-  function updateMask(id: string, mask: MultiCharacter["mask"]) {
-    onChange(
-      characters.map((character) =>
-        character.id === id ? { ...character, mask: roundCanvasMask(mask) } : character
-      )
-    );
-  }
+  }, [interaction, applyInteraction]);
 
   function startInteraction(
     event: PointerEvent<HTMLElement>,
@@ -185,18 +204,6 @@ function MultiCanvasEditor({
 
   function moveMouseInteraction(event: MouseEvent<HTMLDivElement>) {
     applyInteraction(event.clientX, event.clientY);
-  }
-
-  function applyInteraction(clientX: number, clientY: number) {
-    const current = interactionRef.current;
-    if (!current) return;
-    const deltaX = (clientX - current.startX) / current.rect.width;
-    const deltaY = (clientY - current.startY) / current.rect.height;
-    const nextMask =
-      current.mode === "move"
-        ? moveMaskRect(current.startMask, deltaX, deltaY)
-        : resizeMaskRect(current.startMask, current.mode, deltaX, deltaY);
-    updateMask(current.id, nextMask);
   }
 
   function endMouseInteraction() {

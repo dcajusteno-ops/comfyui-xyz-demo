@@ -399,6 +399,7 @@ ComfyUI XYZ Demo 是一个深度定制的、功能强大的 ComfyUI 前端 Web �
   node scripts/import-wardrobe-data.mjs --verify-only
   ```
   插件目录也可用环境变量 `ANIMA_WARDROBE_DIR`。导入脚本会校验选项档位覆盖、场景字段引用、缩略图缺失，并生成 `manifest.json`。
+  体积优化（可选，幂等）：`npm run optimize:data` —— 对 `public/data/**/*.json` 做无损压缩，并把造型台缩略图重编码为 WebP q=78（保持原尺寸）；缩略图重跑需加 `--force-thumbs`。
 - **不改工作流拓扑**：结果只写 `animaParams.positivePrompt`（追加 / 覆盖 / 复制，可选 Anima 画质前缀），`buildAnimaPrompt`、XYZ、预设、手机端均不受影响。
 
 ---

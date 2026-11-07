@@ -617,7 +617,7 @@ export function buildClBatchPrompt(params: ClBatchParams, index: number): ComfyP
 }
 
 export function buildWdBatchPrompt(params: WdBatchParams, index: number): ComfyPrompt {
-  const inputs: any = {
+  const inputs: Record<string, unknown> = {
     image: ["15", 0],
     model: params.model,
     threshold: params.threshold,

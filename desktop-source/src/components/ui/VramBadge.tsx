@@ -35,6 +35,7 @@ export function VramBadge({ client }: { client: ComfyClient }) {
   }, [client]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 挂载时立即读一次显存并启动轮询
     void refresh();
     const timer = window.setInterval(() => void refresh(), POLL_MS);
     return () => window.clearInterval(timer);

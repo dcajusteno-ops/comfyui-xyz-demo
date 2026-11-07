@@ -100,11 +100,13 @@ export function ImageManagerPanel({ focus, confirm, pushToast }: ImageManagerPan
 
   // 换目录 / 图片被删掉后，别让灯箱停在越界的下标上
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 切换目录时立即关闭灯箱
     setPreviewIndex(null);
   }, [currentDir]);
 
   useEffect(() => {
     if (previewIndex == null) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 列表收缩后修正越界预览下标
     if (previewIndex >= api.sortedImages.length) setPreviewIndex(null);
   }, [previewIndex, api.sortedImages.length]);
 

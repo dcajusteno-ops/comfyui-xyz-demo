@@ -62,6 +62,7 @@ export function ImageLightbox({
 
   // 换图时重置缩放，否则上一张的放大状态会带到下一张
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 换图时同步归零缩放状态（必须立即生效）
     handleReset();
   }, [url, handleReset]);
 

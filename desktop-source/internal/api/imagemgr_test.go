@@ -513,6 +513,16 @@ func TestImageService_ServesStandalonePage(t *testing.T) {
 	if status, body := get("assets/app.js"); status != 200 || !strings.Contains(body, "console.log") {
 		t.Fatalf("静态资源不符: %d %q", status, body)
 	}
+	// 外置页与主应用共用同一套静态缓存策略（assets 带 hash → immutable）
+	resp, err := http.Get(base + "assets/app.js")
+	if err != nil {
+		t.Fatalf("GET assets: %v", err)
+	}
+	cacheControl := resp.Header.Get("Cache-Control")
+	_ = resp.Body.Close()
+	if !strings.Contains(cacheControl, "immutable") {
+		t.Fatalf("外置页 assets 缓存头不符: %q", cacheControl)
+	}
 	status, body := get("xyz/images/config")
 	if status != 200 || !strings.Contains(body, `"success":true`) {
 		t.Fatalf("API 应同源可用: %d %q", status, body)
