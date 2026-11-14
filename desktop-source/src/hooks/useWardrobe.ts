@@ -30,7 +30,13 @@ import { enabledSections, toggleSelectedRole } from "../lib/wardrobe/state";
 import { countTags } from "../lib/wardrobe/text";
 import { splitWardrobeToWorkbench } from "../lib/wardrobe/workbench";
 import { getWardrobeData } from "../lib/wardrobe/store";
-import type { WardrobeDrawResult, WardrobeScene, WardrobeUiState } from "../lib/wardrobe/types";
+import type {
+  WardrobeDrawResult,
+  WardrobeScene,
+  WardrobeUiState,
+} from "../lib/wardrobe/types";
+import { nearSlimProfile, slimWeightsForNear } from "../lib/wardrobe/near";
+import { WARDROBE_LEVELS } from "../lib/wardrobe/persist";
 
 type ToastFn = (type: Toast["type"], title: string, message?: string) => void;
 
@@ -84,6 +90,12 @@ export function useWardrobe(pushToast: ToastFn) {
         roleFavOnly: state.roleFavOnly,
         rolePick: state.rolePick,
         scenePick: state.scenePick,
+        duoRoleFill: state.duoRoleFill,
+        drySkinFilter: state.drySkin.enabled,
+        drySkinGroups: state.drySkin.groups.join(","),
+        drySkinTags: state.drySkin.onlyTags,
+        pickPoolMode: state.pickPool.enabled ? state.pickPool.mode : "",
+        pickPoolIds: state.pickPool.enabled ? state.pickPool.ids.join(",") : "",
         favorites: favorites.characters,
       });
       setState((prev) => ({
@@ -176,6 +188,9 @@ export function useWardrobe(pushToast: ToastFn) {
           ...prev,
           level: nextLevel,
           locks,
+          // 显式套用场景 = 压过勾选池（两者语义冲突，UI 上互斥）
+          pickPool: { ...prev.pickPool, enabled: false },
+          nearBase: undefined,
           disabledSections: prev.disabledSections.filter((id) => id !== "canon"),
           weights: {
             ...prev.weights,
@@ -196,7 +211,7 @@ export function useWardrobe(pushToast: ToastFn) {
       delete fields.n_canon;
       const options = { ...prev.weights.options };
       delete options.n_canon;
-      return { ...prev, weights: { ...prev.weights, fields, options } };
+      return { ...prev, weights: { ...prev.weights, fields, options }, nearBase: undefined };
     });
     pushToast("info", "已清除场景", "n_canon 权重已恢复默认");
   }, [pushToast, setState]);
@@ -224,6 +239,172 @@ export function useWardrobe(pushToast: ToastFn) {
     },
     [pushToast, setOutfits],
   );
+
+  /* ---------------- V6：服装库 / 干爽过滤 / 双女补位 / 勾选池 / 特写 ---------------- */
+
+  const toggleLibraryActive = useCallback(
+    (id: string) => {
+      setState((prev) => {
+        const active = prev.outfitLibrary.active === id ? "" : id;
+        return { ...prev, outfitLibrary: { ...prev.outfitLibrary, active } };
+      });
+    },
+    [setState],
+  );
+
+  const setLibraryOverride = useCallback(
+    (field: "socks" | "shoes", value: string) => {
+      setState((prev) => ({
+        ...prev,
+        outfitLibrary: {
+          ...prev.outfitLibrary,
+          overrides: { ...prev.outfitLibrary.overrides, [field]: value },
+        },
+      }));
+    },
+    [setState],
+  );
+
+  const setLibrarySceneOverride = useCallback(
+    (value: boolean) => {
+      setState((prev) => ({
+        ...prev,
+        outfitLibrary: { ...prev.outfitLibrary, sceneOverride: value },
+      }));
+    },
+    [setState],
+  );
+
+  const setDrySkin = useCallback(
+    (patch: Partial<WardrobeUiState["drySkin"]>) => {
+      setState((prev) => ({ ...prev, drySkin: { ...prev.drySkin, ...patch } }));
+    },
+    [setState],
+  );
+
+  const setDuoRoleFill = useCallback(
+    (value: boolean) => {
+      setState((prev) => ({ ...prev, duoRoleFill: value }));
+    },
+    [setState],
+  );
+
+  const setPickPoolMode = useCallback(
+    (mode: WardrobeUiState["pickPool"]["mode"]) => {
+      setState((prev) => ({
+        ...prev,
+        pickPool: {
+          enabled: mode !== "",
+          mode,
+          // 换模式就清空勾选（不同页签的 id 混在一起没有意义）
+          ids: mode === prev.pickPool.mode ? prev.pickPool.ids : [],
+        },
+      }));
+    },
+    [setState],
+  );
+
+  const togglePickPoolId = useCallback(
+    (id: string) => {
+      setState((prev) => {
+        const has = prev.pickPool.ids.includes(id);
+        return {
+          ...prev,
+          pickPool: {
+            ...prev.pickPool,
+            ids: has ? prev.pickPool.ids.filter((x) => x !== id) : [...prev.pickPool.ids, id],
+          },
+        };
+      });
+    },
+    [setState],
+  );
+
+  const clearPickPool = useCallback(() => {
+    setState((prev) => ({ ...prev, pickPool: { ...prev.pickPool, ids: [] } }));
+  }, [setState]);
+
+  /** 特写套用：先快照原权重，再按 `nearSlimProfile` 收紧取景（与引擎同一套规则）。 */
+  const applyNearScene = useCallback(
+    (scene: WardrobeScene) => {
+      const pools = getWardrobeData("pools");
+      const scenes = getWardrobeData("scenes");
+      if (!pools || !scenes) return;
+      setState((prev) => {
+        const start = prev.nearBase
+          ? {
+              ...prev,
+              weights: prev.nearBase.weights,
+              disabledSections: prev.nearBase.disabledSections,
+              locks: prev.nearBase.locks,
+              nearBase: undefined,
+            }
+          : prev;
+        const profile = nearSlimProfile(scene);
+        const slimmed = slimWeightsForNear(start.weights, scene);
+        const ids = [...Object.keys(pools.canon ?? {}), ...scenes.scenes.map((s) => s.id)];
+        const sceneOpts: Record<string, number> = {};
+        for (const id of ids) sceneOpts[id] = id === scene.id ? 3 : 0;
+        const weights = {
+          ...slimmed,
+          fields: { ...slimmed.fields, n_canon: 3 },
+          options: { ...slimmed.options, n_canon: sceneOpts },
+        };
+        const currentNum = targetNum()[start.level] ?? 0;
+        const nextLevel =
+          scene.level > currentNum
+            ? (WARDROBE_LEVELS[scene.level] ?? start.level)
+            : start.level;
+        const locks = profile?.dropRole
+          ? Array.from(new Set([...start.locks, "role"]))
+          : start.locks;
+        return {
+          ...start,
+          level: nextLevel,
+          weights,
+          locks,
+          disabledSections: start.disabledSections.filter((id) => id !== "canon"),
+          selectedRoles: profile?.dropRole ? [] : start.selectedRoles,
+          forceRole: profile?.dropRole ? "" : start.forceRole,
+          nearBase: {
+            sceneId: scene.id,
+            weights: start.weights,
+            disabledSections: start.disabledSections,
+            locks: start.locks,
+          },
+        };
+      });
+      // v6.6.1：特写里的人数是钉死到 count_lock 的，若这一条是双女而用户只选了 1 位，
+      // 必须说清「引擎会自动补一位」—— 否则正文少一个角色，用户以为是 bug。
+      const lock = String(scene.count_lock ?? "");
+      const duoLike = /2girls|multiple girls/i.test(lock);
+      const duoTip = duoLike
+        ? " · 双女人数，只选 1 位角色时引擎会自动补一位（同作品优先）"
+        : "";
+      pushToast(
+        "info",
+        "已套用特写并收紧取景",
+        `${scene.zh} · 关 ${nearSlimProfile(scene)?.sections.length ?? 0} 段 / 清 ${
+          nearSlimProfile(scene)?.fields.length ?? 0
+        } 个字段${duoTip}`,
+      );
+    },
+    [pushToast, setState],
+  );
+
+  const restoreNear = useCallback(() => {
+    setState((prev) => {
+      if (!prev.nearBase) return prev;
+      return {
+        ...prev,
+        weights: prev.nearBase.weights,
+        disabledSections: prev.nearBase.disabledSections,
+        locks: prev.nearBase.locks,
+        nearBase: undefined,
+      };
+    });
+    pushToast("info", "已还原特写前的权重", "段 / 字段 / 人数 / 锁定全部回到套用前");
+  }, [pushToast, setState]);
 
   const savePreset = useCallback(
     (name: string) => {
@@ -278,6 +459,16 @@ export function useWardrobe(pushToast: ToastFn) {
     saveOutfit,
     removeOutfit,
     toggleOutfit,
+    toggleLibraryActive,
+    setLibraryOverride,
+    setLibrarySceneOverride,
+    setDrySkin,
+    setDuoRoleFill,
+    setPickPoolMode,
+    togglePickPoolId,
+    clearPickPool,
+    applyNearScene,
+    restoreNear,
     sectionIds: WARDROBE_SECTION_IDS,
   };
 }

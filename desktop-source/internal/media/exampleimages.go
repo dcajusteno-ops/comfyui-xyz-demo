@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -1077,62 +1076,17 @@ func (m *Manager) serveExampleFile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Accept-Ranges", "bytes")
 	w.Header().Set("Cache-Control", "private, max-age=60")
 
-	rng := parseRange(r.Header.Get("Range"), info.Size())
-	if rng != nil {
-		w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", rng.start, rng.end, info.Size()))
-		w.Header().Set("Content-Length", strconv.FormatInt(rng.end-rng.start+1, 10))
-		w.WriteHeader(http.StatusPartialContent)
-		if r.Method == "HEAD" {
-			return
-		}
-		http.ServeContent(w, r, "", info.ModTime(), newBytesRangeReader(filePath, rng.start, rng.end))
-		return
-	}
-	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
-	w.WriteHeader(http.StatusOK)
-	if r.Method == "HEAD" {
-		return
-	}
-	http.ServeFile(w, r, filePath)
-}
-
-// bytesRangeReader 提供 [start,end] 区间读取（ServeContent 需 ReadSeeker）。
-type bytesRangeReader struct {
-	f     *os.File
-	off   int64
-	start int64
-	end   int64
-}
-
-func newBytesRangeReader(path string, start, end int64) *bytesRangeReader {
-	f, err := os.Open(path)
+	// Range / HEAD / Content-Length 全交给 ServeContent：它会对 os.File 自行 SeekEnd 求大小
+	// 并重新解析 Range。旧实现先手动写 206 + Content-Range，再把不支持 SeekEnd 的自定义
+	// Reader 递给它，size 被算成 0 → bytes=0- 判成 416，错误体写进已提交的 206 响应里。
+	// 浏览器请求视频必定带 Range，于是所有视频都是坏数据（图片基本不带 Range，所以正常）。
+	f, err := os.Open(filePath)
 	if err != nil {
-		log.Printf("media: open range reader: %v", err)
-		return &bytesRangeReader{off: -1}
+		storage.SendError(w, err, 500)
+		return
 	}
-	return &bytesRangeReader{f: f, start: start, end: end, off: start}
-}
-
-func (b *bytesRangeReader) Read(p []byte) (int, error) {
-	if b.off < 0 || b.off > b.end {
-		return 0, io.EOF
-	}
-	if b.off+int64(len(p)) > b.end+1 {
-		p = p[:b.end-b.off+1]
-	}
-	n, err := b.f.ReadAt(p, b.off)
-	b.off += int64(n)
-	return n, err
-}
-
-func (b *bytesRangeReader) Seek(offset int64, whence int) (int64, error) {
-	switch whence {
-	case io.SeekStart:
-		b.off = b.start + offset
-	case io.SeekCurrent:
-		b.off += offset
-	}
-	return b.off, nil
+	defer f.Close()
+	http.ServeContent(w, r, fileName, info.ModTime(), f)
 }
 
 func lastPathSegment(s string) string {
@@ -1357,51 +1311,4 @@ func displayName(item LoraItem, hash string) string {
 		return item.FileName
 	}
 	return hash
-}
-
-type httpRange struct{ start, end int64 }
-
-// parseRange 对齐 TS parseRange（仅 bytes= 单区间）。
-func parseRange(value string, size int64) *httpRange {
-	if value == "" || !strings.HasPrefix(value, "bytes=") {
-		return nil
-	}
-	parts := strings.SplitN(value[len("bytes="):], "-", 2)
-	startText, endText := parts[0], ""
-	if len(parts) > 1 {
-		endText = parts[1]
-	}
-	var start, end int64
-	hasStart, hasEnd := false, false
-	if startText != "" {
-		if v, err := strconv.ParseInt(startText, 10, 64); err == nil {
-			start, hasStart = v, true
-		}
-	}
-	if endText != "" {
-		if v, err := strconv.ParseInt(endText, 10, 64); err == nil {
-			end, hasEnd = v, true
-		}
-	}
-	if !hasStart && hasEnd {
-		start = size - end
-		if start < 0 {
-			start = 0
-		}
-		end = size - 1
-	} else if hasStart && !hasEnd {
-		end = size - 1
-	} else if !hasStart || !hasEnd {
-		return nil
-	}
-	if start < 0 {
-		start = 0
-	}
-	if end > size-1 {
-		end = size - 1
-	}
-	if start > end || start >= size {
-		return nil
-	}
-	return &httpRange{start: start, end: end}
 }

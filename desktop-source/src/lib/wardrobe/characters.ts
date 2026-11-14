@@ -9,8 +9,11 @@
 import { deriveSeed, WardrobeRandom } from "./rng";
 import { fieldWeight, optionWeight, sectionWeight, WEIGHT_MAX } from "./weights";
 import { gradeNsfw } from "./nsfw";
+import { outfitTriplet } from "./outfitTriplet";
 import { requireWardrobeData } from "./store";
 import type { WardrobeCharacter, WardrobeWeights } from "./types";
+
+export { OUTFIT_FIELDS } from "./outfitTriplet";
 
 export const GIRL_COUNT_BY_TAG: Record<string, number> = {
   "multiple girls": 3,
@@ -57,22 +60,6 @@ export const CHAR_APPEAR_FIELDS = new Set([
   ...HAIR_STYLE_FIELDS,
 ]);
 export const EXPRESSION_FIELDS = new Set(["emotion", "mouth", "eye_gaze"]);
-/** 服装字段全集：启用角色服装预设时默认全部闭麦 */
-export const OUTFIT_FIELDS = [
-  "outfit",
-  "top",
-  "bottom",
-  "socks",
-  "sock_color",
-  "shoes",
-  "accessory",
-  "cloth_color",
-  "cloth_mat",
-  "cloth_state_sfw",
-  "cloth_nsfw",
-  "n_fabric",
-  "n_shoes_keep",
-];
 export const HAIR_PICK_AUTO = "角色标签发型";
 export const HAIR_PICK_ALIASES = ["角色官方", "官方发型", "auto"];
 export const HAIR_PICK_RANDOM = "随机";
@@ -190,6 +177,7 @@ export function resetRoleIndexes(): void {
   outputTagCache = null;
   outputTagSetCache = null;
   outfitIndexCache = null;
+  charFeatIndexCache = null;
 }
 
 const WORK_ZH_HINT: Record<string, string> = { "fx senshi kurumi-chan": "FX战士久留美" };
@@ -221,7 +209,12 @@ export function charactersData(): { characters: WardrobeCharacter[]; works: impo
     }
     return merged;
   });
+  // V6：上游把当年的自建角色收编进内置库了。同 tag 再整条追加会出现两份
+  // （角色池 / 作品计数 / 索引全部翻倍），所以按 tag 去重。
+  const known = new Set(characters.map((row) => String(row.tag ?? "").trim().toLowerCase()));
   for (const row of overlay.custom ?? []) {
+    const tag = String(row.tag ?? "").trim().toLowerCase();
+    if (tag && known.has(tag)) continue;
     characters.push({ ...row, src: row.src ?? "user" });
   }
 
@@ -452,8 +445,63 @@ export function pickRandomRoles(
   return indices.map((i) => pool[i][1]);
 }
 
-export function parseSelectedRoles(raw: unknown): string[] {
-  const out: string[] = [];
+/**
+ * 给双女 / 多女阵容补一位女性角色 → `[trigger, mode]`。
+ *
+ * mode ∈ `same_work` / `cross_work` / `unknown_work` / `""`（池被排除空了）。
+ * ⚠️ 用调用方传进来的 rng，**恰好消耗一次** `sample(range(n), 1)` —— 关闭补位时
+ *    一个随机数都不吃，既有基线零漂移。
+ * ⚠️ `favoritesOnly` 只是"优先在收藏里找"，收藏池不够时自动放开。
+ * ⚠️ `works`（面板的随机池 slug）先收窄；池内没有同作品时才取池内其他人。
+ */
+export function pickDuoPartner(
+  rng: WardrobeRandom,
+  lv: number,
+  baseTrigger: string,
+  exclude: readonly string[] = [],
+  favoritesOnly = false,
+  works: readonly string[] = [],
+  favorites: readonly string[] = [],
+): [string, string] {
+  const base = String(baseTrigger ?? "").trim();
+  const excl = new Set(exclude.map((t) => String(t).trim().toLowerCase()).filter(Boolean));
+  if (base) excl.add(base.toLowerCase());
+  let pool = rolePool(lv).filter((o) => !excl.has(String(o[1]).trim().toLowerCase()));
+  if (!pool.length) return ["", ""];
+  if (favoritesOnly) {
+    const fav = favoriteRoleKeys(favorites);
+    if (fav.size) {
+      const favPool = pool.filter(
+        (o) =>
+          fav.has(o[1].trim().toLowerCase()) || fav.has(o[1].split(",")[0].trim().toLowerCase()),
+      );
+      if (favPool.length) pool = favPool;
+    }
+  }
+  const workIndex = roleWorkIndex();
+  if (works.length) {
+    const wanted = new Set(works);
+    const inPool = pool.filter((o) => wanted.has(workIndex.get(o[1].trim().toLowerCase()) ?? ""));
+    if (inPool.length) pool = inPool;
+  }
+  const slug = base ? workIndex.get(base.toLowerCase()) ?? "" : "";
+  const same = pool.filter((o) => slug && workIndex.get(o[1].trim().toLowerCase()) === slug);
+  const pickFrom = same.length ? same : pool;
+  const index = rng.sample(
+    Array.from({ length: pickFrom.length }, (_, i) => i),
+    1,
+  )[0];
+  const picked = pickFrom[index][1];
+  if (same.length) return [picked, "same_work"];
+  return [picked, slug ? "cross_work" : "unknown_work"];
+}
+
+/** `texas, arknights` → `texas`（报告里点名用，别把作品名重复念一遍）。 */
+export function roleShort(trigger: string): string {
+  return String(trigger ?? "").split(",")[0].trim();
+}
+
+export function parseSelectedRoles(raw: unknown): string[] {  const out: string[] = [];
   for (const chunk of String(raw ?? "").split(ROLE_SEP)) {
     const token = chunk.trim();
     if (token && !out.includes(token)) out.push(token);
@@ -642,14 +690,48 @@ export function applySelectedRoles(
     notes.push(`人数组合由「人数构成」决定，已填入 ${n} 位角色（未改写人数标签）`);
   }
 
-  if (n >= 2) {
-    for (const key of MULTI_CLEAR_FIELDS) if (state[key]) state[key] = "";
-    for (const [key, values] of Object.entries(MULTI_CLEAR_OPTIONS)) {
-      if (values.has(String(state[key] ?? "").trim().toLowerCase())) state[key] = "";
+  // v6.6.2：判据从「角色数」改成「画面里实际有几个人」—— `girlCountFor(count)`
+  // 才是人数真相。关掉双女补位时会出现「1 位角色 + 2girls, yuri」，以前不清空 →
+  // 一个女生做一对一异性正戏，语义自相矛盾。
+  const people = Math.max(n, girlCountFor(String(state.count ?? "")));
+  if (people >= 2) {
+    // v6.6.1：**显式 > 规则**。用户把某个选项点到 3.0（必现）时，清空会把它静默吃掉。
+    const forcedKeys = new Set(
+      ((state._forced_tags as Array<[string, string, string]> | undefined) ?? []).map((row) => row[0]),
+    );
+    const kept: string[] = [];
+    for (const key of MULTI_CLEAR_FIELDS) {
+      if (!state[key]) continue;
+      if (forcedKeys.has(key)) {
+        kept.push(key);
+        continue;
+      }
+      state[key] = "";
     }
-    if (state._cleared_for_multi === undefined) {
+    const keptOptions: string[] = [];
+    for (const [key, values] of Object.entries(MULTI_CLEAR_OPTIONS)) {
+      const current = String(state[key] ?? "").trim().toLowerCase();
+      if (!values.has(current)) continue;
+      if (forcedKeys.has(key)) {
+        keptOptions.push(String(state[key] ?? ""));
+        continue;
+      }
+      state[key] = "";
+    }
+    if ((kept.length || keptOptions.length) && !state._multi_conflict_noticed) {
+      state._multi_conflict_noticed = true;
+      const labels: Record<string, string> = { n_act: "性行为", n_pos: "受方动作", n_cum: "精液表现" };
+      const bits = [...kept.map((key) => labels[key] ?? key), ...keptOptions];
+      notes.push(
+        `⚠️ 多人（${n} 位角色 / 画面 ${people} 人）与点名项冲突，但按「显式优先」保留：` +
+          `${bits.join("、")} —— 画面可能画不出这一项，要严格成立请改成单人场景`,
+      );
+    }
+    if (state._cleared_for_multi === undefined || state._cleared_for_multi === null) {
       state._cleared_for_multi = true;
-      notes.push("多人模式：已清空一对一正戏字段（体位 / 受方动作 / 精液）");
+      if (!(kept.length || keptOptions.length)) {
+        notes.push("多人模式：已清空一对一正戏字段（体位 / 受方动作 / 精液）");
+      }
     }
   }
   return notes;
@@ -832,24 +914,92 @@ export function applyAppearance(state: Record<string, unknown>, weights: Wardrob
   return changed;
 }
 
+/* ------------------------------------------------------------------ *
+ * 自定义角色兜底（v5.4.1 / V6）
+ * ------------------------------------------------------------------ */
+
+/** 兜底通道要跳过的词：人数词与胸部词由 count / figure 字段负责。 */
+const CUSTOM_CHAR_SKIP = new Set([
+  "1girl",
+  "1boy",
+  "2girls",
+  "multiple girls",
+  "no humans",
+  "solo",
+  "huge breasts",
+  "large breasts",
+  "medium breasts",
+  "small breasts",
+  "flat chest",
+]);
+
+/** 这条角色记录是不是用户自己在面板里手建的（`src === "user"`）。 */
+export function isCustomRole(roleTrigger: string): boolean {
+  const row = charByTrigger().get(String(roleTrigger ?? "").trim().toLowerCase());
+  return Boolean(row) && String(row?.src ?? "") === "user";
+}
+
+/**
+ * 自定义角色的「词库外标签」兜底 → `[extras, [], {}]`。
+ *
+ * 内置角色有 `char_feat.json`（人工整理过 extras/drop/set），自定义角色没有，
+ * 于是 `appearanceFor()` 只挑得出 hair/eyes/胸部三个槽位，剩下的标签全部消失。
+ * 这里把"没有槽位可落"的标签原样交出去，由调用方拼进 body_extra。
+ */
+export function customTagsExtra(roleTrigger: string): [string[], string[], Record<string, string>] {
+  const row = charByTrigger().get(String(roleTrigger ?? "").trim().toLowerCase());
+  if (!row || String(row.src ?? "") !== "user") return [[], [], {}];
+  const slot = new Set(
+    Object.values(appearanceFor(roleTrigger)).map((value) => String(value ?? "").trim().toLowerCase()),
+  );
+  const out: string[] = [];
+  for (const raw of row.tags ?? []) {
+    const tag = String(raw ?? "").trim().toLowerCase();
+    if (!tag || tag.length > 40) continue;
+    if (slot.has(tag) || CUSTOM_CHAR_SKIP.has(tag)) continue;
+    if (!out.includes(tag)) out.push(tag);
+  }
+  return [out, [], {}];
+}
+
+let charFeatIndexCache: Map<string, Record<string, unknown>> | null = null;
+
+/** 特征表的两种 key 都建索引：**角色 tag** 与 **完整 trigger**。 */
+function charFeatIndex(): Map<string, Record<string, unknown>> {
+  if (charFeatIndexCache) return charFeatIndexCache;
+  const index = new Map<string, Record<string, unknown>>();
+  for (const [tag, rec] of Object.entries(requireWardrobeData("charFeat").feats)) {
+    if (rec && typeof rec === "object") index.set(String(tag).trim().toLowerCase(), rec as Record<string, unknown>);
+  }
+  for (const row of charactersData().characters) {
+    const tag = String(row.tag ?? "").trim().toLowerCase();
+    const trigger = String(row.trigger ?? "").trim().toLowerCase();
+    if (trigger && index.has(tag) && !index.has(trigger)) index.set(trigger, index.get(tag)!);
+  }
+  charFeatIndexCache = index;
+  return index;
+}
+
+/**
+ * 这条角色的特征标签该拼 **body_extra** 还是 **tail_extra**。
+ *
+ * 自定义角色（`src==="user"`）走 body；并进内置库的那批 `src` 变成 `manual`，
+ * 所以在 `char_feat.json` 上用 `"body": true` 标记（V6 共 16 条）。
+ */
+export function featGoesBody(roleTrigger: string): boolean {
+  if (isCustomRole(roleTrigger)) return true;
+  const rec = charFeatIndex().get(String(roleTrigger ?? "").trim().toLowerCase());
+  return Boolean(rec && rec.body);
+}
+
 export function charFeatFor(
   roleTrigger: string,
   seed?: number,
 ): [string[], string[], Record<string, string>] {
   const trig = String(roleTrigger ?? "").trim().toLowerCase();
   if (!trig) return [[], [], {}];
-  const feats = requireWardrobeData("charFeat").feats;
-  const index = new Map<string, Record<string, unknown>>();
-  for (const [tag, rec] of Object.entries(feats)) {
-    if (rec && typeof rec === "object") index.set(String(tag).trim().toLowerCase(), rec);
-  }
-  for (const c of charactersData().characters) {
-    const tag = String(c.tag ?? "").trim().toLowerCase();
-    const trigger = String(c.trigger ?? "").trim().toLowerCase();
-    if (trigger && index.has(tag) && !index.has(trigger)) index.set(trigger, index.get(tag)!);
-  }
-  const rec = index.get(trig);
-  if (!rec) return [[], [], {}];
+  const rec = charFeatIndex().get(trig);
+  if (!rec) return customTagsExtra(trig);
 
   const extras: string[] = [];
   for (const raw of (rec.extras as string[] | undefined) ?? []) {
@@ -951,6 +1101,12 @@ export function outfitRec(roleTrigger: string): import("./types").WardrobeOutfit
     const u = c.replace(/ /g, "_");
     if (!cands.includes(u)) cands.push(u);
   }
+  // v5.4.3：自定义角色的 tag 是 `user_<slug>`，面板拿 tag 查、引擎拿 trigger 查 ——
+  // 两种 key 都要能命中。
+  for (const c of [...cands]) {
+    const u = `user_${c.replace(/ /g, "_")}`;
+    if (!cands.includes(u)) cands.push(u);
+  }
   for (const c of cands) {
     const rec = data.get(c);
     if (rec) return rec;
@@ -978,43 +1134,16 @@ export function outfitItem(roleTrigger: string): import("./types").WardrobeOutfi
 }
 
 /**
- * 启用中的那套服装 → `(extra 标签, 要清空的字段, 要强设的字段)`。
+ * 启用中的那套服装 → `[extra 标签, 要清空的字段, 要强设的字段]`。
  *
- * 与 `charFeatFor()` 同一个返回形状，调用方直接合并三元组。
- * 服装 tag 基本都在词库外，只能走 extra 尾部通道。
+ * 与 `charFeatFor()` 同一个返回形状；逻辑共用 `outfitTriplet()`（服装库同一条路）。
+ * ⚠️ 判据是「有没有启用」，不是三元组空不空 —— 见 `effectiveOutfit()`。
  */
 export function outfitFor(
   roleTrigger: string,
   lv = 99,
 ): [string[], string[], Record<string, string>] {
-  const item = outfitItem(roleTrigger);
-  if (!item) return [[], [], {}];
-  const olevel = Math.trunc(Number(item.level ?? 0)) || 0;
-  if (lv < olevel) return [[], [], {}];
-
-  const extras: string[] = [];
-  for (const raw of item.tags ?? []) {
-    const tag = String(raw).trim().toLowerCase();
-    if (tag && !extras.includes(tag)) extras.push(tag);
-  }
-
-  const drops: string[] = [];
-  for (const raw of item.drop ?? OUTFIT_FIELDS) {
-    const key = String(raw).trim();
-    if (key && !drops.includes(key)) drops.push(key);
-  }
-
-  const sets: Record<string, string> = {};
-  for (const [key, raw] of Object.entries(item.fields ?? {})) {
-    const fieldKey = String(key).trim();
-    const value = String(raw).trim().toLowerCase();
-    if (!fieldKey || !value) continue;
-    if (!fieldOpts(fieldKey).size) continue;
-    if (!fieldOpts(fieldKey).has(value)) continue;
-    sets[fieldKey] = value;
-    if (!drops.includes(fieldKey)) drops.push(fieldKey);
-  }
-  return [extras, drops, sets];
+  return outfitTriplet(outfitItem(roleTrigger), lv);
 }
 
 /* ------------------------------------------------------------------ *
@@ -1057,62 +1186,5 @@ export function hasForcedSexContent(weights: WardrobeWeights): boolean {
 }
 
 /* ------------------------------------------------------------------ *
- * 多人「按人绑定」整句（v4.5.0 / v5.0.7）
+ * 多人「按人绑定」整句已迁到 duo.ts（它要同时用角色表与服装库）
  * ------------------------------------------------------------------ */
-
-function duoName(trigger: string): string {
-  const name = roleOutputName(trigger) || String(trigger ?? "").split(",")[0].trim();
-  return name.replace(/[_,;\n]+/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function duoJoin(parts: string[]): string {
-  if (parts.length < 2) return "";
-  return `${parts.join(". ")}.`.replace(/[,\n;]+/g, " ").trim();
-}
-
-/** 多位角色**各自**的外貌整句（只有一位有数据时不写）。 */
-export function duoAppearanceText(triggers: readonly string[]): string {
-  const parts: string[] = [];
-  for (const raw of triggers.slice(0, 3)) {
-    const trigger = String(raw ?? "").trim();
-    if (!trigger) continue;
-    const appearance = appearanceFor(trigger);
-    if (!Object.keys(appearance).length) continue;
-    const bits = ["hair", "eyes"].map((k) => String(appearance[k] ?? "").trim()).filter(Boolean);
-    if (!bits.length) continue;
-    parts.push(`${duoName(trigger)} has ${bits.join(" and ")}`);
-  }
-  return duoJoin(parts);
-}
-
-/** 双人时**各自**启用中的服装整句（不受 appearance_follow 控制）。 */
-export function duoOutfitText(triggers: readonly string[], lv = 99): string {
-  const parts: string[] = [];
-  for (const raw of triggers.slice(0, 3)) {
-    const trigger = String(raw ?? "").trim();
-    if (!trigger) continue;
-    const [extras] = outfitFor(trigger, lv);
-    const bits = extras.slice(0, 5).map((x) => String(x).trim()).filter(Boolean);
-    if (!bits.length) continue;
-    parts.push(`${duoName(trigger)} wears ${bits.join(" and ")}`);
-  }
-  return duoJoin(parts);
-}
-
-/** 双人时**各自**的角色固定特征整句（排除服装句已经写过的标签）。 */
-export function duoFeatText(triggers: readonly string[], seed?: number, lv = 99): string {
-  const parts: string[] = [];
-  for (const raw of triggers.slice(0, 3)) {
-    const trigger = String(raw ?? "").trim();
-    if (!trigger) continue;
-    const [extras] = charFeatFor(trigger, seed);
-    const outfitTags = new Set(outfitFor(trigger, lv)[0].map((x) => String(x).trim().toLowerCase()));
-    const bits = extras
-      .map((x) => String(x).trim())
-      .filter((x) => x && !outfitTags.has(x.toLowerCase()))
-      .slice(0, 6);
-    if (!bits.length) continue;
-    parts.push(`${duoName(trigger)} has ${bits.slice(0, 5).join(" and ")}`);
-  }
-  return duoJoin(parts);
-}

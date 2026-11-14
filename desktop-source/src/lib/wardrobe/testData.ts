@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { resetLevelIndexes } from "./levels";
 import { resetRoleIndexes } from "./characters";
 import { resetSceneIndexes } from "./scenes";
+import { resetNearCache } from "./near";
 import { resetWardrobeCache, setWardrobeData, type WardrobeDataKey, type WardrobeDataMap } from "./store";
 
 const DATA_DIR = path.resolve(
@@ -37,6 +38,7 @@ const FILES: Array<[WardrobeDataKey, string]> = [
   ["characterOutfits", "character-outfits.json"],
   ["termHints", "term-hints.json"],
   ["outfitTemplates", "outfit-templates.json"],
+  ["outfitLibrary", "outfit-library.json"],
   ["nsfwTables", "nsfw-tables.json"],
   ["overrides", "overrides.json"],
   ["outfitStyle", "outfit-style.json"],
@@ -55,6 +57,7 @@ export function primeWardrobeData(force = false): void {
   resetLevelIndexes();
   resetRoleIndexes();
   resetSceneIndexes();
+  resetNearCache();
   primed = true;
 }
 

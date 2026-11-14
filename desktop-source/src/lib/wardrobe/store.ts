@@ -19,6 +19,7 @@ import type {
   WardrobeLink,
   WardrobeManifest,
   WardrobeNsfwTables,
+  WardrobeOutfitLibrary,
   WardrobeOutfitStyle,
   WardrobeOutfitTemplates,
   WardrobeOverrides,
@@ -44,6 +45,7 @@ export type WardrobeDataKey =
   | "characterOutfits"
   | "termHints"
   | "outfitTemplates"
+  | "outfitLibrary"
   | "nsfwTables"
   | "overrides"
   | "outfitStyle"
@@ -65,6 +67,7 @@ export type WardrobeDataMap = {
   characterOutfits: WardrobeCharacterOutfits;
   termHints: WardrobeTermHints;
   outfitTemplates: WardrobeOutfitTemplates;
+  outfitLibrary: WardrobeOutfitLibrary;
   nsfwTables: WardrobeNsfwTables;
   overrides: WardrobeOverrides;
   outfitStyle: WardrobeOutfitStyle;
@@ -87,6 +90,7 @@ const FILES: Record<WardrobeDataKey, string> = {
   characterOutfits: "character-outfits.json",
   termHints: "term-hints.json",
   outfitTemplates: "outfit-templates.json",
+  outfitLibrary: "outfit-library.json",
   nsfwTables: "nsfw-tables.json",
   overrides: "overrides.json",
   outfitStyle: "outfit-style.json",
@@ -109,6 +113,7 @@ const ENGINE_KEYS: WardrobeDataKey[] = [
   "characterOutfits",
   "termHints",
   "outfitTemplates",
+  "outfitLibrary",
   "nsfwTables",
   "overrides",
   "outfitStyle",

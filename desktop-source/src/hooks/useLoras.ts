@@ -7,7 +7,7 @@ import {
   mergeLora,
   normalizeLoraManagerSettings
 } from "../lib/lora-helper";
-import { pickCardPreviewMedia } from "../lib/lora-media";
+import { isVideoPath, pickCardPreviewMedia } from "../lib/lora-media";
 import type {
   LoraItem,
   LoraInsertTarget,
@@ -586,7 +586,16 @@ export function useLoras({
 
   useEffect(() => {
     let canceled = false;
-    const missingHashes = activeLoraHashes.filter((hash) => !(hash in loraExampleFilesByHash));
+    const hashes = new Set(activeLoraHashes);
+    // 网格里以视频为预览（或没有预览）的卡片需要本地静帧兜底：
+    // LoRA Manager 的视频预览在卡片上当封面观感不可控，本地示例图里有静帧时优先用它。
+    for (const item of loraResult.items) {
+      const hash = item.sha256?.toLowerCase();
+      if (hash && (!item.preview_url || isVideoPath(item.preview_url))) {
+        hashes.add(hash);
+      }
+    }
+    const missingHashes = Array.from(hashes).filter((hash) => !(hash in loraExampleFilesByHash));
     if (missingHashes.length === 0) return;
 
     async function loadLocalExampleFiles() {
@@ -610,7 +619,7 @@ export function useLoras({
     return () => {
       canceled = true;
     };
-  }, [client, activeLoraHashes, loraExampleFilesByHash]);
+  }, [client, activeLoraHashes, loraResult.items, loraExampleFilesByHash]);
 
   useEffect(() => {
     if (tab !== "loras") return;

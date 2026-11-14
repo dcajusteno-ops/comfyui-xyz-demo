@@ -165,6 +165,8 @@ export type WardrobeCharacter = {
   tags?: string[];
   src?: string;
   thumb: string;
+  /** V6：少数手写条目的备注（如「safebooru 无角色标签，手写」），纯展示。 */
+  note?: string;
 };
 
 export type WardrobeWork = {
@@ -208,6 +210,15 @@ export type WardrobeScene = {
   role_ok?: boolean;
   /** v4.4.2：场景级自然语言（不是 tag，repair 与自检要放行整句） */
   scene_nl?: string;
+  /** V6 元数据：art 组的底色分类（纯 UI，引擎不使用） */
+  bg?: string;
+  /** V6 元数据：4 条 art 条目的自然语言句。⚠️ 与 `nl` 词库字段无关，**不许**映射成 scene_nl */
+  nl?: string;
+  /** V6 元数据：weapon 组的作品 / 武器（纯 UI，引擎不使用） */
+  work?: string;
+  work_zh?: string;
+  weapon?: string;
+  weapon_en?: string;
 };
 
 export type WardrobeScenes = {
@@ -239,6 +250,8 @@ export type WardrobeCharFeat = {
       drop_reason?: string;
       set?: Record<string, string>;
       pick?: Record<string, string[]>;
+      /** V6：true = 这批特征拼 body_extra（标签区末尾），false/缺省 = tail_extra */
+      body?: boolean;
     }
   >;
 };
@@ -305,6 +318,57 @@ export type WardrobeOutfitTemplate = {
 export type WardrobeOutfitTemplates = {
   _meta?: Record<string, unknown>;
   outfits: WardrobeOutfitTemplate[];
+};
+
+/** 全局服装库（V6：135 套 / 11 类）。条目结构与角色服装预设一致，多一个 `cat`。 */
+export type WardrobeOutfitLibraryItem = WardrobeOutfitSet & { cat: string };
+
+export type WardrobeOutfitLibraryCategory = { id: string; zh: string; desc?: string };
+
+export type WardrobeOutfitLibrary = {
+  _meta: {
+    schema?: string;
+    updated_at?: string;
+    count?: number;
+    /** 启用中的那套 id（插件里是服务端状态；本项目由 UI 状态覆盖） */
+    active?: string;
+    scene_override?: boolean;
+    overrides?: { socks?: string; shoes?: string };
+    categories?: WardrobeOutfitLibraryCategory[];
+    counts?: Record<string, number>;
+    rules?: string[];
+    [key: string]: unknown;
+  };
+  outfits: WardrobeOutfitLibraryItem[];
+};
+
+/** 服装库的用户状态（本地持久化；`active` 空 = 关闭，回到随机服装）。 */
+export type WardrobeOutfitLibraryState = {
+  active: string;
+  overrides: { socks: string; shoes: string };
+  sceneOverride: boolean;
+};
+
+/** 干爽过滤（v6.5.x）：`onlyTags` 优先于 groups（`all` / `none` / csv / `""`）。 */
+export type WardrobeDrySkinState = {
+  enabled: boolean;
+  groups: string[];
+  onlyTags: string;
+};
+
+/** 勾选池「每次运行自动随机」（v6.7.0）：姿势 / 艺术 / 特写 / 武器 四页共用。 */
+export type WardrobePickPoolState = {
+  enabled: boolean;
+  mode: "" | "pose" | "art" | "weapon" | "near";
+  ids: string[];
+};
+
+/** 特写套用前的权重快照（取消套用时整体还原）。 */
+export type WardrobeNearBase = {
+  sceneId: string;
+  weights: WardrobeWeights;
+  disabledSections: string[];
+  locks: string[];
 };
 
 /** 复杂词条的自然语言补充句：`{n_act: {"irrumatio": "整句"}}`。 */
@@ -394,12 +458,24 @@ export type WardrobeUiState = {
   rolePick: boolean;
   /** v5.0.1：是否随机抽取场景搭配（不勾 = 一条都不出） */
   scenePick: boolean;
+  /** v6.6.0：只选 1 位角色又赶上双女人数时，同作品优先自动补一位（插件默认开） */
+  duoRoleFill: boolean;
+  /** v6.5.0：成品层剔除「会加皮肤水珠」的词条 */
+  drySkin: WardrobeDrySkinState;
+  /** v6.7.0：勾选池「每次运行自动随机」 */
+  pickPool: WardrobePickPoolState;
+  /** v5.1.0：全局服装库（active / 袜鞋覆盖 / 场景覆盖） */
+  outfitLibrary: WardrobeOutfitLibraryState;
+  /** 特写套用前的快照；非空表示当前权重被收紧取景改过 */
+  nearBase?: WardrobeNearBase;
   forceRole: string;
   applyMode: WardrobeApplyMode;
   qualityPrefix: boolean;
   lastResult?: WardrobeLastResult;
   ui: {
-    view: "chars" | "scenes" | "presets";
+    view: "chars" | "outfits" | "scenes" | "presets";
+    /** 场景库二级页签：搭配（sfw+nsfw）/ 姿势 / 艺术 / 武器 / 特写 */
+    sceneTab: "pair" | "pose" | "art" | "weapon" | "near";
     expanded: string[];
     openField?: string;
     charQuery: string;
@@ -431,6 +507,25 @@ export type WardrobePreset = {
   selectedRoles: string[];
   outfitStyle: string;
   extraBody: string;
+  /**
+   * 下面这些都是**可选**：V6 之前存下来的预设没有这些键。
+   * 套用时「缺席 = 不动现值」（插件 v6.5.0 对干爽过滤就是这么规定的），
+   * 所以老预设套上去不会把新开关重置。
+   */
+  tagCap?: string;
+  baseProb?: number;
+  forceRole?: string;
+  roleWorks?: string[];
+  breastSize?: string;
+  appearanceFollow?: boolean;
+  hairFollow?: boolean;
+  roleFavOnly?: boolean;
+  rolePick?: boolean;
+  scenePick?: boolean;
+  duoRoleFill?: boolean;
+  hairPicks?: Record<string, string>;
+  drySkin?: WardrobeDrySkinState;
+  pickPool?: WardrobePickPoolState;
 };
 
 export type WardrobePresetStore = {
@@ -461,6 +556,15 @@ export type WardrobeDrawInput = {
   rolePick?: boolean;
   /** v5.0.1：True = 必抽一条场景；False = 一条都不出 */
   scenePick?: boolean;
+  /** v6.6.0：双女自动补位（默认 true，与插件一致） */
+  duoRoleFill?: boolean;
+  /** v6.5.x：干爽过滤 */
+  drySkinFilter?: boolean;
+  drySkinGroups?: string;
+  drySkinTags?: string;
+  /** v6.7.0：勾选池 —— 每次 draw 从 ids 里随机换一条（独立 RNG，不动主序列） */
+  pickPoolMode?: string;
+  pickPoolIds?: string;
   hairFollow?: boolean;
   hairPicks?: Record<string, string>;
   favorites?: string[];

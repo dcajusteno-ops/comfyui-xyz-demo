@@ -47,6 +47,57 @@ def load_package(plugin_dir: str, name: str = "awv4"):
     return pkg
 
 
+
+def apply_overlay(R, path: str) -> None:
+    """把项目的用户覆盖层套到插件角色库缓存上（与前端 charactersData 同口径）。
+
+    ⚠️ 为什么需要：V6 插件是干净重装，presets/user_characters.json 已清空，
+    而本项目保留着 V5 时代的 123 条编辑（会改 trigger / 中文名 / 发型）。
+    角色池顺序与 trigger 一变，同 seed 抽到的人就不同 —— 夹具必须按**实际
+    运行的那份数据**生成，否则对拍永远差一位。
+    """
+    if not path or not os.path.isfile(path):
+        print(f"[wardrobe-fixtures] 覆盖层不存在，按纯插件数据生成：{path}")
+        return
+    with open(path, "r", encoding="utf-8") as fh:
+        doc = json.load(fh) or {}
+    merged = R._merge_overlay(R._chars_base())
+    chars = merged.get("characters") or []
+    known = {str(row.get("tag") or "").strip().lower() for row in chars}
+    edits = doc.get("edits") or {}
+    patched = 0
+    for row in chars:
+        patch = edits.get(str(row.get("tag") or ""))
+        if not isinstance(patch, dict):
+            continue
+        for key in ("trigger", "zh", "work", "thumb", "hair", "eyes"):
+            value = patch.get(key)
+            if isinstance(value, str) and value.strip():
+                row[key] = value.strip()
+                patched += 1
+        tags = patch.get("tags")
+        if isinstance(tags, list) and tags:
+            row["tags"] = [str(t).strip().lower() for t in tags if str(t).strip()]
+    added = 0
+    for row in doc.get("custom") or []:
+        tag = str(row.get("tag") or "").strip().lower()
+        if not tag or tag in known:
+            continue
+        known.add(tag)
+        item = dict(row)
+        item.setdefault("src", "user")
+        chars.append(item)
+        added += 1
+    merged["characters"] = chars
+    R._CACHE["characters"] = merged
+    for key in ("role_options", "char_index", "char_feat_index", "role_work_index"):
+        R._CACHE.pop(key, None)
+    print(
+        f"[wardrobe-fixtures] 覆盖层：{len(edits)} 条编辑（{patched} 个字段）/ 新增 {added} 位自建角色"
+        f"，角色总数 {len(chars)}"
+    )
+
+
 def jsonable(value):
     """set/frozenset → 排序后的 list（与插件 `_jsonable()` 同口径）。
 
@@ -271,6 +322,38 @@ def build_parity(R):
         ("no-sections", dict(level="suggestive", seed=42, weights=w0, enabled_sections=["hair", "face"])),
         ("extra-body", dict(level="explicit", seed=99, weights=w0, extra_body="pointy ears, smile")),
     ])
+
+    # ── v6.7.0 新增开关：只改 draw() 的入口行为，必须同样逐字对拍 ──────
+    # 这些参数是 V6 才有的（场景必抽 / 双女补位 / 干爽过滤 / 勾选池）。
+    # 前面 107 条用例一条都没覆盖 —— 不补的话「同 seed 同结果」这句承诺
+    # 只在 V5 语义范围内成立。
+    def ids_of(group: str, n: int = 3) -> str:
+        out = [sid for sid, sc in R.scene_index().items() if sc.get("group") == group][:n]
+        return ",".join(out)
+
+    cases.extend([
+        # 场景必抽（v5.0.1 起就有，但夹具一直没测）
+        ("scene-pick-sfw", dict(level="sfw", seed=42, weights=w0, scene_pick=True)),
+        ("scene-pick-explicit", dict(level="explicit", seed=7, weights=w0, scene_pick=True)),
+        # 双女补位：开 / 关一组对照，另加「作品里只有她一位」的回退分支
+        ("duo-fill-on-2girls", dict(level="explicit", seed=5, weights=w0, selected_roles=["hatsune miku, vocaloid"], forced={"count": "2girls, yuri"})),
+        ("duo-fill-off-2girls", dict(level="explicit", seed=5, weights=w0, duo_role_fill=False, selected_roles=["hatsune miku, vocaloid"], forced={"count": "2girls, yuri"})),
+        ("duo-fill-hardcore", dict(level="hardcore", seed=13, weights=w0, selected_roles=["ganyu, genshin impact"], forced={"count": "2girls, yuri"})),
+        # 干爽过滤：按组 / 按 tag / 关掉（none）三态。
+        # ⚠️ seed 必须挑**真的抽到水珠词**、且跨多个组的那个（实测 seed=8 出
+        #    wet hair / wet cotton / rain，分属 hair / cloth / weather 三组）；
+        #    随手用 42 的话三条文本一模一样，用例等于没测。
+        ("dry-skin-off", dict(level="explicit", seed=8, weights=w0)),
+        ("dry-skin-groups", dict(level="explicit", seed=8, weights=w0, dry_skin_filter=True, dry_skin_groups="hair")),
+        ("dry-skin-tags", dict(level="explicit", seed=8, weights=w0, dry_skin_filter=True, dry_skin_tags="wet hair,rain")),
+        ("dry-skin-none", dict(level="explicit", seed=8, weights=w0, dry_skin_filter=True, dry_skin_tags="none")),
+        # 勾选池：姿势 / 特写 / 艺术；再测「id 全失效」与「用户已点名 n_canon 时不抢」
+        ("pick-pool-pose", dict(level="explicit", seed=42, weights=w0, pick_pool_mode="pose", pick_pool_ids=ids_of("pose"))),
+        ("pick-pool-near", dict(level="sfw", seed=11, weights=w0, pick_pool_mode="near", pick_pool_ids=ids_of("near"))),
+        ("pick-pool-art", dict(level="suggestive", seed=3, weights=w0, pick_pool_mode="art", pick_pool_ids=ids_of("art"))),
+        ("pick-pool-invalid", dict(level="suggestive", seed=3, weights=w0, pick_pool_mode="art", pick_pool_ids="nope_a,nope_b")),
+        ("pick-pool-yields-forced", dict(level="sfw", seed=42, weights=w0, forced={"n_canon": "sc_rain_street_lookback"}, pick_pool_mode="art", pick_pool_ids=ids_of("art"))),
+    ])
     out = []
     for name, kw in cases:
         r = R.draw(**kw)
@@ -320,6 +403,7 @@ def main():
     ap = argparse.ArgumentParser(description="生成造型台对拍夹具")
     ap.add_argument("--plugin", default=DEFAULT_PLUGIN)
     ap.add_argument("--out", default=DEFAULT_OUT)
+    ap.add_argument("--overlay", default="", help="用户覆盖层 user-characters.json（默认取项目产物）")
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
 
@@ -329,6 +413,8 @@ def main():
     load_package(plugin)
     R = importlib.import_module("awv4.anima_v4_rules")
     OS = importlib.import_module("awv4.anima_v4_outfit_style")
+    overlay = args.overlay or os.path.join(HERE, "..", "public", "data", "wardrobe", "user-characters.json")
+    apply_overlay(R, os.path.abspath(overlay))
 
     presets = os.path.join(plugin, "presets")
     with open(os.path.join(presets, "anima_v4_pools.json"), "r", encoding="utf-8") as fh:

@@ -38,16 +38,23 @@ def atomic_write_bytes(target: Path, data: bytes) -> None:
     os.replace(tmp, target)
 
 
-def optimize_thumbs(quality: int, force: bool, dry_run: bool) -> dict | None:
+def optimize_thumbs(quality: int, force: bool, dry_run: bool,
+                    only: set[str] | None = None) -> dict | None:
     if not THUMBS_DIR.exists():
         print(f"[thumbs] 跳过：{THUMBS_DIR} 不存在")
         return None
 
-    if MARKER.exists() and not force:
+    if only:
+        # 只压缩指定文件（插件升级后新增的那几十张）—— 已优化过的老图保持原样，
+        # 二次压缩会继续掉画质，所以这里刻意绕过 marker。
+        print(f"[thumbs] 只处理指定的 {len(only)} 张")
+    elif MARKER.exists() and not force:
         print(f"[thumbs] 跳过：{MARKER.name} 已存在（防止二次压缩；重跑请加 --force-thumbs）")
         return None
 
     files = sorted(THUMBS_DIR.glob("*.webp"))
+    if only:
+        files = [path for path in files if path.name in only]
     before = sum(path.stat().st_size for path in files)
     after = 0
     optimized = 0
@@ -160,17 +167,33 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="只统计，不写文件")
     parser.add_argument("--skip-thumbs", action="store_true", help="只处理 JSON")
     parser.add_argument("--skip-json", action="store_true", help="只处理缩略图")
+    parser.add_argument("--thumbs-list", default="",
+                        help="只压缩这些文件名（逗号分隔；插件升级后新增的图）")
+    parser.add_argument("--keep-marker-stats", action="store_true",
+                        help="把本次增量合并进 marker 的 thumbs 统计（别覆盖成只有新增几张）")
     args = parser.parse_args()
 
     if args.quality < 1 or args.quality > 100:
         print("quality 必须在 1-100 之间", file=sys.stderr)
         return 2
 
+    only = {name.strip() for name in args.thumbs_list.split(",") if name.strip()}
+
     print(f"项目根：{ROOT}")
     result = {"quality": args.quality, "dryRun": args.dry_run}
     if not args.skip_thumbs:
-        thumbs = optimize_thumbs(args.quality, args.force_thumbs, args.dry_run)
+        thumbs = optimize_thumbs(args.quality, args.force_thumbs, args.dry_run, only or None)
         if thumbs:
+            if args.keep_marker_stats and only and MARKER.exists():
+                try:
+                    previous = json.loads(MARKER.read_text(encoding="utf-8"))
+                    prev = previous.get("thumbs")
+                    if isinstance(prev, dict):
+                        for key in ("count", "optimized", "skipped", "beforeBytes", "afterBytes"):
+                            thumbs[key] = int(prev.get(key) or 0) + int(thumbs.get(key) or 0)
+                        thumbs["savedBytes"] = thumbs["beforeBytes"] - thumbs["afterBytes"]
+                except Exception:  # noqa: BLE001
+                    pass
             result["thumbs"] = thumbs
     if not args.skip_json:
         result["json"] = minify_json(args.dry_run)

@@ -7689,6 +7689,11 @@ html.has-wallpaper .lm-folder-sidebar {
   grid-template-rows: auto auto minmax(0, 1fr);
 }
 
+/* 干爽过滤抽屉是第 4 个子元素（header / toolbar / 抽屉 / body），必须显式补一行 */
+.layout.lora-full .wd-panel.has-dryskin {
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+}
+
 .wd-panel .panel-header {
   display: flex;
   align-items: center;
@@ -7876,6 +7881,7 @@ html.has-wallpaper .lm-folder-sidebar {
   flex-direction: column;
   min-height: 0;
   gap: 10px;
+  overflow: hidden;
 }
 
 .wd-advanced {
@@ -8559,6 +8565,11 @@ html.has-wallpaper .lm-folder-sidebar {
 }
 
 .wd-scene-groups {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-width: 0;
+  max-width: 100%;
+  scrollbar-width: thin;
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
@@ -8767,7 +8778,10 @@ html.has-wallpaper .lm-folder-sidebar {
 }
 
 .wd-result {
-  flex: 0 0 auto;
+  /* 结果区可收缩：二级页签 + 勾选池让正文工具条变高，720p 下不能把卡片区挤没 */
+  flex: 0 1 auto;
+  max-height: 34%;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -10771,4 +10785,927 @@ button:disabled {
 .wd-outfit-hint {
   font-size: 11px;
   color: var(--muted);
+}
+
+
+/* ------------------------------------------------------------------ *
+ * V6：两级页签 / 服装库 / 干爽过滤 / 勾选池 / 特写
+ * ------------------------------------------------------------------ */
+
+.wd-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 0;
+  flex-wrap: wrap;
+}
+
+.wd-subtab {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.wd-subtab:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.wd-subtab.is-on {
+  background: var(--accent-soft, rgba(120, 160, 255, 0.16));
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.wd-muted {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.wd-dryskin-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.wd-dryskin-toggle.is-on {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.wd-dryskin {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wd-dryskin-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wd-dryskin-head .wd-icon-btn {
+  margin-left: auto;
+}
+
+.wd-dryskin-groups {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wd-dryskin-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.wd-pickpool {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-pickpool-hint {
+  color: var(--warning, #e8c98a);
+}
+
+.wd-scene-card.is-picked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.wd-scene-pickbox {
+  margin-left: auto;
+  accent-color: var(--accent);
+}
+
+.wd-scene-slim {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-outfit-lib {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.wd-outfit-lib-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.wd-outfit-lib-rules {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-outfit-lib-overrides {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wd-outfit-lib-cats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wd-outfit-lib-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.wd-outfit-lib-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--surface-solid, rgba(255, 255, 255, 0.02));
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.wd-outfit-lib-card:hover {
+  border-color: var(--accent);
+}
+
+.wd-outfit-lib-card.is-on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.wd-outfit-lib-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.wd-outfit-lib-head em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.wd-outfit-lib-on {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--warning, #e8c98a);
+  font-size: 11px;
+}
+
+.wd-outfit-lib-note,
+.wd-outfit-lib-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+
+/* v6.7.0：工具条不再 sticky —— 面板现在多了二级页签/勾选池，正文可视高度更小，
+   sticky 头会盖住第一排卡片（Playwright 点击会被拦截）。列表本身可滚，够用。 */
+.wd-chars-toolbar,
+.wd-scenes-toolbar {
+  position: static;
+}
+
+/* ================================================================== *
+ * 造型台 UI 精修（v0.8.6）
+ *  - 服装库：固定头部 + 内部滚动卡片网格（原来整块跟着面板滚，
+ *    且 .wd-search 的 flex-basis 在纵向 flex 里变成 190px 高 → 一块空白）
+ *  - 结果区 / 页签 / 工具条：补视觉层级与一致间距
+ * ================================================================== */
+
+.wd-outfit-lib {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.wd-outfit-lib > * {
+  flex: 0 0 auto;
+}
+
+/* 关键修复：横向工具条里的 flex: 1 1 190px，在纵向 flex 容器里会变成高度 */
+.wd-outfit-lib .wd-search {
+  flex: 0 0 28px;
+  width: 100%;
+}
+
+.wd-outfit-lib-state {
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+}
+
+.wd-outfit-lib-state.is-on {
+  border-color: var(--accent);
+  background: linear-gradient(0deg, var(--accent-soft), var(--accent-soft)), var(--surface-alt);
+}
+
+.wd-lib-hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.wd-lib-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.wd-lib-hero-text strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wd-lib-hero-text span {
+  font-size: 10.5px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wd-lib-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.wd-lib-close:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.wd-lib-total {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-solid, var(--surface));
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wd-lib-close + .wd-lib-total {
+  margin-left: 0;
+}
+
+.wd-lib-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wd-lib-cats {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.wd-lib-cats .wd-scene-group {
+  flex: 0 0 auto;
+}
+
+.wd-lib-fine-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.wd-lib-fine-btn:hover,
+.wd-lib-fine-btn.is-on {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.wd-lib-fine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  background: var(--surface-alt);
+}
+
+.wd-lib-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-lib-rule {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.wd-lib-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wd-lib-toolbar .wd-search {
+  flex: 1 1 auto;
+  height: 28px;
+}
+
+.wd-lib-hint {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 卡片改双列网格：866px 宽下单列会浪费一半横向空间 */
+.wd-outfit-lib-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  align-content: start;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+.wd-outfit-lib-card {
+  gap: 5px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: var(--surface-alt);
+  transition: border-color 0.14s, background 0.14s, transform 0.14s;
+}
+
+.wd-outfit-lib-card:hover {
+  border-color: var(--accent);
+  background: var(--surface-solid, var(--surface));
+}
+
+.wd-outfit-lib-card.is-on {
+  border-color: var(--accent);
+  background: linear-gradient(0deg, var(--accent-soft), var(--accent-soft)), var(--surface-alt);
+  box-shadow: none;
+}
+
+.wd-lib-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wd-lib-card-top b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.wd-lib-cat {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.wd-lib-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 17px;
+}
+
+.wd-lib-card-note {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--muted);
+  opacity: 0.88;
+}
+
+.wd-lib-more {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wd-outfit-lib .wd-empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ---- 结果区：元信息改徽章，正文更好扫 ---- */
+
+.wd-result-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.wd-result-chip {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-solid, var(--surface));
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wd-result-chip.is-accent {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.wd-result-text {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.wd-result-actions {
+  gap: 6px;
+}
+
+/* ---- 一级页签：图标 + 紧凑 ---- */
+
+.wd-view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+}
+
+.wd-view-tab svg {
+  opacity: 0.75;
+}
+
+.wd-view-tab.is-on svg {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.wd-subtab em {
+  margin-left: 4px;
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.wd-subtab.is-on em {
+  color: var(--accent);
+}
+
+/* ---- 工具条：分组 + 分隔线，主次更清楚 ---- */
+
+.wd-toolbar {
+  gap: 10px 14px;
+}
+
+.wd-toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wd-toolbar-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+}
+
+.wd-toolbar .wd-tool > span,
+.wd-toolbar .wd-tool {
+  white-space: nowrap;
+}
+
+.wd-dryskin-toggle {
+  margin-left: auto;
+}
+
+.wd-result-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wd-result-actions {
+  gap: 8px;
+}
+
+/* 分类条独占一行（微调按钮挪到搜索行），末尾留淡出提示可横向滚动 */
+.wd-lib-bar {
+  display: block;
+}
+
+.wd-lib-cats {
+  width: 100%;
+  padding-right: 8px;
+  mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+}
+
+.wd-lib-toolbar .wd-lib-fine-btn {
+  flex: 0 0 auto;
+}
+
+/* ---- 场景卡片压缩：768p 下也要露出「套用」按钮 ---- */
+
+.wd-scene-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.wd-scene-filter .al-select {
+  min-width: 128px;
+}
+
+.wd-scene-card {
+  gap: 4px;
+  padding: 7px 8px;
+}
+
+.wd-scene-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.wd-scene-tags {
+  gap: 3px;
+  max-height: 17px;
+  overflow: hidden;
+}
+
+.wd-scene-foot {
+  gap: 6px;
+  margin-top: 1px;
+}
+
+.wd-scene-theme {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 55%;
+  font-size: 10px;
+}
+
+.wd-scene-flags {
+  font-size: 9.5px;
+}
+
+.wd-apply-scene {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 10.5px;
+}
+
+.wd-scene-slim {
+  margin-top: 2px;
+  font-size: 10px;
+}
+
+/* 正文区给卡片留够高度；结果区可收缩 */
+.wd-view-body {
+  min-height: 200px;
+}
+
+.wd-result {
+  max-height: 32%;
+}
+
+/* 服装库整体内边距：不要贴死 view-body 边框（分类条/微调按钮容易被裁） */
+.wd-outfit-lib {
+  padding: 10px 12px 8px;
+  box-sizing: border-box;
+}
+
+.wd-outfit-lib-list {
+  padding-right: 2px;
+}
+
+/* 结果区：给按钮行留够高度，正文可滚动 */
+.wd-result {
+  max-height: 38%;
+}
+
+.wd-result-text {
+  min-height: 60px;
+  max-height: 140px;
+}
+
+/* 未抽过时结果区收成一条，把高度让给列表 */
+.wd-result.is-empty {
+  max-height: none;
+  padding: 8px 10px;
+}
+
+.wd-result-empty-hint {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+/* 分类条：贴边淡出（mask 在深色下没有视觉提示，改成覆盖式渐变） */
+.wd-lib-bar {
+  position: relative;
+}
+
+.wd-lib-bar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 2px;
+  width: 26px;
+  background: linear-gradient(90deg, transparent, var(--surface) 72%);
+  pointer-events: none;
+}
+
+.wd-lib-cats {
+  mask-image: none;
+}
+
+.wd-lib-cats .wd-scene-group {
+  padding: 3px 8px;
+  font-size: 10.5px;
+}
+
+/* 服装库卡片：标签 / 备注再大 0.5px，9.5 太小 */
+.wd-outfit-lib .wd-scene-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.wd-outfit-lib-state {
+  padding: 8px 10px;
+}
+
+.wd-lib-hero-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* 场景卡片：套用按钮移到标题行（特写页卡片被压矮时也点得到） */
+.wd-scene-head {
+  gap: 5px;
+}
+
+.wd-scene-head .wd-apply-scene {
+  flex: 0 0 auto;
+  height: 21px;
+  padding: 0 7px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.wd-scene-head .wd-apply-scene:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.wd-scene-pickbox {
+  margin-left: 0;
+}
+
+.wd-scene-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  max-height: 14px;
+  font-size: 9.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.wd-scene-meta > span,
+.wd-scene-meta > em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wd-scene-meta em {
+  flex: 0 0 auto;
+  font-style: normal;
+  padding: 0 4px;
+  border: 1px dashed color-mix(in srgb, var(--warning, #f59e0b) 45%, transparent);
+  border-radius: 4px;
+  color: var(--warning, #f59e0b);
+}
+
+.wd-scene-meta {
+  max-height: 18px;
+}
+
+.wd-scene-meta .wd-scene-aspect-badge {
+  width: 16px;
+  height: 14px;
+  font-size: 9px;
+  flex: 0 0 auto;
+}
+
+/* 结果区可收起：收起后列表拿回高度，只留标题与元信息 */
+.wd-result-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.wd-result-toggle:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.wd-result-toggle svg {
+  transition: transform 0.16s;
+}
+
+.wd-result-toggle svg.is-collapsed {
+  transform: rotate(-90deg);
+}
+
+.wd-result.is-collapsed {
+  max-height: none;
+}
+
+.wd-result.is-collapsed .wd-result-meta {
+  opacity: 0.75;
+}
+
+.wd-result.is-collapsed > :not(.wd-result-head) {
+  display: none;
+}
+
+.wd-result-head {
+  flex-wrap: nowrap;
+}
+
+.wd-result-meta {
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.wd-result-toggle {
+  flex: 0 0 auto;
+  margin-left: 6px;
+}
+
+.wd-result-toggle {
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+/* 干爽过滤：19 条逐条可控（v6.5.2 对齐）—— 未选是描边，已选是实心 */
+.wd-dryskin-tag {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10.5px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.wd-dryskin-tag:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.wd-dryskin-tag.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.wd-dryskin-items {
+  gap: 5px;
+  max-height: 76px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }

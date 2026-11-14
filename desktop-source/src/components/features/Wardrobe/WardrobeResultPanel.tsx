@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Copy, LayoutList, Plus, Replace, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, Copy, LayoutList, Plus, Replace, Sparkles } from "lucide-react";
 import { toApplyText } from "../../../lib/wardrobe/text";
 import type { AnimaApplyMode } from "../../../lib/anima/types";
 
@@ -40,18 +40,48 @@ export function WardrobeResultPanel({
   // eslint-disable-next-line react-hooks/set-state-in-effect -- 外部文本变化时同步草稿
   useEffect(() => setDraft(text), [text]);
 
+  const [collapsed, setCollapsed] = useState(false);
   const output = toApplyText(draft, qualityPrefix);
   const disabled = !output;
+  const dirty = draft !== text;
+
+  // 还没抽过：结果区只占一条，把高度让给角色 / 场景 / 服装列表
+  if (!text) {
+    return (
+      <div className="wd-result is-empty">
+        <div className="wd-result-head">
+          <span className="wd-result-title">
+            <Sparkles size={14} /> 抽取结果
+          </span>
+          <span className="wd-result-empty-hint">点右上「抽一次」生成正文；也可以先选角色 / 套场景</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="wd-result">
+    <div className={`wd-result${collapsed ? " is-collapsed" : ""}`}>
       <div className="wd-result-head">
         <span className="wd-result-title">
           <Sparkles size={14} /> 抽取结果
         </span>
         <span className="wd-result-meta">
-          L{levelNum} · {tagCount} 标签 · {cap ? `cap ${cap}` : "cap 自动"} · seed {seed}
+          <span className="wd-result-chip">L{levelNum}</span>
+          <span className="wd-result-chip">{tagCount} 标签</span>
+          <span className="wd-result-chip">{cap ? `cap ${cap}` : "cap 自动"}</span>
+          <span className="wd-result-chip">seed {seed}</span>
+          {dirty && <span className="wd-result-chip is-accent">已手改</span>}
         </span>
+        <button
+          type="button"
+          className="wd-result-toggle"
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-label={collapsed ? "展开抽取结果" : "收起抽取结果"}
+          aria-expanded={!collapsed}
+          title={collapsed ? "展开（给上面的列表腾地方）" : "收起（只看列表）"}
+        >
+          <ChevronDown size={13} className={collapsed ? "is-collapsed" : ""} />
+        </button>
       </div>
       <textarea
         className="wd-result-text"
@@ -69,24 +99,26 @@ export function WardrobeResultPanel({
           />
           加画质前缀
         </label>
-        <button type="button" className="secondary-action" disabled={disabled} onClick={() => onCopy(output)}>
-          <Copy size={14} /> 复制
-        </button>
-        <button type="button" className="secondary-action" disabled={disabled} onClick={() => onApply(output, "append")}>
-          <Plus size={14} /> 追加
-        </button>
-        <button type="button" className="secondary-action" disabled={disabled} onClick={() => onApply(output, "replace")}>
-          <Replace size={14} /> 替换
-        </button>
-        <button
-          type="button"
-          className="secondary-action"
-          disabled={disabled}
-          onClick={onToWorkbench}
-          title="拆进公共工作台（与 Anima 词库共用），可在那里补画师后再写入"
-        >
-          <LayoutList size={14} /> 工作台
-        </button>
+        <span className="wd-result-btns">
+          <button type="button" className="secondary-action" disabled={disabled} onClick={() => onCopy(output)}>
+            <Copy size={14} /> 复制
+          </button>
+          <button type="button" className="secondary-action" disabled={disabled} onClick={() => onApply(output, "append")}>
+            <Plus size={14} /> 追加
+          </button>
+          <button type="button" className="secondary-action" disabled={disabled} onClick={() => onApply(output, "replace")}>
+            <Replace size={14} /> 替换
+          </button>
+          <button
+            type="button"
+            className="secondary-action"
+            disabled={disabled}
+            onClick={onToWorkbench}
+            title="拆进公共工作台（与 Anima 词库共用），可在那里补画师后再写入"
+          >
+            <LayoutList size={14} /> 工作台
+          </button>
+        </span>
         <button type="button" className="primary-action" onClick={onOpenAnima}>
           <ArrowRight size={14} /> 去 Anima 生图
         </button>

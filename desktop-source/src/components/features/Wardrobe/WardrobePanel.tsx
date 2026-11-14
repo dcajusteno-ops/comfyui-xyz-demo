@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Dice5, Loader2, Play, RefreshCw, Shirt, Sparkles } from "lucide-react";
+import { Bookmark, Dice5, Film, Loader2, Play, RefreshCw, Shirt, Sparkles, Users } from "lucide-react";
 import { PanelTitle } from "../../ui";
 import type { Toast } from "../../../types";
 import type { AnimaApplyMode } from "../../../lib/anima/types";
@@ -11,7 +11,9 @@ import { styleChoices } from "../../../lib/wardrobe/outfitStyle";
 import { hairPickOptions } from "../../../lib/wardrobe/characters";
 import { setLevel, setUi } from "../../../lib/wardrobe/state";
 import { splitWardrobeToWorkbench } from "../../../lib/wardrobe/workbench";
+import { sceneList } from "../../../lib/wardrobe/scenes";
 import { applyOutfitOverlay } from "../../../lib/wardrobe/outfits";
+import { applyLibraryOverlay } from "../../../lib/wardrobe/outfitLibrary";
 import {
   WARDROBE_BREAST_SIZES,
   WARDROBE_HAIR_PICKS,
@@ -23,6 +25,8 @@ import type { WardrobeDrawResult, WardrobeWorkbenchSplit } from "../../../lib/wa
 import { WardrobeTree } from "./WardrobeTree";
 import { WardrobeCharacterLibrary } from "./WardrobeCharacterLibrary";
 import { WardrobeSceneLibrary } from "./WardrobeSceneLibrary";
+import { WardrobeOutfitLibrary } from "./WardrobeOutfitLibrary";
+import { WardrobeDrySkinBar } from "./WardrobeDrySkinBar";
 import { WardrobePresetBar } from "./WardrobePresetBar";
 import { WardrobeResultPanel } from "./WardrobeResultPanel";
 import { AnimaSelect } from "../AnimaLibrary/AnimaSelect";
@@ -71,11 +75,17 @@ export function WardrobePanel({
   const data = useWardrobeData();
   const wardrobe = useWardrobe(pushToast);
   const [result, setResult] = useState<WardrobeDrawResult | null>(null);
+  const [showDry, setShowDry] = useState(false);
 
   // 服装预设覆盖层要在数据就绪后合并进引擎（否则读不到 character-outfits.json）
   useEffect(() => {
     if (data.ready) applyOutfitOverlay(wardrobe.outfits);
   }, [data.ready, wardrobe.outfits]);
+
+  // 全局服装库的 active / 袜鞋覆盖 / 场景覆盖同样在数据就绪后灌进引擎
+  useEffect(() => {
+    if (data.ready) applyLibraryOverlay(wardrobe.state.outfitLibrary);
+  }, [data.ready, wardrobe.state.outfitLibrary]);
 
   const state = wardrobe.state;
   const lv = LEVEL_NUM[state.level] ?? 0;
@@ -101,6 +111,17 @@ export function WardrobePanel({
       };
 
   const outfitTemplates = () => getWardrobeData("outfitTemplates")?.outfits ?? [];
+
+  // 二级页签的条数：数据就绪后算一次（524 条，成本可忽略）
+  const sceneCounts = useMemo(() => {
+    const counts = { pair: 0, pose: 0, art: 0, weapon: 0, near: 0 } as Record<string, number>;
+    if (!data.ready) return counts;
+    for (const scene of sceneList()) {
+      if (scene.group === "sfw" || scene.group === "nsfw") counts.pair += 1;
+      else if (scene.group in counts) counts[scene.group] += 1;
+    }
+    return counts;
+  }, [data.ready]);
 
   const outfitOptions = useMemo(
     () => (data.ready ? styleChoices().map((choice) => ({ value: choice, label: choice })) : []),
@@ -188,7 +209,7 @@ export function WardrobePanel({
   };
 
   return (
-    <div className="wd-panel panel">
+    <div className={`wd-panel panel${showDry ? " has-dryskin" : ""}`}>
       <div className="panel-header wd-header">
         <PanelTitle icon={Shirt} title="Anima 造型台" />
         <div className="wd-level-bar" role="group" aria-label="档位">
@@ -234,84 +255,120 @@ export function WardrobePanel({
       </div>
 
       <div className="wd-toolbar">
-        <label className="wd-tool">
-          标签上限
-          <AnimaSelect
-            value={state.tagCap}
-            options={WARDROBE_TAG_CAPS.map((cap) => ({ value: cap, label: cap }))}
-            onChange={(value) => wardrobe.setState((prev) => ({ ...prev, tagCap: value }))}
-            ariaLabel="标签上限"
-            size="sm"
-          />
-        </label>
-        <label className="wd-tool">
-          基础概率
-          <input
-            type="number"
-            min={0.05}
-            max={1}
-            step={0.05}
-            value={state.baseProb}
-            onChange={(event) =>
-              wardrobe.setState((prev) => ({ ...prev, baseProb: Number(event.target.value) || 0.65 }))
-            }
-          />
-        </label>
-        <label className="wd-tool">
-          服装风格
-          <AnimaSelect
-            value={state.outfitStyle}
-            options={outfitOptions}
-            onChange={(value) => wardrobe.setState((prev) => ({ ...prev, outfitStyle: value }))}
-            ariaLabel="服装风格"
-            size="sm"
-          />
-        </label>
-        <label className="wd-tool">
-          胸部
-          <AnimaSelect
-            value={state.breastSize}
-            options={WARDROBE_BREAST_SIZES.map((value) => ({ value, label: value }))}
-            onChange={(value) => wardrobe.setState((prev) => ({ ...prev, breastSize: value }))}
-            ariaLabel="胸部大小"
-            size="sm"
-          />
-        </label>
-        <label className="wd-mini-check">
-          <input
-            type="checkbox"
-            checked={state.appearanceFollow}
-            onChange={(event) =>
-              wardrobe.setState((prev) => ({ ...prev, appearanceFollow: event.target.checked }))
-            }
-          />
-          外貌对齐
-        </label>
-        <label className="wd-mini-check">
-          <input
-            type="checkbox"
-            checked={state.hairFollow}
-            onChange={(event) => wardrobe.setState((prev) => ({ ...prev, hairFollow: event.target.checked }))}
-          />
-          发型对齐
-        </label>
-        <label className="wd-mini-check">
-          <input
-            type="checkbox"
-            checked={state.roleFavOnly}
-            onChange={(event) => wardrobe.setState((prev) => ({ ...prev, roleFavOnly: event.target.checked }))}
-          />
-          角色仅收藏
-        </label>
-        <label className="wd-mini-check" title="勾上 = 这一抽完全不抽角色（手填/已选也一并让路）">
-          <input
-            type="checkbox"
-            checked={!state.rolePick}
-            onChange={(event) => wardrobe.setState((prev) => ({ ...prev, rolePick: !event.target.checked }))}
-          />
-          不指定角色
-        </label>
+        <div className="wd-toolbar-group">
+          <label className="wd-tool">
+            标签上限
+            <AnimaSelect
+              value={state.tagCap}
+              options={WARDROBE_TAG_CAPS.map((cap) => ({ value: cap, label: cap }))}
+              onChange={(value) => wardrobe.setState((prev) => ({ ...prev, tagCap: value }))}
+              ariaLabel="标签上限"
+              size="sm"
+            />
+          </label>
+          <label className="wd-tool">
+            基础概率
+            <input
+              type="number"
+              min={0.05}
+              max={1}
+              step={0.05}
+              value={state.baseProb}
+              onChange={(event) =>
+                wardrobe.setState((prev) => ({ ...prev, baseProb: Number(event.target.value) || 0.65 }))
+              }
+            />
+          </label>
+        </div>
+
+        <span className="wd-toolbar-sep" aria-hidden="true" />
+
+        <div className="wd-toolbar-group">
+          <label className="wd-tool">
+            服装风格
+            <AnimaSelect
+              value={state.outfitStyle}
+              options={outfitOptions}
+              onChange={(value) => wardrobe.setState((prev) => ({ ...prev, outfitStyle: value }))}
+              ariaLabel="服装风格"
+              size="sm"
+            />
+          </label>
+          <label className="wd-tool">
+            胸部
+            <AnimaSelect
+              value={state.breastSize}
+              options={WARDROBE_BREAST_SIZES.map((value) => ({ value, label: value }))}
+              onChange={(value) => wardrobe.setState((prev) => ({ ...prev, breastSize: value }))}
+              ariaLabel="胸部大小"
+              size="sm"
+            />
+          </label>
+        </div>
+
+        <span className="wd-toolbar-sep" aria-hidden="true" />
+
+        <div className="wd-toolbar-group">
+          <label className="wd-mini-check">
+            <input
+              type="checkbox"
+              checked={state.appearanceFollow}
+              onChange={(event) =>
+                wardrobe.setState((prev) => ({ ...prev, appearanceFollow: event.target.checked }))
+              }
+            />
+            外貌对齐
+          </label>
+          <label className="wd-mini-check">
+            <input
+              type="checkbox"
+              checked={state.hairFollow}
+              onChange={(event) => wardrobe.setState((prev) => ({ ...prev, hairFollow: event.target.checked }))}
+            />
+            发型对齐
+          </label>
+          <label className="wd-mini-check">
+            <input
+              type="checkbox"
+              checked={state.roleFavOnly}
+              onChange={(event) => wardrobe.setState((prev) => ({ ...prev, roleFavOnly: event.target.checked }))}
+            />
+            角色仅收藏
+          </label>
+          <label className="wd-mini-check" title="勾上 = 这一抽完全不抽角色（手填/已选也一并让路）">
+            <input
+              type="checkbox"
+              checked={!state.rolePick}
+              onChange={(event) => wardrobe.setState((prev) => ({ ...prev, rolePick: !event.target.checked }))}
+            />
+            不指定角色
+          </label>
+          <label className="wd-mini-check" title="只选 1 位角色又赶上双女人数时，同作品优先自动补一位（插件 V6 默认开）">
+            <input
+              type="checkbox"
+              checked={state.duoRoleFill}
+              onChange={(event) => wardrobe.setDuoRoleFill(event.target.checked)}
+            />
+            双女补位
+          </label>
+        </div>
+
+        <button
+          type="button"
+          className={`wd-dryskin-toggle${state.drySkin.enabled ? " is-on" : ""}`}
+          onClick={() => setShowDry((prev) => !prev)}
+          title="成品层剔除会加皮肤水珠的词条（默认关，关闭时零影响）"
+        >
+          <Sparkles size={13} /> 干爽过滤{state.drySkin.enabled ? " · 开" : ""}
+        </button>
       </div>
+      {showDry && (
+        <WardrobeDrySkinBar
+          state={state}
+          onClose={() => setShowDry(false)}
+          onChange={(patch) => wardrobe.setDrySkin(patch)}
+        />
+      )}
 
       <div className="wd-body">
         <aside className="wd-left">
@@ -361,17 +418,19 @@ export function WardrobePanel({
           <div className="wd-view-bar">
             {(
               [
-                ["chars", "角色库"],
-                ["scenes", "场景库"],
-                ["presets", "预设"],
+                ["chars", "角色库", Users],
+                ["outfits", "服装库", Shirt],
+                ["scenes", "场景", Film],
+                ["presets", "预设", Bookmark],
               ] as const
-            ).map(([view, label]) => (
+            ).map(([view, label, Icon]) => (
               <button
                 key={view}
                 type="button"
                 className={`wd-view-tab${state.ui.view === view ? " is-on" : ""}`}
                 onClick={() => wardrobe.setState((prev) => setUi(prev, { view }))}
               >
+                <Icon size={13} />
                 {label}
               </button>
             ))}
@@ -379,6 +438,30 @@ export function WardrobePanel({
               <Sparkles size={12} /> {state.lastResult ? "上一轮结果在下方" : "选角色 / 套场景后抽一次"}
             </span>
           </div>
+          {state.ui.view === "scenes" && (
+            <div className="wd-subtabs">
+              {(
+                [
+                  ["pair", "搭配"],
+                  ["pose", "姿势"],
+                  ["art", "艺术"],
+                  ["weapon", "武器"],
+                  ["near", "特写"],
+                ] as const
+              ).map(([tab, label]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  className={`wd-subtab${state.ui.sceneTab === tab ? " is-on" : ""}`}
+                  onClick={() => wardrobe.setState((prev) => setUi(prev, { sceneTab: tab }))}
+                  title={tab === "pair" ? "档位分组（sfw / nsfw）" : "勾选后随机 / 手动套用"}
+                >
+                  {label}
+                  <em>{sceneCounts[tab] ?? 0}</em>
+                </button>
+              ))}
+            </div>
+          )}
           <div className="wd-view-body">
             {state.ui.view === "chars" && (
               <WardrobeCharacterLibrary
@@ -397,14 +480,33 @@ export function WardrobePanel({
                 onEnableOutfit={wardrobe.toggleOutfit}
               />
             )}
+            {state.ui.view === "outfits" && (
+              <WardrobeOutfitLibrary
+                state={state}
+                onToggleActive={wardrobe.toggleLibraryActive}
+                onOverride={wardrobe.setLibraryOverride}
+                onSceneOverride={wardrobe.setLibrarySceneOverride}
+              />
+            )}
             {state.ui.view === "scenes" && (
               <WardrobeSceneLibrary
                 state={state}
                 setState={wardrobe.setState}
                 favorites={wardrobe.favoriteScenes}
+                tab={state.ui.sceneTab}
                 onToggleFavorite={wardrobe.toggleFavoriteScene}
                 onApply={wardrobe.applyScene}
                 onClear={wardrobe.clearScene}
+                onApplyNear={wardrobe.applyNearScene}
+                onRestoreNear={wardrobe.restoreNear}
+                onSetPickMode={wardrobe.setPickPoolMode}
+                onTogglePick={wardrobe.togglePickPoolId}
+                onSelectPickAll={(ids) => {
+                  for (const id of ids) {
+                    if (!state.pickPool.ids.includes(id)) wardrobe.togglePickPoolId(id);
+                  }
+                }}
+                onClearPick={wardrobe.clearPickPool}
               />
             )}
             {state.ui.view === "presets" && (

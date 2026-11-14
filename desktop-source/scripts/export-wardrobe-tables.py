@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""把 Comfyui-Anima-Wardrobe-V5 的「语义知识表」导出为前端可读 JSON。
+"""把 Comfyui-Anima-Wardrobe 插件的「语义知识表」导出为前端可读 JSON（V6.7.0）。
 
 为什么单独导出而不是手抄：
   anima_v4_nsfw.py（16 类判定表）、anima_v4_overrides.py（34 条降档 + 48 条抬档）、
@@ -112,7 +112,7 @@ def level_pair_records(table: dict):
     return rows
 
 
-def build_nsfw(N, version: str):
+def build_nsfw(N, version: str, plugin_name: str):
     tables = {}
     for key, val in N.NSFW_TABLES.items():
         tables[key] = {
@@ -124,7 +124,7 @@ def build_nsfw(N, version: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/nsfw-tables@1",
-            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_nsfw.py",
+            "source": f"{plugin_name}/anima_v4_nsfw.py",
             "pluginVersion": version,
         },
         "levels": list(N.LEVELS),
@@ -152,11 +152,11 @@ def build_nsfw(N, version: str):
     }
 
 
-def build_overrides(OV, version: str):
+def build_overrides(OV, version: str, plugin_name: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/overrides@1",
-            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_overrides.py",
+            "source": f"{plugin_name}/anima_v4_overrides.py",
             "pluginVersion": version,
         },
         "sectionFloor": json_safe(OV.SECTION_FLOOR),
@@ -165,11 +165,11 @@ def build_overrides(OV, version: str):
     }
 
 
-def build_outfit_style(OS, version: str):
+def build_outfit_style(OS, version: str, plugin_name: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/outfit-style@1",
-            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_outfit_style.py",
+            "source": f"{plugin_name}/anima_v4_outfit_style.py",
             "pluginVersion": version,
         },
         "styles": [{"key": row[0], "zh": row[1]} for row in OS.STYLES],
@@ -207,11 +207,11 @@ def build_outfit_style(OS, version: str):
     }
 
 
-def build_link(L, version: str):
+def build_link(L, version: str, plugin_name: str):
     return {
         "_meta": {
             "schema": f"{SCHEMA_PREFIX}/link@1",
-            "source": "Comfyui-Anima-Wardrobe-V5/anima_v4_link.py",
+            "source": f"{plugin_name}/anima_v4_link.py",
             "pluginVersion": version,
         },
         "actPosBan": {key: sorted_set(val) for key, val in L.ACT_POS_BAN.items()},
@@ -253,12 +253,14 @@ def main():
     OS = importlib.import_module("awv4.anima_v4_outfit_style")
     L = importlib.import_module("awv4.anima_v4_link")
     version = plugin_version(plugin)
+    # 出处用目录名，避免插件换大版本时 _meta 说谎
+    plugin_name = os.path.basename(plugin.rstrip(os.sep))
 
     payloads = {
-        "nsfw-tables.json": build_nsfw(N, version),
-        "overrides.json": build_overrides(OV, version),
-        "outfit-style.json": build_outfit_style(OS, version),
-        "link.json": build_link(L, version),
+        "nsfw-tables.json": build_nsfw(N, version, plugin_name),
+        "overrides.json": build_overrides(OV, version, plugin_name),
+        "outfit-style.json": build_outfit_style(OS, version, plugin_name),
+        "link.json": build_link(L, version, plugin_name),
     }
 
     for name, payload in payloads.items():

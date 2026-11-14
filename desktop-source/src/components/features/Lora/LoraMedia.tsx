@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { Eye, EyeOff, Layers } from "lucide-react";
 import type { LoraExampleMedia, LoraManagerSettings } from "../../../types";
@@ -44,6 +44,23 @@ export const LoraMedia = memo(({
     onRevealChange?.(revealed);
   }, [revealed, onRevealChange]);
 
+  // 对齐 LoRA Manager 的 configureModelCardVideo：卡片封面视频不依赖 autoplay 属性，
+  // 换源/挂载后主动 play()；被播放策略拦截时静默失败（preload=metadata 仍会显示首帧）。
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    if (controls) return;
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    const tryPlay = () => {
+      const promise = video.play();
+      if (promise && typeof promise.catch === "function") promise.catch(() => undefined);
+    };
+    tryPlay();
+    video.addEventListener("loadeddata", tryPlay);
+    return () => video.removeEventListener("loadeddata", tryPlay);
+  }, [src, controls]);
+
   if (!src) {
     return <div className="lm-media-empty"><Layers size={34} /></div>;
   }
@@ -59,13 +76,14 @@ export const LoraMedia = memo(({
 
   const mediaNode = isLoraVideo(media, src) ? (
     <video
+      ref={videoRef}
       src={src}
       controls={controls}
       autoPlay={!controls}
       muted
       loop
       playsInline
-      preload="none"
+      preload="metadata"
       className={mediaClassWithOpen}
       data-nsfw-level={nsfwLevel}
     />

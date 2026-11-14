@@ -29,24 +29,28 @@ import {
   countHasPartner,
   countIsGroup,
   countSatisfies,
-  duoAppearanceText,
-  duoFeatText,
-  duoOutfitText,
   appearanceFor,
   expandRoles,
+  featGoesBody,
   forcedSexCountTarget,
   girlCountFor,
   hairStyleFor,
   hasForcedSexContent,
   isYuriCount,
-  outfitFor,
   outfitItem,
   pickRandomRoles,
+  pickDuoPartner,
   parseSelectedRoles,
+  roleShort,
   stripRoleWorks,
   termHintText,
 } from "./characters";
 import { collect } from "./collect";
+import { duoAppearanceText, duoFeatText, duoOutfitText } from "./duo";
+import { effectiveOutfit } from "./outfitLibrary";
+import { GARMENT_FIELDS } from "./outfitTriplet";
+import { nearSlimProfile, slimWeightsForNear } from "./near";
+import { stripSkinMoisture } from "./skinMoisture";
 import {
   canonLevel,
   eligibleOptions,
@@ -232,7 +236,7 @@ function enabledOrDefault(value: string[] | null | undefined): Set<string> {
 }
 
 export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
-  const weights: WardrobeWeights = input.weights ? parseWeights(input.weights) : emptyWeights();
+  let weights: WardrobeWeights = input.weights ? parseWeights(input.weights) : emptyWeights();
   let levelKey = resolveLevel(input.level ?? "suggestive");
   let lv = targetNum()[levelKey] ?? 1;
   const locks = new Set(input.locks ?? []);
@@ -242,6 +246,67 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
   const seed = seeded ? Math.trunc(Number(input.seed)) : undefined;
   const rolePick = input.rolePick !== false;
   const scenePick = input.scenePick === true;
+  const duoRoleFill = input.duoRoleFill !== false;
+  const drySkinFilter = input.drySkinFilter === true;
+  const drySkinGroups = String(input.drySkinGroups ?? "");
+  const drySkinTags = String(input.drySkinTags ?? "");
+
+  // 勾选池会清空/锁定角色，所以这两个必须在它之前就绪（纯函数，不动 RNG 序列）
+  const selectedRaw = typeof input.selectedRoles === "string"
+    ? parseSelectedRoles(input.selectedRoles)
+    : (input.selectedRoles ?? []);
+  let selectedRoles = selectedRaw.filter(Boolean);
+  let forceRole = String(input.forceRole ?? "").trim();
+
+  // ── v6.7.0：勾选池「每次运行自动随机」─────────────────────────────
+  // 勾了若干条（姿势 / 艺术 / 特写 / 武器）并打开总开关后，**每一次 draw** 从这里
+  // 换一条 —— 等价于"手动套用那一条"。必须在所有场景逻辑之前落成
+  // `forced["n_canon"]`：forced 是最高优先，scene_pick（整库随机）天然让路。
+  // ⚠️ 用户自己给了 forced["n_canon"] 时不动（显式 > 面板勾选池）。
+  // ⚠️ 用独立 RNG（seed >= 0 时同 seed 同一条），不改动主序列的抽取轨迹。
+  const pickPoolMode = String(input.pickPoolMode ?? "").trim();
+  const pickPoolIds = String(input.pickPoolIds ?? "").trim();
+  if (pickPoolMode && pickPoolIds && !("n_canon" in forced)) {
+    const ids = pickPoolIds.split(",").map((s) => s.trim()).filter(Boolean);
+    const valid = ids.filter((id) => sceneIndex().has(id));
+    if (valid.length) {
+      const prng = seeded ? new WardrobeRandom(seed!) : new WardrobeRandom();
+      const picked = valid[prng.randrange(valid.length)];
+      forced.n_canon = picked;
+      const scene = sceneIndex().get(picked);
+      const labels: Record<string, string> = { pose: "姿势库", art: "艺术构图", near: "特写搭配", weapon: "武器场景" };
+      notes.push(
+        `勾选池随机（${labels[pickPoolMode] ?? pickPoolMode} ${valid.length} 条）→ 本次抽到「${scene?.zh ?? picked}」`,
+      );
+      // 档位对齐：只升不降（否则勾选池里放 L3 特写、档位停在 sfw 会被闸门静默拦掉）
+      const needLv = Number(scene?.level ?? 0) || 0;
+      if (needLv > lv) {
+        const oldKey = levelKey;
+        lv = needLv;
+        levelKey = resolveLevel(levelKeyForNum(lv) || oldKey);
+        notes.push(
+          `勾选池：该场景要求 L${lv} → 档位已从 ${levelLabel(oldKey)} 升到 ${levelLabel(levelKey)}（只升不降）`,
+        );
+      }
+      const profile = nearSlimProfile(scene);
+      if (profile) {
+        weights = slimWeightsForNear(weights, scene ?? null);
+        notes.push(
+          `特写收紧取景：关 ${profile.sections.length} 段 / 清 ${profile.fields.length} 个字段 / 人数钉死「${
+            String(scene?.count_lock ?? "1girl, solo")
+          }」`,
+        );
+        if (profile.dropRole) {
+          selectedRoles = [];
+          forceRole = "";
+          locks.add("role");
+          notes.push("特写收紧取景：画框里没有脸 → 已清空角色并锁住 role");
+        }
+      }
+    } else {
+      notes.push("⚠️ 勾选池里的 id 全都不在场景库（可能删过）→ 本次忽略勾选池");
+    }
+  }
 
   // v5.0.1：同字段只能有一个「必现」—— 必须在 forcedPoseLevel 之前降级
   notes.push(...enforceOptionMutex(weights));
@@ -278,11 +343,6 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
   const badWeights = validateWeights(weights);
   if (badWeights.length) notes.push(...badWeights.slice(0, 6));
 
-  const selectedRaw = typeof input.selectedRoles === "string"
-    ? parseSelectedRoles(input.selectedRoles)
-    : (input.selectedRoles ?? []);
-  const selectedRoles = selectedRaw.filter(Boolean);
-  const forceRole = String(input.forceRole ?? "").trim();
   const roleFavOnly = Boolean(input.roleFavOnly);
   const favorites = input.favorites ?? [];
   const favoritesCount = favorites.length;
@@ -654,6 +714,21 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
       if (filled.length) nt.push(`已应用法典场景：${filled.join("、")}`);
     }
 
+    // ── v5.9.0：本轮场景是否带「具体衣物字段」的推荐服装 ────────────────
+    // 判据用 `_preset_fields` ∩ GARMENT_FIELDS，而不是直接查 scenes.json：
+    // applyPreset 已经过档位 / 权重 0 / 锁定 / 3.0 四道闸门，只有**本轮真的写进
+    // state** 的字段才算。必须存进 st（collectWithFeat 读不到局部变量）。
+    st._scene_has_outfit = Boolean(
+      st.n_canon &&
+        ((st._preset_fields as string[] | undefined) ?? []).some((key) => GARMENT_FIELDS.includes(key)),
+    );
+    // ── v6.6.1：场景点名不要衣服（全裸 / 换装中途）─────────────────────
+    // 只认"主体衣物"三件：只闭麦 socks/shoes/accessory 不算（沙滩赤足照样穿套装）。
+    const sceneDropFields = new Set(sceneIndex().get(String(st.n_canon ?? ""))?.drop_fields ?? []);
+    st._scene_no_outfit = Boolean(
+      st.n_canon && ["outfit", "top", "bottom"].some((key) => sceneDropFields.has(key)),
+    );
+
     // v4.2.0：报告里如实说明「点名的 3.0 是否真的进了正文」
     const forcedTags = (st._forced_tags as Array<[string, string, string]> | undefined) ?? [];
     const overrode = new Set((st._preset_overrode_forced as string[] | undefined) ?? []);
@@ -731,7 +806,46 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
     }
 
     if (triggers.length) {
-      nt.push(...applySelectedRoles(st, triggers, lv, !autoRole));
+      // ── v6.6.0：双女自动补位 ─────────────────────────────────────
+      // 「只选了 1 位角色 + 双女/多女人数」= 模型只能把同一个人画两遍。
+      // 只在开关打开时消耗 rng（关闭态零漂移）；补进来的人必须走
+      // applySelectedRoles —— 双人外貌/服装靠 `_role_triggers` 逐人绑定。
+      let duoFilled = 0;
+      if (duoRoleFill && !autoRole && triggers.length < 3) {
+        let wantG = Math.min(girlCountFor(String(st.count ?? "")), 3) - triggers.length;
+        while (wantG > 0) {
+          const [partner, mode] = pickDuoPartner(
+            passRng,
+            lv,
+            triggers[0],
+            triggers,
+            roleFavOnly,
+            worksFilter,
+            favorites,
+          );
+          if (!partner) break;
+          triggers.push(partner);
+          duoFilled += 1;
+          wantG -= 1;
+          if (mode === "same_work") {
+            nt.push(
+              `双女自动补位：同作品「${roleShort(triggers[0])}」→ 补上第二位女性 \`${roleShort(partner)}\`（避免模型把同一个人画两遍）`,
+            );
+          } else if (mode === "unknown_work") {
+            nt.push(
+              `⚠️ 双女自动补位：角色 \`${roleShort(triggers[0])}\` 不在角色库里（查不到所属作品）→ 已回退全库随机补位 \`${roleShort(partner)}\``,
+            );
+          } else {
+            nt.push(
+              `⚠️ 双女自动补位：角色 \`${roleShort(triggers[0])}\` 的作品里只有她一位女性 → 已回退全库随机补位 \`${roleShort(partner)}\`（两位可能不同世界观）`,
+            );
+          }
+        }
+      }
+      // v6.6.2：`_count_locked` 读**外层** state（第 2 轮起重试才有值）+ 刚补完位
+      // 也不改写人数（count 已写明 2girls，再改写只会替用户升语义）。
+      const countLocked = ((outerState._preset_fields as string[] | undefined) ?? []).includes("count");
+      nt.push(...applySelectedRoles(st, triggers, lv, !autoRole && !countLocked && duoFilled === 0));
       st._role_count = triggers.length;
       // v5.0.2：报告里说明「哪些角色锁了服装」
       if (!nt.some((x) => x.startsWith("已锁定服装") || x.startsWith("已启用服装"))) {
@@ -765,9 +879,6 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
 
     if (st.role) {
       if (triggers.length >= 2) {
-        // ⚠️ 与插件逐字对齐：Python 的 `_count_locked` 读的是**外层** state
-        //     （一次抽取内恒为空），所以「场景已锁人数就不改写」从未生效。
-        //     这里照抄实现，保证同 seed 同结果。
         const forcedKeys = new Set(((st._forced_tags as Array<[string, string, string]> | undefined) ?? []).map((f) => f[0]));
         const dynamic = new Set<string>((st._nl_dynamic as Set<string> | undefined) ?? []);
         const duoAppearance = appearanceFollow ? duoAppearanceText(triggers) : "";
@@ -783,17 +894,32 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
           st._appearance = "multi";
           nt.push("多位角色：已跳过外貌对齐（各自保留官方特征）");
         }
-        const duoOutfit = duoOutfitText(triggers, lv);
+        // v6.6.1：场景点名闭麦衣物时双人也让路（与单人同一判据）
+        const sceneHasOutfit = Boolean(st._scene_has_outfit);
+        const sceneNoOutfit = Boolean(st._scene_no_outfit);
+        const duoOutfit = sceneNoOutfit ? "" : duoOutfitText(triggers, lv, sceneHasOutfit);
+        if (sceneNoOutfit && triggers.slice(0, 3).some((t) => outfitItem(t)) &&
+            !nt.some((n) => n.includes("角色服装预设让路"))) {
+          nt.push("角色服装预设让路：本场景点名闭麦衣物（全裸 / 换装中），双人也按此处理");
+        }
         if (duoOutfit) {
           st._duo_outfit = duoOutfit;
           dynamic.add(duoOutfit.trim().toLowerCase());
-          for (const key of ["outfit", "top", "bottom", "cloth_color", "cloth_mat", "cloth_state_sfw"]) {
+          // 清空集合 = 基础 6 项 ∪ **各人预设的 drop 并集**（漏了袜/鞋会出现两双）
+          const duoDrop = new Set(["outfit", "top", "bottom", "cloth_color", "cloth_mat", "cloth_state_sfw"]);
+          for (const trigger of triggers.slice(0, 3)) {
+            const item = outfitItem(trigger);
+            for (const key of item?.drop ?? []) duoDrop.add(key);
+          }
+          for (const key of [...duoDrop].sort()) {
             if (!forcedKeys.has(key) && st[key]) st[key] = "";
           }
           nt.push("多位角色：服装按人绑定（各自启用中的预设）");
+        } else if (triggers.slice(0, 3).some((t) => outfitItem(t))) {
+          nt.push("⚠️ 多位角色：服装预设里没有可写入的标签（或档位不足）→ 共享服装字段按随机处理");
         }
         if (appearanceFollow) {
-          const duoFeat = duoFeatText(triggers, seed, lv);
+          const duoFeat = duoFeatText(triggers, seed, lv, sceneHasOutfit);
           if (duoFeat) {
             st._duo_feat = duoFeat;
             dynamic.add(duoFeat.trim().toLowerCase());
@@ -887,24 +1013,50 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
       const duo = String(st[key] ?? "").trim();
       if (duo) eb = eb.trim() ? `${eb.trim()}, ${duo}` : duo;
     }
+    // ── v5.0.13：角色服装预设（**不受「外貌对齐」管辖**）─────────────────
+    // 服装是用户手选的，不是"跟随"；放在 appearanceFollow 里会让"只想关发色/
+    // 瞳色"的人静默丢掉服装预设。标签走 body 通道（标签区末尾、自然语言句之前）。
+    let obody = "";
+    if (Number(st._role_count ?? 1) < 2) {
+      // v5.1.0：角色预设 > 服装库 > 随机；v5.9.0：场景带推荐服装时库可整套让路
+      let oex: string[];
+      let odrop: string[];
+      let oset: Record<string, string>;
+      [oex, odrop, oset] = effectiveOutfit(String(st.role ?? ""), lv, Boolean(st._scene_has_outfit));
+      // v6.6.1：场景**点名闭麦衣物**（全裸）时角色预设也让路 —— 否则
+      // "她穿着白背心黑裙"与 "completely nude" 会同时进正文。
+      if (oex.length && st._scene_no_outfit) {
+        oex = [];
+        odrop = [];
+        oset = {};
+        if (!notes.some((n) => n.includes("角色服装预设让路"))) {
+          notes.push("角色服装预设让路：本场景点名闭麦衣物（全裸 / 换装中），穿与不穿不能同时成立");
+        }
+      }
+      if (oex.length) {
+        obody = oex.join(", ");
+        st._outfit_tags = obody;
+      }
+      for (const key of odrop) st[key] = "";
+      // set 排在 drop 之后：同一字段既 drop 又 set 时以 set 为准
+      for (const [key, value] of Object.entries(oset)) st[key] = value;
+    }
     if (appearanceFollow && Number(st._role_count ?? 1) < 2) {
       const [featRaw, dropList, setMap] = charFeatFor(String(st.role ?? ""), seed);
       let feat = featRaw;
-      let drops = dropList;
-      let sets = setMap;
-      // v5.0.2：启用中的角色服装预设 → 与 char_feat 合并（同一三元组）
-      const [outfitExtras, outfitDrops, outfitSets] = outfitFor(String(st.role ?? ""), lv);
-      if (outfitExtras.length) {
-        feat = [...feat, ...outfitExtras.filter((x) => !feat.includes(x))];
-        st._outfit_tags = outfitExtras.join(", ");
-      }
-      if (outfitDrops.length) drops = [...drops, ...outfitDrops.filter((x) => !drops.includes(x))];
-      if (Object.keys(outfitSets).length) sets = { ...sets, ...outfitSets };
+      const drops = dropList;
+      const sets = setMap;
       const explicit = new Set((st._hair_picks_explicit as string[] | undefined) ?? []);
       if (feat.length && explicit.has("hair_len")) feat = feat.filter((x) => !HAIR_LEN_TAGS.has(x));
       if (feat.length && explicit.has("hair_tie")) feat = feat.filter((x) => !HAIR_TIE_TAGS.has(x));
       if (feat.length) {
-        eb = eb.trim() ? `${eb.trim()}, ${feat.join(", ")}` : feat.join(", ");
+        // v5.4.1：自定义角色 / `body: true` 的内置角色走 body 通道（词库外标签
+        // 拼 tail 会排到 scene_nl 之后被 T5 当散文读），其余保持原样拼 tail。
+        if (featGoesBody(String(st.role ?? ""))) {
+          obody = obody.trim() ? `${obody.trim()}, ${feat.join(", ")}` : feat.join(", ");
+        } else {
+          eb = eb.trim() ? `${eb.trim()}, ${feat.join(", ")}` : feat.join(", ");
+        }
         st._char_feat = feat.join(", ");
       }
       for (const key of drops) {
@@ -913,10 +1065,13 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
       }
       for (const [key, value] of Object.entries(sets)) st[key] = value;
     }
-    return collect(st, eb);
+    return collect(st, eb, obody);
   };
 
   const extraBody = String(input.extraBody ?? "");
+  // Python 的 `state = {}` 在 draw 开头，`_one_pass()` 之后会被整体赋值 —— 于是
+  // `_count_locked` 读到的是**上一轮**的结果（第 1 轮恒为空）。必须照抄这个时序。
+  let outerState: Record<string, unknown> = {};
   let best:
     | {
         sc: number[];
@@ -939,6 +1094,7 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
     }
     const effP = clampProb(baseProb * ratio);
     const [state, drawn, stepNotes] = onePass(rng, effP, variantPick, variantSeed);
+    outerState = state;
     const cap = autoCap ? tagCapFor(String(state.count ?? "")) : fixedCap;
     const tags = collectWithFeat(state, extraBody);
     const n = repairTags(tags, lv, (state._nl_dynamic as Set<string> | undefined) ?? [])[0].length;
@@ -1044,7 +1200,17 @@ export function draw(input: WardrobeDrawInput = {}): WardrobeDrawResult {
   if (state._nl_dynamic instanceof Set) {
     state._nl_dynamic = [...(state._nl_dynamic as Set<string>)].sort();
   }
-  const outTags = stripRoleWorks(tags, state);
+  let outTags = stripRoleWorks(tags, state);
+  // v6.5.0：干爽过滤是**最后一步**，只动成品 tag 列表 —— 抽取 / 档位 / 互斥 /
+  // 报告全部一字不变，所以关闭态零漂移、开启态也不改随机序列。
+  if (drySkinFilter) {
+    const [keptTags, removed] = stripSkinMoisture(outTags, drySkinGroups, drySkinTags);
+    outTags = keptTags;
+    if (removed.length) {
+      const shown = removed.slice(0, 8).join("、") + (removed.length > 8 ? "…" : "");
+      notes.push(`干爽过滤：剔除 ${removed.length} 项（${shown}）`);
+    }
+  }
   const outText = outTags.join(", ");
   const drawnItems: WardrobeDrawnItem[] = chosen.drawn.map(([field, zh, en, num, weight]) => ({
     field,

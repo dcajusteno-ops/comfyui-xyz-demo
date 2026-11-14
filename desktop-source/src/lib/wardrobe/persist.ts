@@ -7,11 +7,14 @@
  */
 import { FIELD_SLOT } from "./slots";
 import { emptyWeights, parseWeights } from "./weights";
+import { SKIN_MOISTURE_ALL_TAGS } from "./skinMoisture";
 import type {
   WardrobeFavorites,
   WardrobeLastResult,
+  WardrobeNearBase,
   WardrobeOutfitSet,
   WardrobeOutfitStore,
+  WardrobePickPoolState,
   WardrobePreset,
   WardrobePresetStore,
   WardrobeUiState,
@@ -49,6 +52,17 @@ export const WARDROBE_BREAST_SIZES = ["不指定", "平胸", "小胸", "中等",
 
 export const WARDROBE_HAIR_PICKS = ["hair_len", "hair_tie", "hair_curl", "hair_acc"] as const;
 
+/** 主视图（两级页签的一级） */
+export const WARDROBE_VIEWS = ["chars", "outfits", "scenes", "presets"] as const;
+
+/** 场景库二级页签 */
+export const WARDROBE_SCENE_TABS = ["pair", "pose", "art", "weapon", "near"] as const;
+
+/** 勾选池支持的模式（与场景二级页签同名） */
+export const WARDROBE_PICK_POOL_MODES = ["pose", "art", "weapon", "near"] as const;
+
+export const WARDROBE_DRY_SKIN_GROUPS = ["skin", "weather", "hair", "cloth", "light"] as const;
+
 export function defaultWardrobeState(): WardrobeUiState {
   return {
     version: 1,
@@ -76,11 +90,16 @@ export function defaultWardrobeState(): WardrobeUiState {
     roleFavOnly: false,
     rolePick: true,
     scenePick: false,
+    duoRoleFill: true,
+    drySkin: { enabled: false, groups: [...WARDROBE_DRY_SKIN_GROUPS], onlyTags: "" },
+    pickPool: { enabled: false, mode: "", ids: [] },
+    outfitLibrary: { active: "", overrides: { socks: "", shoes: "" }, sceneOverride: false },
     forceRole: "",
     applyMode: "append",
     qualityPrefix: false,
     ui: {
       view: "chars",
+      sceneTab: "pair",
       expanded: ["count", "hair"],
       openField: undefined,
       charQuery: "",
@@ -100,8 +119,23 @@ function clampWeightString(value: unknown, fallback: number): number {
   return Math.max(0, Math.min(3, n));
 }
 
-function normalizeLastResult(raw: unknown): WardrobeLastResult | undefined {
+/** 特写套用的权重快照：坏数据整块丢弃（宁可不还原，也不要还原成半份权重）。 */
+function normalizeNearBase(raw: unknown): WardrobeNearBase | undefined {
   if (!raw || typeof raw !== "object") return undefined;
+  const rec = raw as Record<string, unknown>;
+  const sceneId = String(rec.sceneId ?? "").trim();
+  if (!sceneId) return undefined;
+  const weights = parseWeights((rec.weights as WardrobeWeights) ?? {});
+  const disabledSections = Array.isArray(rec.disabledSections)
+    ? rec.disabledSections
+        .map(String)
+        .filter((id) => (WARDROBE_SECTION_IDS as readonly string[]).includes(id))
+    : [];
+  const locks = Array.isArray(rec.locks) ? rec.locks.map(String).filter((key) => key in FIELD_SLOT) : [];
+  return { sceneId, weights, disabledSections, locks };
+}
+
+function normalizeLastResult(raw: unknown): WardrobeLastResult | undefined {  if (!raw || typeof raw !== "object") return undefined;
   const rec = raw as Record<string, unknown>;
   const text = String(rec.text ?? "").slice(0, 8000);
   if (!text) return undefined;
@@ -134,7 +168,6 @@ function normalizeLastResult(raw: unknown): WardrobeLastResult | undefined {
 export function normalizeWardrobeState(merged: WardrobeUiState): WardrobeUiState {
   const base = defaultWardrobeState();
   const state: WardrobeUiState = { ...base, ...(merged ?? {}) };
-
   state.level = (WARDROBE_LEVELS as readonly string[]).includes(state.level) ? state.level : "sfw";
   const seed = Number(state.seed);
   state.seed = Number.isFinite(seed) ? Math.max(-1, Math.min(2 ** 31 - 1, Math.trunc(seed))) : -1;
@@ -154,6 +187,49 @@ export function normalizeWardrobeState(merged: WardrobeUiState): WardrobeUiState
   state.roleFavOnly = state.roleFavOnly === true;
   state.rolePick = state.rolePick !== false;
   state.scenePick = state.scenePick === true;
+  state.duoRoleFill = state.duoRoleFill !== false;
+
+  // ── 干爽过滤：groups 空 = 全部（V6 里空串是"全部"，UI 不能让"全不选"变成"全禁"）
+  const dry = { ...base.drySkin, ...(state.drySkin ?? {}) };
+  const dryGroups = (Array.isArray(dry.groups) ? dry.groups : [])
+    .map(String)
+    .filter((id) => (WARDROBE_DRY_SKIN_GROUPS as readonly string[]).includes(id));
+  dry.groups = Array.from(new Set(dryGroups));
+  if (!dry.groups.length) dry.groups = [...WARDROBE_DRY_SKIN_GROUPS];
+  dry.enabled = dry.enabled === true;
+  const onlyRaw = String(dry.onlyTags ?? "").trim().toLowerCase();
+  if (onlyRaw === "all" || onlyRaw === "none") dry.onlyTags = onlyRaw;
+  else if (onlyRaw) {
+    dry.onlyTags = Array.from(
+      new Set(onlyRaw.split(",").map((t) => t.trim()).filter((t) => SKIN_MOISTURE_ALL_TAGS.has(t))),
+    ).join(",");
+  } else dry.onlyTags = "";
+  state.drySkin = dry;
+
+  // ── 勾选池：mode 必须命中白名单，ids 去重；enabled 但没 mode 视为关闭
+  const pool = { ...base.pickPool, ...(state.pickPool ?? {}) };
+  pool.mode = (WARDROBE_PICK_POOL_MODES as readonly string[]).includes(String(pool.mode))
+    ? (String(pool.mode) as WardrobeUiState["pickPool"]["mode"])
+    : "";
+  pool.ids = Array.from(
+    new Set((Array.isArray(pool.ids) ? pool.ids : []).map(String).filter(Boolean)),
+  ).slice(0, 500);
+  pool.enabled = pool.enabled === true && pool.mode !== "";
+  state.pickPool = pool;
+
+  // ── 全局服装库：active 只做格式校验；找不到条目时引擎侧按空库处理
+  const lib = { ...base.outfitLibrary, ...(state.outfitLibrary ?? {}) };
+  const active = String(lib.active ?? "").trim().toLowerCase();
+  lib.active = /^[a-z0-9_]+$/.test(active) ? active : "";
+  const overrides = { ...base.outfitLibrary.overrides, ...(lib.overrides ?? {}) };
+  lib.overrides = {
+    socks: String(overrides.socks ?? "").trim().toLowerCase().slice(0, 60),
+    shoes: String(overrides.shoes ?? "").trim().toLowerCase().slice(0, 60),
+  };
+  lib.sceneOverride = lib.sceneOverride === true;
+  state.outfitLibrary = lib;
+
+  state.nearBase = normalizeNearBase(state.nearBase);
 
   const hairPicks = { ...base.hairPicks, ...(state.hairPicks ?? {}) };
   for (const key of WARDROBE_HAIR_PICKS) hairPicks[key] = String(hairPicks[key] || "角色标签发型");
@@ -189,7 +265,12 @@ export function normalizeWardrobeState(merged: WardrobeUiState): WardrobeUiState
   state.lastResult = normalizeLastResult(state.lastResult);
 
   const ui = { ...base.ui, ...(state.ui ?? {}) };
-  ui.view = ["chars", "scenes", "presets"].includes(ui.view) ? ui.view : "chars";
+  ui.view = (WARDROBE_VIEWS as readonly string[]).includes(String(ui.view))
+    ? (String(ui.view) as WardrobeUiState["ui"]["view"])
+    : "chars";
+  ui.sceneTab = (WARDROBE_SCENE_TABS as readonly string[]).includes(String(ui.sceneTab))
+    ? (String(ui.sceneTab) as WardrobeUiState["ui"]["sceneTab"])
+    : "pair";
   ui.expanded = Array.isArray(ui.expanded)
     ? ui.expanded.filter((id) => (WARDROBE_SECTION_IDS as readonly string[]).includes(id))
     : base.ui.expanded;
@@ -293,6 +374,42 @@ export function normalizePresets(merged: WardrobePresetStore): WardrobePresetSto
       outfitStyle: String(rec.outfitStyle || "随机"),
       extraBody: String(rec.extraBody ?? "").slice(0, 2000),
     };
+    // V6 之前的预设没有下面这些键 —— 只回填「确实存在」的，缺席保持 undefined，
+    // 套用时才不会把面板现值重置（与 applyPresetToState 同一纪律）。
+    const item = items[id];
+    if (rec.tagCap !== undefined) item.tagCap = String(rec.tagCap);
+    if (rec.baseProb !== undefined) item.baseProb = clampWeightString(rec.baseProb, 0.65);
+    if (rec.forceRole !== undefined) item.forceRole = String(rec.forceRole ?? "");
+    if (rec.roleWorks !== undefined) {
+      item.roleWorks = Array.isArray(rec.roleWorks) ? rec.roleWorks.map(String).slice(0, 20) : [];
+    }
+    if (rec.breastSize !== undefined) item.breastSize = String(rec.breastSize);
+    for (const key of ["appearanceFollow", "hairFollow", "roleFavOnly", "rolePick", "scenePick", "duoRoleFill"] as const) {
+      if (rec[key] !== undefined) item[key] = Boolean(rec[key]);
+    }
+    if (rec.hairPicks && typeof rec.hairPicks === "object") {
+      item.hairPicks = { ...(rec.hairPicks as Record<string, string>) };
+    }
+    const dry = rec.drySkin as Record<string, unknown> | undefined;
+    if (dry && typeof dry === "object") {
+      item.drySkin = {
+        enabled: Boolean(dry.enabled),
+        groups: Array.isArray(dry.groups)
+          ? dry.groups.map(String).filter((x) => (WARDROBE_DRY_SKIN_GROUPS as readonly string[]).includes(x))
+          : [...WARDROBE_DRY_SKIN_GROUPS],
+        onlyTags: String(dry.onlyTags ?? ""),
+      };
+    }
+    const pool = rec.pickPool as Record<string, unknown> | undefined;
+    if (pool && typeof pool === "object") {
+      item.pickPool = {
+        enabled: Boolean(pool.enabled),
+        mode: (WARDROBE_PICK_POOL_MODES as readonly string[]).includes(String(pool.mode))
+          ? (String(pool.mode) as WardrobePickPoolState["mode"])
+          : "",
+        ids: Array.isArray(pool.ids) ? [...new Set(pool.ids.map(String).filter(Boolean))].slice(0, 400) : [],
+      };
+    }
     if (Object.keys(items).length >= 60) break;
   }
   return { version: 1, items };

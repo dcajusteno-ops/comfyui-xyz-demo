@@ -60,11 +60,13 @@ describe("V5：角色服装预设", () => {
   it("启用中的角色返回标签 + 闭麦服装字段", () => {
     const [extras, drops, sets] = outfitFor("ganyu, genshin impact", 2);
     expect(extras.length).toBeGreaterThan(0);
+    // V6 起甘雨的预设是「官方服装」（角 / 黑手套 / 弓），不再是 serafuku
+    expect(extras).toContain("goat horns");
     expect(drops).toContain("outfit");
     expect(drops).toContain("top");
     expect(drops).toContain("bottom");
-    expect(sets.outfit).toBe("serafuku");
-    expect(sets.top).toBe("sailor shirt");
+    // 这套没有 fields → 不产生 set（旧版 serafuku 会被 _covered_by_tags 只闭麦）
+    expect(Object.keys(sets)).toHaveLength(0);
   });
 
   it("单角色抽取时服装预设真的进正文", () => {
@@ -74,8 +76,8 @@ describe("V5：角色服装预设", () => {
       weights: emptyWeights(),
       selectedRoles: ["ganyu, genshin impact"],
     });
-    expect(result.text).toContain("serafuku");
-    expect(result.text).toContain("sailor shirt");
+    expect(result.text).toContain("goat horns");
+    expect(result.text).toContain("black gloves");
   });
 
   it("ui-state 覆盖层能启用一套并生效", () => {

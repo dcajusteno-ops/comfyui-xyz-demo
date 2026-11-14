@@ -19,8 +19,8 @@ test("造型台：15 段参数树、档位闸门与内置数据", async ({ page 
     const response = await fetch("/data/wardrobe/manifest.json");
     return response.json();
   });
-  expect(manifest.counts.characters).toBe(2390);
-  expect(manifest.counts.scenes).toBe(361);
+  expect(manifest.counts.characters).toBe(2432);
+  expect(manifest.counts.scenes).toBe(524);
   expect(manifest.counts.thumbs).toBeGreaterThan(2400);
 
   // L0：cloth_nsfw / pose_nsfw / special_nsfw 三段没有可用选项；canon 含 L0 场景仍可用
@@ -67,7 +67,7 @@ test("造型台：角色搜索与场景套用", async ({ page }) => {
   await expect(page.locator(".wd-selected-bar")).toContainText("已选 1");
 
   await page.locator(".wd-level", { hasText: "成人" }).click();
-  await page.locator(".wd-view-tab", { hasText: "场景库" }).click();
+  await page.locator(".wd-view-tab", { hasText: "场景" }).click();
   await page.locator(".wd-scene-card").first().locator(".wd-apply-scene").click();
   await expect(page.getByText("已套用场景", { exact: true })).toBeVisible();
 
@@ -151,12 +151,12 @@ test("造型台 v5：场景画幅 / 随机场景开关 / 作品收藏 / 服装�
   await expect(page.locator(".wd-panel")).toBeVisible();
 
   // ① 场景画幅徽标 + 三段筛选
-  await page.locator(".wd-view-tab", { hasText: "场景库" }).click();
+  await page.locator(".wd-view-tab", { hasText: "场景" }).click();
   await expect(page.locator(".wd-scene-aspect-badge").first()).toBeVisible();
   const badges = await page.locator(".wd-scene-aspect-badge").allTextContents();
   expect(badges.every((text) => ["竖", "横", "通"].includes(text.trim()))).toBe(true);
 
-  await page.locator(".wd-scene-aspect", { hasText: "竖屏·通用" }).click();
+  await page.locator(".wd-scene-aspect", { hasText: "竖屏" }).click();
   const portraitBadges = await page.locator(".wd-scene-aspect-badge").allTextContents();
   expect(portraitBadges.length).toBeGreaterThan(0);
   expect(portraitBadges.every((text) => ["竖", "通"].includes(text.trim()))).toBe(true);
@@ -190,4 +190,120 @@ test("造型台 v5：场景画幅 / 随机场景开关 / 作品收藏 / 服装�
   await expect(page.locator(".wd-outfit-status")).toContainText("当前已启用");
   await page.locator(".wd-modal-head .wd-icon-btn").click();
   await expect(page.locator(".wd-outfit-modal")).toHaveCount(0);
+});
+
+
+test("造型台 v6：服装库启用后接管服装，关闭后回到随机", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "Anima 造型台" }).click();
+  await expect(page.locator(".wd-panel")).toBeVisible();
+
+  // 没抽过时结果区只占一条（给列表腾高度）
+  await expect(page.locator(".wd-result.is-empty")).toBeVisible();
+
+  // 极端档：保证服装库条目的 level 闸门全部放行
+  await page.locator(".wd-level", { hasText: "极端" }).click();
+  await page.locator(".wd-seed input").fill("42");
+
+  await page.locator(".wd-run").click();
+  const baseline = await page.locator(".wd-result-text").inputValue();
+  expect(baseline.length).toBeGreaterThan(0);
+
+  await page.locator(".wd-view-tab", { hasText: "服装库" }).click();
+  await expect(page.locator(".wd-outfit-lib-card").first()).toBeVisible();
+  const first = page.locator(".wd-outfit-lib-card").first();
+  await first.click();
+  await expect(page.locator(".wd-outfit-lib-state")).toContainText("当前启用");
+
+  await page.locator(".wd-run").click();
+  const withLibrary = await page.locator(".wd-result-text").inputValue();
+  expect(withLibrary).not.toBe(baseline);
+
+  // 再点一次 = 取消启用 → 同 seed 回到基线
+  await page.locator(".wd-outfit-lib-card.is-on").click();
+  await expect(page.locator(".wd-outfit-lib-state")).toContainText("未启用");
+  await page.locator(".wd-run").click();
+  await expect(page.locator(".wd-result-text")).toHaveValue(baseline);
+
+  // 结果区可收起 / 展开（收起后列表拿回高度）
+  await page.locator(".wd-result-toggle").click();
+  await expect(page.locator(".wd-result-text")).toBeHidden();
+  await page.locator(".wd-result-toggle").click();
+  await expect(page.locator(".wd-result-text")).toBeVisible();
+});
+
+test("造型台 v6：特写收紧取景 + 勾选池可复现", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "Anima 造型台" }).click();
+  await expect(page.locator(".wd-panel")).toBeVisible();
+
+  await page.locator(".wd-view-tab", { hasText: "场景" }).click();
+  await page.locator(".wd-subtab", { hasText: "特写" }).click();
+  await expect(page.locator(".wd-scene-card").first()).toBeVisible();
+  await expect(page.locator(".wd-scene-slim").first()).toBeVisible();
+
+  await page.locator(".wd-seed input").fill("7");
+  await page.locator(".wd-scene-card").first().locator(".wd-apply-scene").click();
+  await expect(page.getByText("已套用特写并收紧取景")).toBeVisible();
+  await expect(page.getByText("还原特写前的权重")).toBeVisible();
+
+  await page.locator(".wd-run").click();
+  const first = await page.locator(".wd-result-text").inputValue();
+  await page.locator(".wd-run").click();
+  await expect(page.locator(".wd-result-text")).toHaveValue(first);
+
+  // 勾选池：勾满本页 → 每次抽取仍是同一条（同 seed）
+  await page.locator(".wd-pickpool input[type=checkbox]").check();
+  await expect(page.locator(".wd-pickpool")).toContainText("已勾选");
+  await page.locator(".wd-run").click();
+  const pooled = await page.locator(".wd-result-text").inputValue();
+  await page.locator(".wd-run").click();
+  await expect(page.locator(".wd-result-text")).toHaveValue(pooled);
+});
+
+test("造型台 v6：干爽过滤会剔除皮肤水珠词条", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "Anima 造型台" }).click();
+  await expect(page.locator(".wd-panel")).toBeVisible();
+
+  await page.locator(".wd-level", { hasText: "成人" }).click();
+  await page.locator(".wd-seed input").fill("42");
+  await page.locator(".wd-dryskin-toggle").click();
+  await expect(page.locator(".wd-dryskin")).toBeVisible();
+  await page.locator(".wd-dryskin .wd-dryskin-head input[type=checkbox]").check();
+  await page.locator(".wd-dryskin").getByRole("button", { name: "全选" }).click();
+  await expect(page.locator(".wd-dryskin-toggle")).toContainText("开");
+
+  await page.locator(".wd-run").click();
+  const text = await page.locator(".wd-result-text").inputValue();
+  for (const bad of ["wet skin", "glistening skin", "rain", "wet hair", "sweat", "caustics"]) {
+    expect(text).not.toContain(bad);
+  }
+
+  // 19 条逐条可控：清空后单独勾一条，只有它参与剔除
+  await page.locator(".wd-dryskin").getByRole("button", { name: "清空" }).click();
+  await expect(page.locator(".wd-dryskin-head")).toContainText("已选 0 / 19");
+  const oneTag = page.locator(".wd-dryskin-tag", { hasText: "香汗淋漓" });
+  await oneTag.click();
+  await expect(oneTag).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".wd-dryskin-head")).toContainText("已选 1 / 19");
+
+  await page.locator(".wd-run").click();
+  const partial = await page.locator(".wd-result-text").inputValue();
+  expect(partial).not.toContain("sweat");
+  // 其它组不再被剔除：雨天 / 湿发 这类该回来了（同 seed 下不可能全都不出现）
+  const total = await page.locator(".wd-dryskin").getByRole("button", { name: "全选" }).count();
+  expect(total).toBe(1);
+});
+
+test("造型台 v6：武器场景 80 条且可套用", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".nav-item", { hasText: "Anima 造型台" }).click();
+  await expect(page.locator(".wd-panel")).toBeVisible();
+
+  await page.locator(".wd-view-tab", { hasText: "场景" }).click();
+  await page.locator(".wd-subtab", { hasText: "武器" }).click();
+  await expect(page.locator(".wd-scene-card")).toHaveCount(80);
+  await page.locator(".wd-scene-card").first().locator(".wd-apply-scene").click();
+  await expect(page.getByText("已套用场景", { exact: true })).toBeVisible();
 });

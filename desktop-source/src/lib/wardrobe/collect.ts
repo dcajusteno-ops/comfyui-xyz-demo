@@ -9,7 +9,7 @@ import { roleOutputTags } from "./characters";
 import { applyMutex } from "./mutex";
 import { FIELD_SLOT, NO_EMIT_FIELDS, SLOTS } from "./slots";
 
-export function collect(state: Record<string, unknown>, tailExtra = ""): string[] {
+export function collect(state: Record<string, unknown>, tailExtra = "", bodyExtra = ""): string[] {
   const buckets: Record<string, string[]> = {};
   for (const slot of SLOTS) buckets[slot] = [];
 
@@ -64,6 +64,19 @@ export function collect(state: Record<string, unknown>, tailExtra = ""): string[
     if (tag) keep.add(tag);
   }
   flat = applyMutex(flat, keep);
+
+  // v5.0.13：标签区的补充（角色服装预设 / 自定义角色特征）—— 排在自然语言句之前。
+  // 与 tail 的区别只在**位置**：这里还属于标签区，进 CLIP 后不会被当散文读。
+  const body = String(bodyExtra ?? "").trim();
+  if (body) {
+    for (const raw of body.split(",")) {
+      const tag = raw.trim().toLowerCase();
+      if (tag && !seen.has(tag)) {
+        seen.add(tag);
+        flat.push(tag);
+      }
+    }
+  }
 
   const tail = String(tailExtra ?? "").trim();
   if (tail) {

@@ -47,6 +47,13 @@ function toInput(raw: Record<string, unknown>): WardrobeDrawInput {
     hairPicks: (raw.hair_picks ?? raw.hairPicks) as Record<string, string> | undefined,
     rolePick: (raw.role_pick ?? raw.rolePick) as boolean | undefined,
     scenePick: (raw.scene_pick ?? raw.scenePick) as boolean | undefined,
+    // v6.7.0 新增：夹具从 2026-11-10 起覆盖这四个开关注入
+    duoRoleFill: (raw.duo_role_fill ?? raw.duoRoleFill) as boolean | undefined,
+    drySkinFilter: (raw.dry_skin_filter ?? raw.drySkinFilter) as boolean | undefined,
+    drySkinGroups: (raw.dry_skin_groups ?? raw.drySkinGroups) as string | undefined,
+    drySkinTags: (raw.dry_skin_tags ?? raw.drySkinTags) as string | undefined,
+    pickPoolMode: (raw.pick_pool_mode ?? raw.pickPoolMode) as string | undefined,
+    pickPoolIds: (raw.pick_pool_ids ?? raw.pickPoolIds) as string | undefined,
   };
 }
 

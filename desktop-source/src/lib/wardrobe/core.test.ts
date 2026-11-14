@@ -60,6 +60,20 @@ describe("collect：槽位顺序与去重", () => {
       "pointy ears",
     ]);
   });
+
+  it("body_extra 排在 tail_extra 之前（标签区末尾，不当散文读）", () => {
+    expect(
+      collect({ count: "1girl, solo", emotion: "smile" }, "scene sentence", "white tank top, black skirt"),
+    ).toEqual(["1girl", "solo", "smile", "white tank top", "black skirt", "scene sentence"]);
+  });
+
+  it("body_extra 与已有标签去重，且不进 keep（互斥照常生效）", () => {
+    expect(collect({ count: "1girl", outfit: "school uniform" }, "", "school uniform, red tie")).toEqual([
+      "1girl",
+      "school uniform",
+      "red tie",
+    ]);
+  });
 });
 
 describe("mutex：显式写入优先", () => {

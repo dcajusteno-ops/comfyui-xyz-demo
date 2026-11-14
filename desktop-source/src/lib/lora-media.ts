@@ -47,14 +47,28 @@ export function mergeRemoteWithLocalExample(remote: LoraExampleMedia, local: Lor
 }
 
 export function pickCardPreviewMedia(item: LoraItem, localFiles: LoraExampleMedia[]): LoraExampleMedia {
-  const localPreview = pickPreferredLocalExample(localFiles.filter((file) => /^image_0\./i.test(localExampleName(file))))
-    ?? pickPreferredLocalExample(localFiles);
-  if (localPreview) {
+  // 卡片封面优先静帧：视频封面会自己播放，任何转场/标题/运动模糊帧都会糊满整张卡，
+  // 远不如一张稳定的首图（详情弹窗里仍保留视频）。只有一张图片都没有时才回退视频。
+  const images = localFiles.filter((file) => !isLoraVideo(file, localExampleSource(file)));
+  const imagePreview = pickPreferredLocalExample(images.filter((file) => /^image_0\./i.test(localExampleName(file))))
+    ?? images[0];
+  if (imagePreview) {
     return {
-      ...normalizeLocalExample(localPreview),
-      nsfwLevel: item.preview_nsfw_level ?? localPreview.nsfwLevel,
+      ...normalizeLocalExample(imagePreview),
+      nsfwLevel: item.preview_nsfw_level ?? imagePreview.nsfwLevel,
     };
   }
+
+  const videos = localFiles.filter((file) => isLoraVideo(file, localExampleSource(file)));
+  const videoPreview = pickPreferredLocalExample(videos.filter((file) => /^image_0\./i.test(localExampleName(file))))
+    ?? videos[0];
+  if (videoPreview) {
+    return {
+      ...normalizeLocalExample(videoPreview),
+      nsfwLevel: item.preview_nsfw_level ?? videoPreview.nsfwLevel,
+    };
+  }
+
   return {
     url: item.preview_url,
     type: isVideoPath(item.preview_url ?? "") ? "video" : "image",
@@ -146,6 +160,41 @@ export function isLoraVideo(media: LoraExampleMedia, src = "") {
   return Boolean(media.is_video || media.type === "video" || isVideoPath(src || media.path || media.url || ""));
 }
 
+// 视频扩展名对齐 LoRA Manager 的 mediaTypes.js（.mkv 一并覆盖）。
+const VIDEO_EXTENSIONS = new Set([".mp4", ".webm", ".mov", ".m4v", ".mkv"]);
+
+/** 从一个片段 / 查询值里取扩展名；先去掉 ?/#，再做一次 URL 解码。 */
+function mediaExtension(value: string) {
+  const queryIndex = value.search(/[?#]/);
+  let candidate = queryIndex === -1 ? value : value.slice(0, queryIndex);
+  try {
+    candidate = decodeURIComponent(candidate);
+  } catch {
+    // 非法转义序列就按原样处理
+  }
+  const lastDot = candidate.lastIndexOf(".");
+  if (lastDot === -1) return "";
+  const extension = candidate.slice(lastDot).toLowerCase();
+  return extension.includes("/") || extension.includes("\\") ? "" : extension;
+}
+
 export function isVideoPath(value: string) {
-  return /\.(mp4|webm|mov)(\?|#|$)/i.test(value);
+  // 不能只看 URL 结尾：LoRA Manager 的本地预览地址是
+  // /api/lm/previews?path=xxx.mp4&v=<mtime>，.mp4 后面跟的是 &。
+  // 对齐官方 mediaTypes.js：从 URL 本身、pathname、每个查询参数值、
+  // 以及 ?&= 切出的片段里分别取扩展名判断。
+  if (!value) return false;
+  const candidates = new Set<string>([value]);
+  try {
+    const parsed = new URL(value, window.location.origin);
+    candidates.add(parsed.pathname);
+    parsed.searchParams.forEach((item) => candidates.add(item));
+  } catch {
+    // 相对/畸形 URL 解析失败时，仅靠下面的片段拆分
+  }
+  value.split(/[?&=]/).forEach((fragment) => candidates.add(fragment));
+  for (const candidate of candidates) {
+    if (VIDEO_EXTENSIONS.has(mediaExtension(candidate))) return true;
+  }
+  return false;
 }
