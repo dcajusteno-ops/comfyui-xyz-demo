@@ -10,6 +10,7 @@ export function DetailerControls({
   onChange,
   samplers,
   schedulers,
+  promptScope,
 }: {
   title: string;
   detector?: string;
@@ -20,6 +21,8 @@ export function DetailerControls({
   /** 提供时显示采样器/调度器下拉（取自 /object_info 的全局列表） */
   samplers?: string[];
   schedulers?: string[];
+  /** 生成模式标识，用于隔离各模式提示词的折叠状态 */
+  promptScope?: string;
 }) {
   const set = <K extends keyof DetailerParams>(key: K, value: DetailerParams[K]) =>
     onChange({ ...params, [key]: value });
@@ -123,6 +126,7 @@ export function DetailerControls({
           <TextAreaField
             label="独立正向提示词"
             value={params.prompt ?? ""}
+            scope={`${promptScope ?? "detailer"}:${title}`}
             placeholder="留空则继承全局正向提示词，输入空格则完全清空\n支持 Impact Pack 的 [LAB] 等分层语法"
             onChange={(value) => set("prompt", value)}
           />

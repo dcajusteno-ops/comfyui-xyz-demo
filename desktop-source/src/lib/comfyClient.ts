@@ -941,6 +941,17 @@ export class ComfyClient {
               }
             }
           }
+          if (message.type === "execution_interrupted" && data.prompt_id === promptId) {
+            // 新版本 ComfyUI 中断时只发 execution_interrupted（不保证发 executing node:null）。
+            // 必须在这里结束等待，否则 runPrompt 会一直挂起，下次生成时旧任务状态会串进来。
+            window.clearInterval(fallbackTimer);
+            releasePreviewUrls();
+            this.promptListeners.delete(promptId);
+            updateProgress({ running: false, promptId, value: 0, max: 1, label: "已中断" });
+            const interrupted = new Error("已中断");
+            interrupted.name = "AbortError";
+            reject(interrupted);
+          }
           if (message.type === "execution_error" && data.prompt_id === promptId) {
             window.clearInterval(fallbackTimer);
             releasePreviewUrls();

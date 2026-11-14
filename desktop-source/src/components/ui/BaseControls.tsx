@@ -29,6 +29,7 @@ export function BaseControls<T extends BaseGenerationParams>({
   modelSlot,
   hidePositive = false,
   disableStickyPrompt = false,
+  promptScope,
   onLoraDetail,
   apiBase,
   settings,
@@ -47,6 +48,8 @@ export function BaseControls<T extends BaseGenerationParams>({
   modelSlot?: ReactNode;
   hidePositive?: boolean;
   disableStickyPrompt?: boolean;
+  /** 生成模式标识，用于隔离各模式提示词的折叠状态（如 default / multi / highres / anima）。 */
+  promptScope?: string;
   onLoraDetail?: (item: LoraItem) => void;
   apiBase: string;
   settings: LoraManagerSettings;
@@ -230,12 +233,12 @@ export function BaseControls<T extends BaseGenerationParams>({
           {!hidePositive && (
             <div className="form-grid two prompt-grid">
               <TextAreaField
-                label="正向提示词"
+                label="正向提示词" scope={promptScope}
                 value={params.positivePrompt}
                 onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])}
               />
               <TextAreaField
-                label="反向提示词"
+                label="反向提示词" scope={promptScope}
                 value={params.negativePrompt}
                 onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
               />
@@ -244,7 +247,7 @@ export function BaseControls<T extends BaseGenerationParams>({
           {hidePositive && (
             <>
               <TextAreaField
-                label="反向提示词"
+                label="反向提示词" scope={promptScope}
                 value={params.negativePrompt}
                 onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
               />
@@ -262,13 +265,13 @@ export function BaseControls<T extends BaseGenerationParams>({
             {!hidePositive && (
               <div className="form-grid two prompt-grid">
                 <TextAreaField
-                  label="正向提示词"
+                  label="正向提示词" scope={promptScope}
                   value={params.positivePrompt}
                   onChange={(value) => setField("positivePrompt", value as T["positivePrompt"])}
                   hideChips
                 />
                 <TextAreaField
-                  label="反向提示词"
+                  label="反向提示词" scope={promptScope}
                   value={params.negativePrompt}
                   onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
                   hideChips
@@ -277,7 +280,7 @@ export function BaseControls<T extends BaseGenerationParams>({
             )}
             {hidePositive && (
               <TextAreaField
-                label="反向提示词"
+                label="反向提示词" scope={promptScope}
                 value={params.negativePrompt}
                 onChange={(value) => setField("negativePrompt", value as T["negativePrompt"])}
                 hideChips

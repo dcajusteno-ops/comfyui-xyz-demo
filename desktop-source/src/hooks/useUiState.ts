@@ -1,7 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isServerBacked, readStoredValue, scheduleUiStateSave } from "../lib/uiStateStore";
+import { usePersistentState } from "./usePersistentState";
 
 export type ConfirmDialog = { title: string; message: string; onConfirm: () => void };
+
+/** 首次进入且没有保存过侧边栏状态时的默认值：窄窗口收起，宽窗口展开。 */
+function readInitialSidebarCollapsed(): boolean {
+  try {
+    return window.innerWidth < 1024;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * 欢迎弹窗已读标记：正常路径走服务端存储；offline 兜底走 localStorage
@@ -49,24 +59,23 @@ export function useUiState() {
   const [compareLightbox, setCompareLightbox] = useState<[string, string] | null>(null);
   // 水印弹窗的源图 URL（transient，不持久化）。水印开着时灯箱挂起（见 GlobalModals），关掉后灯箱原样恢复。
   const [watermarkSource, setWatermarkSource] = useState<string | null>(null);
-  const [isAppSidebarCollapsed, setIsAppSidebarCollapsed] = useState<boolean>(() => {
-    try {
-      return window.innerWidth < 1024;
-    } catch {
-      return false;
-    }
-  });
+  const [isAppSidebarCollapsed, setIsAppSidebarCollapsed] = usePersistentState<boolean>(
+    "comfyui_xyz_sidebar_collapsed",
+    readInitialSidebarCollapsed(),
+  );
 
-  // Global responsive collapse（初始值已在懒初始化里处理，这里只响应后续变化）
+  // 只响应跨过 1024px 断点时的自动收起/展开；普通缩放不覆盖用户手动选择。
+  const wasNarrowRef = useRef(readInitialSidebarCollapsed());
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsAppSidebarCollapsed(true);
-      }
+      const narrow = window.innerWidth < 1024;
+      if (narrow === wasNarrowRef.current) return;
+      wasNarrowRef.current = narrow;
+      setIsAppSidebarCollapsed(narrow);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [setIsAppSidebarCollapsed]);
 
   const [featureModal, setFeatureModal] = useState<{ title: string; body: string } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog | null>(null);
@@ -120,6 +129,7 @@ export function useUiState() {
     compareLightbox,
     watermarkSource,
     isAppSidebarCollapsed,
+    setIsAppSidebarCollapsed,
     featureModal,
     confirmDialog,
     triggerWords,

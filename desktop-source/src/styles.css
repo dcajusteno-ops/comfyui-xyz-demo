@@ -11709,3 +11709,61 @@ button:disabled {
   overflow-y: auto;
   scrollbar-width: thin;
 }
+
+/* 提示词折叠：正向默认展开，反向默认折叠；折叠时同步收起下方独立渲染的标签块 */
+.prompt-fold-btn {
+  height: 22px;
+  padding: 0 8px;
+  margin-right: 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.prompt-fold-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.text-field.is-collapsed textarea,
+.text-field.is-collapsed .prompt-tag-blocks {
+  display: none;
+}
+
+.prompt-collapsed-preview {
+  margin-top: 4px;
+  padding: 7px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.prompt-collapsed-preview:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.prompt-sticky-container:has(> .form-grid.two.prompt-grid > .text-field:nth-child(1).is-collapsed) + .form-grid.two.prompt-grid > div:nth-child(1) {
+  display: none;
+}
+
+.prompt-sticky-container:has(> .form-grid.two.prompt-grid > .text-field:nth-child(2).is-collapsed) + .form-grid.two.prompt-grid > div:nth-child(2) {
+  display: none;
+}
+
+.prompt-sticky-container:has(> .text-field.is-collapsed) + .form-grid.prompt-grid > div {
+  display: none;
+}

@@ -320,12 +320,14 @@ export const DatasetPanel = React.memo(function DatasetPanel({
             <TextAreaField
               label="角色描述"
               value={params.characterPrompt}
+              scope="dataset"
               placeholder="每条都带：发色 / 瞳色 / 发型 / 体型 / 标志性特征"
               onChange={(value) => setParams((prev) => ({ ...prev, characterPrompt: value }))}
             />
             <TextAreaField
               label="画风附加词"
               value={params.style[mode]}
+              scope="dataset"
               placeholder="画质与风格词（只进正向提示词，不会写进 caption）"
               onChange={(value) =>
                 setParams((prev) => ({ ...prev, style: { ...prev.style, [mode]: value } }))
@@ -352,6 +354,7 @@ export const DatasetPanel = React.memo(function DatasetPanel({
                 params={params.anima}
                 options={options}
                 setParams={setAnima}
+                promptScope="dataset-anima"
                 modelSlot={animaModelSlot}
                 hidePositive
                 apiBase={apiBase}
@@ -366,6 +369,7 @@ export const DatasetPanel = React.memo(function DatasetPanel({
                 params={params.sdxl}
                 options={options}
                 setParams={setSdxl}
+                promptScope="dataset-sdxl"
                 hidePositive
                 apiBase={apiBase}
                 settings={loraSettings}

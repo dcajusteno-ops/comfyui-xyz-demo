@@ -255,6 +255,7 @@ export const AnimaGenerationPanel = React.memo(({
           params={params}
           options={options}
           setParams={setParams}
+          promptScope="anima"
           modelSlot={modelStackSlot}
           apiBase={apiBase}
           settings={loraSettings}
@@ -371,7 +372,7 @@ export const AnimaGenerationPanel = React.memo(({
 
         <div className="detailer-grid">
           {params.stages.segsDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="anima"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="全图修复参数"
@@ -380,7 +381,7 @@ export const AnimaGenerationPanel = React.memo(({
             />
           )}
           {params.stages.handDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="anima"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="手部修复参数"
@@ -392,7 +393,7 @@ export const AnimaGenerationPanel = React.memo(({
             />
           )}
           {params.stages.faceDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="anima"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="脸部修复参数"
@@ -404,7 +405,7 @@ export const AnimaGenerationPanel = React.memo(({
             />
           )}
           {params.stages.eyesDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="anima"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="眼部修复参数"
@@ -416,7 +417,7 @@ export const AnimaGenerationPanel = React.memo(({
             />
           )}
           {params.stages.nsfwDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="anima"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="NSFW修复参数"

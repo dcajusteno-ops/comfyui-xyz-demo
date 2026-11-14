@@ -120,6 +120,7 @@ export const HighresGenerationPanel = React.memo(({
           params={params}
           options={options}
           setParams={setParams}
+          promptScope="highres"
           apiBase={apiBase}
           settings={loraSettings}
           localExampleFilesByHash={loraExampleFilesByHash}
@@ -199,7 +200,7 @@ export const HighresGenerationPanel = React.memo(({
         </div>
         <div className="detailer-grid">
           {params.enableSegsDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="highres"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="全图修复参数"
@@ -216,7 +217,7 @@ export const HighresGenerationPanel = React.memo(({
             />
           )}
           {params.enableHandDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="highres"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="手部修复参数"
@@ -228,7 +229,7 @@ export const HighresGenerationPanel = React.memo(({
             />
           )}
           {params.enableFaceDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="highres"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="脸部修复参数"
@@ -240,7 +241,7 @@ export const HighresGenerationPanel = React.memo(({
             />
           )}
           {params.enableEyesDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="highres"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="眼部修复参数"
@@ -252,7 +253,7 @@ export const HighresGenerationPanel = React.memo(({
             />
           )}
           {params.enableNsfwDetailer && (
-            <DetailerControls
+            <DetailerControls promptScope="highres"
               samplers={options.samplers}
               schedulers={options.schedulers}
               title="NSFW修复参数"

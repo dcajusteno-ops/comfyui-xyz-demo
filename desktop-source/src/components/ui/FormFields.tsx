@@ -147,11 +147,18 @@ export function CopyableTextarea({ value, className }: { value: string; classNam
   );
 }
 
-export function TextAreaField({ label, value, placeholder, onChange, hideChips }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void; hideChips?: boolean }) {
+export function TextAreaField({ label, value, placeholder, onChange, hideChips, scope }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void; hideChips?: boolean; scope?: string }) {
   const isPrompt = label.toLowerCase().includes("prompt") || label.includes("提示词");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [translationSettings] = usePersistentState<TranslationSettings>("comfyui_translation_settings", defaultTranslationSettings);
   const [isTranslating, setIsTranslating] = useState(false);
+  // 反向提示词通常很长且很少修改，默认折叠；其余提示词默认展开。
+  const isNegativePrompt = label.includes("反向") || /negative/i.test(label);
+  // scope 区分生成模式（默认/多人/高清/Anima/三视图等），避免一个模式里的折叠状态同步到其它模式。
+  const collapseKey = scope ? `comfyui_prompt_collapsed:${scope}:${label}` : `comfyui_prompt_collapsed:${label}`;
+  const [collapsed, setCollapsed] = usePersistentState<boolean>(collapseKey, isNegativePrompt);
+  const folded = isPrompt && collapsed;
+  const preview = value.trim().replace(/\s+/g, " ");
 
   const handleTranslate = async () => {
     if (!value.trim() || isTranslating) return;
@@ -167,11 +174,20 @@ export function TextAreaField({ label, value, placeholder, onChange, hideChips }
   };
 
   return (
-    <div className="field text-field">
+    <div className={`field text-field${folded ? " is-collapsed" : ""}`}>
       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {label}
         {isPrompt && (
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="prompt-fold-btn"
+              title={collapsed ? "展开提示词" : "折叠提示词"}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => { e.preventDefault(); setCollapsed(!collapsed); }}
+            >
+              {collapsed ? "展开" : "折叠"}
+            </button>
             <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); handleTranslate(); }} style={{ padding: '0 8px', height: '22px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--accent)', background: 'var(--accent-soft)', cursor: isTranslating ? 'wait' : 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '8px' }}>
               <Globe2 size={12} />
               {isTranslating ? "翻译中..." : "翻译为英文"}
@@ -179,15 +195,23 @@ export function TextAreaField({ label, value, placeholder, onChange, hideChips }
           </div>
         )}
       </span>
-      <textarea 
-        ref={textareaRef}
-        value={value} 
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)} 
-        onKeyDown={(e) => isPrompt && handlePromptWeightAdjustment(e, value, onChange)}
-      />
-      {isPrompt && value.trim() && !hideChips && (
-        <PromptTagBlocks value={value} onChange={onChange} />
+      {folded ? (
+        <div className="prompt-collapsed-preview" title="点击展开提示词" onClick={() => setCollapsed(false)}>
+          {preview ? `${preview.slice(0, 120)}${preview.length > 120 ? "…" : ""}` : "（空）"}
+        </div>
+      ) : (
+        <>
+          <textarea 
+            ref={textareaRef}
+            value={value} 
+            placeholder={placeholder}
+            onChange={(event) => onChange(event.target.value)} 
+            onKeyDown={(e) => isPrompt && handlePromptWeightAdjustment(e, value, onChange)}
+          />
+          {isPrompt && value.trim() && !hideChips && (
+            <PromptTagBlocks value={value} onChange={onChange} />
+          )}
+        </>
       )}
     </div>
   );

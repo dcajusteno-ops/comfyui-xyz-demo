@@ -51,6 +51,9 @@ export function useGeneration({ client, pushToast, notifyComplete, watermark }: 
   const [results, setResults] = useState<JobResult[]>([]);
   const [error, setError] = useState("");
   const xyzCancelRef = useRef(false);
+  // 每次生成/XYZ 批次一个递增 token：旧批次即使稍后才收到中断事件，也不会覆盖新批次的状态。
+  const activeRunTokenRef = useRef(0);
+  const xyzRunTokenRef = useRef(0);
   const baseDocTitleRef = useRef(document.title);
 
   const [xyzResults, setXyzResults] = useState<XyzRunItem[]>([]);
@@ -137,25 +140,40 @@ export function useGeneration({ client, pushToast, notifyComplete, watermark }: 
     onProgress: (progress: ProgressState) => void = (prog) => setProgress(prog),
     taskLabel?: string,
   ) => {
+    const runToken = activeRunTokenRef.current + 1;
+    activeRunTokenRef.current = runToken;
+    const isActive = () => activeRunTokenRef.current === runToken;
+    const report = (prog: ProgressState) => {
+      if (isActive()) onProgress(prog);
+    };
     setError("");
     setActiveTaskLabel(taskLabel || label);
     try {
-      onProgress({ running: true, value: 0, max: 1, label: `${label} 准备中` });
+      report({ running: true, value: 0, max: 1, label: `${label} 准备中` });
       pushToast("info", `${label} 已提交`, "正在等待 ComfyUI 执行");
       // 先拿到 prompt 再提交：输出面板的标题摘要取自**实际提交的工作流**，
       // 这样 XYZ 打了补丁的组合、Anima 的多段链路都不会与标题不一致。
       const prompt = promptFactory();
-      const result = await client.runPrompt(prompt, onProgress);
+      const result = await client.runPrompt(prompt, report);
       const job: JobResult = { ...result, meta: describePrompt(prompt, label) };
+      if (!isActive()) return job;
       appendJob(job);
       pushToast("success", `${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : undefined);
       notifyComplete?.(`${label} 完成`, result.images.length ? `输出 ${result.images.length} 张图片` : "任务已完成");
       return job;
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : String(runError);
-      setError(message);
-      onProgress({ running: false, value: 0, max: 1, label: "失败" });
-      pushToast("error", `${label} 失败`, message);
+      if (runError instanceof Error && runError.name === "AbortError") {
+        // 用户主动中断：不当作失败提示，也不覆盖后续新任务的进度。
+        // 这里不再向上抛，避免 UI 事件回调产生未处理的 Promise rejection。
+        if (isActive()) onProgress({ running: false, value: 0, max: 1, label: "已中断" });
+        return undefined;
+      }
+      if (isActive()) {
+        setError(message);
+        onProgress({ running: false, value: 0, max: 1, label: "失败" });
+        pushToast("error", `${label} 失败`, message);
+      }
       throw runError;
     }
   }, [client, pushToast, notifyComplete, appendJob]);
@@ -288,6 +306,11 @@ export function useGeneration({ client, pushToast, notifyComplete, watermark }: 
     animaParams: AnimaGenerationParams,
     animaCaps: AnimaCaps
   ) => {
+    const runToken = xyzRunTokenRef.current + 1;
+    xyzRunTokenRef.current = runToken;
+    // 同步作废尚未结束的单次生成进度回调，避免旧任务覆盖 XYZ 批次进度。
+    activeRunTokenRef.current += 1;
+    const isCurrentRun = () => xyzRunTokenRef.current === runToken;
     setError("");
     setActiveTaskLabel("XYZ 控制器");
     xyzCancelRef.current = false;
@@ -297,7 +320,7 @@ export function useGeneration({ client, pushToast, notifyComplete, watermark }: 
 
     for (let index = 0; index < items.length; index += 1) {
       const item = items[index];
-      if (xyzCancelRef.current) {
+      if (xyzCancelRef.current || !isCurrentRun()) {
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id && entry.status === "queued" ? { ...entry, status: "cancelled" } : entry));
         continue;
       }
@@ -315,16 +338,26 @@ export function useGeneration({ client, pushToast, notifyComplete, watermark }: 
 
       try {
         const prompt = buildXyzPrompt(item, xyzTarget, defaultParams, multiParams, highresParams, animaParams, animaCaps);
-        const result = await client.runPrompt(prompt, (prog) => setProgress({ ...prog, batch }));
+        const result = await client.runPrompt(prompt, (prog) => {
+          if (isCurrentRun()) setProgress({ ...prog, batch });
+        });
+        if (!isCurrentRun()) continue;
         const job: JobResult = { ...result, meta: describePrompt(prompt, item.label) };
         setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "success", result: job } : entry));
         appendJob(job);
       } catch (runError) {
         const message = runError instanceof Error ? runError.message : String(runError);
-        setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: "failed", error: message } : entry));
-        pushToast("error", `XYZ 组合失败：${item.label}`, message);
+        const aborted = runError instanceof Error && runError.name === "AbortError";
+        // 中断或已有新批次启动：当前条目标记为 cancelled，且不弹失败提示。
+        const cancelled = aborted || xyzCancelRef.current || !isCurrentRun();
+        setXyzResults((prev) => prev.map((entry) => entry.id === item.id ? { ...entry, status: cancelled ? "cancelled" : "failed", error: cancelled ? undefined : message } : entry));
+        if (!cancelled) {
+          pushToast("error", `XYZ 组合失败：${item.label}`, message);
+        }
       }
     }
+
+    if (!isCurrentRun()) return;
 
     setProgress({
       running: false,
@@ -367,6 +400,8 @@ export function useGeneration({ client, pushToast, notifyComplete, watermark }: 
 
   const stopXyzQueue = useCallback(() => {
     xyzCancelRef.current = true;
+    // 使当前批次失效：即使用户马上再次开始，旧批次也不会恢复执行。
+    xyzRunTokenRef.current += 1;
     client.interrupt(progress.promptId).catch(() => undefined);
     setProgress((prev) => ({ ...prev, running: false, label: "XYZ 已中断" }));
     pushToast("info", "XYZ 队列已请求中断");

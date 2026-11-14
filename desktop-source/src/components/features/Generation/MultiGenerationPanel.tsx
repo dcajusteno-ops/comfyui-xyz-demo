@@ -71,6 +71,7 @@ export const MultiGenerationPanel = React.memo(({
           params={params}
           options={options}
           setParams={setParams}
+          promptScope="multi"
           apiBase={apiBase}
           settings={loraSettings}
           localExampleFilesByHash={loraExampleFilesByHash}
@@ -84,6 +85,7 @@ export const MultiGenerationPanel = React.memo(({
           <TextAreaField
             label="全局 prompt"
             value={params.globalPrompt}
+            scope="multi"
             onChange={(value) => setParams((prev) => ({ ...prev, globalPrompt: value }))}
           />
           <PromptLintBadge

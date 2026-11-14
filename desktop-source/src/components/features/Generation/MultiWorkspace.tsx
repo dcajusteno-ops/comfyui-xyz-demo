@@ -383,6 +383,7 @@ function CharacterEditor({
             <TextAreaField
               label="角色 prompt"
               value={activeCharacter.prompt}
+              scope="multi-workspace"
               onChange={(value) => update(activeIndex, { prompt: value })}
             />
             <div className="compact-coords" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>

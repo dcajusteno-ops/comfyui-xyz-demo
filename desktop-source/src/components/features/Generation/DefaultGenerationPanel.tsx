@@ -67,6 +67,7 @@ export const DefaultGenerationPanel = React.memo(({
           params={params}
           options={options}
           setParams={setParams}
+          promptScope="default"
           apiBase={apiBase}
           settings={loraSettings}
           localExampleFilesByHash={loraExampleFilesByHash}

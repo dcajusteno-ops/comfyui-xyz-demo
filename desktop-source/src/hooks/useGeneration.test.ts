@@ -340,6 +340,49 @@ describe("runXyzItems", () => {
     expect(hook.result.current.xyzResults[0].result?.promptId).toBe("job-1");
   });
 
+  it("B11b 中断后立刻开始新批次：旧批次不会恢复执行，也不会覆盖新批次结果", async () => {
+    const hook = setup();
+    let rejectFirst: (error: Error) => void = () => {};
+    hook.runPrompt.mockImplementationOnce(
+      () => new Promise<JobResult>((_, reject) => { rejectFirst = reject; }),
+    );
+    hook.runPrompt.mockResolvedValue(makeJob("new-job"));
+
+    let oldRun: Promise<void> | undefined;
+    await act(async () => {
+      oldRun = hook.result.current.runXyzItems(
+        [xyzItem("old-a"), xyzItem("old-b")],
+        true,
+        "default",
+        defaultParams,
+        multiParams,
+        highresParams,
+        animaParams,
+        ANIMA_CAPS,
+      );
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      hook.result.current.stopXyzQueue();
+    });
+
+    await runItems(hook, [xyzItem("new-c")]);
+
+    await act(async () => {
+      const error = new Error("已中断");
+      error.name = "AbortError";
+      rejectFirst(error);
+      await oldRun;
+    });
+
+    expect(hook.result.current.xyzResults.map((item) => [item.id, item.status])).toEqual([
+      ["new-c", "success"],
+    ]);
+    // 只提交了旧批次第一张和新批次一张，旧批次第二张不会被继续执行
+    expect(hook.runPrompt).toHaveBeenCalledTimes(2);
+  });
+
   it("B12 单条失败不中断整批：失败条目标记 failed+error，后续继续执行", async () => {
     const hook = setup();
     hook.runPrompt

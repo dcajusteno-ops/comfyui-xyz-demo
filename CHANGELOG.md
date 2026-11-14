@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.8.7] - 2026-11-14
+
+### ✨ 新功能 (Features)
+
+- **提示词折叠**：正向 / 反向提示词标题行新增「折叠 / 展开」。反向默认折叠，只显示单行摘要，点击摘要或按钮展开；折叠时 Anima 下方独立渲染的标签块同步收起。折叠状态按**生成模式**隔离（`default / multi / highres / anima / sheet / dataset-anima / dataset-sdxl`），修复细节再按「模式 + 区块标题」隔离，切换模式不再互相串状态。
+- **侧边栏状态记忆**：侧边栏「收起 / 展开」改为服务端 ui-state 持久化（`comfyui_xyz_sidebar_collapsed`），重启 / 刷新恢复上次状态；只在窗口跨过 1024px 断点时自动收起或展开，普通缩放不再覆盖手动选择。
+
+### 🐛 修复 (Fixes)
+
+- **中断后旧任务继续执行**：`/comfy/api/interrupt` 代理层升级为「先清空等待队列，再全局中断」。ComfyUI 原生 `/interrupt` 只停当前任务，等待队列里的 pending 任务会留到下次生成继续跑；现在顺序固定为先 clear 再 interrupt，避免中断后 ComfyUI 立刻取下一个旧任务。
+- **中断后旧结果混入新任务**：`ComfyClient` 补上 `execution_interrupted` 事件处理，中断时立即清理定时器、监听与预览 URL，并以 `AbortError` 结束等待；`useGeneration` 不再把主动中断当失败提示，也不会让旧任务的进度覆盖新任务。
+- **XYZ 批次竞态**：`runXyzItems` / `stopXyzQueue` 引入运行 token。中断后马上重新开始，旧批次即使稍后才收到中断事件也不会恢复执行，剩余条目标记为 `cancelled`，新批次结果与进度不会被覆盖。
+- **队列面板兼容**：`DELETE /queue` 自动转成当前 ComfyUI 支持的 `POST /queue {"delete":[...]}`；旧版前端 `{queue_running:[],queue_pending:[]}` 清空写法转成 `{"clear":true}`，「移除 / 清空等待队列」恢复可用。
+
+### 🧪 测试 (Tests)
+
+- 新增 `B11b`：中断后立刻开始新批次，旧批次不恢复、不覆盖新批次结果（`useGeneration.test.ts`）。
+- 新增 `internal/proxy/proxy_test.go`：中断先清队列再全局中断、旧版清空写法转换、DELETE 删除转 POST 三种用例。
+- 全量 **1130 单测（77 文件）** 全绿；`tsc --noEmit`、`eslint src --max-warnings 0`、`go vet ./...`、`go test ./...` 全绿。
+- 真实 ComfyUI 0.45.3 联调：排队 A/B → 中断 → `running=[] pending=[]`；再提交 C → 队列只有 C；结束后队列清空。
+
+### 🏗️ 构建 (Build)
+
+- `desktop-source/package.json` / `package-lock.json` 版本升至 **0.8.7**。
+- 重建 `ComfyUI-XYZ-Web.exe`（**38.8MB / 40,681,472 B**，GUI 子系统），随本 Release 附上。
+- 前端资源重新构建后入口为 `assets/main-Co6QUPPX.js`，旧 `immutable` 缓存不会命中旧 JS。
+
 ## [v0.8.6] - 2026-11-14
 
 ### ✨ 新功能 (Features)

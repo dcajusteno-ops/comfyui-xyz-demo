@@ -424,12 +424,14 @@ export const SheetGenerationPanel = React.memo(({
           <TextAreaField
             label="角色描述（提示词）"
             value={params.characterPrompt}
+            scope="sheet"
             placeholder="silver hair, blue eyes, school uniform, ..."
             onChange={(value) => patchSheet({ characterPrompt: value })}
           />
           <TextAreaField
             label={`画风附加词（${MODE_LABELS[mode]}）`}
             value={params.style[mode]}
+            scope="sheet"
             placeholder="masterpiece, best quality, ..."
             onChange={(value) => patchSheet({ style: { ...params.style, [mode]: value } })}
           />
@@ -502,6 +504,7 @@ export const SheetGenerationPanel = React.memo(({
           params={modeParams}
           options={options}
           setParams={setModeParams}
+          promptScope="sheet"
           modelSlot={mode === "anima" ? animaModelSlot : undefined}
           hidePositive
           apiBase={apiBase}
@@ -650,7 +653,7 @@ export const SheetGenerationPanel = React.memo(({
             </div>
             <div className="detailer-grid">
               {params.sdxl.enableSegsDetailer && (
-                <DetailerControls
+                <DetailerControls promptScope="sheet"
                   samplers={options.samplers}
                   schedulers={options.schedulers}
                   title="全图修复参数"
@@ -659,7 +662,7 @@ export const SheetGenerationPanel = React.memo(({
                 />
               )}
               {params.sdxl.enableHandDetailer && (
-                <DetailerControls
+                <DetailerControls promptScope="sheet"
                   samplers={options.samplers}
                   schedulers={options.schedulers}
                   title="手部修复参数"
@@ -671,7 +674,7 @@ export const SheetGenerationPanel = React.memo(({
                 />
               )}
               {params.sdxl.enableFaceDetailer && (
-                <DetailerControls
+                <DetailerControls promptScope="sheet"
                   samplers={options.samplers}
                   schedulers={options.schedulers}
                   title="脸部修复参数"
@@ -683,7 +686,7 @@ export const SheetGenerationPanel = React.memo(({
                 />
               )}
               {params.sdxl.enableEyesDetailer && (
-                <DetailerControls
+                <DetailerControls promptScope="sheet"
                   samplers={options.samplers}
                   schedulers={options.schedulers}
                   title="眼部修复参数"
@@ -695,7 +698,7 @@ export const SheetGenerationPanel = React.memo(({
                 />
               )}
               {params.sdxl.enableNsfwDetailer && (
-                <DetailerControls
+                <DetailerControls promptScope="sheet"
                   samplers={options.samplers}
                   schedulers={options.schedulers}
                   title="NSFW修复参数"
