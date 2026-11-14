@@ -11,6 +11,8 @@ import {
   normalizeDatasetParams,
 } from "../lib/paramBuilders";
 import { fallbackOptions } from "../constants";
+import { defaultWardrobeGeneration, normalizeWardrobeGeneration, WARDROBE_GENERATION_KEY } from "../lib/wardrobe/generation";
+import type { WardrobeGenerationState } from "../lib/wardrobe/types";
 import type { 
   BaseGenerationParams, 
   MultiGenerationParams, 
@@ -27,6 +29,16 @@ export function useParams() {
   const [multiParams, setMultiParams] = usePersistentState<MultiGenerationParams>("comfyui_multi_params", makeMultiParams());
   const [highresParams, setHighresParams] = usePersistentState<HighresParams>("comfyui_highres_params", makeHighresParams());
   const [animaParams, setAnimaParams] = usePersistentState<AnimaGenerationParams>("comfyui_anima_params", makeAnimaParams());
+  /**
+   * 造型台生图参数：首次挂载取 Anima 快照，之后独立自维护；
+   * 放在 useParams 里是为了让标准 LoRA 插入逻辑（handleLoraInsert）能直接写入造型台目标。
+   */
+  const [wardrobeDefaults] = useState<WardrobeGenerationState>(() => defaultWardrobeGeneration(animaParams));
+  const [wardrobeGeneration, setWardrobeGeneration] = usePersistentState<WardrobeGenerationState>(
+    WARDROBE_GENERATION_KEY,
+    wardrobeDefaults,
+    (merged, raw) => (raw === undefined ? wardrobeDefaults : normalizeWardrobeGeneration(merged, wardrobeDefaults)),
+  );
   /**
    * 三视图页的默认值只在首次挂载取一次快照（模型栈 / checkpoint / 采样参数从上面几套继承），
    * 之后由 `comfyui_sheet_params` 自维护——不能跟随 Anima 面板变化，否则「独立一套参数」名存实亡。
@@ -83,10 +95,12 @@ export function useParams() {
     setHighresParams,
     animaParams,
     setAnimaParams,
+    wardrobeGeneration,
+    setWardrobeGeneration,
     sheetParams,
     setSheetParams,
     datasetParams,
     setDatasetParams,
     allActiveLoraHashes,
-  }), [options, setOptions, defaultParams, setDefaultParams, multiParams, setMultiParams, highresParams, setHighresParams, animaParams, setAnimaParams, sheetParams, setSheetParams, datasetParams, setDatasetParams, allActiveLoraHashes]);
+  }), [options, setOptions, defaultParams, setDefaultParams, multiParams, setMultiParams, highresParams, setHighresParams, animaParams, setAnimaParams, wardrobeGeneration, setWardrobeGeneration, sheetParams, setSheetParams, datasetParams, setDatasetParams, allActiveLoraHashes]);
 }

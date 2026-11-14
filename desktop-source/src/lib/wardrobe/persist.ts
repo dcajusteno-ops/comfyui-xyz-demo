@@ -67,6 +67,7 @@ export function defaultWardrobeState(): WardrobeUiState {
   return {
     version: 1,
     level: "sfw",
+    randomLevel: false,
     seed: -1,
     baseProb: 0.65,
     tagCap: "自动",
@@ -169,6 +170,7 @@ export function normalizeWardrobeState(merged: WardrobeUiState): WardrobeUiState
   const base = defaultWardrobeState();
   const state: WardrobeUiState = { ...base, ...(merged ?? {}) };
   state.level = (WARDROBE_LEVELS as readonly string[]).includes(state.level) ? state.level : "sfw";
+  state.randomLevel = state.randomLevel === true;
   const seed = Number(state.seed);
   state.seed = Number.isFinite(seed) ? Math.max(-1, Math.min(2 ** 31 - 1, Math.trunc(seed))) : -1;
   const prob = Number(state.baseProb);

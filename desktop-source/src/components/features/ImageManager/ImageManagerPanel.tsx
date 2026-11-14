@@ -61,7 +61,16 @@ export function ImageManagerPanel({ focus, confirm, pushToast }: ImageManagerPan
     total,
     truncated,
     hasMore,
+    silentRefresh,
   } = api;
+
+  // 造型台等外部生成会持续往当前目录写图：每 3 秒静默刷新一次（页面隐藏时暂停）
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void silentRefresh();
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [silentRefresh]);
 
   // 数据集按钮跳转：把 <output>/<filenameRoot> 解析成绝对路径再打开
   useEffect(() => {

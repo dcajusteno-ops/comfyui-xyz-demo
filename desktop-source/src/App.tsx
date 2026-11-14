@@ -28,7 +28,8 @@ import { useSheetLora } from "./hooks/useSheetLora";
 import { useDatasetRun } from "./hooks/useDatasetRun";
 import type { DatasetRunCaps, DatasetStartMode } from "./hooks/useDatasetRun";
 
-import { loraSyntaxName, mergeLora } from "./lib/lora-helper";
+import { extractItemTrainedWords, loraSyntaxName, mergeLora, uniqueStrings } from "./lib/lora-helper";
+import { mergeWardrobeLora } from "./lib/wardrobe/generation";
 import { pickCardPreviewMedia } from "./lib/lora-media";
 import { addCharacter } from "./lib/multiCharacters";
 import {
@@ -47,7 +48,7 @@ import {
   templateLabels,
   loraInsertTargetLabels,
 } from "./constants";
-import type { LoraSelection, TemplateKind, LoraInsertTarget, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams, WatermarkBakeConfig, DrawTextParams } from "./types";
+import type { LoraSelection, TemplateKind, LoraInsertTarget, LoraItem, TabId, MobileTask, MobileTaskStatus, OutputImage, XyzCombination, AnimaGenerationParams, BaseGenerationParams, MultiGenerationParams, HighresParams, WatermarkBakeConfig, DrawTextParams, JobResult } from "./types";
 import type { AnimaApplyMode, AnimaComposerValues } from "./lib/anima/types";
 import { mergeComposerSlots } from "./lib/anima/compose";
 import { useWorkbenchComposer } from "./hooks/useAnimaComposer";
@@ -305,6 +306,20 @@ function App() {
             ? { ...prev, anima: { ...prev.anima, loras: mergeLora(prev.anima.loras, value) } }
             : { ...prev, sdxl: { ...prev.sdxl, loras: mergeLora(prev.sdxl.loras, value) } },
         ),
+      wardrobe: (value) => {
+        const key = value.displayName || value.name;
+        const triggers = uniqueStrings([
+          ...(loras.triggerWords[key] ?? []),
+          ...extractItemTrainedWords(item),
+        ]);
+        params.setWardrobeGeneration((prev) => ({
+          ...prev,
+          params: {
+            ...prev.params,
+            loras: mergeWardrobeLora(prev.params.loras, { ...value, triggerWords: triggers }),
+          },
+        }));
+      },
     };
 
     const insert = inserters[target];
@@ -315,7 +330,7 @@ function App() {
 
     insert(selection);
     pushToast("success", "LoRA 已插入", `${selection.displayName} -> ${loraInsertTargetLabels[target]}`);
-  }, [loraExampleFilesByHash, params, pushToast]);
+  }, [loraExampleFilesByHash, loras.triggerWords, params, pushToast]);
 
   const handleSlotsApply = useCallback((tags: string[], target: TemplateKind) => {
     const clean = tags.map((tag) => tag.trim()).filter(Boolean);
@@ -453,6 +468,16 @@ function App() {
       return;
     }
 
+    // 造型台没有正向提示词输入框：触发词进入造型台自己的手动触发词列表
+    if (target === "wardrobe") {
+      params.setWardrobeGeneration((prev) => ({
+        ...prev,
+        manualTriggers: uniqueStrings([...prev.manualTriggers, ...words]).slice(0, 60),
+      }));
+      pushToast("success", "触发词已应用", "已写入造型台触发词");
+      return;
+    }
+
     // 注意：追加键取**当前 tab**（multi→globalPrompt），而落点是 target——与历史行为保持一致
     const updater = appendPromptUpdater<MultiGenerationParams>(text, { useGlobal: tab === "multi", dedupe: false });
 
@@ -515,6 +540,18 @@ function App() {
       `${clean.length} 字符 · 造型台`,
     );
   }, [params, pushToast]);
+
+  /**
+   * 造型台一键生图 / 连续生图：参数完全由造型台自己维护，
+   * 这里只负责把已经构建好的快照提交给 ComfyUI，不读写 Anima 面板参数。
+   */
+  const handleWardrobeGenerate = useCallback(
+    (generationParams: AnimaGenerationParams): Promise<JobResult | undefined> =>
+      runPrompt("造型台生图", () =>
+        buildAnimaPrompt(generationParams, options.animaCaps),
+      ).catch(() => undefined),
+    [runPrompt, options.animaCaps],
+  );
 
   // —— 公共工作台（独立页）：词库与造型台的词在这里合流 ——
   const [workbench, setWorkbench] = useWorkbenchComposer();
@@ -956,6 +993,8 @@ function App() {
       animaLibraryApply: handleAnimaLibraryApply,
       animaReference: handleAnimaReference,
       wardrobeApply: handleWardrobeApply,
+      wardrobeGenerate: handleWardrobeGenerate,
+      interrupt: interruptGeneration,
       sendToWorkbench: handleSendToWorkbench,
       libraryToWorkbench: handleLibraryToWorkbench,
       loraInsert: handleLoraInsert,
@@ -994,6 +1033,8 @@ function App() {
       handleAnimaLibraryApply,
       handleAnimaReference,
       handleWardrobeApply,
+      handleWardrobeGenerate,
+      interruptGeneration,
       handleSendToWorkbench,
       handleLibraryToWorkbench,
       handleLoraInsert,

@@ -1,7 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
-import { Bookmark, Dice5, Film, Loader2, Play, RefreshCw, Shirt, Sparkles, Users } from "lucide-react";
-import { PanelTitle } from "../../ui";
-import type { Toast } from "../../../types";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import {
+  Bookmark,
+  Dice5,
+  Film,
+  Loader2,
+  Play,
+  RefreshCw,
+  Repeat,
+  Settings2,
+  Shirt,
+  Sparkles,
+  Square,
+  Users,
+} from "lucide-react";
+import { ModalFrame, PanelTitle } from "../../ui";
+import type {
+  AnimaGenerationParams,
+  JobResult,
+  LoraExampleMedia,
+  LoraItem,
+  LoraManagerSettings,
+  LoraSelection,
+  OptionsState,
+  OutputImage,
+  Toast,
+} from "../../../types";
 import type { AnimaApplyMode } from "../../../lib/anima/types";
 import { useWardrobeData } from "../../../hooks/useWardrobeData";
 import { useWardrobe } from "../../../hooks/useWardrobe";
@@ -21,7 +45,16 @@ import {
   WARDROBE_TAG_CAPS,
 } from "../../../lib/wardrobe/persist";
 import { countTags } from "../../../lib/wardrobe/text";
-import type { WardrobeDrawResult, WardrobeWorkbenchSplit } from "../../../lib/wardrobe/types";
+import {
+  WARDROBE_OUTPUT_ROOT,
+  buildWardrobeGenerationParams,
+  buildWardrobePrompt,
+} from "../../../lib/wardrobe/generation";
+import type {
+  WardrobeDrawResult,
+  WardrobeGenerationState,
+  WardrobeWorkbenchSplit,
+} from "../../../lib/wardrobe/types";
 import { WardrobeTree } from "./WardrobeTree";
 import { WardrobeCharacterLibrary } from "./WardrobeCharacterLibrary";
 import { WardrobeSceneLibrary } from "./WardrobeSceneLibrary";
@@ -29,6 +62,9 @@ import { WardrobeOutfitLibrary } from "./WardrobeOutfitLibrary";
 import { WardrobeDrySkinBar } from "./WardrobeDrySkinBar";
 import { WardrobePresetBar } from "./WardrobePresetBar";
 import { WardrobeResultPanel } from "./WardrobeResultPanel";
+import { WardrobeLoraSection } from "./WardrobeLoraSection";
+import { WardrobeGenerationSettings } from "./WardrobeGenerationSettings";
+import { WardrobeGenerationGallery } from "./WardrobeGenerationGallery";
 import { AnimaSelect } from "../AnimaLibrary/AnimaSelect";
 
 type Props = {
@@ -41,6 +77,26 @@ type Props = {
   workbenchValues: Record<string, string>;
   /** 把拆好的分区桶送进公共工作台并跳转过去 */
   onSendToWorkbench: (split: WardrobeWorkbenchSplit) => void;
+  /** 一键生图 / 连续生图：提交造型台自己构建的 Anima 工作流 */
+  onGenerateImage: (params: AnimaGenerationParams) => Promise<JobResult | undefined>;
+  /** 生成结果缩略图点击后打开灯箱 */
+  onOpenGeneratedImage: (url: string, originalUrl?: string) => void;
+  /** 在系统浏览器打开造型台专属图片管理页（定位到 造型台 输出目录） */
+  onOpenImageManager: (dir?: string) => void;
+  /** 造型台独立生图状态（App 层持久化，标准 LoRA 插入逻辑直接写入这里） */
+  generation: WardrobeGenerationState;
+  setGeneration: Dispatch<SetStateAction<WardrobeGenerationState>>;
+  /** 打开全局简易 LoRA 管理器，插入目标固定为造型台 */
+  onOpenLoraLibrary: () => void;
+  loraChips: {
+    apiBase: string;
+    settings: LoraManagerSettings;
+    localExampleFilesByHash: Record<string, LoraExampleMedia[]>;
+    onDetail: (item: LoraSelection | LoraItem) => void;
+  };
+  options: OptionsState;
+  /** 中断当前 ComfyUI 任务（连续生图的停止按钮） */
+  onInterrupt: () => void;
 };
 
 /** 送入工作台时整体替换的分区；`extra` 追加，`artist` 永远保留（画师只归工作台管）。 */
@@ -53,6 +109,31 @@ const LEVEL_LABELS: Record<(typeof WARDROBE_LEVELS)[number], string> = {
   hardcore: "过激",
   extreme: "极端",
 };
+
+/**
+ * 生成结果缓存：切换工作台页签会卸载造型台面板，`useState` 会被重置，
+ * 导致「结果 N / 查看图片」入口消失。
+ * 用模块级外部 store + `useSyncExternalStore`：即使连续生图还在旧实例里跑，
+ * 新挂载的面板也能收到后续每一张图，结果数保持实时增长（仅本次会话）。
+ */
+let generatedImagesCache: OutputImage[] = [];
+const generatedImagesListeners = new Set<() => void>();
+
+function subscribeGeneratedImages(listener: () => void) {
+  generatedImagesListeners.add(listener);
+  return () => {
+    generatedImagesListeners.delete(listener);
+  };
+}
+
+function getGeneratedImagesSnapshot() {
+  return generatedImagesCache;
+}
+
+function addGeneratedImages(images: OutputImage[]) {
+  generatedImagesCache = [...images, ...generatedImagesCache].slice(0, 24);
+  for (const listener of generatedImagesListeners) listener();
+}
 
 /** 静态档位数字：首屏数据未就绪时也要能渲染，不能调 targetNum()（它依赖数据包）。 */
 const LEVEL_NUM: Record<(typeof WARDROBE_LEVELS)[number], number> = {
@@ -71,11 +152,34 @@ export function WardrobePanel({
   onOpenAnima,
   workbenchValues,
   onSendToWorkbench,
+  onGenerateImage,
+  onOpenGeneratedImage,
+  onOpenImageManager,
+  generation,
+  setGeneration,
+  onOpenLoraLibrary,
+  loraChips,
+  options,
+  onInterrupt,
 }: Props) {
   const data = useWardrobeData();
   const wardrobe = useWardrobe(pushToast);
   const [result, setResult] = useState<WardrobeDrawResult | null>(null);
   const [showDry, setShowDry] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLoraManager, setShowLoraManager] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  // 草稿提到面板层，标题栏按钮与结果区共用同一份文本
+  const [draft, setDraft] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const generatedImages = useSyncExternalStore(
+    subscribeGeneratedImages,
+    getGeneratedImagesSnapshot,
+    getGeneratedImagesSnapshot,
+  );
+  const [loopRunning, setLoopRunning] = useState(false);
+  const [loopProgress, setLoopProgress] = useState({ done: 0, total: 0 });
+  const stopLoopRef = useRef(false);
 
   // 服装预设覆盖层要在数据就绪后合并进引擎（否则读不到 character-outfits.json）
   useEffect(() => {
@@ -109,6 +213,79 @@ export function WardrobePanel({
         dropped: state.lastResult?.dropped ?? [],
         repaired: state.lastResult?.repaired ?? [],
       };
+
+  // 抽取结果变化时同步草稿（与结果区原来的行为一致）
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 外部文本变化时同步草稿
+    setDraft(shownText);
+  }, [shownText]);
+
+  const runGenerate = async (prompt: string): Promise<JobResult | undefined> => {
+    const clean = prompt.trim();
+    if (!clean) return undefined;
+    try {
+      const job = await onGenerateImage(buildWardrobeGenerationParams(generation, clean));
+      if (job?.images?.length) {
+        addGeneratedImages(job.images);
+      }
+      return job;
+    } catch {
+      // runPrompt 已统一 toast 失败原因，这里只负责复位状态
+      return undefined;
+    }
+  };
+
+  const ensureModelSelected = (): boolean => {
+    if (generation.params.modelStack.unetName) return true;
+    pushToast("error", "未选择 UNet 模型", "请先在「生图设置」里选择模型");
+    setShowSettings(true);
+    return false;
+  };
+
+  const handleGenerate = async () => {
+    if (generating || loopRunning) return;
+    if (!ensureModelSelected()) return;
+    const prompt = buildWardrobePrompt(generation, draft, state.qualityPrefix);
+    if (!prompt) return;
+    setGenerating(true);
+    try {
+      await runGenerate(prompt);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const runContinuous = async () => {
+    if (loopRunning) {
+      stopLoopRef.current = true;
+      onInterrupt();
+      return;
+    }
+    if (generating) return;
+    if (!ensureModelSelected()) return;
+
+    const total = generation.continuousCount;
+    stopLoopRef.current = false;
+    setLoopRunning(true);
+    setLoopProgress({ done: 0, total });
+    try {
+      for (let index = 0; index < total; index += 1) {
+        if (stopLoopRef.current) break;
+        // 连续模式每轮换一个临时种子：不写回面板 seed
+        const drawn = wardrobe.run(Math.floor(Math.random() * 2 ** 31));
+        if (!drawn) break;
+        setDraft(drawn.text);
+        const prompt = buildWardrobePrompt(generation, drawn.text, state.qualityPrefix);
+        if (!prompt) break;
+        const job = await runGenerate(prompt);
+        if (!job) break;
+        setLoopProgress({ done: index + 1, total });
+      }
+    } finally {
+      setLoopRunning(false);
+      stopLoopRef.current = false;
+    }
+  };
 
   const outfitTemplates = () => getWardrobeData("outfitTemplates")?.outfits ?? [];
 
@@ -209,7 +386,8 @@ export function WardrobePanel({
   };
 
   return (
-    <div className={`wd-panel panel${showDry ? " has-dryskin" : ""}`}>
+    <>
+      <div className={`wd-panel panel${showDry ? " has-dryskin" : ""}`}>
       <div className="panel-header wd-header">
         <PanelTitle icon={Shirt} title="Anima 造型台" />
         <div className="wd-level-bar" role="group" aria-label="档位">
@@ -217,14 +395,29 @@ export function WardrobePanel({
             <button
               key={level}
               type="button"
-              className={`wd-level${state.level === level ? " is-on" : ""}`}
-              onClick={() => wardrobe.setState((prev) => setLevel(prev, level))}
+              className={`wd-level${state.level === level && !state.randomLevel ? " is-on" : ""}`}
+              onClick={() =>
+                wardrobe.setState((prev) => ({ ...setLevel(prev, level), randomLevel: false }))
+              }
               title={`L${targetNum()[level]} · ${LEVEL_LABELS[level]}`}
             >
               <em>L{targetNum()[level]}</em>
               {LEVEL_LABELS[level]}
             </button>
           ))}
+          <button
+            type="button"
+            className={`wd-level wd-level-random${state.randomLevel ? " is-on" : ""}`}
+            onClick={() =>
+              wardrobe.setState((prev) => ({ ...prev, randomLevel: !prev.randomLevel }))
+            }
+            title="随机档位：每次抽取从 L0-L4 中随机，连续生图时每轮都可能不同"
+          >
+            <em>
+              <Dice5 size={11} />
+            </em>
+            随机
+          </button>
         </div>
         <label className="wd-seed">
           seed
@@ -249,8 +442,54 @@ export function WardrobePanel({
             <Dice5 size={14} />
           </button>
         </label>
-        <button type="button" className="primary-action wd-run" onClick={handleRun}>
+        <button
+          type="button"
+          className="primary-action wd-run"
+          onClick={handleRun}
+          disabled={loopRunning || generating}
+        >
           <Play size={15} /> 抽一次
+        </button>
+        <button
+          type="button"
+          className="primary-action wd-generate"
+          onClick={() => void handleGenerate()}
+          disabled={!draft.trim() || generating || loopRunning}
+          aria-busy={generating && !loopRunning}
+          title="用当前抽取结果直接生成（沿用造型台自己的模型 / 尺寸 / 采样参数与 LoRA）"
+        >
+          {generating && !loopRunning ? (
+            <Loader2 size={15} className="wd-spin" />
+          ) : (
+            <Sparkles size={15} />
+          )}
+          {generating && !loopRunning ? "生成中…" : "一键生图"}
+        </button>
+        <button
+          type="button"
+          className="secondary-action wd-continuous"
+          onClick={() => void runContinuous()}
+          disabled={!loopRunning && generating}
+          aria-busy={loopRunning}
+          title={
+            loopRunning
+              ? "停止连续生图（会中断当前这一张）"
+              : `连续 ${generation.continuousCount} 次：每轮重新抽词并生成一张`
+          }
+        >
+          {loopRunning ? <Square size={15} /> : <Repeat size={15} />}
+          {loopRunning
+            ? `停止 ${loopProgress.done}/${loopProgress.total}`
+            : `连抽 ${generation.continuousCount} 次`}
+        </button>
+        <button
+          type="button"
+          className="wd-icon-btn"
+          onClick={() => setShowSettings(true)}
+          title="造型台生图设置（模型 / 尺寸 / 采样 / LoRA）"
+          aria-label="造型台生图设置"
+        >
+          <Settings2 size={16} />
         </button>
       </div>
 
@@ -533,9 +772,60 @@ export function WardrobePanel({
             onCopy={handleCopy}
             onToWorkbench={handleToWorkbench}
             onOpenAnima={onOpenAnima}
+            onOpenImageFolder={() => onOpenImageManager(WARDROBE_OUTPUT_ROOT)}
+            draft={draft}
+            onDraftChange={setDraft}
+            generating={generating || loopRunning}
+            generatedImages={generatedImages}
+            onOpenImage={onOpenGeneratedImage}
+            generation={generation}
+            onOpenLoraManager={() => setShowLoraManager(true)}
+            onOpenGallery={() => setShowGallery(true)}
           />
         </section>
       </div>
-    </div>
+      </div>
+      {showSettings && (
+        <WardrobeGenerationSettings
+          state={generation}
+          options={options}
+          onChange={setGeneration}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+      {showLoraManager && (
+        <ModalFrame
+          title="造型台 LoRA 与触发词"
+          onClose={() => setShowLoraManager(false)}
+          style={{ width: "min(980px, 94vw)", maxHeight: "86vh", display: "flex", flexDirection: "column" }}
+        >
+          <div className="wd-lora-manager-modal">
+            <WardrobeLoraSection
+              state={generation}
+              onChange={setGeneration}
+              onOpenLibrary={onOpenLoraLibrary}
+              onOpenLoraDetail={loraChips.onDetail}
+              apiBase={loraChips.apiBase}
+              loraSettings={loraChips.settings}
+              loraExampleFilesByHash={loraChips.localExampleFilesByHash}
+            />
+          </div>
+          <div className="panel-footer wd-modal-foot">
+            <button type="button" className="primary-action" onClick={() => setShowLoraManager(false)}>
+              完成
+            </button>
+          </div>
+        </ModalFrame>
+      )}
+      {showGallery && (
+        <WardrobeGenerationGallery
+          images={generatedImages}
+          generating={generating || loopRunning}
+          progress={loopProgress}
+          onOpenImage={onOpenGeneratedImage}
+          onClose={() => setShowGallery(false)}
+        />
+      )}
+    </>
   );
 }

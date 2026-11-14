@@ -899,7 +899,7 @@ export type SheetMode = "anima" | "sdxl";
  * 三视图与数据集刻意不进 `TemplateKind`——它们不是「模板」而是独立页，进联合类型会
  * 连带打挂 XYZ / 生成预设 / 手机端应用目标等 20+ 处分派。
  */
-export type LoraInsertTarget = TemplateKind | "sheet" | "dataset";
+export type LoraInsertTarget = TemplateKind | "sheet" | "dataset" | "wardrobe";
 
 export type XyzField =
   | "seed"

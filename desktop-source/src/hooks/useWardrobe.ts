@@ -67,11 +67,19 @@ export function useWardrobe(pushToast: ToastFn) {
   const favoriteWorks = useMemo(() => new Set(favorites.works), [favorites.works]);
   const selectedRoles = useMemo(() => new Set(state.selectedRoles), [state.selectedRoles]);
 
-  const run = useCallback((): WardrobeDrawResult | null => {
+  /**
+   * 抽一次。`seedOverride` 只给连续生图用：每轮换一个临时种子，
+   * 不写回面板 seed，也不改变用户的可复现设置。
+   */
+  const run = useCallback((seedOverride?: number): WardrobeDrawResult | null => {
+    const drawSeed = Number.isFinite(seedOverride) ? Math.trunc(seedOverride as number) : state.seed;
+    const drawLevel = state.randomLevel
+      ? WARDROBE_LEVELS[Math.floor(Math.random() * WARDROBE_LEVELS.length)]
+      : state.level;
     try {
       const result = draw({
-        level: state.level,
-        seed: state.seed,
+        level: drawLevel,
+        seed: drawSeed,
         baseProb: state.baseProb,
         weights: state.weights,
         enabledSections: enabledSections(state),
@@ -104,7 +112,7 @@ export function useWardrobe(pushToast: ToastFn) {
           text: result.text,
           levelNum: result.level_num,
           cap: result.cap,
-          seed: state.seed,
+          seed: drawSeed,
           tagCount: countTags(result.text),
           drawn: result.report.drawn,
           dropped: result.dropped,

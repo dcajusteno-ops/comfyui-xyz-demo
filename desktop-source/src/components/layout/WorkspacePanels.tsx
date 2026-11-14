@@ -11,10 +11,12 @@ import { useOptions } from "../../hooks/useOptions";
 import { useWorkbenchComposer } from "../../hooks/useAnimaComposer";
 import type { DatasetStartMode } from "../../hooks/useDatasetRun";
 import type {
+  AnimaGenerationParams,
   CanvasCharacter,
   DatasetConfig,
   DatasetItem,
   DatasetRunState,
+  JobResult,
   LoraInsertTarget,
   LoraItem,
   LoraSelection,
@@ -102,6 +104,8 @@ export interface WorkspaceHandlers {
   animaLibraryApply: (text: string, mode: AnimaApplyMode) => void;
   animaReference: (imageName: string) => void;
   wardrobeApply: (text: string, mode: AnimaApplyMode) => void;
+  wardrobeGenerate: (params: AnimaGenerationParams) => Promise<JobResult | undefined>;
+  interrupt: () => void;
   sendToWorkbench: (split: WardrobeWorkbenchSplit) => void;
   libraryToWorkbench: (values: AnimaComposerValues) => void;
   loraInsert: (item: LoraItem, target: LoraInsertTarget, strength?: number) => void;
@@ -410,6 +414,20 @@ export const WorkspacePanels = React.memo(function WorkspacePanels({
           onOpenAnima={handlers.openAnimaTab}
           workbenchValues={workbench.values}
           onSendToWorkbench={handlers.sendToWorkbench}
+          onGenerateImage={handlers.wardrobeGenerate}
+          onOpenGeneratedImage={handlers.openOutputLightbox}
+          onOpenImageManager={handlers.openImageManager}
+          generation={params.wardrobeGeneration}
+          setGeneration={params.setWardrobeGeneration}
+          onOpenLoraLibrary={() => loras.setSimpleLoraTarget("wardrobe")}
+          loraChips={{
+            apiBase,
+            settings: loraSettings,
+            localExampleFilesByHash: loras.loraExampleFilesByHash,
+            onDetail: handlers.openLoraDetail,
+          }}
+          options={options}
+          onInterrupt={handlers.interrupt}
         />
       )}
 

@@ -96,6 +96,19 @@ describe("造型台持久化", () => {
     expect(defaultPresets()).toEqual({ version: 1, items: {} });
   });
 
+  it("随机档位：持久化布尔，套用预设时退出随机", () => {
+    const state = defaultWardrobeState();
+    expect(state.randomLevel).toBe(false);
+
+    const normalized = normalizeWardrobeState({ ...state, randomLevel: true });
+    expect(normalized.randomLevel).toBe(true);
+
+    const preset = capturePreset({ ...state, randomLevel: true, level: "explicit" }, "随机档");
+    const next = applyPresetToState({ ...state, randomLevel: true }, preset);
+    expect(next.randomLevel).toBe(false);
+    expect(next.level).toBe("explicit");
+  });
+
   it("预设捕获/套用覆盖指定字段", () => {
     const state = defaultWardrobeState();
     state.level = "explicit";

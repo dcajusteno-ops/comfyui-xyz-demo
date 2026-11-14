@@ -58,6 +58,8 @@ export function applyPresetToState(state: WardrobeUiState, preset: WardrobePrese
   const next: WardrobeUiState = {
     ...state,
     level: preset.level,
+    // 套用预设 = 明确指定档位，退出随机档
+    randomLevel: false,
     weights: preset.weights,
     locks: [...preset.locks],
     disabledSections: [...preset.disabledSections],

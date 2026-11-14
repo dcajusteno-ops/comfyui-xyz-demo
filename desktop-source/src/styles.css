@@ -601,6 +601,23 @@ button {
   z-index: 2;
 }
 
+/* 弹窗内的底栏跟随弹窗实底，不再叠一层 surface：
+   否则壁纸模式下会与标题栏/正文出现色差，像一条独立的黑带 */
+.modal > .panel-footer {
+  background: transparent;
+}
+
+/* 造型台的三个弹窗：整体留白比通用弹窗再宽一点，标题 / 正文 / 底栏都不贴边 */
+.modal:has(.wd-gen-settings),
+.modal:has(.wd-gen-gallery),
+.modal:has(.wd-lora-manager-modal) {
+  padding: 20px;
+}
+
+.wd-modal-foot {
+  padding: 16px 18px 18px;
+}
+
 .panel-title {
   gap: 9px;
   color: var(--accent);
@@ -2944,7 +2961,10 @@ textarea {
 
 .modal {
   border: 1px solid var(--border);
-  background: var(--surface);
+  /* 必须用实底 surface：壁纸模式下 --surface 会被重指成玻璃变体，
+     弹窗一旦半透明，标题栏 / 正文 / 底栏就会各自透出壁纸，像三条割裂的色带。
+     也不用 --modal-bg：自定义主题可能没同步它，会和面板底色对不上。 */
+  background: var(--surface-solid, var(--surface));
   box-shadow: var(--shadow-lg);
 }
 
@@ -7747,6 +7767,20 @@ html.has-wallpaper .lm-folder-sidebar {
   font-weight: 600;
 }
 
+.wd-level-random {
+  border: 1px dashed var(--border);
+}
+
+.wd-level-random.is-on {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.wd-level-random em {
+  display: inline-flex;
+  align-items: center;
+}
+
 .wd-seed {
   display: inline-flex;
   align-items: center;
@@ -7786,6 +7820,11 @@ html.has-wallpaper .lm-folder-sidebar {
 
 .wd-run {
   margin-left: auto;
+  min-height: 34px;
+  padding: 0 16px;
+}
+
+.wd-generate {
   min-height: 34px;
   padding: 0 16px;
 }
@@ -8791,6 +8830,11 @@ html.has-wallpaper .lm-folder-sidebar {
   background: var(--surface-alt);
 }
 
+/* 结果区自己滚动，内部行不参与 flex 收缩（否则按钮行会被压成 2px） */
+.wd-result > * {
+  flex-shrink: 0;
+}
+
 .wd-result-head {
   display: flex;
   align-items: center;
@@ -8806,11 +8850,26 @@ html.has-wallpaper .lm-folder-sidebar {
   color: var(--text);
 }
 
+.wd-result-title {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .wd-result-meta {
   margin-left: auto;
   font-size: 10.5px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  overflow: hidden;
+}
+
+@media (max-width: 1180px) {
+  /* 窄右栏时标签数 / seed / cap 让位给标题、LoRA 与结果入口（只隐藏 span，别误伤按钮） */
+  .wd-result-meta span.wd-result-chip:nth-of-type(2),
+  .wd-result-meta span.wd-result-chip:nth-of-type(3),
+  .wd-result-meta span.wd-result-chip:nth-of-type(4) {
+    display: none;
+  }
 }
 
 .wd-result-text {
@@ -8832,7 +8891,17 @@ html.has-wallpaper .lm-folder-sidebar {
   display: flex;
   align-items: center;
   gap: 7px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.wd-result-actions > * {
+  flex: 0 0 auto;
+}
+
+.wd-result-actions .wd-result-btns {
+  flex-wrap: nowrap;
 }
 
 .wd-result-actions button {
@@ -11323,6 +11392,15 @@ button:disabled {
   color: var(--accent);
 }
 
+.wd-result-chip-btn {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.wd-result-chip-btn:hover {
+  background: var(--accent-soft);
+}
+
 .wd-result-text {
   font-size: 11.5px;
   line-height: 1.55;
@@ -11400,6 +11478,430 @@ button:disabled {
 
 .wd-result-actions {
   gap: 8px;
+}
+
+/* 一键生图：正文与预览并排，预览不额外占用纵向空间 */
+.wd-result-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.wd-result-main .wd-result-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* 一键生图：正文与结果缩略图并排 */
+.wd-result-gallery {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wd-result-gallery-label {
+  font-size: 10.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wd-result-gallery-strip {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.wd-result-gallery-strip img,
+.wd-result-preview-loading {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.wd-result-gallery-strip img {
+  cursor: zoom-in;
+}
+
+.wd-result-preview-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  color: var(--muted);
+}
+
+/* LoRA 管理弹窗内容 */
+.wd-lora-manager-modal {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px;
+}
+
+.wd-lora-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wd-lora-manager-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wd-lora-manager-bar .secondary-action {
+  margin-left: auto;
+}
+
+.wd-lora-manager-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* 连续生图结果查看器 */
+.wd-gen-gallery {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px 22px;
+}
+
+.wd-gen-gallery-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.wd-gen-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.wd-gen-gallery-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wd-gen-gallery-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+}
+
+.wd-gen-gallery-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wd-gen-gallery-badge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(8, 12, 20, 0.72);
+  color: #fff;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(6px);
+}
+
+.wd-gen-gallery-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.wd-result-gen-btns {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.wd-result-gen-btns .primary-action {
+  margin-left: 0;
+}
+
+/* 连续生图：标题栏按钮 */
+.wd-continuous {
+  min-height: 34px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+/* 造型台 LoRA 触发词编辑（LoRA 卡片本身复用全局 LoraChips） */
+.wd-lora-triggers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
+.wd-lora-triggers-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-lora-trigger-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-lora-trigger-row > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wd-lora-trigger-row input {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 11px;
+}
+
+/* 造型台生图设置弹窗 */
+.wd-gen-settings {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wd-gen-settings-lead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.wd-gen-section {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+  padding: 14px 16px;
+}
+
+.wd-gen-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.wd-gen-section-head h3,
+.wd-gen-section-collapsible summary h3 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.wd-gen-section-head > span,
+.wd-gen-section-collapsible summary > span {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.wd-gen-section .form-grid {
+  gap: 8px 12px;
+}
+
+.wd-gen-section .field > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wd-gen-stage-preset {
+  margin-bottom: 8px;
+}
+
+.wd-gen-settings-stages {
+  flex-wrap: wrap;
+}
+
+.wd-gen-section-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.wd-gen-section-collapsible > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.wd-gen-section-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wd-gen-section-collapsible[open] > summary {
+  margin-bottom: 10px;
+}
+
+.wd-gen-neg {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-solid, var(--surface));
+  color: var(--text);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.wd-gen-inline {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.wd-gen-inline .field {
+  max-width: 160px;
+}
+
+.wd-gen-inline .wd-gen-section-hint {
+  margin: 0;
+  flex: 1;
+}
+
+.wd-gen-settings-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* LoRA 选择器 */
+.wd-lora-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+.wd-lora-picker-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wd-lora-picker-bar .wd-search {
+  flex: 1;
+}
+
+.wd-lora-picker-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wd-lora-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+}
+
+.wd-lora-picker-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wd-lora-picker-main strong {
+  font-size: 12px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wd-lora-picker-main span,
+.wd-lora-picker-main em {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wd-lora-picker-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
 }
 
 /* 分类条独占一行（微调按钮挪到搜索行），末尾留淡出提示可横向滚动 */
@@ -11673,6 +12175,24 @@ button:disabled {
 .wd-result-toggle {
   flex: 0 0 auto;
   margin-left: 6px;
+}
+
+/* 结果面板至少留住标题 + 正文/缩略图 + 操作行；短窗口下让列表让步 */
+.wd-result {
+  flex: 0 0 auto;
+  min-height: 160px;
+  max-height: 45%;
+}
+
+.wd-result.is-empty,
+.wd-result.is-collapsed {
+  min-height: 0;
+}
+
+@media (max-height: 700px) {
+  .wd-view-body {
+    min-height: 70px;
+  }
 }
 
 .wd-result-toggle {

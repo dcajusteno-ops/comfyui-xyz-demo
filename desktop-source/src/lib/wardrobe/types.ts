@@ -4,6 +4,7 @@
  * 与 `src/types.ts` 的分工：这里只描述「插件数据的形状」，不参与 App 的持久化
  * 参数类型；UI 状态（权重、锁定、选中角色…）也放这里，避免污染全局类型。
  */
+import type { AnimaGenerationParams, LoraSelection } from "../../types";
 
 export type WardrobeLevelKey =
   | "sfw"
@@ -438,6 +439,8 @@ export type WardrobeLastResult = {
 export type WardrobeUiState = {
   version: 1;
   level: Exclude<WardrobeLevelKey, "any">;
+  /** 每次抽取从 L0-L4 随机选一档（与显式 level 互斥，选中显式档位会关闭） */
+  randomLevel: boolean;
   seed: number;
   baseProb: number;
   tagCap: string;
@@ -599,4 +602,29 @@ export type WardrobeDrawResult = {
   dropped: string[];
   cn_summary: string;
   tags: string[];
+};
+
+/**
+ * 造型台自己的 LoRA 记录：复用 `LoraSelection` 的形状，但额外保存触发词。
+ * 这套 LoRA 与 Anima 面板的 LoRA 栈完全隔离，互不同步。
+ */
+export type WardrobeLoraSelection = LoraSelection & {
+  triggerWords?: string[];
+};
+
+/** 造型台独立生图参数：除 LoRA 外与 Anima 参数同构，便于直接复用 buildAnimaPrompt。 */
+export type WardrobeGenerationParams = Omit<AnimaGenerationParams, "loras"> & {
+  loras: WardrobeLoraSelection[];
+};
+
+/** 造型台生图设置（独立持久化，不写回任何 Anima 参数）。 */
+export type WardrobeGenerationState = {
+  version: 1;
+  params: WardrobeGenerationParams;
+  /** 生成时自动把启用 LoRA 的触发词追加到正向提示词末尾 */
+  autoTrigger: boolean;
+  /** 手动触发词（来自 LoRA 详情弹窗等标准入口） */
+  manualTriggers: string[];
+  /** 连续生图次数（1-20） */
+  continuousCount: number;
 };

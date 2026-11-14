@@ -152,6 +152,7 @@ export const loraInsertTargetLabels: Record<LoraInsertTarget, string> = {
   ...templateLabels,
   sheet: "三视图",
   dataset: "数据集工作台",
+  wardrobe: "造型台",
 };
 
 /** 三视图页主体词选项 */

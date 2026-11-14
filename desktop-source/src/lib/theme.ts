@@ -125,6 +125,9 @@ const WALLPAPER_GLASS_FACTOR = 0.5;
  * 它冲成浅色（实测 rgba(#0b0813, 0.46) 压在亮绿壁纸上整个发白），而且它在 `.workspace`
  * 的玻璃作用域里没有 blur 兜底。输入框走实底（见下方 input-bg 的摊平逻辑）。
  *
+ * **modal-bg 有意不在内**：弹窗是文字密集的整块面板，半透明后标题栏 / 正文 / 底栏会各自
+ * 透出壁纸的不同区域（亮处发灰、暗处像黑条），同一张卡片被切成几段。弹窗始终走实底。
+ *
  * 其余保持不透明：toast / badge / preview 面积小且需要可读性。
  */
 const WALLPAPER_SURFACE_TOKENS = [
@@ -133,7 +136,6 @@ const WALLPAPER_SURFACE_TOKENS = [
   "surface-hover",
   "sidebar-bg",
   "topbar-bg",
-  "modal-bg",
 ] as const;
 
 /**
@@ -866,6 +868,15 @@ export function derivePaletteVars(theme: ThemeDefinition, wallpaperOn: boolean):
     //   --wallpaper-base = 页面级半透明（内容区自身那层磨砂底）
     // styles.css 在 .workspace 上把 --surface / --surface-alt 重指到 -glass，内部面板即整体换挡；
     // 令牌别名（--input-bg 等）都声明在 :root，不受 .workspace 作用域影响，仍是实底。
+    // 弹窗始终实底：壁纸模式下若半透明，标题栏 / 正文 / 底栏会各自透出壁纸的不同区域
+    // （亮处发灰、暗处像黑条），同一张卡片被切成几段。
+    const modalSolid = resolveSolidColor(
+      out["modal-bg"] ?? BASE_FALLBACK[theme.base]["modal-bg"],
+      BASE_FALLBACK[theme.base]["surface"],
+      theme.base,
+    );
+    if (modalSolid) out["modal-bg"] = modalSolid;
+
     const baseRaw = rawSurfaces["surface-alt"] ?? BASE_FALLBACK[theme.base]["surface-alt"];
     const baseC = parseColor(baseRaw);
     if (baseC) out[WALLPAPER_BASE_VAR] = toCssRgba({ ...baseC, a: baseC.a * alpha });

@@ -119,6 +119,46 @@ export function useImageManager() {
     if (current) void goTo(current);
   }, [listing, state.currentDir, config, goTo]);
 
+  /* ---------------- 自动刷新（造型台等外部生成不断往目录里写图） ---------------- */
+  const currentDirRef = useRef("");
+  useEffect(() => {
+    currentDirRef.current = listing?.dir || state.currentDir || config?.rootDir || "";
+  }, [listing, state.currentDir, config]);
+
+  const silentBusyRef = useRef(false);
+  /**
+   * 静默刷新当前目录：只更新列表数据，不清空选中项 / 分页；
+   * 与用户切目录并发时丢弃旧响应；内容未变化时返回原引用，避免无意义重渲染。
+   */
+  const silentRefresh = useCallback(async () => {
+    const current = currentDirRef.current;
+    if (!current || silentBusyRef.current) return;
+    silentBusyRef.current = true;
+    const seq = seqRef.current;
+    try {
+      const response = await fetch(`/xyz/images/browse?dir=${encodeURIComponent(current)}`);
+      const data = (await response.json()) as BrowseResult;
+      if (seq !== seqRef.current || !data.success) return;
+      setListing((prev) => {
+        if (!prev || prev.dir !== data.dir) return prev;
+        const unchanged =
+          prev.total === data.total &&
+          prev.truncated === data.truncated &&
+          prev.folders.length === data.folders.length &&
+          prev.images.length === data.images.length &&
+          prev.images.every(
+            (item, index) =>
+              item.name === data.images[index]?.name && item.mtime === data.images[index]?.mtime,
+          );
+        return unchanged ? prev : data;
+      });
+    } catch {
+      // 自动刷新失败静默忽略，下一轮轮询再试
+    } finally {
+      silentBusyRef.current = false;
+    }
+  }, []);
+
   const goRoot = useCallback(() => {
     if (config?.rootDir) void goTo(config.rootDir);
   }, [config, goTo]);
@@ -273,6 +313,7 @@ export function useImageManager() {
     goUp,
     goRoot,
     refresh,
+    silentRefresh,
     saveRoot,
     setTrashEnabled,
     revealIndex,
