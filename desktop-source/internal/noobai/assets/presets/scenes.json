@@ -1,0 +1,6364 @@
+{
+  "_meta": {
+    "schema": "noobai-lib/scenes@1",
+    "version": "1.3.0",
+    "count": 457,
+    "counts": {
+      "daily": 60,
+      "interior": 45,
+      "nature": 45,
+      "pose": 35,
+      "art": 20,
+      "near": 15,
+      "fantasy": 48,
+      "seasonal": 43,
+      "water": 43,
+      "night": 48,
+      "sport": 30,
+      "adult": 25
+    },
+    "note": "场景是跨槽位固定组合；level 为场景内最高档位。"
+  },
+  "groups": [
+    {
+      "id": "daily",
+      "title": "城市日常",
+      "desc": "街头 / 校园 / 店铺 / 交通等日常场景"
+    },
+    {
+      "id": "interior",
+      "title": "室内生活",
+      "desc": "卧室 / 客厅 / 厨房 / 浴室 / 办公等室内"
+    },
+    {
+      "id": "nature",
+      "title": "自然外景",
+      "desc": "森林 / 山野 / 海边 / 雪原 / 星空"
+    },
+    {
+      "id": "pose",
+      "title": "姿势组合",
+      "desc": "以人物姿态为核心的固定组合"
+    },
+    {
+      "id": "art",
+      "title": "艺术构图",
+      "desc": "强调平面设计感与负空间的构图"
+    },
+    {
+      "id": "near",
+      "title": "特写构图",
+      "desc": "按部位取景的固定组合"
+    },
+    {
+      "id": "fantasy",
+      "title": "幻想异境",
+      "desc": "浮空岛 / 水晶洞窟 / 遗迹神殿 / 星海等非现实场景"
+    },
+    {
+      "id": "seasonal",
+      "title": "季节节日",
+      "desc": "樱花 / 夏日祭 / 万圣 / 圣诞 / 新年等时令场景"
+    },
+    {
+      "id": "water",
+      "title": "水光之境",
+      "desc": "海边 / 泳池 / 雨中 / 水下 / 温泉等水与光的场景"
+    },
+    {
+      "id": "night",
+      "title": "夜色都市",
+      "desc": "霓虹街头 / 天台 / 深夜店铺 / 末班车等夜景"
+    },
+    {
+      "id": "sport",
+      "title": "运动现场",
+      "desc": "田径 / 球类 / 道场 / 冰场 / 沙滩等运动场景"
+    },
+    {
+      "id": "adult",
+      "title": "私密情境",
+      "desc": "情趣酒店 / 蒸汽浴室 / 凌乱大床 / 烛光暗室等私密场景"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "sc_rain_street",
+      "zh": "雨中街头 · 回眸",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "rain",
+        "lighting": "neon lights",
+        "pose": "standing, looking back",
+        "camera": "wide shot, from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cafe_window",
+      "zh": "咖啡店窗边 · 午后",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "cafe",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_station_platform",
+      "zh": "车站月台 · 等车",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "train station",
+        "weather": "cloudy",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_crosswalk_night",
+      "zh": "夜晚斑马线",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "crosswalk",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_park_bench",
+      "zh": "公园长椅 · 樱花",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "cherry blossoms falling",
+        "lighting": "dappled sunlight",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_convenience_store",
+      "zh": "便利店 · 夜",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "convenience store",
+        "weather": "night",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_rooftop_sunset",
+      "zh": "校舍天台 · 日落",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "school rooftop",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "leaning on railing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_classroom_window",
+      "zh": "教室窗边",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "classroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "sitting",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_library_reading",
+      "zh": "图书馆 · 阅读",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "library",
+        "weather": "sunny",
+        "lighting": "soft lighting",
+        "pose": "reading",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_shopping_mall",
+      "zh": "商场闲逛",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "mall",
+        "weather": "day",
+        "lighting": "natural lighting",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_arcade_neon",
+      "zh": "游戏厅 · 霓虹",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "arcade",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bus_stop_rain",
+      "zh": "雨天公交站",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "rain",
+        "lighting": "cool lighting",
+        "pose": "standing, holding umbrella",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_shrine_new_year",
+      "zh": "新年神社",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "shrine",
+        "weather": "snowing",
+        "lighting": "warm lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_flower_field",
+      "zh": "花田 · 晴天",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_beach_sunset",
+      "zh": "海滩 · 日落",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_festival_yukata",
+      "zh": "夏日祭 · 浴衣",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "night",
+        "lighting": "string lights",
+        "pose": "walking",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_aquarium_blue",
+      "zh": "水族馆 · 蓝光",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "aquarium",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "looking up",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_museum_gallery",
+      "zh": "美术馆 · 展厅",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "museum",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cinema_lobby",
+      "zh": "电影院大厅",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "movie theater",
+        "weather": "indoors",
+        "lighting": "neon lights",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_concert_stage",
+      "zh": "演唱会舞台",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "stage",
+        "weather": "night",
+        "lighting": "dramatic lighting",
+        "pose": "holding microphone",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_school_gym",
+      "zh": "体育馆 · 伸展",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "school gym",
+        "weather": "indoors",
+        "lighting": "natural lighting",
+        "pose": "stretching",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cafeteria_lunch",
+      "zh": "食堂午餐",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "cafeteria",
+        "weather": "day",
+        "lighting": "natural lighting",
+        "pose": "eating",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_balcony_morning",
+      "zh": "阳台 · 清晨",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "balcony",
+        "weather": "sunny",
+        "lighting": "sunlight",
+        "pose": "leaning on railing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_subway_interior",
+      "zh": "地铁车厢",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "train interior",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "sitting",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_city_rooftop_night",
+      "zh": "城市天台 · 夜",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bookstore_aisle",
+      "zh": "书店书架间",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "bookstore",
+        "weather": "indoors",
+        "lighting": "warm lighting",
+        "pose": "reading",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_riverside_walk",
+      "zh": "河边散步",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_ferris_wheel",
+      "zh": "摩天轮 · 夜景",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "ferris wheel",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "sitting",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_old_town_rain",
+      "zh": "老街 · 雨",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "old town",
+        "weather": "rain",
+        "lighting": "soft lighting",
+        "pose": "walking, holding umbrella",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_hotel_room",
+      "zh": "酒店房间",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "hotel room",
+        "weather": "night",
+        "lighting": "window light",
+        "pose": "lying",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bedroom_morning",
+      "zh": "卧室 · 晨光",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "lying",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_kitchen_cooking",
+      "zh": "厨房 · 做饭",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "kitchen",
+        "weather": "day",
+        "lighting": "natural lighting",
+        "pose": "cooking",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_living_sofa",
+      "zh": "客厅沙发",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "living room",
+        "weather": "cloudy",
+        "lighting": "soft lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bathroom_mirror",
+      "zh": "浴室镜子前",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bathroom",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bathtub_relax",
+      "zh": "浴缸 · 放松",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bathtub",
+        "weather": "indoors",
+        "lighting": "warm lighting",
+        "pose": "lying",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_office_desk",
+      "zh": "办公桌 · 工作",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "office",
+        "weather": "indoors",
+        "lighting": "natural lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_meeting_room",
+      "zh": "会议室",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "meeting room",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_restaurant_dinner",
+      "zh": "餐厅 · 晚餐",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "restaurant",
+        "weather": "night",
+        "lighting": "warm lighting",
+        "pose": "eating",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bar_counter",
+      "zh": "酒吧吧台",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bar",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cafe_reading_rain",
+      "zh": "雨窗 · 阅读",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "cafe",
+        "weather": "rain",
+        "lighting": "window light",
+        "pose": "reading",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_library_ladder",
+      "zh": "图书馆 · 取书",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "library",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "reaching up",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_art_studio",
+      "zh": "画室 · 创作",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "art studio",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "holding paintbrush",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_music_room",
+      "zh": "音乐室 · 吉他",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "music room",
+        "weather": "indoors",
+        "lighting": "window light",
+        "pose": "playing guitar",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_dorm_bunk",
+      "zh": "宿舍床铺 · 夜",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "night",
+        "lighting": "soft lighting",
+        "pose": "lying",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_laundry_room",
+      "zh": "洗衣房",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "laundry room",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_stairwell",
+      "zh": "楼梯间",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "stairs",
+        "weather": "indoors",
+        "lighting": "side lighting",
+        "pose": "sitting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_hallway_lockers",
+      "zh": "走廊储物柜",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "school hallway",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_infirmary_bed",
+      "zh": "保健室床铺",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "infirmary",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "lying",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_tatami_room",
+      "zh": "和室 · 正坐",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "washitsu",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "seiza",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_fireplace_room",
+      "zh": "壁炉前",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "living room",
+        "weather": "night",
+        "lighting": "firelight",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_forest_sunbeam",
+      "zh": "森林 · 耶稣光",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "forest",
+        "weather": "sunny",
+        "lighting": "god rays",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_mountain_view",
+      "zh": "山巅 · 远眺",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "mountain",
+        "weather": "cloudy",
+        "lighting": "natural lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_lake_reflection",
+      "zh": "湖畔 · 倒影",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_snowfield",
+      "zh": "雪原 · 行走",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "snowfield",
+        "weather": "snowing",
+        "lighting": "cool lighting",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_desert_dunes",
+      "zh": "沙漠沙丘",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "desert",
+        "weather": "sunny",
+        "lighting": "hard lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cave_glow",
+      "zh": "洞穴微光",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "cave",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_ruins_overgrown",
+      "zh": "废墟 · 藤蔓",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "ruins",
+        "weather": "cloudy",
+        "lighting": "dappled sunlight",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_garden_flowers",
+      "zh": "花园 · 花丛",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "garden",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_beach_day",
+      "zh": "海滩 · 白天",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "sunny",
+        "lighting": "hard lighting",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_ocean_shallows",
+      "zh": "浅滩 · 海浪",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "ocean",
+        "weather": "sunny",
+        "lighting": "sunlight",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_waterfall_mist",
+      "zh": "瀑布水雾",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "sunny",
+        "lighting": "mist",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_autumn_park",
+      "zh": "秋日公园",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "falling leaves",
+        "lighting": "golden hour",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cherry_blossom_path",
+      "zh": "樱花小径",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "under cherry blossoms",
+        "weather": "sunny",
+        "lighting": "soft lighting",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_starry_night_field",
+      "zh": "星空原野",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "weather": "starry sky",
+        "lighting": "moonlight",
+        "pose": "lying",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_full_moon_rooftop",
+      "zh": "满月天台",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "weather": "full moon",
+        "lighting": "moonlight",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_foggy_forest",
+      "zh": "雾中森林",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "forest",
+        "weather": "fog",
+        "lighting": "cool lighting",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_rainbow_field",
+      "zh": "彩虹原野",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "weather": "rainbow",
+        "lighting": "natural lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_stormy_sea",
+      "zh": "暴风雨海面",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "ocean",
+        "weather": "storm",
+        "lighting": "dramatic lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_shrine_path_snow",
+      "zh": "雪中参道",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "shrine path",
+        "weather": "snowing",
+        "lighting": "warm lighting",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bridge_night",
+      "zh": "桥上 · 夜",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "bridge",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "leaning on railing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_seiza",
+      "zh": "和室正坐",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "washitsu",
+        "weather": "sunny",
+        "lighting": "soft lighting",
+        "pose": "seiza",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_wariza",
+      "zh": "鸭子坐 · 床边",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "wariza",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_indian",
+      "zh": "盘腿野餐",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "sunny",
+        "lighting": "dappled sunlight",
+        "pose": "indian style",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_kneel",
+      "zh": "花田跪姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "kneeling",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_squat",
+      "zh": "街角蹲姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "squatting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_on_back",
+      "zh": "仰卧 · 床上",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "night",
+        "lighting": "soft lighting",
+        "pose": "on back",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_on_side",
+      "zh": "侧卧 · 沙发",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "living room",
+        "weather": "day",
+        "lighting": "window light",
+        "pose": "on side",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_on_stomach",
+      "zh": "俯卧 · 草地",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "on stomach",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_all_fours",
+      "zh": "趴姿 · 室内",
+      "group": "pose",
+      "level": 1,
+      "tags": {
+        "place": "living room",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "all fours",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_lean_wall",
+      "zh": "靠墙站姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "alley",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "leaning on wall",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_arms_back",
+      "zh": "双手背后",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "classroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "arms behind back",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_hand_hip",
+      "zh": "单手叉腰",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "day",
+        "lighting": "natural lighting",
+        "pose": "hand on own hip",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_pockets",
+      "zh": "双手插兜",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "city",
+        "weather": "cloudy",
+        "lighting": "cool lighting",
+        "pose": "hands in pockets",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_stretch",
+      "zh": "伸展 · 体育馆",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "school gym",
+        "weather": "indoors",
+        "lighting": "natural lighting",
+        "pose": "stretching",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_dance",
+      "zh": "舞台舞蹈",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "stage",
+        "weather": "night",
+        "lighting": "dramatic lighting",
+        "pose": "dancing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_art_white_wall",
+      "zh": "白墙 · 极简",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "white background",
+        "lighting": "studio lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": "minimalist, negative space"
+    },
+    {
+      "id": "sc_art_black_backlight",
+      "zh": "黑底逆光 · 剪影",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "black background",
+        "lighting": "backlighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": "silhouette, high contrast"
+    },
+    {
+      "id": "sc_art_red_room",
+      "zh": "红色空间 · 平面感",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "red background",
+        "lighting": "hard lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": "monochrome, negative space"
+    },
+    {
+      "id": "sc_art_blue_water",
+      "zh": "水下 · 蓝",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "underwater",
+        "lighting": "volumetric lighting",
+        "pose": "floating",
+        "camera": "wide shot"
+      },
+      "extra": "floating particles, ethereal"
+    },
+    {
+      "id": "sc_art_glass",
+      "zh": "玻璃碎片 · 动态",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "abstract background",
+        "lighting": "dramatic lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": "glass shards, dynamic composition"
+    },
+    {
+      "id": "sc_art_neon_city",
+      "zh": "霓虹城市 · 赛博",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "city",
+        "weather": "rain",
+        "lighting": "neon lights",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": "cyberpunk, night, reflection"
+    },
+    {
+      "id": "sc_art_petals",
+      "zh": "花瓣 · 梦幻",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": "falling petals, dreamy"
+    },
+    {
+      "id": "sc_art_mirror",
+      "zh": "镜面 · 对称",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "mirror",
+        "lighting": "studio lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": "reflection, symmetrical composition"
+    },
+    {
+      "id": "sc_art_window_light",
+      "zh": "窗光 · 负空间",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "window light",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": "silhouette, negative space"
+    },
+    {
+      "id": "sc_art_starry",
+      "zh": "星空 · 银河",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "weather": "starry sky",
+        "lighting": "moonlight",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": "milky way, silhouette"
+    },
+    {
+      "id": "sc_near_face",
+      "zh": "脸部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "looking at viewer",
+        "camera": "close-up, portrait"
+      },
+      "extra": "detailed face, upper body"
+    },
+    {
+      "id": "sc_near_eyes",
+      "zh": "眼部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "window light",
+        "pose": "looking at viewer",
+        "camera": "extreme close-up"
+      },
+      "extra": "detailed eyes, reflections"
+    },
+    {
+      "id": "sc_near_legs",
+      "zh": "腿部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "sitting, legs crossed",
+        "camera": "cowboy shot"
+      },
+      "extra": "thighs focus, detailed legs"
+    },
+    {
+      "id": "sc_near_feet",
+      "zh": "足部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "sitting",
+        "camera": "close-up"
+      },
+      "extra": "feet focus, barefoot, soles"
+    },
+    {
+      "id": "sc_near_hands",
+      "zh": "手部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "window light",
+        "pose": "holding hands",
+        "camera": "close-up"
+      },
+      "extra": "detailed hands, fingers"
+    },
+    {
+      "id": "sc_konbini_night",
+      "zh": "便利店 · 夜",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "convenience store",
+        "weather": "night",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_subway_platform",
+      "zh": "地铁站台",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "train station",
+        "weather": "night",
+        "lighting": "fluorescent lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cafe_counter",
+      "zh": "咖啡店吧台",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "cafe",
+        "weather": "day",
+        "lighting": "warm lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_school_corridor",
+      "zh": "学校走廊 · 行走",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "school hallway",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_classroom_back",
+      "zh": "教室后排",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "classroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "sitting",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_club_room",
+      "zh": "社团活动室",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "club room",
+        "weather": "indoors",
+        "lighting": "natural lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_rooftop_fence",
+      "zh": "天台围栏 · 日落",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "school rooftop",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "leaning on railing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_library_window",
+      "zh": "图书馆窗边",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "library",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "reading",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_park_bench_day",
+      "zh": "公园长椅 · 白天",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "sunny",
+        "lighting": "dappled sunlight",
+        "pose": "sitting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_carousel",
+      "zh": "旋转木马",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "amusement park",
+        "weather": "sunny",
+        "lighting": "string lights",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cinema_seat",
+      "zh": "电影院座位",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "movie theater",
+        "weather": "indoors",
+        "lighting": "screen light",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_mall_escalator",
+      "zh": "商场扶梯",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "mall",
+        "weather": "indoors",
+        "lighting": "natural lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_arcade_rhythm",
+      "zh": "街机厅 · 音游",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "arcade",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "dancing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_ramen_shop",
+      "zh": "拉面店",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "ramen shop",
+        "weather": "night",
+        "lighting": "warm lighting",
+        "pose": "eating",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_izakaya",
+      "zh": "居酒屋",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "izakaya",
+        "weather": "night",
+        "lighting": "warm lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bookstore_corner",
+      "zh": "书店角落",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "bookstore",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "reading",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_flower_shop",
+      "zh": "花店",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "flower shop",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bakery",
+      "zh": "面包店",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "bakery",
+        "weather": "day",
+        "lighting": "warm lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_laundromat",
+      "zh": "自助洗衣店",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "laundry room",
+        "weather": "indoors",
+        "lighting": "fluorescent lighting",
+        "pose": "sitting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_post_office",
+      "zh": "邮局",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "post office",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_hospital_wait",
+      "zh": "保健室候诊",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "infirmary",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_gym_workout",
+      "zh": "体育馆 · 训练",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "school gym",
+        "weather": "indoors",
+        "lighting": "natural lighting",
+        "pose": "training",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pool_locker",
+      "zh": "泳池更衣室",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "locker room",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_train_seat",
+      "zh": "列车座位 · 夜",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "train interior",
+        "weather": "night",
+        "lighting": "cool lighting",
+        "pose": "sitting",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_taxi_backseat",
+      "zh": "出租车后座",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "car interior",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_hotel_lobby",
+      "zh": "酒店大堂",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "hotel lobby",
+        "weather": "night",
+        "lighting": "warm lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bus_stop_day",
+      "zh": "公交站 · 白天",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_crosswalk_day",
+      "zh": "斑马线 · 白天",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "crosswalk",
+        "weather": "day",
+        "lighting": "natural lighting",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_riverbank_night",
+      "zh": "河岸 · 夜",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_shrine_festival",
+      "zh": "神社祭典",
+      "group": "daily",
+      "level": 0,
+      "tags": {
+        "place": "shrine",
+        "weather": "night",
+        "lighting": "lanterns",
+        "pose": "walking",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bedroom_window2",
+      "zh": "卧室窗边 · 坐床",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "sitting on bed",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_living_rug",
+      "zh": "客厅地毯",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "living room",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "sitting on floor",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_kitchen_table",
+      "zh": "厨房餐桌",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "kitchen",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "sitting on chair",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bathtub_bubbles",
+      "zh": "浴缸 · 泡泡",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bathtub",
+        "weather": "indoors",
+        "lighting": "warm lighting",
+        "pose": "lying",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_shower_room",
+      "zh": "淋浴间",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "shower",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_office_lamp",
+      "zh": "办公室台灯",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "office",
+        "weather": "night",
+        "lighting": "lamp",
+        "pose": "reading",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_music_room_piano",
+      "zh": "音乐室 · 钢琴",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "music room",
+        "weather": "indoors",
+        "lighting": "window light",
+        "pose": "playing piano",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_art_room",
+      "zh": "画室 · 绘画",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "art studio",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "painting",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bedroom_floor",
+      "zh": "卧室地板",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "night",
+        "lighting": "soft lighting",
+        "pose": "sitting on floor",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_balcony_night",
+      "zh": "阳台 · 夜",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "balcony",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_hallway_entry",
+      "zh": "玄关",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "hallway",
+        "weather": "indoors",
+        "lighting": "warm lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_restaurant_private",
+      "zh": "餐厅包间",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "restaurant",
+        "weather": "night",
+        "lighting": "warm lighting",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bar_booth",
+      "zh": "酒吧卡座",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "bar",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "sitting",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cafe_rain_corner",
+      "zh": "咖啡店角落 · 雨",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "cafe",
+        "weather": "rain",
+        "lighting": "window light",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_hotel_suite",
+      "zh": "酒店套房",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "hotel room",
+        "weather": "night",
+        "lighting": "warm lighting",
+        "pose": "lying",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_washitsu_tea",
+      "zh": "和室 · 茶",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "washitsu",
+        "weather": "sunny",
+        "lighting": "soft lighting",
+        "pose": "seiza",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_tea_house",
+      "zh": "茶屋",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "tea house",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "seiza",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_sauna",
+      "zh": "桑拿房",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "sauna",
+        "weather": "indoors",
+        "lighting": "warm lighting",
+        "pose": "sitting",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_onsen_inn",
+      "zh": "温泉旅馆",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "hot spring inn",
+        "weather": "night",
+        "lighting": "warm lighting",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_library_archive",
+      "zh": "图书馆书库",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "library",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_science_lab",
+      "zh": "科学实验室",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "science lab",
+        "weather": "indoors",
+        "lighting": "fluorescent lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_computer_room",
+      "zh": "电脑室",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "computer room",
+        "weather": "indoors",
+        "lighting": "screen light",
+        "pose": "sitting",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_recording_booth",
+      "zh": "录音棚",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "recording studio",
+        "weather": "indoors",
+        "lighting": "cool lighting",
+        "pose": "singing",
+        "camera": "close-up"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_parking_garage",
+      "zh": "地下停车场",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "parking garage",
+        "weather": "night",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_laundry_night",
+      "zh": "洗衣房 · 夜",
+      "group": "interior",
+      "level": 0,
+      "tags": {
+        "place": "laundry room",
+        "weather": "night",
+        "lighting": "fluorescent lighting",
+        "pose": "cleaning",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_forest_morning",
+      "zh": "森林晨光",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "forest",
+        "weather": "sunny",
+        "lighting": "god rays",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_bamboo_forest",
+      "zh": "竹林 · 雾",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "forest",
+        "weather": "mist",
+        "lighting": "soft lighting",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_maple_forest",
+      "zh": "枫林 · 落叶",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "falling leaves",
+        "lighting": "golden hour",
+        "pose": "sitting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_lavender_field",
+      "zh": "薰衣草田",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_sunflower_field",
+      "zh": "向日葵田",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "weather": "sunny",
+        "lighting": "hard lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_rice_paddy",
+      "zh": "稻田",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_tea_plantation",
+      "zh": "茶园",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "weather": "cloudy",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_snow_mountain",
+      "zh": "雪山",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "mountain",
+        "weather": "snowing",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_glacier",
+      "zh": "冰川",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "snowfield",
+        "weather": "sunny",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_volcano",
+      "zh": "火山",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "mountain",
+        "weather": "cloudy",
+        "lighting": "dramatic lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_canyon",
+      "zh": "峡谷",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "desert",
+        "weather": "sunny",
+        "lighting": "hard lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_waterfall",
+      "zh": "瀑布 · 水雾",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "sunny",
+        "lighting": "mist",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_stream",
+      "zh": "溪流 · 石上",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "sunny",
+        "lighting": "dappled sunlight",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_lake_dusk",
+      "zh": "湖畔 · 黄昏",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_beach_night",
+      "zh": "海滩 · 星空",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "starry sky",
+        "lighting": "moonlight",
+        "pose": "lying",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_rocky_shore",
+      "zh": "礁石海岸",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "ocean",
+        "weather": "cloudy",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_sand_dunes",
+      "zh": "沙丘",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "desert",
+        "weather": "sunny",
+        "lighting": "hard lighting",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_grassland",
+      "zh": "草原 · 奔跑",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "weather": "wind",
+        "lighting": "natural lighting",
+        "pose": "running",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_wetland",
+      "zh": "湿地 · 雾",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "fog",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_campsite_night",
+      "zh": "营地 · 篝火",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "campground",
+        "weather": "starry sky",
+        "lighting": "firelight",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_mountain_sunrise",
+      "zh": "山顶日出",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "mountain",
+        "weather": "sunrise",
+        "lighting": "golden hour",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_lighthouse",
+      "zh": "灯塔 · 夜",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "lighthouse",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_abandoned_shrine",
+      "zh": "废弃神社",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "shrine",
+        "weather": "fog",
+        "lighting": "cool lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_sea_of_clouds",
+      "zh": "云海",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "mountain",
+        "weather": "cloudy",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_cherry_blossom_river",
+      "zh": "樱花河岸",
+      "group": "nature",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "cherry blossoms falling",
+        "lighting": "soft lighting",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_chair",
+      "zh": "椅子坐姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "classroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "sitting on chair",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_floor",
+      "zh": "地板坐姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "sitting on floor",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_windowsill",
+      "zh": "窗台坐姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "sitting on windowsill",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_stairs",
+      "zh": "台阶坐姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "stairs",
+        "weather": "indoors",
+        "lighting": "side lighting",
+        "pose": "sitting on stairs",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_sofa",
+      "zh": "沙发坐姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "living room",
+        "weather": "indoors",
+        "lighting": "window light",
+        "pose": "sitting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_wall",
+      "zh": "靠墙站姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "alley",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "leaning on wall",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_one_foot",
+      "zh": "单脚站立",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "day",
+        "lighting": "natural lighting",
+        "pose": "standing on one foot",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_ballet",
+      "zh": "芭蕾站姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "stage",
+        "weather": "night",
+        "lighting": "dramatic lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_arms_back2",
+      "zh": "双手背后",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "classroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "arms behind back",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_hand_hip2",
+      "zh": "单手叉腰",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "day",
+        "lighting": "natural lighting",
+        "pose": "hand on own hip",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_side_sofa",
+      "zh": "侧卧沙发",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "living room",
+        "weather": "day",
+        "lighting": "window light",
+        "pose": "on side",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_grass_back",
+      "zh": "草地仰卧",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "sunny",
+        "lighting": "dappled sunlight",
+        "pose": "on back",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_bed_stomach",
+      "zh": "床上俯卧",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "night",
+        "lighting": "soft lighting",
+        "pose": "on stomach",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_one_knee",
+      "zh": "单膝跪地",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "sunny",
+        "lighting": "natural lighting",
+        "pose": "kneeling on one knee",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_kneel2",
+      "zh": "双膝跪姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "washitsu",
+        "weather": "indoors",
+        "lighting": "soft lighting",
+        "pose": "kneeling",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_squat2",
+      "zh": "蹲姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "alley",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "squatting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_wariza2",
+      "zh": "鸭子坐",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "weather": "sunny",
+        "lighting": "window light",
+        "pose": "wariza",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_jump",
+      "zh": "跳跃",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "jumping",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_spin",
+      "zh": "旋转",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "stage",
+        "weather": "night",
+        "lighting": "dramatic lighting",
+        "pose": "spinning",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_pose_lean_back",
+      "zh": "后撑坐姿",
+      "group": "pose",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "sunny",
+        "lighting": "dappled sunlight",
+        "pose": "leaning back on hands",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "sc_art_white_void",
+      "zh": "白底 · 极简全身",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "white background",
+        "lighting": "studio lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": "minimalist, negative space"
+    },
+    {
+      "id": "sc_art_black_silhouette",
+      "zh": "黑底 · 剪影",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "black background",
+        "lighting": "backlighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": "silhouette, high contrast"
+    },
+    {
+      "id": "sc_art_red_flat",
+      "zh": "红底 · 平面",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "red background",
+        "lighting": "hard lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": "monochrome, graphic design"
+    },
+    {
+      "id": "sc_art_blue_water2",
+      "zh": "水下 · 蓝",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "underwater",
+        "lighting": "volumetric lighting",
+        "pose": "floating",
+        "camera": "wide shot"
+      },
+      "extra": "bubbles, ethereal"
+    },
+    {
+      "id": "sc_art_gold_lux",
+      "zh": "金底 · 华丽",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "yellow background",
+        "lighting": "studio lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": "luxurious, ornate"
+    },
+    {
+      "id": "sc_art_green_nature",
+      "zh": "绿底 · 自然",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "green background",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": "natural, leaves"
+    },
+    {
+      "id": "sc_art_purple_dream",
+      "zh": "紫底 · 梦幻",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "purple background",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "cowboy shot"
+      },
+      "extra": "dreamy, stars"
+    },
+    {
+      "id": "sc_art_mirror2",
+      "zh": "镜面 · 对称",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "mirror",
+        "lighting": "studio lighting",
+        "pose": "standing",
+        "camera": "medium shot"
+      },
+      "extra": "reflection, symmetrical composition"
+    },
+    {
+      "id": "sc_art_glass2",
+      "zh": "玻璃碎片 · 动态",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "abstract background",
+        "lighting": "dramatic lighting",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": "glass shards, dynamic composition"
+    },
+    {
+      "id": "sc_art_petals2",
+      "zh": "花瓣 · 梦幻",
+      "group": "art",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "lighting": "soft lighting",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": "falling petals, dreamy"
+    },
+    {
+      "id": "sc_near_face2",
+      "zh": "脸部特写 · 正面",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "looking at viewer",
+        "camera": "close-up"
+      },
+      "extra": "detailed face, portrait"
+    },
+    {
+      "id": "sc_near_eyes2",
+      "zh": "眼部特写 · 反光",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "window light",
+        "pose": "looking at viewer",
+        "camera": "extreme close-up"
+      },
+      "extra": "detailed eyes, reflections"
+    },
+    {
+      "id": "sc_near_lips",
+      "zh": "唇部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "parted lips",
+        "camera": "extreme close-up"
+      },
+      "extra": "detailed lips, glossy lips"
+    },
+    {
+      "id": "sc_near_hands2",
+      "zh": "手部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "window light",
+        "pose": "holding hands",
+        "camera": "close-up"
+      },
+      "extra": "detailed hands, fingers"
+    },
+    {
+      "id": "sc_near_feet2",
+      "zh": "足部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "sitting",
+        "camera": "close-up"
+      },
+      "extra": "feet focus, barefoot, soles"
+    },
+    {
+      "id": "sc_near_legs2",
+      "zh": "腿部特写 · 过膝袜",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "sitting",
+        "camera": "cowboy shot"
+      },
+      "extra": "thighs focus, thighhighs"
+    },
+    {
+      "id": "sc_near_collarbone",
+      "zh": "锁骨特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "window light",
+        "pose": "upper body",
+        "camera": "close-up"
+      },
+      "extra": "collarbone, detailed skin"
+    },
+    {
+      "id": "sc_near_ears",
+      "zh": "耳部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "soft lighting",
+        "pose": "head tilt",
+        "camera": "close-up"
+      },
+      "extra": "ear focus, earrings"
+    },
+    {
+      "id": "sc_near_hair",
+      "zh": "发丝特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "outdoors",
+        "weather": "wind",
+        "lighting": "sunlight",
+        "pose": "standing",
+        "camera": "close-up"
+      },
+      "extra": "hair focus, detailed hair"
+    },
+    {
+      "id": "sc_near_back",
+      "zh": "背部特写",
+      "group": "near",
+      "level": 0,
+      "tags": {
+        "place": "indoors",
+        "lighting": "window light",
+        "pose": "from behind",
+        "camera": "cowboy shot"
+      },
+      "extra": "back focus, bare back"
+    },
+    {
+      "id": "sc_fs_sky_island",
+      "zh": "浮空岛 · 云海",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "floating island",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "cloud",
+        "lighting": "sunlight"
+      },
+      "extra": "sea of clouds"
+    },
+    {
+      "id": "sc_fs_crystal_cave",
+      "zh": "水晶洞窟 · 幽蓝",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "cave",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "blue lighting"
+      },
+      "extra": "crystal, glowing"
+    },
+    {
+      "id": "sc_fs_magic_circle",
+      "zh": "魔法阵 · 咏唱",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "magic circle",
+        "pose": "standing, arm up",
+        "camera": "full body",
+        "lighting": "glowing"
+      },
+      "extra": "magical particles"
+    },
+    {
+      "id": "sc_fs_sky_ruins",
+      "zh": "天空之城 · 遗迹",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "ruins",
+        "pose": "walking",
+        "camera": "wide shot",
+        "weather": "cloud",
+        "lighting": "sunlight"
+      },
+      "extra": "overgrown"
+    },
+    {
+      "id": "sc_fs_star_sea",
+      "zh": "星海 · 漂浮",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "space",
+        "pose": "floating",
+        "camera": "from below",
+        "weather": "starry sky",
+        "lighting": "starlight"
+      },
+      "extra": "galaxy"
+    },
+    {
+      "id": "sc_fs_red_moon",
+      "zh": "冥界之门 · 红月",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "graveyard",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "full moon",
+        "lighting": "moonlight"
+      },
+      "extra": "red moon, fog"
+    },
+    {
+      "id": "sc_fs_volcano",
+      "zh": "龙巢 · 火山",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "volcano",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "firelight"
+      },
+      "extra": "lava, embers"
+    },
+    {
+      "id": "sc_fs_ice_throne",
+      "zh": "冰封王座",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "throne room",
+        "pose": "sitting",
+        "camera": "full body",
+        "weather": "snowing",
+        "lighting": "cold lighting"
+      },
+      "extra": "ice, throne"
+    },
+    {
+      "id": "sc_fs_elf_forest",
+      "zh": "精灵森林 · 光柱",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "forest",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "god rays"
+      },
+      "extra": "fireflies"
+    },
+    {
+      "id": "sc_fs_broken_church",
+      "zh": "废墟教堂 · 彩窗",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "church",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "sunlight"
+      },
+      "extra": "stained glass, broken window"
+    },
+    {
+      "id": "sc_fs_desert_temple",
+      "zh": "沙漠神殿",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "desert",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "temple"
+    },
+    {
+      "id": "sc_fs_cloud_stairs",
+      "zh": "云上阶梯",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "stairs",
+        "pose": "walking",
+        "camera": "from below",
+        "weather": "cloud",
+        "lighting": "sunlight"
+      },
+      "extra": "cloud sea"
+    },
+    {
+      "id": "sc_fs_haunted_mansion",
+      "zh": "幽灵洋馆",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "mansion",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "fog",
+        "lighting": "candlelight"
+      },
+      "extra": "cobweb"
+    },
+    {
+      "id": "sc_fs_sky_garden",
+      "zh": "浮游花园",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "garden",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "sunlight"
+      },
+      "extra": "floating flowers"
+    },
+    {
+      "id": "sc_fs_ember_field",
+      "zh": "余烬荒野",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "wasteland",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "firelight"
+      },
+      "extra": "embers, ash"
+    },
+    {
+      "id": "sc_fs_sunken_ruins",
+      "zh": "沉没遗迹",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "underwater ruins",
+        "pose": "floating",
+        "camera": "wide shot",
+        "lighting": "underwater lighting"
+      },
+      "extra": "bubbles"
+    },
+    {
+      "id": "sc_fs_world_tree",
+      "zh": "世界树 · 巨根",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "giant tree",
+        "pose": "standing",
+        "camera": "from below",
+        "lighting": "sunlight"
+      },
+      "extra": "glowing leaves"
+    },
+    {
+      "id": "sc_fs_fairy_ring",
+      "zh": "妖精之环",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "pose": "sitting",
+        "camera": "full body",
+        "weather": "full moon",
+        "lighting": "moonlight"
+      },
+      "extra": "mushroom ring, fireflies"
+    },
+    {
+      "id": "sc_fs_alchemy_lab",
+      "zh": "炼金工房",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "laboratory",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "candlelight"
+      },
+      "extra": "flasks, potions"
+    },
+    {
+      "id": "sc_fs_magic_library",
+      "zh": "魔法学院图书馆",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "library",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "window light"
+      },
+      "extra": "floating books"
+    },
+    {
+      "id": "sc_fs_dragon_back",
+      "zh": "龙背 · 飞行",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "sky",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "cloud",
+        "lighting": "sunlight"
+      },
+      "extra": "wind, flying"
+    },
+    {
+      "id": "sc_fs_illusion_flowers",
+      "zh": "幻境花海",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "pose": "lying",
+        "camera": "from above",
+        "lighting": "sunlight"
+      },
+      "extra": "petals"
+    },
+    {
+      "id": "sc_fs_crystal_palace",
+      "zh": "水晶宫",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "palace",
+        "pose": "standing",
+        "camera": "full body",
+        "lighting": "blue lighting"
+      },
+      "extra": "chandelier, crystal"
+    },
+    {
+      "id": "sc_fs_time_rift",
+      "zh": "时空裂隙",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "space",
+        "pose": "floating",
+        "camera": "wide shot",
+        "weather": "starry sky",
+        "lighting": "glowing"
+      },
+      "extra": "clock, gears"
+    },
+    {
+      "id": "sc_fs_old_altar",
+      "zh": "古神祭坛",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "ruins",
+        "pose": "kneeling",
+        "camera": "wide shot",
+        "weather": "fog",
+        "lighting": "candlelight"
+      },
+      "extra": "altar, ritual"
+    },
+    {
+      "id": "sc_fs_blood_castle",
+      "zh": "血月城堡",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "castle",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "moonlight"
+      },
+      "extra": "red moon"
+    },
+    {
+      "id": "sc_fs_heaven_stairs",
+      "zh": "天界阶梯",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "stairs",
+        "pose": "walking",
+        "camera": "from below",
+        "weather": "cloud",
+        "lighting": "god rays"
+      },
+      "extra": "halo"
+    },
+    {
+      "id": "sc_fs_sandstorm",
+      "zh": "沙暴遗迹",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "desert",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sandstorm",
+        "lighting": "sunlight"
+      },
+      "extra": "ruins, scarf"
+    },
+    {
+      "id": "sc_fs_treehouse",
+      "zh": "精灵树屋",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "treehouse",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "sunlight"
+      },
+      "extra": "lanterns"
+    },
+    {
+      "id": "sc_fs_star_desert",
+      "zh": "星轨沙漠",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "desert",
+        "pose": "lying",
+        "camera": "from above",
+        "weather": "starry sky",
+        "lighting": "starlight"
+      },
+      "extra": "star trail"
+    },
+    {
+      "id": "sc_se_sakura",
+      "zh": "樱花树下 · 春",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "under cherry blossoms",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "cherry blossoms falling",
+        "lighting": "sunlight"
+      },
+      "extra": "petals"
+    },
+    {
+      "id": "sc_se_summer_festival",
+      "zh": "夏日祭 · 烟花",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "festival",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "warm lighting"
+      },
+      "extra": "fireworks, yukata"
+    },
+    {
+      "id": "sc_se_christmas_market",
+      "zh": "圣诞市集",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "market",
+        "pose": "walking",
+        "camera": "medium shot",
+        "weather": "snowing",
+        "lighting": "string lights"
+      },
+      "extra": "christmas"
+    },
+    {
+      "id": "sc_se_new_year_shrine",
+      "zh": "新年参拜",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "shrine",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "snowing",
+        "lighting": "warm lighting"
+      },
+      "extra": "omikuji, lanterns"
+    },
+    {
+      "id": "sc_se_halloween",
+      "zh": "万圣夜",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "pose": "standing",
+        "camera": "full body",
+        "weather": "night",
+        "lighting": "neon lights"
+      },
+      "extra": "jack-o'-lantern, candy"
+    },
+    {
+      "id": "sc_se_autumn_mountain",
+      "zh": "红叶狩",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "mountain",
+        "pose": "walking",
+        "camera": "wide shot",
+        "weather": "autumn leaves",
+        "lighting": "sunlight"
+      },
+      "extra": "maple"
+    },
+    {
+      "id": "sc_se_sunflower",
+      "zh": "向日葵花田 · 夏",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "flower field",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "sunflower, straw hat"
+    },
+    {
+      "id": "sc_se_hydrangea",
+      "zh": "梅雨 · 紫阳花",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "shrine path",
+        "pose": "walking with umbrella",
+        "camera": "medium shot",
+        "weather": "rain",
+        "lighting": "soft lighting"
+      },
+      "extra": "hydrangea"
+    },
+    {
+      "id": "sc_se_snow_lantern",
+      "zh": "雪夜灯会",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "old town",
+        "pose": "walking",
+        "camera": "wide shot",
+        "weather": "snowing",
+        "lighting": "warm lighting"
+      },
+      "extra": "lanterns"
+    },
+    {
+      "id": "sc_se_rapeseed",
+      "zh": "春分 · 油菜花",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "golden hour"
+      },
+      "extra": "rapeseed flower"
+    },
+    {
+      "id": "sc_se_tanabata",
+      "zh": "七夕 · 许愿竹",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "courtyard",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "string lights"
+      },
+      "extra": "bamboo, tanzaku"
+    },
+    {
+      "id": "sc_se_moon_viewing",
+      "zh": "中秋 · 月见",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "full moon",
+        "lighting": "moonlight"
+      },
+      "extra": "dango, susuki"
+    },
+    {
+      "id": "sc_se_christmas_church",
+      "zh": "圣诞教堂",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "church",
+        "pose": "kneeling",
+        "camera": "medium shot",
+        "weather": "snowing",
+        "lighting": "candlelight"
+      },
+      "extra": "christmas"
+    },
+    {
+      "id": "sc_se_countdown",
+      "zh": "跨年倒数",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "city",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "confetti"
+    },
+    {
+      "id": "sc_se_valentine",
+      "zh": "情人节 · 巧克力",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "kitchen",
+        "pose": "standing",
+        "camera": "medium shot",
+        "lighting": "warm lighting"
+      },
+      "extra": "chocolate, apron"
+    },
+    {
+      "id": "sc_se_pool_party",
+      "zh": "泳池派对 · 夏",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "poolside",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "float, sunglasses"
+    },
+    {
+      "id": "sc_se_beach_fireworks",
+      "zh": "海边烟火",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "warm lighting"
+      },
+      "extra": "fireworks"
+    },
+    {
+      "id": "sc_se_autumn_park",
+      "zh": "秋日公园",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "falling leaves",
+        "lighting": "dappled sunlight"
+      },
+      "extra": "bench"
+    },
+    {
+      "id": "sc_se_winter_onsen",
+      "zh": "冬季温泉",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "onsen",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "snowing",
+        "lighting": "soft lighting"
+      },
+      "extra": "steam"
+    },
+    {
+      "id": "sc_se_picnic",
+      "zh": "春日野餐",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "picnic basket"
+    },
+    {
+      "id": "sc_se_fireflies",
+      "zh": "夏夜萤火",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "forest",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "moonlight"
+      },
+      "extra": "fireflies"
+    },
+    {
+      "id": "sc_se_winter_soup",
+      "zh": "冬至 · 暖锅",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "dining room",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "warm lighting"
+      },
+      "extra": "hot pot, steam"
+    },
+    {
+      "id": "sc_se_graduation",
+      "zh": "毕业季 · 樱花",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "school gate",
+        "pose": "standing",
+        "camera": "full body",
+        "weather": "cherry blossoms falling",
+        "lighting": "sunlight"
+      },
+      "extra": "diploma"
+    },
+    {
+      "id": "sc_se_christmas_bedroom",
+      "zh": "圣诞卧室",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "pose": "lying",
+        "camera": "medium shot",
+        "lighting": "string lights"
+      },
+      "extra": "christmas tree"
+    },
+    {
+      "id": "sc_se_first_snow",
+      "zh": "初雪 · 街头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "snowing",
+        "lighting": "cool lighting"
+      },
+      "extra": "scarf, snowflakes"
+    },
+    {
+      "id": "sc_wa_night_pool",
+      "zh": "夜泳池 · 波光",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "poolside",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "blue lighting"
+      },
+      "extra": "water reflection"
+    },
+    {
+      "id": "sc_wa_underwater",
+      "zh": "水下 · 气泡",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "underwater",
+        "pose": "floating",
+        "camera": "wide shot",
+        "lighting": "underwater lighting"
+      },
+      "extra": "bubbles, light rays"
+    },
+    {
+      "id": "sc_wa_rain_window",
+      "zh": "雨中窗前",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "bedroom",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "rain",
+        "lighting": "window light"
+      },
+      "extra": "raindrops"
+    },
+    {
+      "id": "sc_wa_beach_sunset",
+      "zh": "海边日落",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunset",
+        "lighting": "golden hour"
+      },
+      "extra": "waves"
+    },
+    {
+      "id": "sc_wa_onsen_steam",
+      "zh": "温泉 · 雾气",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "onsen",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "soft lighting"
+      },
+      "extra": "steam, rocks"
+    },
+    {
+      "id": "sc_wa_aquarium",
+      "zh": "水族馆隧道",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "aquarium",
+        "pose": "walking",
+        "camera": "wide shot",
+        "lighting": "blue lighting"
+      },
+      "extra": "fish, tunnel"
+    },
+    {
+      "id": "sc_wa_waterfall",
+      "zh": "瀑布 · 水雾",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "waterfall",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "sunlight"
+      },
+      "extra": "spray, rainbow"
+    },
+    {
+      "id": "sc_wa_lake_dawn",
+      "zh": "湖畔清晨",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "fog",
+        "lighting": "dawn light"
+      },
+      "extra": "mist"
+    },
+    {
+      "id": "sc_wa_rain_rooftop",
+      "zh": "雨中天台",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "rain",
+        "lighting": "neon lights"
+      },
+      "extra": "puddles, city lights"
+    },
+    {
+      "id": "sc_wa_pool_reflection",
+      "zh": "泳池边 · 倒影",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "poolside",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "sunlight"
+      },
+      "extra": "water reflection"
+    },
+    {
+      "id": "sc_wa_river_lights",
+      "zh": "河畔夜灯",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "reflection"
+    },
+    {
+      "id": "sc_wa_coral",
+      "zh": "潜水 · 珊瑚",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "underwater",
+        "pose": "floating",
+        "camera": "medium shot",
+        "lighting": "underwater lighting"
+      },
+      "extra": "coral, fish"
+    },
+    {
+      "id": "sc_wa_rain_store",
+      "zh": "雨天便利店",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "convenience store",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "rain",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "umbrella, wet street"
+    },
+    {
+      "id": "sc_wa_mirror_lake",
+      "zh": "水镜 · 倒影",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "pose": "standing",
+        "camera": "full body",
+        "weather": "twilight",
+        "lighting": "soft lighting"
+      },
+      "extra": "water reflection, mirror"
+    },
+    {
+      "id": "sc_wa_shower",
+      "zh": "淋浴 · 水汽",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "shower",
+        "pose": "standing",
+        "camera": "medium shot",
+        "lighting": "soft lighting"
+      },
+      "extra": "steam, water drops"
+    },
+    {
+      "id": "sc_wa_shallow",
+      "zh": "海边浅滩",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "pose": "walking",
+        "camera": "full body",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "shallow water, splashing"
+    },
+    {
+      "id": "sc_wa_rain_alley",
+      "zh": "雨巷 · 霓虹",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "alley",
+        "pose": "walking",
+        "camera": "wide shot",
+        "weather": "rain",
+        "lighting": "neon lights"
+      },
+      "extra": "puddles"
+    },
+    {
+      "id": "sc_wa_pool_float",
+      "zh": "泳池夜灯 · 漂浮",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "pool",
+        "pose": "floating",
+        "camera": "from above",
+        "weather": "night",
+        "lighting": "underwater lighting"
+      },
+      "extra": "float, glow"
+    },
+    {
+      "id": "sc_wa_snow_onsen",
+      "zh": "雪中温泉",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "onsen",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "snowing",
+        "lighting": "soft lighting"
+      },
+      "extra": "steam, snow"
+    },
+    {
+      "id": "sc_wa_bridge_dusk",
+      "zh": "渡口 · 黄昏",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "bridge",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunset",
+        "lighting": "dusk light"
+      },
+      "extra": "river"
+    },
+    {
+      "id": "sc_wa_aquarium_glass",
+      "zh": "水族馆 · 玻璃前",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "aquarium",
+        "pose": "standing",
+        "camera": "medium shot",
+        "lighting": "blue lighting"
+      },
+      "extra": "jellyfish, reflection"
+    },
+    {
+      "id": "sc_wa_sea_fog",
+      "zh": "海雾",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "ocean",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "fog",
+        "lighting": "cool lighting"
+      },
+      "extra": "lighthouse"
+    },
+    {
+      "id": "sc_wa_rain_car",
+      "zh": "雨夜车里",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "car interior",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "rain",
+        "lighting": "neon lights"
+      },
+      "extra": "raindrops on window"
+    },
+    {
+      "id": "sc_wa_stream",
+      "zh": "溪流 · 夏日",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "sunny",
+        "lighting": "dappled sunlight"
+      },
+      "extra": "shallow water"
+    },
+    {
+      "id": "sc_wa_ice_lake",
+      "zh": "冰湖",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "snowing",
+        "lighting": "cold lighting"
+      },
+      "extra": "frozen lake"
+    },
+    {
+      "id": "sc_ni_neon_street",
+      "zh": "霓虹街头",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "neon lights"
+      },
+      "extra": "neon signs"
+    },
+    {
+      "id": "sc_ni_rooftop_night",
+      "zh": "天台夜景",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "skyline"
+    },
+    {
+      "id": "sc_ni_club",
+      "zh": "地下俱乐部",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "nightclub",
+        "pose": "dancing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "neon lights"
+      },
+      "extra": "disco ball"
+    },
+    {
+      "id": "sc_ni_late_diner",
+      "zh": "深夜食堂",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "restaurant",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "warm lighting"
+      },
+      "extra": "counter, steam"
+    },
+    {
+      "id": "sc_ni_parking",
+      "zh": "地下停车场",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "parking garage",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "concrete"
+    },
+    {
+      "id": "sc_ni_last_train",
+      "zh": "末班车",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "train interior",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "empty seats"
+    },
+    {
+      "id": "sc_ni_store_night",
+      "zh": "便利店夜班",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "convenience store",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "shelf"
+    },
+    {
+      "id": "sc_ni_taxi",
+      "zh": "夜雨出租车",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "car interior",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "rain",
+        "lighting": "neon lights"
+      },
+      "extra": "city lights"
+    },
+    {
+      "id": "sc_ni_arcade",
+      "zh": "游戏厅",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "arcade",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "neon lights"
+      },
+      "extra": "arcade cabinet"
+    },
+    {
+      "id": "sc_ni_bar",
+      "zh": "酒吧吧台",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "bar",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "warm lighting"
+      },
+      "extra": "cocktail, bottles"
+    },
+    {
+      "id": "sc_ni_skybridge",
+      "zh": "城市天桥",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "bridge",
+        "pose": "walking",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "traffic"
+    },
+    {
+      "id": "sc_ni_market",
+      "zh": "夜市 · 灯笼",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "market",
+        "pose": "walking",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "warm lighting"
+      },
+      "extra": "lanterns, food stall"
+    },
+    {
+      "id": "sc_ni_office_night",
+      "zh": "高楼办公室夜",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "office",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "desk, window"
+    },
+    {
+      "id": "sc_ni_church_night",
+      "zh": "夜之教堂",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "church",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "moonlight"
+      },
+      "extra": "stained glass"
+    },
+    {
+      "id": "sc_ni_night_sakura",
+      "zh": "夜樱",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "under cherry blossoms",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "string lights"
+      },
+      "extra": "petals"
+    },
+    {
+      "id": "sc_ni_star_road",
+      "zh": "星空公路",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "starry sky",
+        "lighting": "cool lighting"
+      },
+      "extra": "road, headlights"
+    },
+    {
+      "id": "sc_ni_neon_alley",
+      "zh": "霓虹雨巷",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "alley",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "rain",
+        "lighting": "neon signs"
+      },
+      "extra": "puddles, signs"
+    },
+    {
+      "id": "sc_ni_library_night",
+      "zh": "深夜图书馆",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "library",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "warm lighting"
+      },
+      "extra": "desk lamp, books"
+    },
+    {
+      "id": "sc_ni_pier",
+      "zh": "夜之码头",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "pier",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "moonlight"
+      },
+      "extra": "sea, boat"
+    },
+    {
+      "id": "sc_ni_rooftop_above",
+      "zh": "天台俯瞰",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "pose": "sitting",
+        "camera": "from above",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "skyline"
+    },
+    {
+      "id": "sc_ni_station_night",
+      "zh": "地铁月台夜",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "train station",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "platform"
+    },
+    {
+      "id": "sc_ni_cafe_night",
+      "zh": "夜之咖啡馆",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "cafe",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "window light"
+      },
+      "extra": "coffee, warm"
+    },
+    {
+      "id": "sc_ni_under_sign",
+      "zh": "霓虹招牌下",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "pose": "looking up",
+        "camera": "from below",
+        "weather": "night",
+        "lighting": "neon lights"
+      },
+      "extra": "neon signs"
+    },
+    {
+      "id": "sc_ni_bus",
+      "zh": "夜间公车",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "bus interior",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "cool lighting"
+      },
+      "extra": "window, city lights"
+    },
+    {
+      "id": "sc_ni_greenhouse",
+      "zh": "夜之温室",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "greenhouse",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "moonlight"
+      },
+      "extra": "plants, glass"
+    },
+    {
+      "id": "sc_ni_city_fireworks",
+      "zh": "城市烟花",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "city",
+        "pose": "standing",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "fireworks"
+    },
+    {
+      "id": "sc_ni_rooftop_pool",
+      "zh": "天台泳池夜",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "rooftop pool",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "underwater lighting"
+      },
+      "extra": "reflection, skyline"
+    },
+    {
+      "id": "sc_ni_hotel_corridor",
+      "zh": "酒店走廊",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "hotel corridor",
+        "pose": "walking",
+        "camera": "wide shot",
+        "weather": "night",
+        "lighting": "warm lighting"
+      },
+      "extra": "carpet, doors"
+    },
+    {
+      "id": "sc_ni_ferris",
+      "zh": "夜间摩天轮",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "ferris wheel",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "night",
+        "lighting": "city lights"
+      },
+      "extra": "city view"
+    },
+    {
+      "id": "sc_ni_rooftop_wind",
+      "zh": "夜风天台",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "pose": "standing",
+        "camera": "full body",
+        "weather": "night",
+        "lighting": "moonlight"
+      },
+      "extra": "wind, hair blowing"
+    },
+    {
+      "id": "sc_sp_track",
+      "zh": "跑道 · 起跑",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "track field",
+        "pose": "running",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "starting block"
+    },
+    {
+      "id": "sc_sp_gym_basketball",
+      "zh": "体育馆 · 篮球",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "school gym",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "basketball"
+    },
+    {
+      "id": "sc_sp_pool_lane",
+      "zh": "泳池泳道",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "pool",
+        "pose": "swimming",
+        "camera": "wide shot",
+        "lighting": "underwater lighting"
+      },
+      "extra": "lane line"
+    },
+    {
+      "id": "sc_sp_tennis",
+      "zh": "网球场 · 挥拍",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "tennis court",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "tennis racket"
+    },
+    {
+      "id": "sc_sp_baseball",
+      "zh": "棒球场 · 投球",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "baseball field",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "baseball"
+    },
+    {
+      "id": "sc_sp_locker",
+      "zh": "更衣室",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "locker room",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "locker"
+    },
+    {
+      "id": "sc_sp_marathon",
+      "zh": "马拉松街头",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "pose": "running",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "bib number"
+    },
+    {
+      "id": "sc_sp_skate",
+      "zh": "滑板公园",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "skate park",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "skateboard"
+    },
+    {
+      "id": "sc_sp_climbing",
+      "zh": "攀岩墙",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "gym",
+        "pose": "standing",
+        "camera": "medium shot",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "climbing hold"
+    },
+    {
+      "id": "sc_sp_soccer",
+      "zh": "足球场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "soccer field",
+        "pose": "running",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "soccer ball"
+    },
+    {
+      "id": "sc_sp_kyudo",
+      "zh": "弓道场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "dojo",
+        "pose": "standing",
+        "camera": "full body",
+        "lighting": "soft lighting"
+      },
+      "extra": "bow, hakama"
+    },
+    {
+      "id": "sc_sp_kendo",
+      "zh": "剑道场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "dojo",
+        "pose": "standing",
+        "camera": "full body",
+        "lighting": "sunlight"
+      },
+      "extra": "shinai, armor"
+    },
+    {
+      "id": "sc_sp_boxing",
+      "zh": "拳击台",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "boxing ring",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "dramatic lighting"
+      },
+      "extra": "boxing gloves"
+    },
+    {
+      "id": "sc_sp_gymnastics",
+      "zh": "体操馆",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "gym",
+        "pose": "stretching",
+        "camera": "full body",
+        "lighting": "soft lighting"
+      },
+      "extra": "leotard, mat"
+    },
+    {
+      "id": "sc_sp_cycling",
+      "zh": "自行车道",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "pose": "cycling",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "bicycle"
+    },
+    {
+      "id": "sc_sp_poolside_rest",
+      "zh": "泳池边休息",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "poolside",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "towel, goggles"
+    },
+    {
+      "id": "sc_sp_volleyball",
+      "zh": "排球场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "gym",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "volleyball"
+    },
+    {
+      "id": "sc_sp_highjump",
+      "zh": "跳高",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "track field",
+        "pose": "jumping",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "high jump"
+    },
+    {
+      "id": "sc_sp_ice_rink",
+      "zh": "溜冰场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "ice rink",
+        "pose": "standing",
+        "camera": "wide shot",
+        "lighting": "cool lighting"
+      },
+      "extra": "ice skates"
+    },
+    {
+      "id": "sc_sp_ski",
+      "zh": "滑雪场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "ski slope",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "snowing",
+        "lighting": "sunlight"
+      },
+      "extra": "skis, snow"
+    },
+    {
+      "id": "sc_sp_golf",
+      "zh": "高尔夫球场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "golf course",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "golf club"
+    },
+    {
+      "id": "sc_sp_stadium_cheer",
+      "zh": "场边应援",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "stadium",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "pom poms"
+    },
+    {
+      "id": "sc_sp_race_track",
+      "zh": "赛道 · 起跑线",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "race track",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "starting line"
+    },
+    {
+      "id": "sc_sp_stand",
+      "zh": "体育馆看台",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "stadium",
+        "pose": "sitting",
+        "camera": "wide shot",
+        "lighting": "fluorescent lighting"
+      },
+      "extra": "spectators"
+    },
+    {
+      "id": "sc_sp_morning_run",
+      "zh": "晨跑公园",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "pose": "running",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "dawn light"
+      },
+      "extra": "morning mist"
+    },
+    {
+      "id": "sc_sp_beach_volley",
+      "zh": "沙滩排球",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "volleyball, net"
+    },
+    {
+      "id": "sc_sp_surf",
+      "zh": "冲浪",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "ocean",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "surfboard, wave"
+    },
+    {
+      "id": "sc_sp_diving_board",
+      "zh": "泳池跳台",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "pool",
+        "pose": "standing",
+        "camera": "from below",
+        "lighting": "underwater lighting"
+      },
+      "extra": "diving board"
+    },
+    {
+      "id": "sc_sp_after_match",
+      "zh": "赛后休息",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "locker room",
+        "pose": "sitting",
+        "camera": "medium shot",
+        "lighting": "soft lighting"
+      },
+      "extra": "towel, water bottle"
+    },
+    {
+      "id": "sc_sp_archery",
+      "zh": "射箭场",
+      "group": "sport",
+      "level": 0,
+      "tags": {
+        "place": "field",
+        "pose": "standing",
+        "camera": "wide shot",
+        "weather": "sunny",
+        "lighting": "sunlight"
+      },
+      "extra": "bow, target"
+    },
+    {
+      "id": "v13_fantasy_1",
+      "zh": "城堡 · 夜晚 · 发光 · 行走 · 全身",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "castle",
+        "weather": "night",
+        "lighting": "glowing",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_2",
+      "zh": "巨树 · 云 · 阳光 · 躺卧 · 牛仔构图",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "giant tree",
+        "weather": "cloud",
+        "lighting": "sunlight",
+        "pose": "lying",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_3",
+      "zh": "王座厅 · 夜晚 · 发光 · 悬空漂浮 · 牛仔构图",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "throne room",
+        "weather": "night",
+        "lighting": "glowing",
+        "pose": "floating",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_4",
+      "zh": "王座厅 · 云 · 阳光 · 悬空漂浮 · 全景镜头",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "throne room",
+        "weather": "cloud",
+        "lighting": "sunlight",
+        "pose": "floating",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_5",
+      "zh": "王座厅 · 夜晚 · 发光 · 坐姿 · 仰视",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "throne room",
+        "weather": "night",
+        "lighting": "glowing",
+        "pose": "sitting",
+        "camera": "from below"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_6",
+      "zh": "魔法阵 · 日落 · 阳光 · 躺卧 · 牛仔构图",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "magic circle",
+        "weather": "sunset",
+        "lighting": "sunlight",
+        "pose": "lying",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_7",
+      "zh": "荒地 · 云 · 阳光 · 行走 · 仰视",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "wasteland",
+        "weather": "cloud",
+        "lighting": "sunlight",
+        "pose": "walking",
+        "camera": "from below"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_8",
+      "zh": "天空 · 夜晚 · 月光 · 跪姿 · 牛仔构图",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "sky",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "kneeling",
+        "camera": "cowboy shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_9",
+      "zh": "荒地 · 满月 · 发光 · 躺卧 · 全景镜头",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "wasteland",
+        "weather": "full moon",
+        "lighting": "glowing",
+        "pose": "lying",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_10",
+      "zh": "洞穴 · 星空 · 发光 · 站立 · 全身",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "cave",
+        "weather": "starry sky",
+        "lighting": "glowing",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_11",
+      "zh": "城堡 · 满月 · 烛光 · 行走 · 全景镜头",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "castle",
+        "weather": "full moon",
+        "lighting": "candlelight",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_12",
+      "zh": "洞穴 · 星空 · 发光 · 躺卧 · 全景镜头",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "cave",
+        "weather": "starry sky",
+        "lighting": "glowing",
+        "pose": "lying",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_13",
+      "zh": "巨树 · 云 · 阳光 · 躺卧 · 仰视",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "giant tree",
+        "weather": "cloud",
+        "lighting": "sunlight",
+        "pose": "lying",
+        "camera": "from below"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_14",
+      "zh": "王座厅 · 日落 · 阳光 · 躺卧 · 全景镜头",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "throne room",
+        "weather": "sunset",
+        "lighting": "sunlight",
+        "pose": "lying",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_15",
+      "zh": "森林 · 日落 · 阳光 · 行走 · 全身",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "forest",
+        "weather": "sunset",
+        "lighting": "sunlight",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_16",
+      "zh": "废墟 · 夜晚 · 烛光 · 坐姿 · 全身",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "ruins",
+        "weather": "night",
+        "lighting": "candlelight",
+        "pose": "sitting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_17",
+      "zh": "城堡 · 星空 · 发光 · 悬空漂浮 · 仰视",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "castle",
+        "weather": "starry sky",
+        "lighting": "glowing",
+        "pose": "floating",
+        "camera": "from below"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_fantasy_18",
+      "zh": "荒地 · 云 · 阳光 · 跪姿 · 仰视",
+      "group": "fantasy",
+      "level": 0,
+      "tags": {
+        "place": "wasteland",
+        "weather": "cloud",
+        "lighting": "sunlight",
+        "pose": "kneeling",
+        "camera": "from below"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_1",
+      "zh": "市场 · 落叶 · 阳光 · 仰头看 · 全身",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "market",
+        "weather": "falling leaves",
+        "lighting": "sunlight",
+        "pose": "looking up",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_2",
+      "zh": "神社 · 下雪 · 黄金时刻 · 坐姿 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "shrine",
+        "weather": "snowing",
+        "lighting": "golden hour",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_3",
+      "zh": "屋顶 · 满月 · 灯串 · 跪姿 · 背面视角",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "weather": "full moon",
+        "lighting": "string lights",
+        "pose": "kneeling",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_4",
+      "zh": "海滩 · 满月 · 灯串 · 站立 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "full moon",
+        "lighting": "string lights",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_5",
+      "zh": "神社 · 满月 · 城市灯光背景 · 行走 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "shrine",
+        "weather": "full moon",
+        "lighting": "city lights",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_6",
+      "zh": "神社 · 满月 · 烛光 · 跪姿 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "shrine",
+        "weather": "full moon",
+        "lighting": "candlelight",
+        "pose": "kneeling",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_7",
+      "zh": "街道 · 下雪 · 烛光 · 行走 · 全身",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "snowing",
+        "lighting": "candlelight",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_8",
+      "zh": "庭院 · 满月 · 城市灯光背景 · 坐姿 · 上半身",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "courtyard",
+        "weather": "full moon",
+        "lighting": "city lights",
+        "pose": "sitting",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_9",
+      "zh": "公园 · 雨 · 灯串 · 仰头看 · 上半身",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "rain",
+        "lighting": "string lights",
+        "pose": "looking up",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_10",
+      "zh": "街道 · 夜晚 · 城市灯光背景 · 仰头看 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "looking up",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_11",
+      "zh": "海滩 · 下雪 · 灯串 · 行走 · 全身",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "snowing",
+        "lighting": "string lights",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_12",
+      "zh": "庭院 · 满月 · 烛光 · 坐姿 · 背面视角",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "courtyard",
+        "weather": "full moon",
+        "lighting": "candlelight",
+        "pose": "sitting",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_13",
+      "zh": "海滩 · 满月 · 城市灯光背景 · 跪姿 · 背面视角",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "full moon",
+        "lighting": "city lights",
+        "pose": "kneeling",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_14",
+      "zh": "节日 · 夜晚 · 城市灯光背景 · 坐姿 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "festival",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_15",
+      "zh": "海滩 · 满月 · 城市灯光背景 · 跪姿 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "full moon",
+        "lighting": "city lights",
+        "pose": "kneeling",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_16",
+      "zh": "海滩 · 下雪 · 灯串 · 站立 · 全景镜头",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "snowing",
+        "lighting": "string lights",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_17",
+      "zh": "公园 · 雨 · 城市灯光背景 · 仰头看 · 上半身",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "park",
+        "weather": "rain",
+        "lighting": "city lights",
+        "pose": "looking up",
+        "camera": "upper body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_seasonal_18",
+      "zh": "海滩 · 夜晚 · 城市灯光背景 · 站立 · 背面视角",
+      "group": "seasonal",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "standing",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_1",
+      "zh": "河流 · 日落 · 黄金时刻 · 游泳 · 全身",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "swimming",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_2",
+      "zh": "泳池 · 夜晚 · 月光 · 站立 · 特写",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "pool",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "standing",
+        "camera": "close-up"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_3",
+      "zh": "水下（水中） · 雨 · 窗光 · 行走 · 特写",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "underwater",
+        "weather": "rain",
+        "lighting": "window light",
+        "pose": "walking",
+        "camera": "close-up"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_4",
+      "zh": "海滩 · 雾 · 窗光 · 坐姿 · 俯视",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "beach",
+        "weather": "fog",
+        "lighting": "window light",
+        "pose": "sitting",
+        "camera": "from above"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_5",
+      "zh": "湖 · 日落 · 黄金时刻 · 悬空漂浮 · 特写",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "floating",
+        "camera": "close-up"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_6",
+      "zh": "河流 · 夜晚 · 月光 · 坐姿 · 全身",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "sitting",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_7",
+      "zh": "湖 · 日落 · 黄金时刻 · 行走 · 全景镜头",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_8",
+      "zh": "泳池 · 雨 · 窗光 · 行走 · 全身",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "pool",
+        "weather": "rain",
+        "lighting": "window light",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_9",
+      "zh": "湖 · 日落 · 黄金时刻 · 站立 · 全景镜头",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "lake",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_10",
+      "zh": "温泉 · 下雪 · 窗光 · 悬空漂浮 · 全身",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "onsen",
+        "weather": "snowing",
+        "lighting": "window light",
+        "pose": "floating",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_11",
+      "zh": "瀑布 · 下雪 · 窗光 · 行走 · 全景镜头",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "waterfall",
+        "weather": "snowing",
+        "lighting": "window light",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_12",
+      "zh": "河流 · 夜晚 · 月光 · 悬空漂浮 · 特写",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "floating",
+        "camera": "close-up"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_13",
+      "zh": "水下（水中） · 雾 · 窗光 · 行走 · 全身",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "underwater",
+        "weather": "fog",
+        "lighting": "window light",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_14",
+      "zh": "温泉 · 日落 · 黄金时刻 · 站立 · 全景镜头",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "onsen",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_15",
+      "zh": "泳池 · 雨 · 窗光 · 行走 · 全景镜头",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "pool",
+        "weather": "rain",
+        "lighting": "window light",
+        "pose": "walking",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_16",
+      "zh": "泳池 · 日落 · 黄金时刻 · 悬空漂浮 · 全景镜头",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "pool",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "floating",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_17",
+      "zh": "瀑布 · 日落 · 黄金时刻 · 悬空漂浮 · 特写",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "waterfall",
+        "weather": "sunset",
+        "lighting": "golden hour",
+        "pose": "floating",
+        "camera": "close-up"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_water_18",
+      "zh": "河流 · 下雪 · 窗光 · 游泳 · 全身",
+      "group": "water",
+      "level": 0,
+      "tags": {
+        "place": "river",
+        "weather": "snowing",
+        "lighting": "window light",
+        "pose": "swimming",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_1",
+      "zh": "餐厅 · 夜晚 · 月光 · 坐姿 · 背面视角",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "restaurant",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "sitting",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_2",
+      "zh": "便利店 · 星空 · 城市灯光背景 · 站立 · 全景镜头",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "convenience store",
+        "weather": "starry sky",
+        "lighting": "city lights",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_3",
+      "zh": "街道 · 星空 · 月光 · 站立 · 全景镜头",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "starry sky",
+        "lighting": "moonlight",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_4",
+      "zh": "汽车内部 · 夜晚 · 霓虹灯 · 坐姿 · 俯视",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "car interior",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "sitting",
+        "camera": "from above"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_5",
+      "zh": "夜店 · 夜晚 · 城市灯光背景 · 舞蹈（跳舞） · 全身",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "nightclub",
+        "weather": "night",
+        "lighting": "city lights",
+        "pose": "dancing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_6",
+      "zh": "摩天轮 · 星空 · 灯串 · 行走 · 全身",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "ferris wheel",
+        "weather": "starry sky",
+        "lighting": "string lights",
+        "pose": "walking",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_7",
+      "zh": "屋顶 · 夜晚 · 月光 · 仰头看 · 俯视",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "rooftop",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "looking up",
+        "camera": "from above"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_8",
+      "zh": "桥 · 星空 · 城市灯光背景 · 站立 · 背面视角",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "bridge",
+        "weather": "starry sky",
+        "lighting": "city lights",
+        "pose": "standing",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_9",
+      "zh": "摩天轮 · 星空 · 灯串 · 坐姿 · 背面视角",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "ferris wheel",
+        "weather": "starry sky",
+        "lighting": "string lights",
+        "pose": "sitting",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_10",
+      "zh": "街道 · 夜晚 · 灯串 · 站立 · 全景镜头",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "street",
+        "weather": "night",
+        "lighting": "string lights",
+        "pose": "standing",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_11",
+      "zh": "餐厅 · 夜晚 · 月光 · 坐姿 · 全景镜头",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "restaurant",
+        "weather": "night",
+        "lighting": "moonlight",
+        "pose": "sitting",
+        "camera": "wide shot"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_12",
+      "zh": "桥 · 夜晚 · 霓虹灯 · 行走 · 俯视",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "bridge",
+        "weather": "night",
+        "lighting": "neon lights",
+        "pose": "walking",
+        "camera": "from above"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_13",
+      "zh": "便利店 · 星空 · 灯串 · 站立 · 背面视角",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "convenience store",
+        "weather": "starry sky",
+        "lighting": "string lights",
+        "pose": "standing",
+        "camera": "from behind"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_14",
+      "zh": "餐厅 · 星空 · 月光 · 坐姿 · 俯视",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "restaurant",
+        "weather": "starry sky",
+        "lighting": "moonlight",
+        "pose": "sitting",
+        "camera": "from above"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_15",
+      "zh": "停车库 · 星空 · 灯串 · 站立 · 俯视",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "parking garage",
+        "weather": "starry sky",
+        "lighting": "string lights",
+        "pose": "standing",
+        "camera": "from above"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_16",
+      "zh": "列车内部 · 星空 · 城市灯光背景 · 站立 · 全身",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "train interior",
+        "weather": "starry sky",
+        "lighting": "city lights",
+        "pose": "standing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_17",
+      "zh": "摩天轮 · 星空 · 城市灯光背景 · 舞蹈（跳舞） · 全身",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "ferris wheel",
+        "weather": "starry sky",
+        "lighting": "city lights",
+        "pose": "dancing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "v13_night_18",
+      "zh": "便利店 · 星空 · 灯串 · 舞蹈（跳舞） · 全身",
+      "group": "night",
+      "level": 0,
+      "tags": {
+        "place": "convenience store",
+        "weather": "starry sky",
+        "lighting": "string lights",
+        "pose": "dancing",
+        "camera": "full body"
+      },
+      "extra": ""
+    },
+    {
+      "id": "love_hotel_velvet",
+      "zh": "情趣酒店 · 红丝绒圆床",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "love hotel, round bed, red velvet sheets",
+        "weather": "night",
+        "lighting": "dimly lit, mirror on ceiling, mood lighting"
+      },
+      "extra": "neon glow, romantic atmosphere"
+    },
+    {
+      "id": "steamy_shower_glass",
+      "zh": "水汽浴室 · 贴伏玻璃",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "shower stall, glass door, steamy bathroom",
+        "weather": "indoor",
+        "lighting": "water droplets, condensation on glass, wet floor"
+      },
+      "extra": "steam, running water"
+    },
+    {
+      "id": "messy_bed_sheets",
+      "zh": "凌乱大床 · 散落床单",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "bedroom, messy bed, disheveled sheets",
+        "weather": "morning",
+        "lighting": "scattered pillows, tangled sheets, discarded clothes"
+      },
+      "extra": "soft morning light, bedroom floor"
+    },
+    {
+      "id": "hot_spring_mist",
+      "zh": "温泉混浴 · 蒸汽弥漫",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "hot spring bath, onsen, steam",
+        "weather": "night",
+        "lighting": "wooden tub, floating wooden pail, rising steam"
+      },
+      "extra": "lantern light, outdoor onsen, stone bath"
+    },
+    {
+      "id": "futon_tatami_room",
+      "zh": "传统和室 · 铺地被褥",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "japanese style room, tatami, futon",
+        "weather": "night",
+        "lighting": "shoji screen, paper lantern, sliding doors"
+      },
+      "extra": "warm lantern light, quiet night"
+    },
+    {
+      "id": "private_karaoke_dim",
+      "zh": "私密包厢 · 昏暗沙发",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "karaoke booth, leather couch",
+        "weather": "indoor",
+        "lighting": "dim lighting, disco light reflection, microphone"
+      },
+      "extra": "ambient light, secluded room"
+    },
+    {
+      "id": "dim_bedroom_moonlight",
+      "zh": "深夜卧室 · 朦胧月色",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "bedroom, soft bed",
+        "weather": "night, moonlight through window",
+        "lighting": "sheer curtains, moonbeams, bedside lamp"
+      },
+      "extra": "cool moonlight, shadow and light"
+    },
+    {
+      "id": "car_backseat_night",
+      "zh": "轿车后座 · 车窗水汽",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "car backseat, parked car",
+        "weather": "rainy night",
+        "lighting": "foggy windows, leather seat, dashboard light"
+      },
+      "extra": "rain on window, street light reflection"
+    },
+    {
+      "id": "candlelit_dungeon",
+      "zh": "烛光地牢 · 铁链暗室",
+      "group": "adult",
+      "level": 3,
+      "tags": {
+        "place": "dungeon, stone wall, chains",
+        "weather": "indoor, dark",
+        "lighting": "candlelight, iron shackles, stone floor"
+      },
+      "extra": "flickering candlelight, heavy shadows"
+    },
+    {
+      "id": "infirmary_curtain",
+      "zh": "医务室 · 遮蔽帘幕后",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "infirmary, clinic bed",
+        "weather": "afternoon",
+        "lighting": "medical privacy curtain, clean white sheets, sunlight through blinds"
+      },
+      "extra": "quiet clinic, concealed space"
+    },
+    {
+      "id": "deserted_classroom_sunset",
+      "zh": "放学后空教室 · 讲台阴影",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "empty classroom, teacher's desk",
+        "weather": "sunset, golden hour",
+        "lighting": "long shadows, orange sunlight, closed door"
+      },
+      "extra": "after school, secluded classroom"
+    },
+    {
+      "id": "poolside_locker_room",
+      "zh": "游泳馆更衣室 · 无人角落",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "locker room, changing room",
+        "weather": "indoor",
+        "lighting": "metal lockers, bench, tiled floor, towel on bench"
+      },
+      "extra": "fluorescent light, empty locker room"
+    },
+    {
+      "id": "balcony_night_rail",
+      "zh": "阳台夜风 · 靠扶手前",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "hotel balcony, railing",
+        "weather": "night, cool breeze",
+        "lighting": "city skyline backdrop, glass railing, curtains fluttering"
+      },
+      "extra": "city lights, evening wind"
+    },
+    {
+      "id": "office_desk_after_hours",
+      "zh": "深夜办公室 · 办公桌前",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "empty office, executive desk",
+        "weather": "midnight",
+        "lighting": "desk lamp, scattered paperwork, city view from high rise"
+      },
+      "extra": "overtime night, solitary office"
+    },
+    {
+      "id": "club_vip_lounge",
+      "zh": "夜店私密贵宾室 · 霓虹暗光",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "nightclub vip room, plush velvet sofa",
+        "weather": "indoor, dark",
+        "lighting": "purple neon, champagne bucket, low table"
+      },
+      "extra": "neon highlights, moody club"
+    },
+    {
+      "id": "luxury_hotel_mirror",
+      "zh": "豪华套房 · 落地镜前",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "hotel penthouse, full-length mirror",
+        "weather": "night",
+        "lighting": "warm ambient lamp, carpeted floor, reflection in mirror"
+      },
+      "extra": "mirror reflection, elegant suite"
+    },
+    {
+      "id": "bathtub_rose_petals",
+      "zh": "玫瑰浴缸 · 泡沫浮动",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "bathtub, white porcelain tub",
+        "weather": "indoor",
+        "lighting": "rose petals in water, bubble bath, candle along rim"
+      },
+      "extra": "relaxing bath, candlelight"
+    },
+    {
+      "id": "library_restricted_stacks",
+      "zh": "图书馆禁闭书库 · 幽暗角落",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "archive room, narrow bookshelves",
+        "weather": "indoor, dim",
+        "lighting": "tall wooden bookshelves, dust motes, reading lamp"
+      },
+      "extra": "between bookshelves, hidden aisle"
+    },
+    {
+      "id": "beach_tent_sunset",
+      "zh": "海滩帐篷 · 落日海浪",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "beach tent, blanket on sand",
+        "weather": "sunset, crimson sky",
+        "lighting": "ocean waves in background, tent canopy, sea breeze"
+      },
+      "extra": "golden reflection, private tent"
+    },
+    {
+      "id": "tatami_sliding_door",
+      "zh": "日式走廊 · 隔扇门边",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "japanese hallway, wooden veranda, engawa",
+        "weather": "summer night",
+        "lighting": "sliding screen door, garden view outside, bamboo wind chime"
+      },
+      "extra": "quiet summer night, moonlight"
+    },
+    {
+      "id": "shibari_stage_curtain",
+      "zh": "调教红幕舞台 · 悬挂绳索",
+      "group": "adult",
+      "level": 3,
+      "tags": {
+        "place": "performance stage, red velvet curtain, wooden floor",
+        "weather": "indoor, dramatic lighting",
+        "lighting": "hanging ropes, spotlight, shibari apparatus"
+      },
+      "extra": "dramatic spotlight, theatrical atmosphere"
+    },
+    {
+      "id": "rooftop_water_tank_night",
+      "zh": "天台水塔背阴处 · 都市夜景",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "building rooftop, behind water tank",
+        "weather": "night, starry sky",
+        "lighting": "antenna, metal railing, sprawling city lights below"
+      },
+      "extra": "night breeze, hidden rooftop"
+    },
+    {
+      "id": "sauna_room_cedar",
+      "zh": "芬兰桑拿房 · 滚烫热气",
+      "group": "adult",
+      "level": 2,
+      "tags": {
+        "place": "sauna room, cedar wood benches",
+        "weather": "indoor",
+        "lighting": "hot steam, wooden bucket and ladle, sauna stones"
+      },
+      "extra": "thick steam, sweaty ambience"
+    },
+    {
+      "id": "on_desk_study_room",
+      "zh": "书房大书桌 · 散落书籍",
+      "group": "adult",
+      "level": 1,
+      "tags": {
+        "place": "study room, mahogany desk",
+        "weather": "late night",
+        "lighting": "green banker lamp, open notebook, spilled inkpot"
+      },
+      "extra": "desk top, dimly lit study"
+    },
+    {
+      "id": "tentacle_cave_glowing",
+      "zh": "触手幽暗洞穴 · 荧光苔藓",
+      "group": "adult",
+      "level": 4,
+      "tags": {
+        "place": "cavern, slimy ground, alien vines",
+        "weather": "dark cave",
+        "lighting": "bioluminescent moss, writhe tentacles, glistening slime"
+      },
+      "extra": "tentacles emerging, eerie glow"
+    }
+  ]
+}

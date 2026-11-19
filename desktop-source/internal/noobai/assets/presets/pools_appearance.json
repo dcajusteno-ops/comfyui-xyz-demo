@@ -1,0 +1,4167 @@
+{
+  "_meta": {
+    "schema": "noobai-lib/pools@1",
+    "version": "1.3.0",
+    "part": "appearance",
+    "sections": 6
+  },
+  "sections": [
+    {
+      "id": "quality",
+      "title": "① 画质与画面媒介",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "quality.finish",
+          "lab": "画质修饰",
+          "type": "select",
+          "req": false,
+          "prob": 0.5,
+          "opts": [
+            [
+              "非常唯美",
+              "very aesthetic",
+              0
+            ],
+            [
+              "极佳画质",
+              "amazing quality",
+              0
+            ],
+            [
+              "最高画质",
+              "best quality",
+              0
+            ],
+            [
+              "最新",
+              "newest",
+              0
+            ],
+            [
+              "高分辨率",
+              "highres",
+              0
+            ],
+            [
+              "4K 超清",
+              "absurdres",
+              0
+            ],
+            [
+              "高细节",
+              "highly detailed",
+              0
+            ],
+            [
+              "高画质",
+              "high quality",
+              0
+            ],
+            [
+              "完美画质",
+              "perfect quality",
+              0
+            ],
+            [
+              "超精细",
+              "ultra detailed",
+              0
+            ],
+            [
+              "8K",
+              "8k",
+              0
+            ],
+            [
+              "极精细",
+              "extremely detailed",
+              0
+            ],
+            [
+              "高分辨率",
+              "high resolution",
+              0
+            ],
+            [
+              "4K",
+              "4k",
+              0
+            ],
+            [
+              "8K 壁纸",
+              "8k wallpaper",
+              0
+            ],
+            [
+              "清晰锐利",
+              "sharp focus",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "quality.medium",
+          "lab": "画面媒介",
+          "type": "select",
+          "req": false,
+          "prob": 0.35,
+          "opts": [
+            [
+              "动画截图",
+              "anime",
+              0
+            ],
+            [
+              "动画上色",
+              "anime coloring",
+              0
+            ],
+            [
+              "插画",
+              "illustration",
+              0
+            ],
+            [
+              "数字绘画",
+              "digital painting",
+              0
+            ],
+            [
+              "官方画风",
+              "official art",
+              0
+            ],
+            [
+              "水彩",
+              "watercolor (medium)",
+              0
+            ],
+            [
+              "水墨",
+              "ink painting",
+              0
+            ],
+            [
+              "平涂",
+              "flat color",
+              0
+            ],
+            [
+              "漫画",
+              "manga",
+              0
+            ],
+            [
+              "油画",
+              "oil painting",
+              0
+            ],
+            [
+              "粉彩",
+              "pastel colors",
+              0
+            ],
+            [
+              "单色画",
+              "monochrome",
+              0
+            ],
+            [
+              "灰阶",
+              "greyscale",
+              0
+            ],
+            [
+              "视觉小说",
+              "visual novel",
+              0
+            ],
+            [
+              "游戏 CG",
+              "game cg",
+              0
+            ],
+            [
+              "轻小说插画",
+              "light novel illustration",
+              0
+            ],
+            [
+              "传统媒介",
+              "traditional media",
+              0
+            ],
+            [
+              "数字媒介",
+              "digital media",
+              0
+            ],
+            [
+              "彩铅",
+              "colored pencil",
+              0
+            ],
+            [
+              "石墨铅笔",
+              "graphite (medium)",
+              0
+            ],
+            [
+              "炭笔",
+              "charcoal",
+              0
+            ],
+            [
+              "马克笔",
+              "marker (medium)",
+              0
+            ],
+            [
+              "丙烯",
+              "acrylic paint",
+              0
+            ],
+            [
+              "水粉",
+              "gouache",
+              0
+            ],
+            [
+              "网点纸",
+              "screentone",
+              0
+            ],
+            [
+              "赛璐璐上色",
+              "cel shading",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "quality.detail",
+          "lab": "细节强化",
+          "type": "multi",
+          "req": false,
+          "prob": 0.4,
+          "opts": [
+            [
+              "精细背景",
+              "detailed background",
+              0
+            ],
+            [
+              "精细眼睛",
+              "detailed eyes",
+              0
+            ],
+            [
+              "繁复细节",
+              "intricate details",
+              0
+            ],
+            [
+              "干净线稿",
+              "clean lineart",
+              0
+            ],
+            [
+              "锐利线条",
+              "sharp lines",
+              0
+            ],
+            [
+              "柔和过渡",
+              "soft shading",
+              0
+            ],
+            [
+              "体积感",
+              "volumetric",
+              0
+            ],
+            [
+              "景深",
+              "depth of field",
+              0
+            ],
+            [
+              "美丽细节眼",
+              "beautiful detailed eyes",
+              0
+            ],
+            [
+              "美丽背景",
+              "beautiful detailed background",
+              0
+            ],
+            [
+              "锐利对焦",
+              "sharp focus",
+              0
+            ],
+            [
+              "电影构图",
+              "cinematic composition",
+              0
+            ],
+            [
+              "繁复背景",
+              "intricate background",
+              0
+            ],
+            [
+              "精细发丝",
+              "detailed hair",
+              0
+            ],
+            [
+              "精细面部",
+              "detailed face",
+              0
+            ],
+            [
+              "精细服装",
+              "detailed clothes",
+              0
+            ],
+            [
+              "精细手部",
+              "detailed hands",
+              0
+            ],
+            [
+              "精细皮肤",
+              "detailed skin",
+              0
+            ],
+            [
+              "细节丰富",
+              "fine details",
+              0
+            ],
+            [
+              "五官精致",
+              "delicate features",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "id": "count",
+      "title": "② 人数与取景",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "count.subject",
+          "lab": "人数构成",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "单人少女",
+              "1girl, solo",
+              0
+            ],
+            [
+              "单人成熟女性",
+              "1girl, solo, mature female",
+              0
+            ],
+            [
+              "单人男主",
+              "1boy, solo",
+              0
+            ],
+            [
+              "单人成熟男性",
+              "1boy, solo, mature male",
+              0
+            ],
+            [
+              "一男一女",
+              "1girl, 1boy",
+              0
+            ],
+            [
+              "双女",
+              "2girls",
+              0
+            ],
+            [
+              "双男",
+              "2boys",
+              0
+            ],
+            [
+              "情侣",
+              "couple, 1girl, 1boy",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "count.focus",
+          "lab": "焦点",
+          "type": "select",
+          "req": false,
+          "prob": 0.35,
+          "opts": [
+            [
+              "单人焦点",
+              "solo focus",
+              0
+            ],
+            [
+              "角色焦点",
+              "character focus",
+              0
+            ],
+            [
+              "眼部焦点",
+              "eye focus",
+              0
+            ],
+            [
+              "唇部焦点",
+              "lip focus",
+              0
+            ],
+            [
+              "手部焦点",
+              "hand focus",
+              0
+            ],
+            [
+              "面部焦点",
+              "face focus",
+              0
+            ],
+            [
+              "足部焦点",
+              "feet focus",
+              0
+            ],
+            [
+              "背部焦点",
+              "back focus",
+              0
+            ],
+            [
+              "大腿焦点",
+              "thigh focus",
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hair",
+      "title": "③ 发型与发色",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "hair.length",
+          "lab": "发型长度",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "及腰长发",
+              "very long hair",
+              0
+            ],
+            [
+              "长发",
+              "long hair",
+              0
+            ],
+            [
+              "中长发",
+              "medium hair",
+              0
+            ],
+            [
+              "短发",
+              "short hair",
+              0
+            ],
+            [
+              "齐肩发",
+              "shoulder-length hair",
+              0
+            ],
+            [
+              "及下巴短发",
+              "chin-length hair",
+              0
+            ],
+            [
+              "超长发",
+              "absurdly long hair",
+              0
+            ],
+            [
+              "拖地长发",
+              "floor-length hair",
+              0
+            ],
+            [
+              "双马尾",
+              "twintails",
+              0
+            ],
+            [
+              "低双马尾",
+              "low twintails",
+              0
+            ],
+            [
+              "高马尾",
+              "high ponytail",
+              0
+            ],
+            [
+              "马尾",
+              "ponytail",
+              0
+            ],
+            [
+              "侧马尾",
+              "side ponytail",
+              0
+            ],
+            [
+              "单麻花辫",
+              "single braid",
+              0
+            ],
+            [
+              "双麻花辫",
+              "twin braids",
+              0
+            ],
+            [
+              "法式辫",
+              "french braid",
+              0
+            ],
+            [
+              "盘发",
+              "updo",
+              0
+            ],
+            [
+              "双丸子头",
+              "double bun",
+              0
+            ],
+            [
+              "丸子头",
+              "hair bun",
+              0
+            ],
+            [
+              "低盘发",
+              "low updo",
+              0
+            ],
+            [
+              "超短发",
+              "very short hair",
+              0
+            ],
+            [
+              "低马尾",
+              "low ponytail",
+              0
+            ],
+            [
+              "高双马尾",
+              "high twintails",
+              0
+            ],
+            [
+              "编发",
+              "braided hair",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "hair.color",
+          "lab": "发色",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "黑发",
+              "black hair",
+              0
+            ],
+            [
+              "乌鸦黑",
+              "raven black hair",
+              0
+            ],
+            [
+              "棕发",
+              "brown hair",
+              0
+            ],
+            [
+              "深棕发",
+              "dark brown hair",
+              0
+            ],
+            [
+              "浅棕发",
+              "light brown hair",
+              0
+            ],
+            [
+              "栗色发",
+              "chestnut brown hair",
+              0
+            ],
+            [
+              "巧克力色发",
+              "chocolate brown hair",
+              0
+            ],
+            [
+              "金发",
+              "blonde hair",
+              0
+            ],
+            [
+              "铂金发",
+              "platinum blonde hair",
+              0
+            ],
+            [
+              "蜜金发",
+              "honey blonde hair",
+              0
+            ],
+            [
+              "草莓金发",
+              "strawberry blonde hair",
+              0
+            ],
+            [
+              "银发",
+              "silver hair",
+              0
+            ],
+            [
+              "白发",
+              "white hair",
+              0
+            ],
+            [
+              "雪白发",
+              "snow white hair",
+              0
+            ],
+            [
+              "灰发",
+              "grey hair",
+              0
+            ],
+            [
+              "灰金发",
+              "ash blonde hair",
+              0
+            ],
+            [
+              "红发",
+              "red hair",
+              0
+            ],
+            [
+              "绯红发",
+              "crimson hair",
+              0
+            ],
+            [
+              "酒红发",
+              "wine red hair",
+              0
+            ],
+            [
+              "栗红发",
+              "auburn hair",
+              0
+            ],
+            [
+              "粉发",
+              "pink hair",
+              0
+            ],
+            [
+              "浅粉发",
+              "light pink hair",
+              0
+            ],
+            [
+              "桃粉发",
+              "peach hair",
+              0
+            ],
+            [
+              "紫发",
+              "purple hair",
+              0
+            ],
+            [
+              "薰衣草发",
+              "lavender hair",
+              0
+            ],
+            [
+              "丁香紫发",
+              "lilac hair",
+              0
+            ],
+            [
+              "紫罗兰发",
+              "violet hair",
+              0
+            ],
+            [
+              "蓝发",
+              "blue hair",
+              0
+            ],
+            [
+              "深蓝发",
+              "dark blue hair",
+              0
+            ],
+            [
+              "浅蓝发",
+              "light blue hair",
+              0
+            ],
+            [
+              "天蓝发",
+              "sky blue hair",
+              0
+            ],
+            [
+              "青绿发",
+              "teal hair",
+              0
+            ],
+            [
+              "绿发",
+              "green hair",
+              0
+            ],
+            [
+              "薄荷绿发",
+              "mint green hair",
+              0
+            ],
+            [
+              "橄榄绿发",
+              "olive green hair",
+              0
+            ],
+            [
+              "深绿发",
+              "dark green hair",
+              0
+            ],
+            [
+              "橙发",
+              "orange hair",
+              0
+            ],
+            [
+              "姜黄发",
+              "ginger hair",
+              0
+            ],
+            [
+              "琥珀发",
+              "amber hair",
+              0
+            ],
+            [
+              "金铜发",
+              "copper hair",
+              0
+            ],
+            [
+              "青发",
+              "aqua hair",
+              0
+            ],
+            [
+              "渐变发",
+              "gradient hair",
+              0
+            ],
+            [
+              "双色发",
+              "two-tone hair",
+              0
+            ],
+            [
+              "彩虹发",
+              "rainbow hair",
+              0
+            ],
+            [
+              "灰棕发",
+              "ash brown hair",
+              0
+            ],
+            [
+              "深紫发",
+              "dark purple hair",
+              0
+            ],
+            [
+              "亮粉发",
+              "hot pink hair",
+              0
+            ],
+            [
+              "霓虹绿发",
+              "neon green hair",
+              0
+            ],
+            [
+              "冰蓝发",
+              "ice blue hair",
+              0
+            ],
+            [
+              "玫瑰金发",
+              "rose gold hair",
+              0
+            ],
+            [
+              "香槟发",
+              "champagne hair",
+              0
+            ],
+            [
+              "挑染发",
+              "streaked hair",
+              0
+            ],
+            [
+              "彩色发梢",
+              "colored tips",
+              0
+            ],
+            [
+              "多彩发",
+              "multicolored hair",
+              0
+            ],
+            [
+              "青绿发",
+              "turquoise hair",
+              0
+            ],
+            [
+              "青色发",
+              "cyan hair",
+              0
+            ],
+            [
+              "洋红发",
+              "magenta hair",
+              0
+            ],
+            [
+              "栗红发",
+              "maroon hair",
+              0
+            ],
+            [
+              "酒红发",
+              "burgundy hair",
+              0
+            ],
+            [
+              "藏青发",
+              "navy blue hair",
+              0
+            ],
+            [
+              "祖母绿发",
+              "emerald green hair",
+              0
+            ],
+            [
+              "青柠发",
+              "lime green hair",
+              0
+            ],
+            [
+              "鲑鱼粉发",
+              "salmon hair",
+              0
+            ],
+            [
+              "珊瑚色发",
+              "coral hair",
+              0
+            ],
+            [
+              "珍珠白发",
+              "pearl white hair",
+              0
+            ],
+            [
+              "乌黑发",
+              "jet black hair",
+              0
+            ],
+            [
+              "沙金发",
+              "sandy blonde hair",
+              0
+            ],
+            [
+              "脏金发",
+              "dirty blonde hair",
+              0
+            ],
+            [
+              "内层染色",
+              "colored inner hair",
+              0
+            ]
+          ],
+          "slot": "hair.color"
+        },
+        {
+          "key": "hair.style",
+          "lab": "发型细节",
+          "type": "multi",
+          "req": false,
+          "prob": 0.55,
+          "opts": [
+            [
+              "刘海",
+              "bangs",
+              0
+            ],
+            [
+              "齐刘海",
+              "blunt bangs",
+              0
+            ],
+            [
+              "分刘海",
+              "parted bangs",
+              0
+            ],
+            [
+              "斜刘海",
+              "swept bangs",
+              0
+            ],
+            [
+              "中分",
+              "middle part",
+              0
+            ],
+            [
+              "眼间发",
+              "hair between eyes",
+              0
+            ],
+            [
+              "鬓发",
+              "sidelocks",
+              0
+            ],
+            [
+              "呆毛",
+              "ahoge",
+              0
+            ],
+            [
+              "波波头",
+              "bob cut",
+              0
+            ],
+            [
+              "精灵短发",
+              "pixie cut",
+              0
+            ],
+            [
+              "不对称发型",
+              "asymmetrical hair",
+              0
+            ],
+            [
+              "层次感",
+              "layered hair",
+              0
+            ],
+            [
+              "羽毛剪",
+              "feathered hair",
+              0
+            ],
+            [
+              "内扣",
+              "hair intakes",
+              0
+            ],
+            [
+              "外翘",
+              "hair flaps",
+              0
+            ],
+            [
+              "卷发",
+              "curly hair",
+              0
+            ],
+            [
+              "大波浪",
+              "wavy hair",
+              0
+            ],
+            [
+              "钻头卷",
+              "drill hair",
+              0
+            ],
+            [
+              "双钻头卷",
+              "twin drills",
+              0
+            ],
+            [
+              "环形卷",
+              "ringlets",
+              0
+            ],
+            [
+              "直发",
+              "straight hair",
+              0
+            ],
+            [
+              "蓬松发",
+              "fluffy hair",
+              0
+            ],
+            [
+              "凌乱发",
+              "messy hair",
+              0
+            ],
+            [
+              "狼尾层次",
+              "wolf cut",
+              0
+            ],
+            [
+              "公主切层次",
+              "hime cut",
+              0
+            ],
+            [
+              "半扎发",
+              "half updo",
+              0
+            ],
+            [
+              "低盘发",
+              "low updo",
+              0
+            ],
+            [
+              "编发盘发",
+              "braided bun",
+              0
+            ],
+            [
+              "皇冠辫",
+              "crown braid",
+              0
+            ],
+            [
+              "侧编发",
+              "side braid",
+              0
+            ],
+            [
+              "发髻",
+              "topknot",
+              0
+            ],
+            [
+              "碎发",
+              "loose hair strand",
+              0
+            ],
+            [
+              "发丝飘散",
+              "hair spread out",
+              0
+            ],
+            [
+              "别在耳后",
+              "hair behind ear",
+              0
+            ],
+            [
+              "单眼遮发",
+              "hair over one eye",
+              0
+            ],
+            [
+              "后梳",
+              "swept back",
+              0
+            ],
+            [
+              "侧分",
+              "side part",
+              0
+            ],
+            [
+              "波浪鬓发",
+              "wavy sidelocks",
+              0
+            ],
+            [
+              "鱼骨辫",
+              "fishtail braid",
+              0
+            ],
+            [
+              "荷兰辫",
+              "dutch braid",
+              0
+            ],
+            [
+              "绳结辫",
+              "rope braid",
+              0
+            ],
+            [
+              "太空丸子头",
+              "space buns",
+              0
+            ],
+            [
+              "团子头",
+              "odango",
+              0
+            ],
+            [
+              "锥形丸子",
+              "cone hair buns",
+              0
+            ],
+            [
+              "发环",
+              "hair rings",
+              0
+            ],
+            [
+              "发箍装饰",
+              "hair cuffs",
+              0
+            ],
+            [
+              "发管",
+              "hair tubes",
+              0
+            ],
+            [
+              "发珠",
+              "hair beads",
+              0
+            ],
+            [
+              "发铃",
+              "hair bell",
+              0
+            ],
+            [
+              "触角发",
+              "antenna hair",
+              0
+            ],
+            [
+              "锅盖头",
+              "bowl cut",
+              0
+            ],
+            [
+              "编刘海",
+              "braided bangs",
+              0
+            ],
+            [
+              "交叉刘海",
+              "crossed bangs",
+              0
+            ],
+            [
+              "头发后拨",
+              "hair pulled back",
+              0
+            ],
+            [
+              "狼尾头",
+              "mullet",
+              0
+            ],
+            [
+              "蓬乱短发",
+              "shaggy hair",
+              0
+            ],
+            [
+              "刺猬头",
+              "spiked hair",
+              0
+            ],
+            [
+              "削边发型",
+              "undercut",
+              0
+            ],
+            [
+              "不对称刘海",
+              "asymmetrical bangs",
+              0
+            ],
+            [
+              "凌乱丸子",
+              "messy bun",
+              0
+            ],
+            [
+              "辫子",
+              "braid",
+              0
+            ],
+            [
+              "飘浮的头发",
+              "floating hair",
+              0
+            ],
+            [
+              "挽发",
+              "hair up",
+              0
+            ],
+            [
+              "散发",
+              "hair down",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "hair.texture",
+          "lab": "发质",
+          "type": "select",
+          "req": false,
+          "prob": 0.3,
+          "opts": [
+            [
+              "有光泽",
+              "shiny hair",
+              0
+            ],
+            [
+              "哑光",
+              "matte hair",
+              0
+            ],
+            [
+              "蓬松",
+              "fluffy hair",
+              0
+            ],
+            [
+              "微卷",
+              "slightly curly hair",
+              0
+            ],
+            [
+              "湿发",
+              "wet hair",
+              0
+            ],
+            [
+              "被风吹起",
+              "hair blowing",
+              0
+            ],
+            [
+              "飘动发丝",
+              "hair floating",
+              0
+            ],
+            [
+              "发梢分叉",
+              "split ends",
+              0
+            ],
+            [
+              "丝滑发",
+              "silky hair",
+              0
+            ],
+            [
+              "光泽发",
+              "glossy hair",
+              0
+            ],
+            [
+              "干燥发",
+              "dry hair",
+              0
+            ],
+            [
+              "毛躁发",
+              "frizzy hair",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "hair.acc",
+          "lab": "发饰",
+          "type": "multi",
+          "req": false,
+          "prob": 0.4,
+          "opts": [
+            [
+              "发带",
+              "hairband",
+              0
+            ],
+            [
+              "发箍",
+              "headband",
+              0
+            ],
+            [
+              "蝴蝶结",
+              "hair bow",
+              0
+            ],
+            [
+              "缎带",
+              "hair ribbon",
+              0
+            ],
+            [
+              "发夹",
+              "hairclip",
+              0
+            ],
+            [
+              "发卡",
+              "hairpin",
+              0
+            ],
+            [
+              "花朵发饰",
+              "hair flower",
+              0
+            ],
+            [
+              "发饰",
+              "hair ornament",
+              0
+            ],
+            [
+              "发圈",
+              "hair scrunchie",
+              0
+            ],
+            [
+              "簪子",
+              "kanzashi",
+              0
+            ],
+            [
+              "女仆头饰",
+              "maid headdress",
+              0
+            ],
+            [
+              "护士帽",
+              "nurse cap",
+              0
+            ],
+            [
+              "贝雷帽",
+              "beret",
+              0
+            ],
+            [
+              "小礼帽",
+              "mini hat",
+              0
+            ],
+            [
+              "天使光环",
+              "halo",
+              0
+            ],
+            [
+              "兽耳",
+              "animal ears",
+              0
+            ],
+            [
+              "猫耳",
+              "cat ears",
+              0
+            ],
+            [
+              "狐耳",
+              "fox ears",
+              0
+            ],
+            [
+              "兔耳",
+              "rabbit ears",
+              0
+            ],
+            [
+              "狼耳",
+              "wolf ears",
+              0
+            ],
+            [
+              "角",
+              "horns",
+              0
+            ],
+            [
+              "精灵耳",
+              "pointy ears",
+              0
+            ],
+            [
+              "头纱",
+              "veil",
+              0
+            ],
+            [
+              "眼罩",
+              "eyepatch",
+              0
+            ],
+            [
+              "花冠",
+              "flower crown",
+              0
+            ],
+            [
+              "头冠",
+              "tiara",
+              0
+            ],
+            [
+              "王冠",
+              "crown",
+              0
+            ],
+            [
+              "圣诞帽",
+              "santa hat",
+              0
+            ],
+            [
+              "猫耳发箍",
+              "cat ear headband",
+              0
+            ],
+            [
+              "狐耳发箍",
+              "fox ear headband",
+              0
+            ],
+            [
+              "兔耳发箍",
+              "bunny ears",
+              0
+            ],
+            [
+              "缎带发箍",
+              "ribbon headband",
+              0
+            ],
+            [
+              "蕾丝发箍",
+              "lace headband",
+              0
+            ],
+            [
+              "珍珠发饰",
+              "pearl hair ornament",
+              0
+            ],
+            [
+              "星星发饰",
+              "star hair ornament",
+              0
+            ],
+            [
+              "月亮发饰",
+              "moon hair ornament",
+              0
+            ],
+            [
+              "蝴蝶发饰",
+              "butterfly hair ornament",
+              0
+            ],
+            [
+              "羽毛发饰",
+              "feather hair ornament",
+              0
+            ],
+            [
+              "发簪",
+              "hair stick",
+              0
+            ],
+            [
+              "发梳",
+              "hair comb",
+              0
+            ],
+            [
+              "发网",
+              "hair net",
+              0
+            ],
+            [
+              "发袋",
+              "hair snood",
+              0
+            ],
+            [
+              "小发夹",
+              "bobby pin",
+              0
+            ],
+            [
+              "条形发夹",
+              "barrette",
+              0
+            ],
+            [
+              "头巾",
+              "headscarf",
+              0
+            ],
+            [
+              "发绳",
+              "hair tie",
+              0
+            ],
+            [
+              "花朵发夹",
+              "flower hairpin",
+              0
+            ],
+            [
+              "珍珠发夹",
+              "pearl hairpin",
+              0
+            ],
+            [
+              "星星发夹",
+              "star hairpin",
+              0
+            ],
+            [
+              "月牙发夹",
+              "moon hairpin",
+              0
+            ],
+            [
+              "蝴蝶发夹",
+              "butterfly hairpin",
+              0
+            ],
+            [
+              "缎带发绳",
+              "ribbon hair tie",
+              0
+            ],
+            [
+              "圆球发圈",
+              "hair bobbles",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "id": "face",
+      "title": "④ 五官与表情",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "face.eye_color",
+          "lab": "瞳色",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "红瞳",
+              "red eyes",
+              0
+            ],
+            [
+              "绯红瞳",
+              "crimson eyes",
+              0
+            ],
+            [
+              "宝石红瞳",
+              "ruby eyes",
+              0
+            ],
+            [
+              "粉瞳",
+              "pink eyes",
+              0
+            ],
+            [
+              "紫瞳",
+              "purple eyes",
+              0
+            ],
+            [
+              "紫罗兰瞳",
+              "violet eyes",
+              0
+            ],
+            [
+              "丁香紫瞳",
+              "lilac eyes",
+              0
+            ],
+            [
+              "蓝瞳",
+              "blue eyes",
+              0
+            ],
+            [
+              "深蓝瞳",
+              "dark blue eyes",
+              0
+            ],
+            [
+              "浅蓝瞳",
+              "light blue eyes",
+              0
+            ],
+            [
+              "天蓝瞳",
+              "sky blue eyes",
+              0
+            ],
+            [
+              "海蓝瞳",
+              "sea blue eyes",
+              0
+            ],
+            [
+              "青瞳",
+              "teal eyes",
+              0
+            ],
+            [
+              "绿瞳",
+              "green eyes",
+              0
+            ],
+            [
+              "翡翠瞳",
+              "emerald eyes",
+              0
+            ],
+            [
+              "黄瞳",
+              "yellow eyes",
+              0
+            ],
+            [
+              "琥珀瞳",
+              "amber eyes",
+              0
+            ],
+            [
+              "金瞳",
+              "gold eyes",
+              0
+            ],
+            [
+              "橙瞳",
+              "orange eyes",
+              0
+            ],
+            [
+              "棕瞳",
+              "brown eyes",
+              0
+            ],
+            [
+              "榛瞳",
+              "hazel eyes",
+              0
+            ],
+            [
+              "灰瞳",
+              "grey eyes",
+              0
+            ],
+            [
+              "银瞳",
+              "silver eyes",
+              0
+            ],
+            [
+              "黑瞳",
+              "black eyes",
+              0
+            ],
+            [
+              "白瞳",
+              "white eyes",
+              0
+            ],
+            [
+              "异色瞳",
+              "heterochromia",
+              0
+            ],
+            [
+              "渐变瞳",
+              "gradient eyes",
+              0
+            ],
+            [
+              "发光瞳",
+              "glowing eyes",
+              0
+            ],
+            [
+              "星形瞳",
+              "star-shaped pupils",
+              0
+            ],
+            [
+              "心形瞳",
+              "heart-shaped pupils",
+              0
+            ],
+            [
+              "蛇瞳",
+              "slit pupils",
+              0
+            ],
+            [
+              "金棕瞳",
+              "golden brown eyes",
+              0
+            ],
+            [
+              "蜜糖瞳",
+              "honey eyes",
+              0
+            ],
+            [
+              "巧克力瞳",
+              "chocolate eyes",
+              0
+            ],
+            [
+              "海蓝瞳",
+              "ocean blue eyes",
+              0
+            ],
+            [
+              "森绿瞳",
+              "forest green eyes",
+              0
+            ],
+            [
+              "薄荷瞳",
+              "mint eyes",
+              0
+            ],
+            [
+              "青色瞳",
+              "cyan eyes",
+              0
+            ],
+            [
+              "洋红瞳",
+              "magenta eyes",
+              0
+            ],
+            [
+              "霓虹粉瞳",
+              "neon pink eyes",
+              0
+            ],
+            [
+              "橙红瞳",
+              "orange-red eyes",
+              0
+            ],
+            [
+              "绿松石瞳",
+              "turquoise eyes",
+              0
+            ],
+            [
+              "水蓝瞳",
+              "aqua eyes",
+              0
+            ],
+            [
+              "藏蓝瞳",
+              "navy blue eyes",
+              0
+            ],
+            [
+              "钴蓝瞳",
+              "cobalt eyes",
+              0
+            ],
+            [
+              "蓝宝石瞳",
+              "sapphire eyes",
+              0
+            ],
+            [
+              "翡翠瞳",
+              "jade eyes",
+              0
+            ],
+            [
+              "橄榄瞳",
+              "olive eyes",
+              0
+            ],
+            [
+              "浅棕瞳",
+              "light brown eyes",
+              0
+            ],
+            [
+              "深棕瞳",
+              "dark brown eyes",
+              0
+            ],
+            [
+              "栗色瞳",
+              "chestnut eyes",
+              0
+            ],
+            [
+              "铜色瞳",
+              "copper eyes",
+              0
+            ],
+            [
+              "心形的眼睛",
+              "heart-shaped eyes",
+              0
+            ],
+            [
+              "多彩瞳色",
+              "multicolored eyes",
+              0
+            ]
+          ],
+          "slot": "face.eye_color"
+        },
+        {
+          "key": "face.eye_style",
+          "lab": "眼型与眼部",
+          "type": "multi",
+          "req": false,
+          "prob": 0.5,
+          "opts": [
+            [
+              "吊眼",
+              "tsurime",
+              0
+            ],
+            [
+              "垂眼",
+              "tareme",
+              0
+            ],
+            [
+              "半睁眼",
+              "half-closed eyes",
+              0
+            ],
+            [
+              "闭眼",
+              "closed eyes",
+              0
+            ],
+            [
+              "单眼闭",
+              "one eye closed",
+              0
+            ],
+            [
+              "眨眼",
+              "wink",
+              0
+            ],
+            [
+              "睁大眼",
+              "wide-eyed",
+              0
+            ],
+            [
+              "眯眼",
+              "narrowed eyes",
+              0
+            ],
+            [
+              "眼罩",
+              "eyepatch",
+              0
+            ],
+            [
+              "眼带",
+              "eye mask",
+              0
+            ],
+            [
+              "眼镜",
+              "glasses",
+              0
+            ],
+            [
+              "圆框眼镜",
+              "round eyewear",
+              0
+            ],
+            [
+              "护目镜",
+              "visor",
+              0
+            ],
+            [
+              "瞳孔可见",
+              "pupils visible",
+              0
+            ],
+            [
+              "闪亮眼",
+              "shiny eyes",
+              0
+            ],
+            [
+              "空洞眼",
+              "empty eyes",
+              0
+            ],
+            [
+              "环形眼",
+              "ringed eyes",
+              0
+            ],
+            [
+              "长睫毛",
+              "long eyelashes",
+              0
+            ],
+            [
+              "假睫毛",
+              "fake eyelashes",
+              0
+            ],
+            [
+              "彩色睫毛",
+              "colored eyelashes",
+              0
+            ],
+            [
+              "笑眼",
+              "smiling eyes",
+              0
+            ],
+            [
+              "闪亮眼",
+              "sparkling eyes",
+              0
+            ],
+            [
+              "困倦眼",
+              "sleepy eyes",
+              0
+            ],
+            [
+              "锐利眼",
+              "sharp eyes",
+              0
+            ],
+            [
+              "温柔眼",
+              "gentle eyes",
+              0
+            ],
+            [
+              "上挑眼",
+              "upturned eyes",
+              0
+            ],
+            [
+              "下垂眼",
+              "downturned eyes",
+              0
+            ],
+            [
+              "单眼皮",
+              "monolid eyes",
+              0
+            ],
+            [
+              "双眼皮",
+              "double eyelids",
+              0
+            ],
+            [
+              "下睫毛",
+              "lower eyelashes",
+              0
+            ],
+            [
+              "粗眉",
+              "thick eyebrows",
+              0
+            ],
+            [
+              "细眉",
+              "thin eyebrows",
+              0
+            ],
+            [
+              "皱眉",
+              "furrowed brows",
+              0
+            ],
+            [
+              "挑眉",
+              "raised eyebrows",
+              0
+            ],
+            [
+              "三白眼",
+              "sanpaku eyes",
+              0
+            ],
+            [
+              "杏眼",
+              "almond eyes",
+              0
+            ],
+            [
+              "圆眼",
+              "round eyes",
+              0
+            ],
+            [
+              "猫眼",
+              "cat eyes",
+              0
+            ],
+            [
+              "下垂眼",
+              "droopy eyes",
+              0
+            ],
+            [
+              "无瞳孔",
+              "no pupils",
+              0
+            ],
+            [
+              "空白眼",
+              "blank eyes",
+              0
+            ],
+            [
+              "死鱼眼",
+              "dead eyes",
+              0
+            ],
+            [
+              "湿润眼",
+              "wet eyes",
+              0
+            ],
+            [
+              "眼皮内双",
+              "hooded eyes",
+              0
+            ],
+            [
+              "睫毛",
+              "eyelashes",
+              0
+            ],
+            [
+              "眉毛",
+              "eyebrows",
+              0
+            ],
+            [
+              "V形眉",
+              "v-shaped eyebrows",
+              0
+            ],
+            [
+              "符号形瞳孔",
+              "symbol-shaped pupils",
+              0
+            ],
+            [
+              "明亮瞳孔",
+              "bright pupils",
+              0
+            ],
+            [
+              "白色瞳孔",
+              "white pupils",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "face.expression",
+          "lab": "表情",
+          "type": "select",
+          "req": false,
+          "prob": 0.85,
+          "opts": [
+            [
+              "微笑",
+              "smile",
+              0
+            ],
+            [
+              "温柔微笑",
+              "gentle smile",
+              0
+            ],
+            [
+              "咧嘴笑",
+              "grin",
+              0
+            ],
+            [
+              "浅笑",
+              "light smile",
+              0
+            ],
+            [
+              "张嘴",
+              "open mouth",
+              0
+            ],
+            [
+              "闭嘴",
+              "closed mouth",
+              0
+            ],
+            [
+              "嘟嘴",
+              "pout",
+              0
+            ],
+            [
+              "皱眉",
+              "frown",
+              0
+            ],
+            [
+              "难过",
+              "sad",
+              0
+            ],
+            [
+              "哭泣",
+              "crying",
+              0
+            ],
+            [
+              "泪眼",
+              "teary eyes",
+              0
+            ],
+            [
+              "满脸通红",
+              "heavy blush",
+              0
+            ],
+            [
+              "脸红",
+              "blush",
+              0
+            ],
+            [
+              "害羞",
+              "embarrassed",
+              0
+            ],
+            [
+              "惊讶",
+              "surprised",
+              0
+            ],
+            [
+              "震惊",
+              "shocked",
+              0
+            ],
+            [
+              "生气",
+              "angry",
+              0
+            ],
+            [
+              "不满",
+              "annoyed",
+              0
+            ],
+            [
+              "认真",
+              "serious",
+              0
+            ],
+            [
+              "平静",
+              "calm",
+              0
+            ],
+            [
+              "困倦",
+              "sleepy",
+              0
+            ],
+            [
+              "无表情",
+              "expressionless",
+              0
+            ],
+            [
+              "无聊",
+              "bored",
+              0
+            ],
+            [
+              "自信",
+              "confident",
+              0
+            ],
+            [
+              "得意",
+              "smug",
+              0
+            ],
+            [
+              "俏皮",
+              "playful",
+              0
+            ],
+            [
+              "紧张",
+              "nervous",
+              0
+            ],
+            [
+              "汗滴",
+              "sweatdrop",
+              0
+            ],
+            [
+              "移开视线",
+              "looking away",
+              0
+            ],
+            [
+              "柔软微笑",
+              "soft smile",
+              0
+            ],
+            [
+              "温暖微笑",
+              "warm smile",
+              0
+            ],
+            [
+              "灿烂笑",
+              "bright smile",
+              0
+            ],
+            [
+              "苦笑",
+              "sad smile",
+              0
+            ],
+            [
+              "强颜欢笑",
+              "forced smile",
+              0
+            ],
+            [
+              "猫嘴笑",
+              "cat smile",
+              0
+            ],
+            [
+              "坏笑",
+              "smirk",
+              0
+            ],
+            [
+              "大笑",
+              "laughing",
+              0
+            ],
+            [
+              "轻笑",
+              "giggling",
+              0
+            ],
+            [
+              "叹气",
+              "sighing",
+              0
+            ],
+            [
+              "思考",
+              "thinking",
+              0
+            ],
+            [
+              "困惑",
+              "confused",
+              0
+            ],
+            [
+              "坚定",
+              "determined",
+              0
+            ],
+            [
+              "专注",
+              "focused",
+              0
+            ],
+            [
+              "慌张",
+              "flustered",
+              0
+            ],
+            [
+              "害怕",
+              "scared",
+              0
+            ],
+            [
+              "坏笑",
+              "evil smile",
+              0
+            ],
+            [
+              "苦笑",
+              "wry smile",
+              0
+            ],
+            [
+              "羞赧笑",
+              "sheepish smile",
+              0
+            ],
+            [
+              "紧张笑",
+              "nervous smile",
+              0
+            ],
+            [
+              "魅惑笑",
+              "seductive smile",
+              0
+            ],
+            [
+              "狡黠笑",
+              "devious smile",
+              0
+            ],
+            [
+              "纯真笑",
+              "innocent smile",
+              0
+            ],
+            [
+              "灿烂笑",
+              "radiant smile",
+              0
+            ],
+            [
+              "害羞",
+              "shy",
+              0
+            ],
+            [
+              "难为情",
+              "bashful",
+              0
+            ],
+            [
+              "担忧",
+              "worried",
+              0
+            ],
+            [
+              "焦虑",
+              "anxious",
+              0
+            ],
+            [
+              "失落",
+              "disappointed",
+              0
+            ],
+            [
+              "闹别扭",
+              "sulking",
+              0
+            ],
+            [
+              "吃醋",
+              "jealous",
+              0
+            ],
+            [
+              "安心",
+              "relieved",
+              0
+            ],
+            [
+              "满足",
+              "content",
+              0
+            ],
+            [
+              "得意",
+              "satisfied",
+              0
+            ],
+            [
+              "自豪",
+              "proud",
+              0
+            ],
+            [
+              "好奇",
+              "curious",
+              0
+            ],
+            [
+              "被逗乐",
+              "amused",
+              0
+            ],
+            [
+              "面无表情",
+              "deadpan",
+              0
+            ],
+            [
+              "眼泪",
+              "tears",
+              0
+            ],
+            [
+              "皱眉（畏缩）",
+              "wince",
+              0
+            ],
+            [
+              "喊叫",
+              "shouting",
+              0
+            ],
+            [
+              "尖叫",
+              "screaming",
+              0
+            ],
+            [
+              "(因痛苦、厌恶等)做怪相",
+              "grimace",
+              0
+            ],
+            [
+              "叹气",
+              "sigh",
+              0
+            ],
+            [
+              "鼻梁红晕",
+              "nose blush",
+              0
+            ],
+            [
+              "阿嘿颜(绝顶)",
+              "ahegao",
+              2
+            ],
+            [
+              "翻白眼高潮",
+              "rolling eyes, orgasm",
+              2
+            ],
+            [
+              "吐舌情动",
+              "tongue out, drooling",
+              2
+            ],
+            [
+              "大张嘴喘息",
+              "open mouth, panting",
+              2
+            ],
+            [
+              "极度潮红",
+              "heavy blushing",
+              1
+            ],
+            [
+              "情动迷离",
+              "aroused expression",
+              2
+            ],
+            [
+              "失神高潮",
+              "mind break expression",
+              3
+            ],
+            [
+              "羞耻隐忍",
+              "embarrassed, blushing heavily",
+              1
+            ],
+            [
+              "欲拒还迎",
+              "shy, seduced smile",
+              1
+            ],
+            [
+              "娇喘呻吟",
+              "moaning face",
+              2
+            ],
+            [
+              "流口水",
+              "drooling, saliva",
+              2
+            ],
+            [
+              "眼角带泪情欲",
+              "tears of pleasure, blushing",
+              2
+            ],
+            [
+              "心形瞳孔",
+              "heart-shaped pupils",
+              1
+            ],
+            [
+              "爱心眼神",
+              "heart in eyes",
+              1
+            ],
+            [
+              "媚惑半眯眼",
+              "half-closed eyes, seductive",
+              1
+            ],
+            [
+              "祈求眼神",
+              "begging face",
+              2
+            ],
+            [
+              "狡黠调侃假笑",
+              "teasing grin",
+              0
+            ],
+            [
+              "脸颊淡淡飞红",
+              "subtle blush",
+              0
+            ],
+            [
+              "慌乱害羞移目",
+              "flustered gaze",
+              1
+            ],
+            [
+              "微启双唇浅笑",
+              "parted lips smiling",
+              0
+            ],
+            [
+              "得意闭目微笑",
+              "smug closed eyes",
+              0
+            ],
+            [
+              "不满鼓起腮帮",
+              "pouting cheeks",
+              0
+            ],
+            [
+              "急促微喘呼吸",
+              "heavy breathing",
+              1
+            ],
+            [
+              "双唇微启轻喘",
+              "parted lips breath",
+              1
+            ],
+            [
+              "满面通红潮热",
+              "blushing heavily",
+              1
+            ],
+            [
+              "泪光闪烁娇羞",
+              "teary blush",
+              1
+            ],
+            [
+              "羞怯慌乱难耐",
+              "flustered embarrassment",
+              1
+            ],
+            [
+              "媚眼如丝半开",
+              "half-closed eyes seduced",
+              1
+            ],
+            [
+              "舌尖轻舔唇瓣",
+              "licking lips",
+              1
+            ],
+            [
+              "轻咬下唇隐忍",
+              "biting lower lip",
+              1
+            ],
+            [
+              "妩媚单眼眨动",
+              "winking seductively",
+              1
+            ]
+          ]
+        },
+        {
+          "key": "face.feature",
+          "lab": "面部特征",
+          "type": "multi",
+          "req": false,
+          "prob": 0.3,
+          "opts": [
+            [
+              "雀斑",
+              "freckles",
+              0
+            ],
+            [
+              "泪痣",
+              "mole under eye",
+              0
+            ],
+            [
+              "脸颊痣",
+              "mole on cheek",
+              0
+            ],
+            [
+              "锐利牙齿",
+              "sharp teeth",
+              0
+            ],
+            [
+              "虎牙",
+              "fang",
+              0
+            ],
+            [
+              "尖耳",
+              "pointy ears",
+              0
+            ],
+            [
+              "精灵耳",
+              "elf ears",
+              0
+            ],
+            [
+              "猫耳",
+              "cat ears",
+              0
+            ],
+            [
+              "狐耳",
+              "fox ears",
+              0
+            ],
+            [
+              "狼耳",
+              "wolf ears",
+              0
+            ],
+            [
+              "狗耳",
+              "dog ears",
+              0
+            ],
+            [
+              "兔耳",
+              "rabbit ears",
+              0
+            ],
+            [
+              "角",
+              "horns",
+              0
+            ],
+            [
+              "光环",
+              "halo",
+              0
+            ],
+            [
+              "翅膀",
+              "wings",
+              0
+            ],
+            [
+              "尾巴",
+              "tail",
+              0
+            ],
+            [
+              "猫尾",
+              "cat tail",
+              0
+            ],
+            [
+              "狐尾",
+              "fox tail",
+              0
+            ],
+            [
+              "黑眼圈",
+              "dark circles",
+              0
+            ],
+            [
+              "疤痕",
+              "scar",
+              0
+            ],
+            [
+              "创可贴",
+              "bandaid",
+              0
+            ],
+            [
+              "面部纹样",
+              "face marking",
+              0
+            ],
+            [
+              "面绘",
+              "face paint",
+              0
+            ],
+            [
+              "眼影",
+              "eyeshadow",
+              0
+            ],
+            [
+              "颈部痣",
+              "mole on neck",
+              0
+            ],
+            [
+              "肩部痣",
+              "mole on shoulder",
+              0
+            ],
+            [
+              "嘴角痣",
+              "mole under mouth",
+              0
+            ],
+            [
+              "酒窝",
+              "dimples",
+              0
+            ],
+            [
+              "吐舌",
+              "tongue out",
+              1
+            ],
+            [
+              "兽耳发箍",
+              "animal ear headband",
+              0
+            ],
+            [
+              "兽人耳",
+              "orc ears",
+              0
+            ],
+            [
+              "恶魔角",
+              "demon horns",
+              0
+            ],
+            [
+              "龙角",
+              "dragon horns",
+              0
+            ],
+            [
+              "破碎光环",
+              "broken halo",
+              0
+            ],
+            [
+              "天使翼",
+              "angel wings",
+              0
+            ],
+            [
+              "恶魔翼",
+              "demon wings",
+              0
+            ],
+            [
+              "蝙蝠翼",
+              "bat wings",
+              0
+            ],
+            [
+              "羽毛",
+              "feathers",
+              0
+            ],
+            [
+              "龙尾",
+              "dragon tail",
+              0
+            ],
+            [
+              "鳞片",
+              "scales",
+              0
+            ],
+            [
+              "面部绷带",
+              "bandage on face",
+              0
+            ],
+            [
+              "脸颊穿孔",
+              "cheek piercing",
+              0
+            ],
+            [
+              "舌钉",
+              "tongue piercing",
+              0
+            ],
+            [
+              "脐钉",
+              "belly button piercing",
+              0
+            ],
+            [
+              "耳洞",
+              "ear piercing",
+              0
+            ],
+            [
+              "尖牙",
+              "sharp canines",
+              0
+            ],
+            [
+              "痣",
+              "mole",
+              0
+            ],
+            [
+              "脸上的血",
+              "blood on face",
+              0
+            ],
+            [
+              "缝合线",
+              "stitches",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "id": "body",
+      "title": "⑤ 体型与皮肤",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "body.type",
+          "lab": "体型",
+          "type": "select",
+          "req": false,
+          "prob": 0.7,
+          "opts": [
+            [
+              "纤细",
+              "slim",
+              0
+            ],
+            [
+              "娇小",
+              "petite",
+              0
+            ],
+            [
+              "苗条",
+              "slender",
+              0
+            ],
+            [
+              "匀称",
+              "toned",
+              0
+            ],
+            [
+              "肌肉",
+              "muscular",
+              0
+            ],
+            [
+              "丰满",
+              "curvy",
+              0
+            ],
+            [
+              "高挑",
+              "tall",
+              0
+            ],
+            [
+              "娇小玲珑",
+              "short",
+              0
+            ],
+            [
+              "成熟女性",
+              "mature female",
+              0
+            ],
+            [
+              "柔软体态",
+              "soft body",
+              0
+            ],
+            [
+              "长身",
+              "long legs",
+              0
+            ],
+            [
+              "模特身材",
+              "model figure",
+              0
+            ],
+            [
+              "运动型",
+              "athletic",
+              0
+            ],
+            [
+              "沙漏型",
+              "hourglass",
+              0
+            ],
+            [
+              "梨形",
+              "pear-shaped",
+              0
+            ],
+            [
+              "柳腰",
+              "willowy",
+              0
+            ],
+            [
+              "高挑匀称",
+              "statuesque",
+              0
+            ],
+            [
+              "丰腴",
+              "voluptuous",
+              0
+            ],
+            [
+              "轻盈",
+              "lithe",
+              0
+            ],
+            [
+              "苗条修长",
+              "svelte",
+              0
+            ],
+            [
+              "结实",
+              "stocky",
+              0
+            ],
+            [
+              "宽肩",
+              "broad shoulders",
+              0
+            ],
+            [
+              "窄肩",
+              "narrow shoulders",
+              0
+            ],
+            [
+              "长躯干",
+              "long torso",
+              0
+            ],
+            [
+              "矮小",
+              "short stature",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "body.breasts",
+          "lab": "胸部",
+          "type": "select",
+          "req": false,
+          "prob": 0.6,
+          "opts": [
+            [
+              "平胸",
+              "flat chest",
+              0
+            ],
+            [
+              "小胸",
+              "small breasts",
+              0
+            ],
+            [
+              "中等胸",
+              "medium breasts",
+              0
+            ],
+            [
+              "大胸",
+              "large breasts",
+              1
+            ],
+            [
+              "巨胸",
+              "huge breasts",
+              1
+            ],
+            [
+              "超大胸",
+              "gigantic breasts",
+              2
+            ],
+            [
+              "胸部焦点",
+              "breasts focus",
+              1
+            ]
+          ]
+        },
+        {
+          "key": "body.skin",
+          "lab": "肤色与肤质",
+          "type": "multi",
+          "req": false,
+          "prob": 0.4,
+          "opts": [
+            [
+              "白皙",
+              "pale skin",
+              0
+            ],
+            [
+              "fair skin",
+              "fair skin",
+              0
+            ],
+            [
+              "健康肤色",
+              "tan skin",
+              0
+            ],
+            [
+              "小麦色",
+              "tan",
+              0
+            ],
+            [
+              "深色皮肤",
+              "dark skin",
+              0
+            ],
+            [
+              "晒痕",
+              "tanlines",
+              1
+            ],
+            [
+              "比基尼晒痕",
+              "bikini tan",
+              1
+            ],
+            [
+              "光泽肌肤",
+              "shiny skin",
+              1
+            ],
+            [
+              "汗水",
+              "sweat",
+              1
+            ],
+            [
+              "湿身",
+              "wet skin",
+              1
+            ],
+            [
+              "皮肤纹理",
+              "skin texture",
+              0
+            ],
+            [
+              "疤痕",
+              "scar",
+              0
+            ],
+            [
+              "纹身",
+              "tattoo",
+              0
+            ],
+            [
+              "肚脐",
+              "navel",
+              0
+            ],
+            [
+              "锁骨",
+              "collarbone",
+              0
+            ],
+            [
+              "肩膀",
+              "bare shoulders",
+              1
+            ],
+            [
+              "腋下",
+              "armpits",
+              1
+            ],
+            [
+              "大腿",
+              "thighs",
+              0
+            ],
+            [
+              "长腿",
+              "long legs",
+              0
+            ],
+            [
+              "橄榄肤色",
+              "olive skin",
+              0
+            ],
+            [
+              "棕色皮肤",
+              "brown skin",
+              0
+            ],
+            [
+              "乌木肤色",
+              "ebony skin",
+              0
+            ],
+            [
+              "金色皮肤",
+              "golden skin",
+              0
+            ],
+            [
+              "晒伤",
+              "sunburn",
+              0
+            ],
+            [
+              "日光浴痕",
+              "suntan",
+              1
+            ],
+            [
+              "瓷肌",
+              "porcelain skin",
+              0
+            ],
+            [
+              "雀斑皮肤",
+              "freckled skin",
+              0
+            ],
+            [
+              "鸡皮疙瘩",
+              "goosebumps",
+              0
+            ],
+            [
+              "淤青",
+              "bruise",
+              1
+            ],
+            [
+              "绷带",
+              "bandage",
+              0
+            ],
+            [
+              "石膏",
+              "cast",
+              0
+            ],
+            [
+              "油光皮肤",
+              "oil on skin",
+              1
+            ],
+            [
+              "水珠肌肤",
+              "water on skin",
+              0
+            ],
+            [
+              "透亮肤",
+              "glowing skin",
+              0
+            ],
+            [
+              "水润肤",
+              "dewy skin",
+              0
+            ],
+            [
+              "无瑕肌",
+              "flawless skin",
+              0
+            ],
+            [
+              "光滑肌",
+              "smooth skin",
+              0
+            ],
+            [
+              "胎记",
+              "birthmark",
+              0
+            ],
+            [
+              "妊娠纹",
+              "stretch marks",
+              0
+            ],
+            [
+              "腹肌线条",
+              "abs",
+              0
+            ],
+            [
+              "腰腹",
+              "midriff",
+              0
+            ],
+            [
+              "腰线",
+              "waist",
+              0
+            ],
+            [
+              "胯部",
+              "hips",
+              0
+            ],
+            [
+              "腹部",
+              "stomach",
+              0
+            ],
+            [
+              "香汗淋漓",
+              "covered in sweat",
+              1
+            ],
+            [
+              "水汽与汗水",
+              "sweat, wet skin",
+              1
+            ],
+            [
+              "油光闪亮肌肤",
+              "shiny oiled skin",
+              1
+            ],
+            [
+              "润滑油全身",
+              "lotion on body",
+              2
+            ],
+            [
+              "淫靡纹身(子宫纹)",
+              "womb tattoo",
+              2
+            ],
+            [
+              "腹部正中线",
+              "linea nigra",
+              1
+            ],
+            [
+              "凸起乳尖",
+              "prominent nipples",
+              2
+            ],
+            [
+              "深色乳晕",
+              "dark areolae",
+              2
+            ],
+            [
+              "丰满臀肉",
+              "plump buttocks",
+              1
+            ],
+            [
+              "大腿根部软肉",
+              "thigh gap, plump thighs",
+              1
+            ],
+            [
+              "微透肌肤",
+              "translucent skin",
+              1
+            ],
+            [
+              "隐约比基尼晒痕",
+              "faint tanline",
+              1
+            ],
+            [
+              "运动后微汗光泽",
+              "glistening sweat",
+              1
+            ],
+            [
+              "苹果肌娇艳绯红",
+              "rosy cheeks",
+              0
+            ],
+            [
+              "香汗光泽莹莹",
+              "sweat glistening",
+              1
+            ],
+            [
+              "周身温热微红",
+              "body heat",
+              1
+            ],
+            [
+              "通体泛起娇红",
+              "flushed skin",
+              1
+            ],
+            [
+              "娇弱微颤体态",
+              "shivering",
+              1
+            ],
+            [
+              "鲜明比基尼晒痕",
+              "sensual tanlines",
+              1
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "body.figure",
+          "lab": "身材细节",
+          "type": "multi",
+          "req": false,
+          "prob": 0.3,
+          "opts": [
+            [
+              "宽胯",
+              "wide hips",
+              0
+            ],
+            [
+              "细腰",
+              "narrow waist",
+              0
+            ],
+            [
+              "厚腿",
+              "thick thighs",
+              0
+            ],
+            [
+              "肉感",
+              "plump",
+              0
+            ],
+            [
+              "腹肌",
+              "toned abs",
+              0
+            ],
+            [
+              "背部",
+              "back",
+              0
+            ],
+            [
+              "腰部",
+              "waist",
+              0
+            ],
+            [
+              "脚踝",
+              "ankles",
+              0
+            ],
+            [
+              "手指",
+              "fingers",
+              0
+            ],
+            [
+              "指甲",
+              "nails",
+              0
+            ],
+            [
+              "颈部",
+              "neck",
+              0
+            ],
+            [
+              "耳朵",
+              "ears",
+              0
+            ],
+            [
+              "侧脸",
+              "side profile",
+              0
+            ],
+            [
+              "侧乳",
+              "sideboob",
+              2
+            ],
+            [
+              "下乳",
+              "underboob",
+              2
+            ],
+            [
+              "乳沟",
+              "cleavage",
+              1
+            ],
+            [
+              "臀部",
+              "buttocks",
+              1
+            ],
+            [
+              "肩背",
+              "shoulders",
+              0
+            ],
+            [
+              "背肌",
+              "back muscles",
+              0
+            ],
+            [
+              "脊柱",
+              "spine",
+              0
+            ],
+            [
+              "肋骨",
+              "ribs",
+              0
+            ],
+            [
+              "膝盖",
+              "knees",
+              0
+            ],
+            [
+              "手肘",
+              "elbows",
+              0
+            ],
+            [
+              "小腿",
+              "calves",
+              0
+            ],
+            [
+              "手腕",
+              "wrists",
+              0
+            ],
+            [
+              "下颌线",
+              "jawline",
+              0
+            ],
+            [
+              "颧骨",
+              "cheekbones",
+              0
+            ],
+            [
+              "细腰",
+              "small waist",
+              0
+            ],
+            [
+              "宽肩",
+              "wide shoulders",
+              0
+            ],
+            [
+              "肩胛",
+              "shoulder blades",
+              0
+            ],
+            [
+              "后颈",
+              "nape",
+              0
+            ],
+            [
+              "胯骨",
+              "hip bones",
+              0
+            ],
+            [
+              "紧实手臂",
+              "toned arms",
+              0
+            ],
+            [
+              "紧实双腿",
+              "toned legs",
+              0
+            ],
+            [
+              "纤细脖颈",
+              "slender neck",
+              0
+            ],
+            [
+              "修长手指",
+              "long fingers",
+              0
+            ],
+            [
+              "大腿缝",
+              "thigh gap",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "id": "makeup",
+      "title": "⑥ 妆容与细节",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "makeup.lips",
+          "lab": "唇妆",
+          "type": "select",
+          "req": false,
+          "prob": 0.35,
+          "opts": [
+            [
+              "口红",
+              "lipstick",
+              0
+            ],
+            [
+              "红唇",
+              "red lips",
+              0
+            ],
+            [
+              "光泽唇",
+              "glossy lips",
+              0
+            ],
+            [
+              "渐变唇",
+              "gradient lips",
+              0
+            ],
+            [
+              "微张唇",
+              "parted lips",
+              0
+            ],
+            [
+              "露齿",
+              "teeth",
+              0
+            ],
+            [
+              "舌头",
+              "tongue",
+              1
+            ],
+            [
+              "咬唇",
+              "biting lip",
+              0
+            ],
+            [
+              "哑光唇",
+              "matte lips",
+              0
+            ],
+            [
+              "双色唇",
+              "two-tone lips",
+              0
+            ],
+            [
+              "心形唇",
+              "heart-shaped lips",
+              0
+            ],
+            [
+              "微笑唇",
+              "smiling lips",
+              0
+            ],
+            [
+              "唇钉",
+              "lip piercing",
+              1
+            ],
+            [
+              "唇彩",
+              "lip gloss",
+              0
+            ],
+            [
+              "唇印",
+              "lipstick mark",
+              1
+            ],
+            [
+              "裸色唇",
+              "nude lips",
+              0
+            ],
+            [
+              "粉唇",
+              "pink lips",
+              0
+            ],
+            [
+              "莓果唇",
+              "berry lips",
+              0
+            ],
+            [
+              "深色唇",
+              "dark lips",
+              0
+            ],
+            [
+              "晕开唇膏",
+              "smudged lipstick",
+              0
+            ],
+            [
+              "唇线",
+              "lip liner",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "makeup.eyes",
+          "lab": "眼妆",
+          "type": "multi",
+          "req": false,
+          "prob": 0.4,
+          "opts": [
+            [
+              "眼线",
+              "eyeliner",
+              0
+            ],
+            [
+              "眼影",
+              "eyeshadow",
+              0
+            ],
+            [
+              "睫毛膏",
+              "mascara",
+              0
+            ],
+            [
+              "假睫毛",
+              "fake eyelashes",
+              0
+            ],
+            [
+              "彩色睫毛",
+              "colored eyelashes",
+              0
+            ],
+            [
+              "美瞳",
+              "colored contacts",
+              0
+            ],
+            [
+              "卧蚕",
+              "aegyo sal",
+              0
+            ],
+            [
+              "泪袋",
+              "tear ducts",
+              0
+            ],
+            [
+              "腮红",
+              "blush",
+              0
+            ],
+            [
+              "浓腮红",
+              "heavy blush",
+              0
+            ],
+            [
+              "高光",
+              "highlight",
+              0
+            ],
+            [
+              "修容",
+              "contour",
+              0
+            ],
+            [
+              "指甲油",
+              "nail polish",
+              0
+            ],
+            [
+              "美甲",
+              "acrylic nails",
+              0
+            ],
+            [
+              "耳环",
+              "earrings",
+              0
+            ],
+            [
+              "项链",
+              "necklace",
+              0
+            ],
+            [
+              "烟熏眼",
+              "smokey eyes",
+              0
+            ],
+            [
+              "上挑眼线",
+              "winged eyeliner",
+              0
+            ],
+            [
+              "猫眼线",
+              "cat eyeliner",
+              0
+            ],
+            [
+              "睫毛嫁接",
+              "eyelash extensions",
+              0
+            ],
+            [
+              "眉笔",
+              "eyebrow pencil",
+              0
+            ],
+            [
+              "断眉",
+              "eyebrow slit",
+              0
+            ],
+            [
+              "眉钉",
+              "eyebrow piercing",
+              1
+            ],
+            [
+              "美瞳",
+              "contact lenses",
+              0
+            ],
+            [
+              "异色美瞳",
+              "heterochromia contacts",
+              1
+            ],
+            [
+              "眼妆亮片",
+              "eye glitter",
+              0
+            ],
+            [
+              "泪妆",
+              "tear makeup",
+              0
+            ],
+            [
+              "渐变眼影",
+              "gradient eyeshadow",
+              0
+            ],
+            [
+              "闪片眼影",
+              "glitter eyeshadow",
+              0
+            ],
+            [
+              "截断眼影",
+              "cut crease",
+              0
+            ],
+            [
+              "下眼线",
+              "lower eyeliner",
+              0
+            ],
+            [
+              "白色眼线",
+              "white eyeliner",
+              0
+            ],
+            [
+              "彩色睫毛膏",
+              "colored mascara",
+              0
+            ],
+            [
+              "拱形眉",
+              "arched eyebrows",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "makeup.detail",
+          "lab": "妆容细节",
+          "type": "multi",
+          "req": false,
+          "prob": 0.25,
+          "opts": [
+            [
+              "美人痣",
+              "beauty mark",
+              0
+            ],
+            [
+              "泪痣",
+              "mole under eye",
+              0
+            ],
+            [
+              "雀斑",
+              "freckles",
+              0
+            ],
+            [
+              "面部彩绘",
+              "face paint",
+              0
+            ],
+            [
+              "面部纹样",
+              "face marking",
+              0
+            ],
+            [
+              "纹身",
+              "tattoo",
+              0
+            ],
+            [
+              "疤痕",
+              "scar",
+              0
+            ],
+            [
+              "创可贴",
+              "bandaid",
+              0
+            ],
+            [
+              "亮片",
+              "glitter",
+              0
+            ],
+            [
+              "闪粉",
+              "sparkles",
+              0
+            ],
+            [
+              "花瓣",
+              "flower petals",
+              0
+            ],
+            [
+              "水珠",
+              "water drops",
+              0
+            ],
+            [
+              "身体亮片",
+              "body glitter",
+              0
+            ],
+            [
+              "脸部宝石",
+              "face gems",
+              0
+            ],
+            [
+              "水钻",
+              "rhinestones",
+              0
+            ],
+            [
+              "临时纹身",
+              "temporary tattoo",
+              0
+            ],
+            [
+              "海娜纹身",
+              "henna",
+              0
+            ],
+            [
+              "脸部贴纸",
+              "face sticker",
+              0
+            ],
+            [
+              "星星贴纸",
+              "star sticker",
+              0
+            ],
+            [
+              "爱心贴纸",
+              "heart sticker",
+              0
+            ],
+            [
+              "美甲",
+              "nail art",
+              0
+            ],
+            [
+              "穿戴甲",
+              "press-on nails",
+              0
+            ],
+            [
+              "指甲宝石",
+              "nail gems",
+              0
+            ],
+            [
+              "耳骨夹",
+              "ear cuffs",
+              0
+            ],
+            [
+              "鼻钉",
+              "nose stud",
+              1
+            ],
+            [
+              "脸颊钉",
+              "cheek piercing",
+              1
+            ],
+            [
+              "法式美甲",
+              "french manicure",
+              0
+            ],
+            [
+              "渐变美甲",
+              "gradient nails",
+              0
+            ],
+            [
+              "镜面美甲",
+              "chrome nails",
+              0
+            ],
+            [
+              "亮面美甲",
+              "glossy nails",
+              0
+            ],
+            [
+              "雾面美甲",
+              "matte nails",
+              0
+            ],
+            [
+              "尖头美甲",
+              "stiletto nails",
+              0
+            ],
+            [
+              "棺形美甲",
+              "coffin nails",
+              0
+            ],
+            [
+              "亮片美甲",
+              "glitter nails",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 1
+        }
+      ]
+    }
+  ]
+}

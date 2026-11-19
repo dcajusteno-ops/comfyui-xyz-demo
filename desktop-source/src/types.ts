@@ -1024,7 +1024,7 @@ export type PromptLintIssue = {
   fix?: (text: string) => string;
 };
 
-export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima" | "anima-library" | "sheet" | "wardrobe" | "workbench" | "dataset";
+export type TabId = "default" | "wd14" | "multi" | "text" | "highres" | "xyz" | "loras" | "notes" | "slots" | "anima" | "anima-library" | "sheet" | "wardrobe" | "workbench" | "dataset" | "noobai";
 
 export type LoraPreviewMedia = {
   url?: string;

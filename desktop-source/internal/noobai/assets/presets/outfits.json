@@ -1,0 +1,4380 @@
+{
+  "_meta": {
+    "schema": "noobai-lib/outfits@1",
+    "version": "1.3.0",
+    "count": 361,
+    "categories": [
+      {
+        "id": "casual",
+        "zh": "日常休闲"
+      },
+      {
+        "id": "school",
+        "zh": "校园制服"
+      },
+      {
+        "id": "office",
+        "zh": "职业通勤"
+      },
+      {
+        "id": "traditional",
+        "zh": "传统服饰"
+      },
+      {
+        "id": "formal",
+        "zh": "礼服派对"
+      },
+      {
+        "id": "home",
+        "zh": "居家睡衣"
+      },
+      {
+        "id": "swim",
+        "zh": "泳装内衣"
+      },
+      {
+        "id": "combat",
+        "zh": "战斗机能"
+      },
+      {
+        "id": "cosplay",
+        "zh": "主题扮演"
+      },
+      {
+        "id": "hosiery",
+        "zh": "丝袜穿搭"
+      },
+      {
+        "id": "nsfw_outfit",
+        "zh": "暴露向服装"
+      },
+      {
+        "id": "sport",
+        "zh": "运动竞技"
+      },
+      {
+        "id": "gothic",
+        "zh": "哥特暗黑"
+      }
+    ],
+    "counts": {
+      "casual": 39,
+      "school": 33,
+      "office": 33,
+      "traditional": 29,
+      "formal": 30,
+      "home": 23,
+      "swim": 27,
+      "combat": 23,
+      "cosplay": 25,
+      "hosiery": 23,
+      "nsfw_outfit": 21,
+      "sport": 12,
+      "gothic": 13
+    },
+    "note": "启用一套时整套接管服装字段；level 由套装内最高档位标注。"
+  },
+  "outfits": [
+    {
+      "id": "ol_knit_pleated",
+      "zh": "露肩针织 · 百褶裙",
+      "cat": "casual",
+      "level": 1,
+      "tags": {
+        "top": "off-shoulder sweater",
+        "bottom": "pleated skirt",
+        "legwear": "black thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "hoodie_denim",
+      "zh": "连帽卫衣 · 牛仔短裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "hoodie",
+        "bottom": "denim shorts",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "striped_jeans",
+      "zh": "条纹衫 · 牛仔裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "striped shirt",
+        "bottom": "jeans",
+        "footwear": "canvas shoes"
+      }
+    },
+    {
+      "id": "cardigan_sundress",
+      "zh": "开衫 · 吊带裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "dress": "sundress",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "bomber_leather",
+      "zh": "皮夹克 · 紧身牛仔",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "leather jacket",
+        "bottom": "skinny jeans",
+        "outer": "leather jacket",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "oversized_pleated",
+      "zh": "宽松毛衣 · 百褶裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "oversized sweater",
+        "bottom": "pleated skirt",
+        "legwear": "kneehighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "crop_shorts",
+      "zh": "露脐上衣 · 高腰短裤",
+      "cat": "casual",
+      "level": 1,
+      "tags": {
+        "top": "crop top",
+        "bottom": "high-waisted skirt",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "flannel_shorts",
+      "zh": "法兰绒衫 · 牛仔短裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "flannel shirt",
+        "bottom": "denim shorts",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "camisole_maxi",
+      "zh": "吊带背心 · 长裙",
+      "cat": "casual",
+      "level": 1,
+      "tags": {
+        "top": "camisole",
+        "bottom": "maxi skirt",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "sailor_uniform",
+      "zh": "水手服 · 百褶裙",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "serafuku",
+        "bottom": "pleated skirt",
+        "legwear": "kneehighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "blazer_uniform",
+      "zh": "西装校服 · 过膝袜",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "school blazer",
+        "bottom": "pleated skirt",
+        "legwear": "black thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "gym_uniform",
+      "zh": "体操服 · 运动鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "gym uniform",
+        "bottom": "bloomers",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "tennis_uniform",
+      "zh": "网球服 · 网球裙",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "polo shirt",
+        "bottom": "tennis skirt",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "library_uniform",
+      "zh": "衬衫 · 开衫 · 百褶裙",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "white shirt",
+        "bottom": "pleated skirt",
+        "outer": "cardigan",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "summer_sailor",
+      "zh": "夏季水手服",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sailor shirt",
+        "bottom": "sailor skirt",
+        "legwear": "ankle socks",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "winter_uniform",
+      "zh": "冬季校服 · 针织背心",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sweater vest",
+        "bottom": "pleated skirt",
+        "outer": "school blazer",
+        "legwear": "kneehighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "choir_dress",
+      "zh": "校服连衣裙 · 白丝",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "dress": "school uniform dress",
+        "legwear": "white pantyhose",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "track_suit",
+      "zh": "运动套装",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "track jacket",
+        "bottom": "sweatpants",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "office_suit",
+      "zh": "职业西装 · 铅笔裙",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "blazer",
+        "bottom": "pencil skirt",
+        "legwear": "black pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "office_slacks",
+      "zh": "衬衫 · 西装长裤",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "dress shirt",
+        "bottom": "slacks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "secretary",
+      "zh": "秘书装 · 眼镜",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "white blouse",
+        "bottom": "pencil skirt",
+        "accessory": "glasses",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "doctor_coat",
+      "zh": "白大褂 · 衬衫长裤",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "lab coat",
+        "bottom": "slacks",
+        "footwear": "leather shoes"
+      }
+    },
+    {
+      "id": "police_uniform",
+      "zh": "警察制服",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "police uniform",
+        "bottom": "skirt",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "flight_attendant",
+      "zh": "空乘制服",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "flight attendant",
+        "bottom": "pencil skirt",
+        "accessory": "scarf",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "teacher_knit",
+      "zh": "教师针织 · 长裙",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "long skirt",
+        "accessory": "glasses",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "banker_vest",
+      "zh": "银行家背心 · 西装裤",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "waistcoat",
+        "bottom": "slacks",
+        "footwear": "leather shoes"
+      }
+    },
+    {
+      "id": "office_turtleneck",
+      "zh": "高领毛衣 · 铅笔裙",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "turtleneck",
+        "bottom": "pencil skirt",
+        "legwear": "pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "kimono_classic",
+      "zh": "和服 · 木屐",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "kimono",
+        "accessory": "obi",
+        "footwear": "geta"
+      }
+    },
+    {
+      "id": "yukata_summer",
+      "zh": "浴衣 · 草履",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "yukata",
+        "accessory": "obi",
+        "footwear": "zori"
+      }
+    },
+    {
+      "id": "qipao_black",
+      "zh": "旗袍 · 黑丝高跟",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "qipao",
+        "legwear": "black pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "hanfu_flowing",
+      "zh": "汉服 · 发饰",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "hanfu",
+        "accessory": "hair ornament",
+        "footwear": "flats"
+      }
+    },
+    {
+      "id": "shrine_maiden",
+      "zh": "巫女服 · 袴",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "top": "miko",
+        "bottom": "hakama",
+        "legwear": "tabi socks",
+        "footwear": "zori"
+      }
+    },
+    {
+      "id": "sari_elegant",
+      "zh": "纱丽 · 凉鞋",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "sari",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "cheongsam_red",
+      "zh": "长款旗袍 · 高跟鞋",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "cheongsam",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "evening_gown",
+      "zh": "晚礼服 · 珠宝",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "evening gown",
+        "accessory": "earrings",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "wedding_dress",
+      "zh": "婚纱 · 头纱",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "wedding dress",
+        "accessory": "veil",
+        "legwear": "white pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "cocktail_dress",
+      "zh": "鸡尾酒裙 · 项链",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "cocktail dress",
+        "accessory": "necklace",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "gothic_lolita",
+      "zh": "哥特洛丽塔",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "gothic lolita dress",
+        "legwear": "black thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "idol_stage",
+      "zh": "偶像舞台服",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "idol dress",
+        "legwear": "thighhighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "prom_dress",
+      "zh": "舞会裙 · 长手套",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "prom dress",
+        "accessory": "elbow gloves",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "backless_dress",
+      "zh": "露背礼服",
+      "cat": "formal",
+      "level": 1,
+      "tags": {
+        "dress": "backless dress",
+        "footwear": "heels"
+      }
+    },
+    {
+      "id": "pajama_set",
+      "zh": "睡衣套装",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "pajama top",
+        "bottom": "pajama pants",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "nightgown",
+      "zh": "睡裙 · 赤脚",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "dress": "nightgown",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "bathrobe",
+      "zh": "浴袍 · 拖鞋",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "bathrobe",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "oversized_shirt_home",
+      "zh": "男友衬衫 · 光腿",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "oversized shirt",
+        "legwear": "bare legs",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "hoodie_home",
+      "zh": "卫衣 · 短裤",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "top": "hoodie",
+        "bottom": "shorts",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "maid_apron",
+      "zh": "女仆围裙",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "apron",
+        "dress": "white dress",
+        "legwear": "thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "loungewear",
+      "zh": "居家开衫 · 吊带",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "shorts",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "bikini_beach",
+      "zh": "比基尼 · 沙滩",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "top": "bikini",
+        "accessory": "sunglasses",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "one_piece_swim",
+      "zh": "连体泳衣",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "one-piece swimsuit",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "school_swimsuit",
+      "zh": "学校泳装 · 泳帽",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "school swimsuit",
+        "accessory": "swim cap",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "micro_bikini",
+      "zh": "微型比基尼",
+      "cat": "swim",
+      "level": 2,
+      "tags": {
+        "top": "micro bikini",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "wet_tee_swim",
+      "zh": "湿身 T 恤 · 泳裤",
+      "cat": "swim",
+      "level": 2,
+      "tags": {
+        "top": "wet clothes",
+        "bottom": "bikini bottom",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "sarong_bikini",
+      "zh": "纱笼 · 比基尼",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "sarong",
+        "top": "bikini",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "tactical_gear",
+      "zh": "战术装备",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "military uniform",
+        "bottom": "cargo pants",
+        "accessory": "gloves",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cyber_ninja",
+      "zh": "赛博忍者",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "bodysuit",
+        "accessory": "visor",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "knight_armor",
+      "zh": "骑士铠甲",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "armor",
+        "bottom": "armor",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "maid_classic",
+      "zh": "经典女仆装",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "maid dress",
+        "accessory": "maid headdress",
+        "legwear": "black thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "bunny_suit",
+      "zh": "兔女郎",
+      "cat": "cosplay",
+      "level": 2,
+      "tags": {
+        "top": "bunny suit",
+        "accessory": "rabbit ears",
+        "legwear": "white pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nurse_outfit",
+      "zh": "护士服",
+      "cat": "cosplay",
+      "level": 1,
+      "tags": {
+        "dress": "nurse dress",
+        "accessory": "nurse cap",
+        "legwear": "white pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "black_thighhigh_set",
+      "zh": "黑丝过膝 · 吊带",
+      "cat": "hosiery",
+      "level": 1,
+      "tags": {
+        "top": "white shirt",
+        "bottom": "pleated skirt",
+        "legwear": "black thighhighs",
+        "accessory": "garter belt",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "white_pantyhose_set",
+      "zh": "白丝连裤 · 连衣裙",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "dress": "white dress",
+        "legwear": "white pantyhose",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "fishnet_set",
+      "zh": "渔网袜 · 黑裙",
+      "cat": "hosiery",
+      "level": 1,
+      "tags": {
+        "dress": "black dress",
+        "legwear": "fishnets",
+        "accessory": "choker",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "lingerie_set",
+      "zh": "蕾丝内衣 · 吊带袜",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "lace lingerie",
+        "legwear": "garter belt",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "naked_apron",
+      "zh": "裸围裙",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "apron only",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "open_shirt_panties",
+      "zh": "敞开衬衫 · 内裤",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "unbuttoned shirt",
+        "bottom": "panties",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "towel_after_bath",
+      "zh": "浴巾 · 出浴",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "top": "towel",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "shibari_set",
+      "zh": "绳缚 · 蒙眼",
+      "cat": "nsfw_outfit",
+      "level": 3,
+      "tags": {
+        "accessory": "shibari",
+        "top": "blindfold",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "micro_bikini_set",
+      "zh": "微型比基尼 · 高跟",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "micro bikini",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "see_through_set",
+      "zh": "透视装 · 丁字裤",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "see-through",
+        "bottom": "thong",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "denim_white_dress",
+      "zh": "牛仔外套 · 白裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "outer": "denim jacket",
+        "dress": "white dress",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "knit_long_skirt",
+      "zh": "针织衫 · 长裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "long skirt",
+        "footwear": "ankle boots"
+      }
+    },
+    {
+      "id": "graphic_cargo",
+      "zh": "印花 T · 工装裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "graphic t-shirt",
+        "bottom": "cargo pants",
+        "footwear": "high-top sneakers"
+      }
+    },
+    {
+      "id": "raincoat_shorts",
+      "zh": "雨衣 · 短裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "outer": "raincoat",
+        "bottom": "shorts",
+        "footwear": "rain boots"
+      }
+    },
+    {
+      "id": "track_leggings",
+      "zh": "运动外套 · 打底裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "track jacket",
+        "bottom": "leggings",
+        "footwear": "running shoes"
+      }
+    },
+    {
+      "id": "linen_shorts",
+      "zh": "亚麻衬衫 · 短裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "linen shirt",
+        "bottom": "shorts",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "crop_hoodie_skirt",
+      "zh": "短款卫衣 · 百褶裙",
+      "cat": "casual",
+      "level": 1,
+      "tags": {
+        "top": "cropped hoodie",
+        "bottom": "pleated skirt",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sailor_dress",
+      "zh": "水手连衣裙",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "dress": "sailor dress",
+        "legwear": "white socks",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "gym_shirt_bloomers",
+      "zh": "体操衫 · 南瓜裤",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "gym shirt",
+        "bottom": "bloomers",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "cheerleader",
+      "zh": "啦啦队服",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "cheerleader",
+        "bottom": "pleated skirt",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "scarf_uniform",
+      "zh": "校服 · 围巾",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "school uniform",
+        "accessory": "scarf",
+        "legwear": "kneehighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "cardigan_midi",
+      "zh": "开衫 · 中长裙",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "pleated midi skirt",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "blazer_trousers",
+      "zh": "校服西装 · 长裤",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "school blazer",
+        "bottom": "slacks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "sweater_vest_skirt",
+      "zh": "针织背心 · 百褶裙",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sweater vest",
+        "bottom": "pleated skirt",
+        "legwear": "kneehighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "pantsuit",
+      "zh": "女式西装 · 长裤",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "blazer",
+        "bottom": "dress pants",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "blouse_pencil",
+      "zh": "白衬衫 · 铅笔裙",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "white blouse",
+        "bottom": "pencil skirt",
+        "footwear": "heels"
+      }
+    },
+    {
+      "id": "labcoat_dress",
+      "zh": "白大褂 · 黑裙",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "lab coat",
+        "dress": "black dress",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "police_pants",
+      "zh": "警服 · 长裤",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "police uniform",
+        "bottom": "pants",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "flight_hat",
+      "zh": "空乘制服 · 礼帽",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "flight attendant",
+        "bottom": "pencil skirt",
+        "accessory": "hat",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "lawyer_suit",
+      "zh": "律师套装",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "suit",
+        "bottom": "skirt",
+        "footwear": "heels"
+      }
+    },
+    {
+      "id": "receptionist",
+      "zh": "前台制服",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "uniform",
+        "bottom": "skirt",
+        "footwear": "heels"
+      }
+    },
+    {
+      "id": "furisode",
+      "zh": "振袖和服",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "furisode",
+        "accessory": "obi",
+        "footwear": "zori"
+      }
+    },
+    {
+      "id": "miko_haori",
+      "zh": "巫女服 · 羽织",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "top": "miko",
+        "outer": "haori",
+        "bottom": "hakama",
+        "footwear": "zori"
+      }
+    },
+    {
+      "id": "qipao_fur",
+      "zh": "旗袍 · 毛披肩",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "qipao",
+        "accessory": "fur shawl",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "hanbok",
+      "zh": "韩服",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "hanbok",
+        "footwear": "flats"
+      }
+    },
+    {
+      "id": "ao_dai",
+      "zh": "奥黛",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "ao dai",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "kimono_hakama",
+      "zh": "和服 · 袴",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "kimono",
+        "bottom": "hakama",
+        "legwear": "tabi socks",
+        "footwear": "geta"
+      }
+    },
+    {
+      "id": "mermaid_gown",
+      "zh": "鱼尾礼服",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "mermaid dress",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "black_evening",
+      "zh": "黑色晚礼服",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "accessory": "evening gloves",
+        "footwear": "heels"
+      }
+    },
+    {
+      "id": "cocktail_gloves",
+      "zh": "鸡尾酒裙 · 长手套",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "cocktail dress",
+        "accessory": "elbow gloves",
+        "footwear": "heels"
+      }
+    },
+    {
+      "id": "prom_tiara",
+      "zh": "舞会裙 · 头冠",
+      "cat": "formal",
+      "level": 1,
+      "tags": {
+        "dress": "prom dress",
+        "accessory": "tiara",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "wedding_long_veil",
+      "zh": "婚纱 · 长头纱",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "wedding dress",
+        "accessory": "veil",
+        "legwear": "white pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "gothic_ball",
+      "zh": "哥特舞会裙",
+      "cat": "formal",
+      "level": 1,
+      "tags": {
+        "dress": "gothic dress",
+        "top": "corset",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cami_shorts_home",
+      "zh": "吊带 · 短裤",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "camisole",
+        "bottom": "shorts",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "pajama_dress_home",
+      "zh": "睡裙 · 拖鞋",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "dress": "nightgown",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "bathrobe_home",
+      "zh": "浴袍 · 拖鞋",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "bathrobe",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "hoodie_shorts_home",
+      "zh": "卫衣 · 短裤",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "top": "hoodie",
+        "bottom": "shorts",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "cardigan_leggings",
+      "zh": "开衫 · 打底裤",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "leggings",
+        "footwear": "socks"
+      }
+    },
+    {
+      "id": "nightshirt",
+      "zh": "睡眠衬衫",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "nightshirt",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "robe_slippers",
+      "zh": "浴袍 · 拖鞋",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "robe",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "highleg_swimsuit",
+      "zh": "高叉泳衣",
+      "cat": "swim",
+      "level": 2,
+      "tags": {
+        "dress": "highleg swimsuit",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "tankini",
+      "zh": "坦基尼",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "top": "tankini",
+        "bottom": "shorts",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "rash_guard",
+      "zh": "防晒冲浪服",
+      "cat": "swim",
+      "level": 0,
+      "tags": {
+        "top": "rash guard",
+        "bottom": "board shorts",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "bikini_sarong",
+      "zh": "比基尼 · 纱笼",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "top": "bikini",
+        "dress": "sarong",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "competition_swimsuit",
+      "zh": "竞泳泳衣",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "competition swimsuit",
+        "accessory": "swim cap",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "monokini",
+      "zh": "连体镂空泳衣",
+      "cat": "swim",
+      "level": 2,
+      "tags": {
+        "dress": "monokini",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "mecha_pilot",
+      "zh": "机甲驾驶服",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "plugsuit",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cyber_jacket",
+      "zh": "赛博夹克 · 紧身衣",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "outer": "jacket",
+        "top": "bodysuit",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "ninja_outfit",
+      "zh": "忍者装束",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "ninja outfit",
+        "legwear": "tabi socks",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "knight_cape",
+      "zh": "骑士铠甲 · 披风",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "armor",
+        "outer": "cape",
+        "accessory": "gauntlets",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "tactical_skirt",
+      "zh": "战术裙装",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "tactical clothes",
+        "bottom": "skirt",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "maid_cosplay_apron",
+      "zh": "女仆装 · 围裙",
+      "cat": "cosplay",
+      "level": 1,
+      "tags": {
+        "dress": "maid dress",
+        "accessory": "apron",
+        "legwear": "thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "bunny_cuffs",
+      "zh": "兔女郎 · 袖口",
+      "cat": "cosplay",
+      "level": 2,
+      "tags": {
+        "top": "bunny suit",
+        "accessory": "rabbit ears",
+        "legwear": "white pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nurse_cap",
+      "zh": "护士服 · 护士帽",
+      "cat": "cosplay",
+      "level": 1,
+      "tags": {
+        "dress": "nurse dress",
+        "accessory": "nurse cap",
+        "legwear": "white pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "police_cosplay",
+      "zh": "警察扮演",
+      "cat": "cosplay",
+      "level": 1,
+      "tags": {
+        "top": "police uniform",
+        "accessory": "handcuffs",
+        "bottom": "skirt",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "succubus",
+      "zh": "魅魔",
+      "cat": "cosplay",
+      "level": 2,
+      "tags": {
+        "top": "succubus",
+        "accessory": "horns",
+        "legwear": "thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "white_thigh_dress",
+      "zh": "白丝过膝 · 白裙",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "dress": "white dress",
+        "legwear": "white thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "black_tights_skirt",
+      "zh": "黑连裤袜 · 百褶裙",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "blouse",
+        "bottom": "pleated skirt",
+        "legwear": "black tights",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "fishnet_shorts",
+      "zh": "渔网袜 · 短裤",
+      "cat": "hosiery",
+      "level": 1,
+      "tags": {
+        "bottom": "shorts",
+        "legwear": "fishnets",
+        "accessory": "choker",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "garter_stockings",
+      "zh": "吊带袜",
+      "cat": "hosiery",
+      "level": 1,
+      "tags": {
+        "legwear": "stockings",
+        "accessory": "garter belt",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "patterned_tights",
+      "zh": "花纹连裤袜",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "bottom": "skirt",
+        "legwear": "patterned tights",
+        "footwear": "heels"
+      }
+    },
+    {
+      "id": "lingerie_robe",
+      "zh": "蕾丝内衣 · 睡袍",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "lace lingerie",
+        "outer": "robe",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "open_shirt_thong",
+      "zh": "敞开衬衫 · 丁字裤",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "unbuttoned shirt",
+        "bottom": "thong",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "micro_bikini_sarong",
+      "zh": "微型比基尼 · 纱笼",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "micro bikini",
+        "dress": "sarong",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "see_through_garter",
+      "zh": "透视装 · 吊带袜",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "see-through",
+        "accessory": "garter belt",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nude_apron_heels",
+      "zh": "裸围裙 · 高跟",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "apron only",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "towel_wet_hair",
+      "zh": "浴巾 · 湿发",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "top": "towel",
+        "accessory": "wet hair",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "bound_blindfold",
+      "zh": "绑缚 · 蒙眼",
+      "cat": "nsfw_outfit",
+      "level": 3,
+      "tags": {
+        "accessory": "bound arms",
+        "top": "blindfold",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "lingerie_collar",
+      "zh": "内衣 · 项圈",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "lingerie",
+        "accessory": "collar",
+        "legwear": "thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "bodysuit_open",
+      "zh": "开拉链紧身衣",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "bodysuit",
+        "accessory": "zipper",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cs_linen_wide",
+      "zh": "亚麻衬衫 · 阔腿裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "linen shirt",
+        "bottom": "wide-leg pants",
+        "footwear": "leather shoes"
+      }
+    },
+    {
+      "id": "cs_knitvest_plaid",
+      "zh": "针织背心 · 格纹裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "sweater vest",
+        "bottom": "plaid skirt",
+        "legwear": "kneehighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "cs_turtle_slacks",
+      "zh": "高领毛衣 · 西装裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "turtleneck",
+        "bottom": "slacks",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "cs_denim_jacket_skirt",
+      "zh": "牛仔外套 · 牛仔裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "outer": "denim jacket",
+        "top": "camisole",
+        "bottom": "denim skirt",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "cs_graphic_bike",
+      "zh": "印花T恤 · 骑行裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "graphic t-shirt",
+        "bottom": "bike shorts",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "cs_flannel_cargo",
+      "zh": "法兰绒衬衫 · 工装裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "flannel shirt",
+        "bottom": "cargo pants",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cs_crop_cardigan_jeans",
+      "zh": "短开衫 · 直筒牛仔",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "cropped cardigan",
+        "bottom": "jeans",
+        "footwear": "canvas shoes"
+      }
+    },
+    {
+      "id": "cs_polo_tennis",
+      "zh": "马球衫 · 网球裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "polo shirt",
+        "bottom": "tennis skirt",
+        "legwear": "ankle socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "cs_hoodie_pleated",
+      "zh": "连帽卫衣 · 百褶裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "hoodie",
+        "bottom": "pleated skirt",
+        "legwear": "kneehighs",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "cs_furcoat_boots",
+      "zh": "毛领外套 · 长靴",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "outer": "fur coat",
+        "top": "knit sweater",
+        "bottom": "skinny jeans",
+        "footwear": "knee boots"
+      }
+    },
+    {
+      "id": "cs_camisole_denimshorts",
+      "zh": "吊带 · 牛仔短裤",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "camisole",
+        "bottom": "denim shorts",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "cs_poncho_longskirt",
+      "zh": "披风毛衣 · 长裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "poncho",
+        "bottom": "long skirt",
+        "accessory": "beret",
+        "footwear": "ankle boots"
+      }
+    },
+    {
+      "id": "cs_overalls_tee",
+      "zh": "背带裤 · 白T",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "t-shirt",
+        "bottom": "overalls",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "cs_shirt_tucked_skirt",
+      "zh": "束进衬衫 · A字裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "white shirt",
+        "bottom": "a-line skirt",
+        "legwear": "crew socks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "sp_jersey_shorts",
+      "zh": "球衣 · 运动短裤",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "top": "jersey",
+        "bottom": "shorts",
+        "legwear": "crew socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sp_sportsbra_yoga",
+      "zh": "运动内衣 · 瑜伽裤",
+      "cat": "sport",
+      "level": 1,
+      "tags": {
+        "top": "sports bra",
+        "bottom": "yoga pants",
+        "footwear": "running shoes"
+      }
+    },
+    {
+      "id": "sp_tennis_dress",
+      "zh": "网球连衣裙",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "dress": "tennis dress",
+        "legwear": "ankle socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sp_competition_swim",
+      "zh": "竞泳连体",
+      "cat": "sport",
+      "level": 1,
+      "tags": {
+        "dress": "competition swimsuit",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "sp_cheerleader",
+      "zh": "啦啦队服",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "dress": "cheerleader",
+        "legwear": "white thighhighs",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sp_basketball",
+      "zh": "篮球背心 · 短裤",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "top": "basketball jersey",
+        "bottom": "shorts",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sp_baseball",
+      "zh": "棒球制服",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "top": "baseball uniform",
+        "bottom": "shorts",
+        "legwear": "kneehighs",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sp_gym_uniform",
+      "zh": "体操服 · 运动短裤",
+      "cat": "sport",
+      "level": 1,
+      "tags": {
+        "top": "gym uniform",
+        "bottom": "bloomers",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sp_running_tank",
+      "zh": "跑步背心 · 短裤",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "top": "tank top",
+        "bottom": "shorts",
+        "footwear": "running shoes"
+      }
+    },
+    {
+      "id": "sp_karate_gi",
+      "zh": "空手道服",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "dress": "karate gi",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "go_lolita_dress",
+      "zh": "哥特洛丽塔",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "dress": "gothic lolita dress",
+        "legwear": "black thighhighs",
+        "footwear": "mary janes",
+        "accessory": "choker"
+      }
+    },
+    {
+      "id": "go_corset_longskirt",
+      "zh": "束腰 · 长裙",
+      "cat": "gothic",
+      "level": 1,
+      "tags": {
+        "top": "corset",
+        "bottom": "long skirt",
+        "legwear": "fishnet tights",
+        "footwear": "platform boots"
+      }
+    },
+    {
+      "id": "go_lace_blouse_skirt",
+      "zh": "蕾丝衬衫 · 铅笔裙",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "top": "frilled blouse",
+        "bottom": "pencil skirt",
+        "legwear": "black pantyhose",
+        "footwear": "ankle boots"
+      }
+    },
+    {
+      "id": "go_velvet_dress",
+      "zh": "天鹅绒长裙",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "accessory": "choker",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "go_nun_habit",
+      "zh": "修女服",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "dress": "nun",
+        "accessory": "cross necklace",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "go_vampire_cape",
+      "zh": "吸血鬼披风",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "outer": "cape",
+        "dress": "black dress",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "go_sheer_leather",
+      "zh": "透视上衣 · 皮裙",
+      "cat": "gothic",
+      "level": 1,
+      "tags": {
+        "top": "sheer top",
+        "bottom": "leather skirt",
+        "legwear": "fishnets",
+        "footwear": "stilettos"
+      }
+    },
+    {
+      "id": "go_dark_academia",
+      "zh": "暗黑学院",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "top": "blazer",
+        "bottom": "plaid skirt",
+        "legwear": "black thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "go_bat_cape_dress",
+      "zh": "蝙蝠披肩 · 短裙",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "outer": "bat wings",
+        "dress": "black dress",
+        "legwear": "black tights",
+        "footwear": "ankle boots"
+      }
+    },
+    {
+      "id": "go_ringlet_lace",
+      "zh": "蕾丝长袖 · 层叠裙",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "top": "lace top",
+        "bottom": "tiered skirt",
+        "legwear": "white thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "sc_sailor_summer",
+      "zh": "夏季水手服",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sailor shirt",
+        "bottom": "sailor skirt",
+        "legwear": "ankle socks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "sc_blazer_tie",
+      "zh": "西装校服 · 领带",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "school blazer",
+        "bottom": "plaid skirt",
+        "legwear": "kneehighs",
+        "footwear": "loafers",
+        "accessory": "necktie"
+      }
+    },
+    {
+      "id": "sc_gym_bloomers",
+      "zh": "体操服 · 布鲁马",
+      "cat": "school",
+      "level": 1,
+      "tags": {
+        "top": "gym uniform",
+        "bottom": "bloomers",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sc_cardigan_ribbon",
+      "zh": "开衫校服 · 缎带",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "school skirt",
+        "footwear": "loafers",
+        "accessory": "ribbon tie"
+      }
+    },
+    {
+      "id": "sc_pinafore",
+      "zh": "背带裙校服",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "dress": "pinafore dress",
+        "top": "white shirt",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "sc_winter_pea",
+      "zh": "冬季大衣校服",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "outer": "pea coat",
+        "top": "school uniform",
+        "bottom": "plaid skirt",
+        "legwear": "black tights",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "sc_track_suit",
+      "zh": "运动套装",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "track jacket",
+        "bottom": "shorts",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "sc_art_apron",
+      "zh": "美术围裙",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "apron",
+        "bottom": "school skirt",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "of_pantsuit",
+      "zh": "西装裤装",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "blazer",
+        "bottom": "slacks",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "of_blouse_pencil",
+      "zh": "衬衫 · 铅笔裙",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "white blouse",
+        "bottom": "pencil skirt",
+        "legwear": "black pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "of_labcoat",
+      "zh": "白大褂",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "outer": "labcoat",
+        "top": "white shirt",
+        "bottom": "pencil skirt",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "of_flight_attendant",
+      "zh": "空乘制服",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "dress": "flight attendant",
+        "legwear": "black pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "of_police_uniform",
+      "zh": "警服",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "dress": "police uniform",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "of_secretary_vest",
+      "zh": "秘书马甲",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "waistcoat",
+        "bottom": "pencil skirt",
+        "legwear": "pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "of_teacher_cardigan",
+      "zh": "教师开衫",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "long skirt",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "of_knit_wide",
+      "zh": "针织衫 · 阔腿裤",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "wide-leg pants",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "tr_red_qipao",
+      "zh": "红旗袍",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "qipao",
+        "legwear": "black pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "tr_hanfu_ruqun",
+      "zh": "齐胸襦裙",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "hanfu",
+        "accessory": "hair stick",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "tr_yukata_obi",
+      "zh": "浴衣 · 腰带",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "yukata",
+        "accessory": "obi",
+        "footwear": "geta"
+      }
+    },
+    {
+      "id": "tr_furisode",
+      "zh": "振袖和服",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "kimono",
+        "accessory": "kanzashi",
+        "footwear": "zori"
+      }
+    },
+    {
+      "id": "tr_miko",
+      "zh": "巫女服",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "miko",
+        "legwear": "tabi socks",
+        "footwear": "zori"
+      }
+    },
+    {
+      "id": "tr_sari",
+      "zh": "纱丽",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "sari",
+        "accessory": "earrings",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "tr_ao_dai",
+      "zh": "奥黛",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "ao dai",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "tr_cheongsam_lace",
+      "zh": "蕾丝旗袍",
+      "cat": "traditional",
+      "level": 1,
+      "tags": {
+        "dress": "cheongsam",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "fo_black_gown",
+      "zh": "黑色晚礼服",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "evening gown",
+        "accessory": "earrings",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "fo_wedding",
+      "zh": "婚纱",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "wedding dress",
+        "accessory": "veil",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "fo_cocktail_sequin",
+      "zh": "亮片鸡尾酒裙",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "cocktail dress",
+        "footwear": "strappy heels"
+      }
+    },
+    {
+      "id": "fo_tuxedo",
+      "zh": "燕尾服",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "tuxedo",
+        "accessory": "bowtie",
+        "footwear": "leather shoes"
+      }
+    },
+    {
+      "id": "fo_prom_red",
+      "zh": "红色舞会裙",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "prom dress",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "fo_idol_stage",
+      "zh": "偶像舞台服",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "idol dress",
+        "legwear": "white thighhighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "fo_ball_gown_gloves",
+      "zh": "宴会长裙 · 长手套",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "ball gown",
+        "accessory": "elbow gloves",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "fo_maid_formal",
+      "zh": "女仆装",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "maid dress",
+        "accessory": "maid headdress",
+        "legwear": "white thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "ho_pajama_set",
+      "zh": "睡衣套装",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "dress": "pajamas",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "ho_silk_nightgown",
+      "zh": "真丝睡裙",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "dress": "nightgown",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "ho_bathrobe",
+      "zh": "浴袍",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "dress": "bathrobe",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "ho_shirt_shorts",
+      "zh": "宽衬衫 · 短裤",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "top": "shirt",
+        "bottom": "shorts",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "ho_lounge_knit",
+      "zh": "家居针织套装",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "sweatpants",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "ho_hoodie_sweat",
+      "zh": "卫衣 · 运动裤",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "top": "hoodie",
+        "bottom": "sweatpants",
+        "footwear": "slippers"
+      }
+    },
+    {
+      "id": "ho_camisole_shorts",
+      "zh": "吊带 · 家居短裤",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "top": "camisole",
+        "bottom": "shorts",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "ho_towel_wrap",
+      "zh": "浴巾",
+      "cat": "home",
+      "level": 1,
+      "tags": {
+        "dress": "towel",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "sw_bikini_sarong",
+      "zh": "比基尼 · 纱笼",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "bikini",
+        "accessory": "sarong",
+        "footwear": "flip-flops"
+      }
+    },
+    {
+      "id": "sw_one_piece",
+      "zh": "连体泳衣",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "one-piece swimsuit",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "sw_school_swim",
+      "zh": "学校泳装",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "school swimsuit",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "sw_monokini",
+      "zh": "抹胸泳衣",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "monokini",
+        "accessory": "sun hat",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "sw_swim_towel",
+      "zh": "泳装 · 浴巾",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "one-piece swimsuit",
+        "accessory": "towel",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "sw_wetsuit",
+      "zh": "潜水服",
+      "cat": "swim",
+      "level": 0,
+      "tags": {
+        "dress": "wetsuit",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "cb_tactical_vest",
+      "zh": "战术背心",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "vest",
+        "bottom": "cargo pants",
+        "footwear": "combat boots"
+      }
+    },
+    {
+      "id": "cb_bodysuit",
+      "zh": "战术紧身衣",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "bodysuit",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cb_ninja",
+      "zh": "忍者服",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "ninja",
+        "accessory": "scarf",
+        "footwear": "tabi"
+      }
+    },
+    {
+      "id": "cb_knight",
+      "zh": "骑士铠甲",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "armor",
+        "outer": "cape",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cb_plugsuit",
+      "zh": "机师服",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "plug suit",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cb_military",
+      "zh": "军装",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "military uniform",
+        "legwear": "black thighhighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cb_hunter",
+      "zh": "猎魔装",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "outer": "trench coat",
+        "top": "corset",
+        "bottom": "leather pants",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "cb_combat_skirt",
+      "zh": "战斗短裙",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "jacket",
+        "bottom": "pleated skirt",
+        "legwear": "thighhighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "co_bunny_girl",
+      "zh": "兔女郎",
+      "cat": "cosplay",
+      "level": 1,
+      "tags": {
+        "dress": "bunny girl",
+        "legwear": "black pantyhose",
+        "footwear": "high heels",
+        "accessory": "bunny ears"
+      }
+    },
+    {
+      "id": "co_nurse",
+      "zh": "护士服",
+      "cat": "cosplay",
+      "level": 1,
+      "tags": {
+        "dress": "nurse uniform",
+        "accessory": "nurse cap",
+        "legwear": "white thighhighs"
+      }
+    },
+    {
+      "id": "co_witch",
+      "zh": "魔女装",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "witch dress",
+        "accessory": "witch hat",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "co_santa",
+      "zh": "圣诞装",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "santa costume",
+        "accessory": "santa hat",
+        "legwear": "white thighhighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "co_idol",
+      "zh": "偶像演出服",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "idol dress",
+        "legwear": "kneehighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "co_race_queen",
+      "zh": "赛车女郎",
+      "cat": "cosplay",
+      "level": 1,
+      "tags": {
+        "dress": "race queen",
+        "legwear": "thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "co_maid_cafe",
+      "zh": "女仆咖啡装",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "maid outfit",
+        "accessory": "maid headdress",
+        "legwear": "black thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "co_china_dress",
+      "zh": "中华风偶像装",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "chinese dress",
+        "accessory": "hair stick",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "hs_thighhigh_boots",
+      "zh": "过膝袜 · 长靴",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "bottom": "miniskirt",
+        "legwear": "black thighhighs",
+        "footwear": "thigh boots"
+      }
+    },
+    {
+      "id": "hs_pantyhose_office",
+      "zh": "丝袜通勤",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "bottom": "pencil skirt",
+        "legwear": "black pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "hs_fishnet_rock",
+      "zh": "渔网袜 · 皮裙",
+      "cat": "hosiery",
+      "level": 1,
+      "tags": {
+        "bottom": "leather skirt",
+        "legwear": "fishnet tights",
+        "footwear": "platform boots"
+      }
+    },
+    {
+      "id": "hs_white_thighhighs",
+      "zh": "白丝 · 短裙",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "bottom": "pleated skirt",
+        "legwear": "white thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "hs_garter_stocking",
+      "zh": "吊带袜",
+      "cat": "hosiery",
+      "level": 2,
+      "tags": {
+        "legwear": "garter belt, stockings",
+        "bottom": "miniskirt",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "hs_asym_socks",
+      "zh": "不对称袜",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "bottom": "shorts",
+        "legwear": "single thighhigh",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "nf_sheer_blouse",
+      "zh": "透视衬衫",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "top": "sheer top",
+        "bottom": "pencil skirt",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nf_slit_dress",
+      "zh": "高开叉长裙",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "dress": "high-slit dress",
+        "footwear": "strappy heels"
+      }
+    },
+    {
+      "id": "nf_offshoulder_knit",
+      "zh": "露肩针织",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "top": "off-shoulder sweater",
+        "bottom": "pleated skirt",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "nf_backless_dress",
+      "zh": "露背礼服",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "dress": "backless dress",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_casual_1",
+      "zh": "针织毛衣 · 牛仔裤 · 凉鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "jeans",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_casual_2",
+      "zh": "牛仔外套 · 牛仔裙 · 白袜 · 运动鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "denim jacket",
+        "bottom": "denim skirt",
+        "legwear": "white socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_casual_3",
+      "zh": "格子呢衬衫 · 阔腿裤 · 黑色过膝袜 · 乐福鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "plaid shirt",
+        "bottom": "wide-leg pants",
+        "legwear": "black thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_casual_4",
+      "zh": "黑衬衫 · 阔腿裤 · 踝袜 · 乐福鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "wide-leg pants",
+        "legwear": "ankle socks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_casual_5",
+      "zh": "条纹衬衫 · 百褶裙 · 踝袜 · 靴子",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "striped shirt",
+        "bottom": "pleated skirt",
+        "legwear": "ankle socks",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "v13_casual_6",
+      "zh": "牛仔外套 · 牛仔裙 · 凉鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "denim jacket",
+        "bottom": "denim skirt",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_casual_7",
+      "zh": "连帽衫 · 牛仔裤 · 凉鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "hoodie",
+        "bottom": "jeans",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_casual_8",
+      "zh": "开衫 · 短裤 · 及膝袜 · 运动鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "shorts",
+        "legwear": "kneehighs",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_casual_9",
+      "zh": "牛仔外套 · 短裤 · 凉鞋",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "denim jacket",
+        "bottom": "shorts",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_school_1",
+      "zh": "水手衬衫 · 格纹裙 · 及膝袜 · 乐福鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sailor shirt",
+        "bottom": "plaid skirt",
+        "legwear": "kneehighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_school_2",
+      "zh": "水手衬衫 · 百褶裙 · 白袜 · 乐福鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sailor shirt",
+        "bottom": "pleated skirt",
+        "legwear": "white socks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_school_3",
+      "zh": "白衬衫 · 格纹裙 · 白袜 · 运动鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "white shirt",
+        "bottom": "plaid skirt",
+        "legwear": "white socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_school_4",
+      "zh": "开衫 · 百褶裙 · 松垮的袜子 · 玛丽珍鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "pleated skirt",
+        "legwear": "loose socks",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "v13_school_5",
+      "zh": "水手衬衫 · 百褶裙 · 黑色过膝袜 · 运动鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sailor shirt",
+        "bottom": "pleated skirt",
+        "legwear": "black thighhighs",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_school_6",
+      "zh": "水手衬衫 · 格纹裙 · 松垮的袜子 · 运动鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sailor shirt",
+        "bottom": "plaid skirt",
+        "legwear": "loose socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_school_7",
+      "zh": "毛衣背心 · 百褶裙 · 白袜 · 乐福鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sweater vest",
+        "bottom": "pleated skirt",
+        "legwear": "white socks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_school_8",
+      "zh": "水手衬衫 · 百褶裙 · 及膝袜 · 玛丽珍鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "sailor shirt",
+        "bottom": "pleated skirt",
+        "legwear": "kneehighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "v13_school_9",
+      "zh": "开衫 · 格纹裙 · 白袜 · 运动鞋",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "cardigan",
+        "bottom": "plaid skirt",
+        "legwear": "white socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_office_1",
+      "zh": "休闲西装外套 · 铅笔裙 · 连裤袜 · 乐福鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "blazer",
+        "bottom": "pencil skirt",
+        "legwear": "pantyhose",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_office_2",
+      "zh": "针织毛衣 · 铅笔裙 · 连裤袜 · 乐福鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "pencil skirt",
+        "legwear": "pantyhose",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_office_3",
+      "zh": "马甲 · 阔腿裤 · 黑色连裤袜 · 浅口高跟鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "waistcoat",
+        "bottom": "wide-leg pants",
+        "legwear": "black pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "v13_office_4",
+      "zh": "高领上衣 · 阔腿裤 · 黑色连裤袜 · 高跟鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "turtleneck",
+        "bottom": "wide-leg pants",
+        "legwear": "black pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_office_5",
+      "zh": "休闲西装外套 · 长裙 · 连裤袜 · 乐福鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "blazer",
+        "bottom": "long skirt",
+        "legwear": "pantyhose",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_office_6",
+      "zh": "针织毛衣 · 阔腿裤 · 黑色连裤袜 · 高跟鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "wide-leg pants",
+        "legwear": "black pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_office_7",
+      "zh": "马甲 · 长裙 · 黑色连裤袜 · 高跟鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "waistcoat",
+        "bottom": "long skirt",
+        "legwear": "black pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_office_8",
+      "zh": "高领上衣 · 阔腿裤 · 黑色连裤袜 · 浅口高跟鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "turtleneck",
+        "bottom": "wide-leg pants",
+        "legwear": "black pantyhose",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "v13_office_9",
+      "zh": "白衬衫 · 阔腿裤 · 黑色连裤袜 · 高跟鞋",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "white shirt",
+        "bottom": "wide-leg pants",
+        "legwear": "black pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_traditional_1",
+      "zh": "纱丽 · 簪子 · 足袋",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "sari",
+        "accessory": "kanzashi",
+        "footwear": "tabi"
+      }
+    },
+    {
+      "id": "v13_traditional_2",
+      "zh": "旗袍 · 簪子 · 足袋",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "qipao",
+        "accessory": "kanzashi",
+        "footwear": "tabi"
+      }
+    },
+    {
+      "id": "v13_traditional_3",
+      "zh": "巫女 · 腰带（和服带） · 凉鞋",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "miko",
+        "accessory": "obi",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_traditional_4",
+      "zh": "和服 · 发簪 · 日本木屐",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "kimono",
+        "accessory": "hair stick",
+        "footwear": "geta"
+      }
+    },
+    {
+      "id": "v13_traditional_5",
+      "zh": "旗袍 · 扇子 · 足袋",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "qipao",
+        "accessory": "hand fan",
+        "footwear": "tabi"
+      }
+    },
+    {
+      "id": "v13_traditional_6",
+      "zh": "纱丽 · 发簪 · 日本木屐",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "sari",
+        "accessory": "hair stick",
+        "footwear": "geta"
+      }
+    },
+    {
+      "id": "v13_traditional_8",
+      "zh": "旗袍 · 扇子 · 日本木屐",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "qipao",
+        "accessory": "hand fan",
+        "footwear": "geta"
+      }
+    },
+    {
+      "id": "v13_traditional_9",
+      "zh": "浴衣（夏和服） · 发簪 · 日本木屐",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "yukata",
+        "accessory": "hair stick",
+        "footwear": "geta"
+      }
+    },
+    {
+      "id": "v13_formal_1",
+      "zh": "黑色连衣裙 · 面纱 · 绑带高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "accessory": "veil",
+        "footwear": "strappy heels"
+      }
+    },
+    {
+      "id": "v13_formal_2",
+      "zh": "黑色连衣裙 · 过肘手套 · 绑带高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "accessory": "elbow gloves",
+        "footwear": "strappy heels"
+      }
+    },
+    {
+      "id": "v13_formal_3",
+      "zh": "晚礼服 · 耳环 · 绑带高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "evening gown",
+        "accessory": "earrings",
+        "footwear": "strappy heels"
+      }
+    },
+    {
+      "id": "v13_formal_4",
+      "zh": "婚纱 · 耳环 · 浅口高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "wedding dress",
+        "accessory": "earrings",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "v13_formal_5",
+      "zh": "黑色连衣裙 · 耳环 · 高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "accessory": "earrings",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_formal_6",
+      "zh": "婚纱 · 面纱 · 高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "wedding dress",
+        "accessory": "veil",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_formal_7",
+      "zh": "晚礼服 · 面纱 · 高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "evening gown",
+        "accessory": "veil",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_formal_8",
+      "zh": "鸡尾酒裙 · 项链 · 浅口高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "cocktail dress",
+        "accessory": "necklace",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "v13_formal_9",
+      "zh": "晚礼服 · 项链 · 浅口高跟鞋",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "evening gown",
+        "accessory": "necklace",
+        "footwear": "pumps"
+      }
+    },
+    {
+      "id": "v13_home_1",
+      "zh": "浴袍 · 赤足",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "dress": "bathrobe",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "v13_swim_1",
+      "zh": "连体泳装 · 毛巾 · 人字拖",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "one-piece swimsuit",
+        "accessory": "towel",
+        "footwear": "flip-flops"
+      }
+    },
+    {
+      "id": "v13_swim_2",
+      "zh": "竞技泳装 · 纱笼裙 · 人字拖",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "competition swimsuit",
+        "accessory": "sarong",
+        "footwear": "flip-flops"
+      }
+    },
+    {
+      "id": "v13_swim_3",
+      "zh": "单件比基尼 · 纱笼裙 · 赤足",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "monokini",
+        "accessory": "sarong",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "v13_swim_4",
+      "zh": "单件比基尼 · 毛巾 · 凉鞋",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "monokini",
+        "accessory": "towel",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_swim_5",
+      "zh": "学校泳装（死库水） · 纱笼裙 · 赤足",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "school swimsuit",
+        "accessory": "sarong",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "v13_swim_6",
+      "zh": "竞技泳装 · 毛巾 · 凉鞋",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "competition swimsuit",
+        "accessory": "towel",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_swim_7",
+      "zh": "单件比基尼 · 纱笼裙 · 凉鞋",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "monokini",
+        "accessory": "sarong",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_swim_8",
+      "zh": "学校泳装（死库水） · 毛巾 · 赤足",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "school swimsuit",
+        "accessory": "towel",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "v13_swim_9",
+      "zh": "竞技泳装 · 纱笼裙 · 凉鞋",
+      "cat": "swim",
+      "level": 1,
+      "tags": {
+        "dress": "competition swimsuit",
+        "accessory": "sarong",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "v13_combat_1",
+      "zh": "连体衣 · 军用靴 · 手套",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "bodysuit",
+        "footwear": "combat boots",
+        "accessory": "gloves"
+      }
+    },
+    {
+      "id": "v13_combat_2",
+      "zh": "连体衣 · 靴子 · 手套",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "bodysuit",
+        "footwear": "boots",
+        "accessory": "gloves"
+      }
+    },
+    {
+      "id": "v13_combat_3",
+      "zh": "连体衣 · 靴子 · 围巾",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "bodysuit",
+        "footwear": "boots",
+        "accessory": "scarf"
+      }
+    },
+    {
+      "id": "v13_combat_4",
+      "zh": "盔甲 · 靴子 · 手套",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "armor",
+        "footwear": "boots",
+        "accessory": "gloves"
+      }
+    },
+    {
+      "id": "v13_combat_6",
+      "zh": "军装 · 靴子 · 手套",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "military uniform",
+        "footwear": "boots",
+        "accessory": "gloves"
+      }
+    },
+    {
+      "id": "v13_combat_7",
+      "zh": "军装 · 军用靴 · 手套",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "military uniform",
+        "footwear": "combat boots",
+        "accessory": "gloves"
+      }
+    },
+    {
+      "id": "v13_combat_8",
+      "zh": "忍者 · 靴子 · 手套",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "dress": "ninja",
+        "footwear": "boots",
+        "accessory": "gloves"
+      }
+    },
+    {
+      "id": "v13_cosplay_1",
+      "zh": "赛车女郎 · 白色过膝袜 · 高跟鞋",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "race queen",
+        "legwear": "white thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_cosplay_2",
+      "zh": "圣诞装 · 黑色连裤袜 · 高跟鞋",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "santa costume",
+        "legwear": "black pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_cosplay_3",
+      "zh": "警服 · 及膝袜 · 高跟鞋",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "police uniform",
+        "legwear": "kneehighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_cosplay_4",
+      "zh": "警服 · 白色过膝袜 · 靴子",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "police uniform",
+        "legwear": "white thighhighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "v13_cosplay_5",
+      "zh": "赛车女郎 · 及膝袜 · 玛丽珍鞋",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "race queen",
+        "legwear": "kneehighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "v13_cosplay_6",
+      "zh": "警服 · 白色过膝袜 · 高跟鞋",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "police uniform",
+        "legwear": "white thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_cosplay_7",
+      "zh": "圣诞装 · 白色过膝袜 · 靴子",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "santa costume",
+        "legwear": "white thighhighs",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "v13_cosplay_8",
+      "zh": "圣诞装 · 及膝袜 · 玛丽珍鞋",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "santa costume",
+        "legwear": "kneehighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "v13_cosplay_9",
+      "zh": "圣诞装 · 白色过膝袜 · 玛丽珍鞋",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "santa costume",
+        "legwear": "white thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "v13_hosiery_1",
+      "zh": "黑衬衫 · 迷你裙 · 白色过膝袜 · 乐福鞋",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "miniskirt",
+        "legwear": "white thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_hosiery_2",
+      "zh": "黑衬衫 · 迷你裙 · 黑色过膝袜 · 乐福鞋",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "miniskirt",
+        "legwear": "black thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "v13_hosiery_3",
+      "zh": "黑衬衫 · 短裤 · 单只大腿袜 · 厚底靴",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "shorts",
+        "legwear": "single thighhigh",
+        "footwear": "platform boots"
+      }
+    },
+    {
+      "id": "v13_hosiery_4",
+      "zh": "黑衬衫 · 铅笔裙 · 黑色过膝袜 · 及大腿靴",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "pencil skirt",
+        "legwear": "black thighhighs",
+        "footwear": "thigh boots"
+      }
+    },
+    {
+      "id": "v13_hosiery_5",
+      "zh": "黑衬衫 · 迷你裙 · 吊袜带（束腰吊带） · 高跟鞋",
+      "cat": "hosiery",
+      "level": 2,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "miniskirt",
+        "legwear": "garter belt",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_hosiery_6",
+      "zh": "黑衬衫 · 铅笔裙 · 黑色过膝袜 · 厚底靴",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "pencil skirt",
+        "legwear": "black thighhighs",
+        "footwear": "platform boots"
+      }
+    },
+    {
+      "id": "v13_hosiery_7",
+      "zh": "针织毛衣 · 铅笔裙 · 单只大腿袜 · 及大腿靴",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "pencil skirt",
+        "legwear": "single thighhigh",
+        "footwear": "thigh boots"
+      }
+    },
+    {
+      "id": "v13_hosiery_8",
+      "zh": "黑衬衫 · 迷你裙 · 单只大腿袜 · 厚底靴",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "black shirt",
+        "bottom": "miniskirt",
+        "legwear": "single thighhigh",
+        "footwear": "platform boots"
+      }
+    },
+    {
+      "id": "v13_hosiery_9",
+      "zh": "针织毛衣 · 迷你裙 · 黑色过膝袜 · 高跟鞋",
+      "cat": "hosiery",
+      "level": 0,
+      "tags": {
+        "top": "knit sweater",
+        "bottom": "miniskirt",
+        "legwear": "black thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "v13_sport_1",
+      "zh": "网球连衣裙 · 运动鞋",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "dress": "tennis dress",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_sport_2",
+      "zh": "拉拉队（啦啦队员） · 运动鞋",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "dress": "cheerleader",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "v13_gothic_1",
+      "zh": "黑色连衣裙 · 黑色过膝袜 · 厚底靴",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "legwear": "black thighhighs",
+        "footwear": "platform boots"
+      }
+    },
+    {
+      "id": "v13_gothic_2",
+      "zh": "黑色连衣裙 · 黑色过膝袜 · 短靴（踝靴）",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "legwear": "black thighhighs",
+        "footwear": "ankle boots"
+      }
+    },
+    {
+      "id": "v13_gothic_5",
+      "zh": "黑色连衣裙 · 黑色过膝袜 · 玛丽珍鞋",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "dress": "black dress",
+        "legwear": "black thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "v13_nsfw_outfit_2",
+      "zh": "露背连衣裙 · 绑带高跟鞋",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "dress": "backless dress",
+        "footwear": "strappy heels"
+      }
+    },
+    {
+      "id": "nsfw_naked_apron",
+      "zh": "裸体围裙 · 红色项圈",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "naked apron",
+        "accessory": "red collar",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "nsfw_sheer_lace_negligee",
+      "zh": "透视蕾丝睡袍 · 吊带袜",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "see-through negligee",
+        "legwear": "garter straps, lace thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nsfw_latex_cutout_bodysuit",
+      "zh": "漆皮连体胶衣 · 胸部剪裁",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "latex bodysuit",
+        "outer": "cleavage cutout, highleg leotard",
+        "footwear": "latex boots"
+      }
+    },
+    {
+      "id": "nsfw_strappy_micro_bikini",
+      "zh": "系带微型比基尼 · 踝环",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "micro bikini top",
+        "bottom": "side-tie micro bikini bottom",
+        "accessory": "anklet"
+      }
+    },
+    {
+      "id": "nsfw_keyhole_knit_miniskirt",
+      "zh": "开胸针织衫 · 百褶超短裙",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "top": "keyhole sweater",
+        "bottom": "micro pleated skirt",
+        "legwear": "black thighhighs",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "nsfw_torn_pantyhose_shirt",
+      "zh": "撕裂连裤袜 · 宽松白衬衫",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "oversized shirt, unbuttoned shirt",
+        "legwear": "torn pantyhose",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "nsfw_leather_harness_set",
+      "zh": "皮质拘束带 · 铆钉项圈",
+      "cat": "nsfw_outfit",
+      "level": 3,
+      "tags": {
+        "top": "chest harness",
+        "bottom": "leather strap panties",
+        "accessory": "spiked collar, handcuffs",
+        "legwear": "leather thighhighs",
+        "footwear": "stiletto heels"
+      }
+    },
+    {
+      "id": "nsfw_open_chest_nun",
+      "zh": "开胸修女服 · 高开叉长裙",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "nun dress, cleavage cutout",
+        "accessory": "veil",
+        "legwear": "black stockings",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "nsfw_sheer_bunny_suit",
+      "zh": "薄纱透视兔女郎 · 渔网袜",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "see-through bunny suit",
+        "accessory": "bunny ears, bow tie",
+        "legwear": "fishnet pantyhose",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nsfw_wet_tshirt_sheer_panties",
+      "zh": "湿水白T恤 · 透视内裤",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "wet t-shirt, see-through shirt",
+        "bottom": "white panties",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "nsfw_crotchless_garter_set",
+      "zh": "开档连裤袜 · 蕾丝胸衣",
+      "cat": "nsfw_outfit",
+      "level": 3,
+      "tags": {
+        "top": "lace corset",
+        "bottom": "crotchless panties",
+        "legwear": "crotchless pantyhose, garter belt",
+        "footwear": "stiletto heels"
+      }
+    },
+    {
+      "id": "nsfw_shibari_open_kimono",
+      "zh": "红绳紧缚 · 敞襟和服",
+      "cat": "nsfw_outfit",
+      "level": 3,
+      "tags": {
+        "dress": "open kimono, shibari",
+        "accessory": "rope bondage, collar",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "nsfw_succubus_latex_gear",
+      "zh": "魅魔情趣皮衣 · 蝠翼角饰",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "latex bra",
+        "bottom": "latex thong",
+        "accessory": "demon horns, bat wings, heart tail",
+        "legwear": "thighhighs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nsfw_deep_v_monokini",
+      "zh": "深V高叉连体泳衣 · 墨镜",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "dress": "monokini, deep v-neck, highleg",
+        "accessory": "sunglasses",
+        "footwear": "sandals"
+      }
+    },
+    {
+      "id": "nsfw_undone_sailor_exposed_bra",
+      "zh": "敞开水手服 · 外露文胸",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "unbuttoned serafuku, exposed bra",
+        "bottom": "pleated skirt",
+        "legwear": "loose socks",
+        "footwear": "loafers"
+      }
+    },
+    {
+      "id": "nsfw_backless_slit_cheongsam",
+      "zh": "大露背旗袍 · 超高开叉",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "dress": "backless cheongsam, high slit",
+        "legwear": "bare legs",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nsfw_sheer_chemise_nightgown",
+      "zh": "透明薄纱吊带睡裙 · 丁字裤",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "sheer chemise, transparent dress",
+        "bottom": "thong",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "nsfw_slingshot_lingerie",
+      "zh": "弹弓情趣内衣 · 乳贴",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "slingshot swimsuit, pasties",
+        "accessory": "choker",
+        "footwear": "high heels"
+      }
+    },
+    {
+      "id": "nsfw_sheer_maid_outfit",
+      "zh": "透视情趣女仆 · 蕾丝发箍",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "sheer maid dress, see-through apron",
+        "accessory": "maid headdress",
+        "legwear": "lace-trimmed thighhighs",
+        "footwear": "mary janes"
+      }
+    },
+    {
+      "id": "nsfw_tie_and_thigh_boots_nude",
+      "zh": "纯领带过膝靴 · 露乳全裸",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "accessory": "necktie, collar",
+        "legwear": "thigh boots",
+        "footwear": "bare breasts, otherwise nude"
+      }
+    },
+    {
+      "id": "nsfw_ripped_shorts_tube_top",
+      "zh": "撕边牛仔短裤 · 露腰裹胸",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "top": "tube top, midriff",
+        "bottom": "unbuttoned denim shorts",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "nsfw_translucent_silk_slip",
+      "zh": "微透真丝吊带裙 · 裸腿",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "dress": "silk slip dress, translucent",
+        "accessory": "necklace",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "nsfw_crotchless_bloomers_set",
+      "zh": "露脐体操服 · 开档灯笼裤",
+      "cat": "nsfw_outfit",
+      "level": 3,
+      "tags": {
+        "top": "crop top gym uniform",
+        "bottom": "crotchless bloomers",
+        "legwear": "white socks",
+        "footwear": "sneakers"
+      }
+    },
+    {
+      "id": "nsfw_latex_highleg_leotard",
+      "zh": "高叉乳胶连体衣 · 亮皮过膝靴",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "highleg leotard, latex",
+        "accessory": "latex gloves",
+        "footwear": "patent leather thigh boots"
+      }
+    },
+    {
+      "id": "nsfw_red_velvet_ribbon_lingerie",
+      "zh": "红丝绒系带内衣 · 吊袜带",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "red velvet bra",
+        "bottom": "ribbon-trimmed panties",
+        "legwear": "garter belt, sheer black stockings",
+        "footwear": "stiletto heels"
+      }
+    },
+    {
+      "id": "nsfw_torn_nun_fishnets",
+      "zh": "撕裂修女袍 · 渔网袜",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "torn nun dress, exposed breasts",
+        "accessory": "veil",
+        "legwear": "fishnet stockings",
+        "footwear": "boots"
+      }
+    },
+    {
+      "id": "nsfw_lace_teddy_bodysuit",
+      "zh": "镂空蕾丝泰迪熊连体衣 · 细高跟",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "dress": "lace teddy, cutout lingerie",
+        "accessory": "choker",
+        "footwear": "stiletto heels"
+      }
+    },
+    {
+      "id": "nsfw_string_sling_bikini",
+      "zh": "极细绳装比基尼 · 细绳丁字裤",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "string bikini top",
+        "bottom": "g-string bikini bottom",
+        "accessory": "belly chain"
+      }
+    },
+    {
+      "id": "nsfw_heavy_leather_restraint_suit",
+      "zh": "重度皮带拘束套装 · 封口口塞",
+      "cat": "nsfw_outfit",
+      "level": 3,
+      "tags": {
+        "dress": "leather harness suit",
+        "accessory": "collar, leash, ball gag, handcuffs",
+        "legwear": "leather boots"
+      }
+    },
+    {
+      "id": "nsfw_wet_blouse_black_lace",
+      "zh": "湿透透明衬衫 · 黑色蕾丝内衣",
+      "cat": "nsfw_outfit",
+      "level": 2,
+      "tags": {
+        "top": "wet blouse, black lace bra, see-through shirt",
+        "bottom": "black lace panties",
+        "footwear": "barefoot"
+      }
+    },
+    {
+      "id": "cyber_tech_hoodie",
+      "zh": "赛博机能 · 连帽卫衣 · 工装裤",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "cropped hoodie",
+        "bottom": "cargo pants",
+        "outer": "techwear jacket",
+        "footwear": "combat boots",
+        "accessory": "choker, belt, goggles"
+      }
+    },
+    {
+      "id": "gothic_velvet_dress",
+      "zh": "哥特丝绒长裙 · 蕾丝披肩",
+      "cat": "gothic",
+      "level": 0,
+      "tags": {
+        "dress": "velvet dress",
+        "outer": "lace shawl",
+        "legwear": "black pantyhose",
+        "footwear": "mary janes",
+        "accessory": "cameo brooch, ribbon"
+      }
+    },
+    {
+      "id": "modern_slit_skirt_knit",
+      "zh": "修身针织 · 侧开叉半身裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "turtleneck sweater",
+        "bottom": "slit skirt",
+        "legwear": "sheer pantyhose",
+        "footwear": "ankle boots",
+        "accessory": "pendant, leather belt"
+      }
+    },
+    {
+      "id": "oversized_knit_loungewear",
+      "zh": "慵懒宽松毛衣 · 过膝袜",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "top": "oversized sweater",
+        "bottom": "shorts",
+        "legwear": "thighhighs",
+        "footwear": "slippers",
+        "accessory": "hair clip"
+      }
+    },
+    {
+      "id": "oriental_lace_qipao",
+      "zh": "改良蕾丝旗袍 · 细高跟",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "dress": "short cheongsam",
+        "legwear": "fishnet thighhighs",
+        "footwear": "high heels",
+        "accessory": "hair stick, folding fan"
+      }
+    },
+    {
+      "id": "fantasy_traveler_tunic",
+      "zh": "奇幻旅者束腰外衣 · 连帽斗篷",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "top": "tunic",
+        "bottom": "leather shorts",
+        "outer": "hooded cloak",
+        "footwear": "riding boots",
+        "accessory": "leather belt, pouch, fingerless gloves"
+      }
+    },
+    {
+      "id": "retro_french_maid",
+      "zh": "法式复古荷叶边女仆装",
+      "cat": "cosplay",
+      "level": 0,
+      "tags": {
+        "dress": "maid apron dress",
+        "legwear": "white thighhighs",
+        "footwear": "mary janes",
+        "accessory": "maid headdress, lace gloves"
+      }
+    },
+    {
+      "id": "summer_resort_pareo",
+      "zh": "度假风挂脖比基尼 · 薄纱围裹裙",
+      "cat": "swim",
+      "level": 0,
+      "tags": {
+        "top": "halter bikini top",
+        "bottom": "bikini bottom",
+        "outer": "pareo",
+        "footwear": "sandals",
+        "accessory": "sun hat, sunglasses"
+      }
+    },
+    {
+      "id": "racing_queen_leather",
+      "zh": "赛道皮衣 · 紧身超短裙 · 抹胸",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "top": "tube top",
+        "bottom": "leather mini skirt",
+        "outer": "bolero jacket",
+        "footwear": "thigh boots",
+        "accessory": "sunglasses, fingerless gloves"
+      }
+    },
+    {
+      "id": "chic_tweed_suit",
+      "zh": "小香风粗花呢外套 · 呢子裙",
+      "cat": "office",
+      "level": 0,
+      "tags": {
+        "top": "tweed jacket",
+        "bottom": "tweed skirt",
+        "legwear": "black stockings",
+        "footwear": "loafers",
+        "accessory": "pearl necklace, beret"
+      }
+    },
+    {
+      "id": "streetwear_bomber_denim",
+      "zh": "飞行员夹克 · 破洞牛仔裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "graphic t-shirt",
+        "bottom": "denim mini skirt",
+        "outer": "bomber jacket",
+        "footwear": "sneakers",
+        "legwear": "crew socks",
+        "accessory": "baseball cap, choker"
+      }
+    },
+    {
+      "id": "delicate_nightgown_robe",
+      "zh": "丝绸吊带睡裙 · 薄纱晨袍",
+      "cat": "home",
+      "level": 0,
+      "tags": {
+        "dress": "silk nightgown",
+        "outer": "sheer robe",
+        "footwear": "barefoot",
+        "accessory": "hair ribbon"
+      }
+    },
+    {
+      "id": "off_shoulder_blouse_pleated",
+      "zh": "露肩雪纺衫 · 百褶短裙",
+      "cat": "casual",
+      "level": 0,
+      "tags": {
+        "top": "off-shoulder blouse",
+        "bottom": "pleated skirt",
+        "legwear": "knee socks",
+        "footwear": "pumps",
+        "accessory": "choker, handbag"
+      }
+    },
+    {
+      "id": "traditional_black_miko",
+      "zh": "玄色巫女服 · 绯袴",
+      "cat": "traditional",
+      "level": 0,
+      "tags": {
+        "top": "miko attire",
+        "bottom": "hakama skirt",
+        "outer": "haori",
+        "footwear": "tabi, geta",
+        "accessory": "hair ribbon, bell"
+      }
+    },
+    {
+      "id": "sheer_lace_slip_dress",
+      "zh": "薄纱蕾丝吊带裙",
+      "cat": "nsfw_outfit",
+      "level": 1,
+      "tags": {
+        "dress": "sheer slip",
+        "outer": "lace cardigan",
+        "footwear": "barefoot",
+        "accessory": "silk ribbon"
+      }
+    },
+    {
+      "id": "strappy_monokini_wrap",
+      "zh": "镂空系带连体泳衣 · 防晒披肩",
+      "cat": "swim",
+      "level": 0,
+      "tags": {
+        "dress": "monokini",
+        "outer": "sheer cardigan",
+        "footwear": "sandals",
+        "accessory": "straw hat, body jewelry"
+      }
+    },
+    {
+      "id": "corset_leather_shorts",
+      "zh": "束身胸衣 · 漆皮短裤 · 短夹克",
+      "cat": "combat",
+      "level": 0,
+      "tags": {
+        "top": "corset",
+        "bottom": "leather shorts",
+        "outer": "cropped jacket",
+        "footwear": "platform boots",
+        "accessory": "layered necklace, belt"
+      }
+    },
+    {
+      "id": "cozy_hoodie_plaid",
+      "zh": "连帽卫衣 · 苏格兰格纹裙 · 堆堆袜",
+      "cat": "school",
+      "level": 0,
+      "tags": {
+        "top": "hoodie",
+        "bottom": "plaid skirt",
+        "legwear": "loose socks",
+        "footwear": "canvas shoes",
+        "outer": "denim vest",
+        "accessory": "glasses, backpack"
+      }
+    },
+    {
+      "id": "glamour_evening_gown",
+      "zh": "星光单肩长晚礼服 · 毛绒披肩",
+      "cat": "formal",
+      "level": 0,
+      "tags": {
+        "dress": "one-shoulder gown",
+        "outer": "fur stole",
+        "footwear": "strappy high heels",
+        "accessory": "dangling earrings, clutch"
+      }
+    },
+    {
+      "id": "sporty_biker_shorts",
+      "zh": "运动紧身背心 · 骑行短裤",
+      "cat": "sport",
+      "level": 0,
+      "tags": {
+        "top": "sports bra",
+        "bottom": "biker shorts",
+        "outer": "zip-up hoodie",
+        "footwear": "running shoes",
+        "legwear": "ankle socks",
+        "accessory": "sweatband, headphones"
+      }
+    }
+  ],
+  "count": 381
+}

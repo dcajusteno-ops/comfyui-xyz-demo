@@ -67,6 +67,9 @@ const LoraManagerPanel = lazy(() =>
 const LuckyWheelPanel = lazy(() =>
   import("../features/LuckyWheel").then((m) => ({ default: m.LuckyWheelPanel })),
 );
+const NoobaiPanel = lazy(() =>
+  import("../features/Noobai").then((m) => ({ default: m.NoobaiPanel })),
+);
 
 type ParamsHook = ReturnType<typeof useParams>;
 type LorasHook = ReturnType<typeof useLoras>;
@@ -441,6 +444,10 @@ export const WorkspacePanels = React.memo(function WorkspacePanels({
           pushToast={pushToast}
           onOpenAnimaLibrary={handlers.openAnimaLibrary}
         />
+      )}
+
+      {tab === "noobai" && (
+        <NoobaiPanel apiBase={apiBase} />
       )}
     </>
   );

@@ -39,6 +39,12 @@ describe("侧边栏 tab 定义", () => {
     expect(ids.filter((id) => id === "wardrobe")).toHaveLength(1);
   });
 
+  it("NoobAI 抽取入口存在且唯一", () => {
+    const ids = toolTabs.map((tab) => tab.id);
+    expect(ids).toContain("noobai");
+    expect(ids.filter((id) => id === "noobai")).toHaveLength(1);
+  });
+
   it("数字键只覆盖前 9 项（造型台插在工具组不会顺移快捷键）", () => {
     expect([...generationTabs, slotsTab]).toHaveLength(9);
   });

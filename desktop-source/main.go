@@ -31,6 +31,7 @@ import (
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/launcher"
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/media"
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/mobile"
+	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/noobai"
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/proxy"
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/storage"
 	"github.com/dcajusteno-ops/comfyui-xyz-demo/internal/winchrome"
@@ -374,6 +375,19 @@ func buildMux(root string, dist fs.FS, comfyTarget, aliyunTarget *url.URL, chrom
 	imageService := api.NewImageService(dist, imageHandler, uiStateStore)
 	imageService.Start()
 	imageHandler.ServiceURL = imageService.URL
+	// NoobAI 标签抽取服务（内置独立端口 9135~9145，离线可用）
+	if noobAssets, err := noobai.EmbeddedFS(); err == nil {
+		if noobService, err := noobai.NewService(noobAssets, root, comfyBaseURL, imageService.URL()); err == nil {
+			noobService.Start()
+			mux.HandleFunc("/xyz/noobai/service", func(w http.ResponseWriter, r *http.Request) {
+				storage.SendJSON(w, http.StatusOK, map[string]any{"success": true, "url": noobService.URL()})
+			})
+		} else {
+			log.Printf("noobai service init: %v", err)
+		}
+	} else {
+		log.Printf("noobai embedded assets: %v", err)
+	}
 	// Danbooru 图片同源代理：浏览器直连 CDN 会被 Sec-Fetch 热链保护拦成 403
 	mux.HandleFunc(api.AnimaImageRoute, stores.HandleAnimaImage)
 	mux.HandleFunc(api.AnimaImageRoute+"/", stores.HandleAnimaImage)

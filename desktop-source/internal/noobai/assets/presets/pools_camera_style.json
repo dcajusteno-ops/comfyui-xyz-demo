@@ -1,0 +1,2130 @@
+{
+  "_meta": {
+    "schema": "noobai-lib/pools@1",
+    "version": "1.4.0",
+    "part": "camera_style",
+    "sections": 4
+  },
+  "sections": [
+    {
+      "id": "artist",
+      "title": "🎨 画师风格",
+      "lab": "画师风格",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "artist.name",
+          "lab": "知名画师",
+          "type": "select",
+          "req": false,
+          "prob": 0.5,
+          "opts": [
+            ["WLOP (光影厚涂)", "wlop", 0],
+            ["Ciloranko (唯美光影)", "ciloranko", 0],
+            ["ASK (极致质感)", "ask (askzy)", 0],
+            ["Mika Pikazo (高饱和多巴胺)", "mika pikazo", 0],
+            ["藤原 (和风唯美奇幻)", "fuzichoco", 0],
+            ["森仓圆 (透明感JK少女)", "morikura en", 0],
+            ["Tiv (清爽恋爱二次元)", "tiv", 0],
+            ["Anmi (梦幻美少女)", "anmi", 0],
+            ["Tony (经典美少女)", "tony taka", 0],
+            ["neco (重兵装机械少女)", "neco", 0],
+            ["redjuice (科幻潮流科技)", "redjuice", 0],
+            ["huke (暗黑机能朋克)", "huke", 0],
+            ["米山舞 (极致动势与排线)", "yoneyama mai", 0],
+            ["rurudo (甜美粉白少女)", "rurudo", 0],
+            ["武内崇 (型月社风)", "takeuchi takashi", 0],
+            ["监督 (格子裙与夏日JK)", "kantoku", 0],
+            ["深崎暮人 (唯美恋爱插画)", "misaki kurehito", 0],
+            ["白井锐利 (轻小说厚涂)", "shirabi", 0],
+            ["mocha (唯美星空与风景)", "mocha (mocha708)", 0],
+            ["Krenz (光影色彩大师)", "krenz cushart", 0],
+            ["ATDAN (华丽厚涂)", "atdan", 0],
+            ["lack (暗黑张力奇幻)", "lack", 0],
+            ["saitom (机娘美少女)", "saitom", 0],
+            ["ogla (精致萌系少女)", "ogla", 0],
+            ["sho (唯美光感色彩)", "sho (sho_lwlw)", 0],
+            ["swd3e2 (水面反射光影)", "swd3e2", 0],
+            ["reoenl (电影级厚涂)", "reoenl", 0],
+            ["gomzi (柔光细腻肤质)", "gomzi", 0],
+            ["mignon (细腻高光质感)", "mignon", 0],
+            ["黑星红白 (唯美奇幻绘本)", "kuroboushi", 0],
+            ["Hiten (经典透明感JK)", "hiten (hitenkei)", 0],
+            ["torino (高饱和高质感同人)", "torino (torinone)", 0],
+            ["alchemaniac (深海空灵少女)", "alchemaniac", 0],
+            ["dSmile (华丽修长美少女)", "dsmile", 0],
+            ["村田莲尔 (复古工业美学)", "range murata", 0],
+            ["山下俊也 (美式日漫融合)", "shunya yamashita", 0],
+            ["天野喜孝 (缥缈水墨虚幻)", "amano yoshitaka", 0],
+            ["新海诚 (电影级光影天空)", "shinkai makoto", 0],
+            ["左 (柔和童话水彩)", "hidari", 0],
+            ["pako (飘逸华丽配色)", "pako", 0]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lighting",
+      "title": "⑫ 光影与氛围",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "lighting.type",
+          "lab": "光照类型",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "柔光",
+              "soft lighting",
+              0
+            ],
+            [
+              "硬光",
+              "hard lighting",
+              0
+            ],
+            [
+              "自然光",
+              "natural lighting",
+              0
+            ],
+            [
+              "棚拍光",
+              "studio lighting",
+              0
+            ],
+            [
+              "电影光",
+              "cinematic lighting",
+              0
+            ],
+            [
+              "戏剧光",
+              "dramatic lighting",
+              0
+            ],
+            [
+              "逆光",
+              "backlighting",
+              0
+            ],
+            [
+              "轮廓光",
+              "rim lighting",
+              0
+            ],
+            [
+              "侧光",
+              "side lighting",
+              0
+            ],
+            [
+              "顶光",
+              "top lighting",
+              0
+            ],
+            [
+              "底光",
+              "bottom lighting",
+              0
+            ],
+            [
+              "暖光",
+              "warm lighting",
+              0
+            ],
+            [
+              "冷光",
+              "cool lighting",
+              0
+            ],
+            [
+              "黄金时刻",
+              "golden hour",
+              0
+            ],
+            [
+              "蓝调时刻",
+              "blue hour",
+              0
+            ],
+            [
+              "霓虹光",
+              "neon lights",
+              0
+            ],
+            [
+              "烛光",
+              "candlelight",
+              0
+            ],
+            [
+              "火光",
+              "firelight",
+              0
+            ],
+            [
+              "月光",
+              "moonlight",
+              0
+            ],
+            [
+              "阳光",
+              "sunlight",
+              0
+            ],
+            [
+              "斑驳阳光",
+              "dappled sunlight",
+              0
+            ],
+            [
+              "耶稣光",
+              "god rays",
+              0
+            ],
+            [
+              "镜头光晕",
+              "lens flare",
+              0
+            ],
+            [
+              "体积光",
+              "volumetric lighting",
+              0
+            ],
+            [
+              "泛光",
+              "bloom",
+              0
+            ],
+            [
+              "高对比",
+              "high contrast",
+              0
+            ],
+            [
+              "低调光",
+              "low key",
+              0
+            ],
+            [
+              "高调光",
+              "high key",
+              0
+            ],
+            [
+              "窗光",
+              "window light",
+              0
+            ],
+            [
+              "反射光",
+              "reflected light",
+              0
+            ],
+            [
+              "边缘光",
+              "edge lighting",
+              0
+            ],
+            [
+              "散景光斑",
+              "bokeh",
+              0
+            ],
+            [
+              "黎明光",
+              "dawn light",
+              0
+            ],
+            [
+              "黄昏光",
+              "dusk light",
+              0
+            ],
+            [
+              "日出光",
+              "sunrise lighting",
+              0
+            ],
+            [
+              "日落光",
+              "sunset lighting",
+              0
+            ],
+            [
+              "金色光",
+              "golden light",
+              0
+            ],
+            [
+              "银色光",
+              "silver light",
+              0
+            ],
+            [
+              "荧光灯",
+              "fluorescent lighting",
+              0
+            ],
+            [
+              "白炽灯",
+              "incandescent lighting",
+              0
+            ],
+            [
+              "LED 灯",
+              "led lighting",
+              0
+            ],
+            [
+              "屏幕光",
+              "screen light",
+              0
+            ],
+            [
+              "星光",
+              "starlight",
+              0
+            ],
+            [
+              "水下光",
+              "underwater lighting",
+              0
+            ],
+            [
+              "黑光灯",
+              "blacklight",
+              0
+            ],
+            [
+              "频闪灯",
+              "strobe light",
+              0
+            ],
+            [
+              "生物荧光",
+              "bioluminescence",
+              0
+            ],
+            [
+              "台灯光",
+              "lamplight",
+              0
+            ],
+            [
+              "路灯",
+              "streetlight",
+              0
+            ],
+            [
+              "火炬光",
+              "torchlight",
+              0
+            ],
+            [
+              "分割光",
+              "split lighting",
+              0
+            ],
+            [
+              "伦勃朗光",
+              "rembrandt lighting",
+              0
+            ],
+            [
+              "蝴蝶光",
+              "butterfly lighting",
+              0
+            ],
+            [
+              "环境光",
+              "ambient light",
+              0
+            ],
+            [
+              "侧光",
+              "sidelighting",
+              0
+            ],
+            [
+              "聚光灯",
+              "spotlight",
+              0
+            ],
+            [
+              "顶灯",
+              "ceiling light",
+              0
+            ],
+            [
+              "手电筒",
+              "flashlight",
+              0
+            ],
+            [
+              "光线（光束）",
+              "light rays",
+              0
+            ]
+          ],
+          "slot": "lighting"
+        },
+        {
+          "key": "lighting.mood",
+          "lab": "氛围",
+          "type": "select",
+          "req": false,
+          "prob": 0.5,
+          "opts": [
+            [
+              "温馨",
+              "cozy",
+              0
+            ],
+            [
+              "忧郁",
+              "melancholic",
+              0
+            ],
+            [
+              "梦幻",
+              "dreamy",
+              0
+            ],
+            [
+              "空灵",
+              "ethereal",
+              0
+            ],
+            [
+              "神秘",
+              "mysterious",
+              0
+            ],
+            [
+              "浪漫",
+              "romantic",
+              0
+            ],
+            [
+              "开朗",
+              "cheerful",
+              0
+            ],
+            [
+              "宁静",
+              "serene",
+              0
+            ],
+            [
+              "不祥",
+              "ominous",
+              0
+            ],
+            [
+              "怀旧",
+              "nostalgic",
+              0
+            ],
+            [
+              "鲜艳",
+              "vibrant",
+              0
+            ],
+            [
+              "柔和色彩",
+              "muted colors",
+              0
+            ],
+            [
+              "暧昧",
+              "ambiguous atmosphere",
+              0
+            ],
+            [
+              "紧张",
+              "tense",
+              0
+            ],
+            [
+              "平和",
+              "peaceful",
+              0
+            ],
+            [
+              "苦甜",
+              "bittersweet",
+              0
+            ],
+            [
+              "希望",
+              "hopeful",
+              0
+            ],
+            [
+              "诡异",
+              "eerie",
+              0
+            ],
+            [
+              "超现实",
+              "surreal",
+              0
+            ],
+            [
+              "奇想",
+              "whimsical",
+              0
+            ],
+            [
+              "史诗",
+              "epic",
+              0
+            ],
+            [
+              "亲密",
+              "intimate",
+              0
+            ],
+            [
+              "性感",
+              "sensual",
+              1
+            ],
+            [
+              "俏皮",
+              "playful",
+              0
+            ],
+            [
+              "平静",
+              "calm",
+              0
+            ],
+            [
+              "孤独",
+              "lonely",
+              0
+            ],
+            [
+              "温暖",
+              "warm",
+              0
+            ],
+            [
+              "冷冽",
+              "cold",
+              0
+            ],
+            [
+              "情绪化",
+              "moody",
+              0
+            ],
+            [
+              "庄严",
+              "majestic",
+              0
+            ],
+            [
+              "神秘",
+              "mystical",
+              0
+            ],
+            [
+              "撩人",
+              "sultry",
+              0
+            ],
+            [
+              "纯真",
+              "innocent",
+              0
+            ],
+            [
+              "安宁",
+              "tranquil",
+              0
+            ],
+            [
+              "阴郁",
+              "somber",
+              0
+            ],
+            [
+              "如梦",
+              "dreamlike",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "lighting.grade",
+          "lab": "调色与后期",
+          "type": "multi",
+          "req": false,
+          "prob": 0.4,
+          "opts": [
+            [
+              "粉彩",
+              "pastel colors",
+              0
+            ],
+            [
+              "单色",
+              "monochrome",
+              0
+            ],
+            [
+              "棕褐",
+              "sepia",
+              0
+            ],
+            [
+              "青色调",
+              "cyan tint",
+              0
+            ],
+            [
+              "暖色调",
+              "warm tint",
+              0
+            ],
+            [
+              "冷色调",
+              "cold tint",
+              0
+            ],
+            [
+              "高饱和",
+              "saturated",
+              0
+            ],
+            [
+              "低饱和",
+              "desaturated",
+              0
+            ],
+            [
+              "虹彩",
+              "iridescent",
+              0
+            ],
+            [
+              "色差",
+              "chromatic aberration",
+              0
+            ],
+            [
+              "胶片颗粒",
+              "film grain",
+              0
+            ],
+            [
+              "暗角",
+              "vignetting",
+              0
+            ],
+            [
+              "柔焦",
+              "soft focus",
+              0
+            ],
+            [
+              "景深",
+              "depth of field",
+              0
+            ],
+            [
+              "散景",
+              "bokeh",
+              0
+            ],
+            [
+              "光斑",
+              "light particles",
+              0
+            ],
+            [
+              "光线追踪",
+              "ray tracing",
+              0
+            ],
+            [
+              "高动态范围",
+              "high dynamic range",
+              0
+            ],
+            [
+              "暖色滤镜",
+              "warm filter",
+              0
+            ],
+            [
+              "冷色滤镜",
+              "cool filter",
+              0
+            ],
+            [
+              "复古滤镜",
+              "vintage filter",
+              0
+            ],
+            [
+              "胶片质感",
+              "film look",
+              0
+            ],
+            [
+              "柯达胶片",
+              "kodak film",
+              0
+            ],
+            [
+              "富士胶片",
+              "fuji film",
+              0
+            ],
+            [
+              "拍立得滤镜",
+              "polaroid filter",
+              0
+            ],
+            [
+              "交叉冲洗",
+              "cross processing",
+              0
+            ],
+            [
+              "双重曝光",
+              "double exposure",
+              0
+            ],
+            [
+              "漏光",
+              "light leaks",
+              0
+            ],
+            [
+              "颗粒感",
+              "grainy",
+              0
+            ],
+            [
+              "柔光泛光",
+              "soft bloom",
+              0
+            ],
+            [
+              "青橙调",
+              "teal and orange",
+              0
+            ],
+            [
+              "暖色调",
+              "warm tones",
+              0
+            ],
+            [
+              "冷色调",
+              "cool tones",
+              0
+            ],
+            [
+              "低饱和调",
+              "muted tones",
+              0
+            ],
+            [
+              "双色调",
+              "duotone",
+              0
+            ],
+            [
+              "色调分离",
+              "posterized",
+              0
+            ],
+            [
+              "哑光质感",
+              "matte finish",
+              0
+            ],
+            [
+              "褪色调",
+              "faded colors",
+              0
+            ],
+            [
+              "鲜艳调",
+              "vibrant colors",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "id": "camera",
+      "title": "⑬ 镜头与构图",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "camera.shot",
+          "lab": "镜头景别",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "全身",
+              "full body",
+              0
+            ],
+            [
+              "七分身",
+              "cowboy shot",
+              0
+            ],
+            [
+              "上半身",
+              "upper body",
+              0
+            ],
+            [
+              "半身像",
+              "portrait",
+              0
+            ],
+            [
+              "特写",
+              "close-up",
+              0
+            ],
+            [
+              "极端特写",
+              "extreme close-up",
+              0
+            ],
+            [
+              "广角",
+              "wide shot",
+              0
+            ],
+            [
+              "中景",
+              "medium shot",
+              0
+            ],
+            [
+              "中近景",
+              "medium close-up",
+              0
+            ],
+            [
+              "俯拍",
+              "from above",
+              0
+            ],
+            [
+              "仰拍",
+              "from below",
+              0
+            ],
+            [
+              "侧面",
+              "from side",
+              0
+            ],
+            [
+              "背面",
+              "from behind",
+              0
+            ],
+            [
+              "荷兰角",
+              "dutch angle",
+              0
+            ],
+            [
+              "鱼眼",
+              "fisheye",
+              0
+            ],
+            [
+              "全景",
+              "panorama",
+              0
+            ],
+            [
+              "越肩视角",
+              "over-the-shoulder",
+              0
+            ],
+            [
+              "第一人称视角",
+              "first-person view",
+              0
+            ],
+            [
+              "鸟瞰",
+              "bird's-eye view",
+              0
+            ],
+            [
+              "低角度",
+              "low angle",
+              0
+            ],
+            [
+              "中远景",
+              "medium wide shot",
+              0
+            ],
+            [
+              "全景全身",
+              "full shot",
+              0
+            ],
+            [
+              "美式镜头",
+              "american shot",
+              0
+            ],
+            [
+              "近景",
+              "close shot",
+              0
+            ],
+            [
+              "头部特写",
+              "head shot",
+              0
+            ],
+            [
+              "半身特写",
+              "bust shot",
+              0
+            ],
+            [
+              "膝上景",
+              "knee shot",
+              0
+            ],
+            [
+              "足部景",
+              "foot shot",
+              0
+            ],
+            [
+              "俯视全景",
+              "overhead view",
+              0
+            ],
+            [
+              "虫眼视角",
+              "worm's-eye view",
+              0
+            ],
+            [
+              "建立镜头",
+              "establishing shot",
+              0
+            ],
+            [
+              "自拍",
+              "selfie",
+              0
+            ],
+            [
+              "对镜自拍",
+              "mirror selfie",
+              0
+            ],
+            [
+              "微距",
+              "macro shot",
+              0
+            ],
+            [
+              "腰部景别",
+              "waist shot",
+              0
+            ]
+          ],
+          "slot": "camera"
+        },
+        {
+          "key": "camera.focus",
+          "lab": "对焦",
+          "type": "select",
+          "req": false,
+          "prob": 0.55,
+          "opts": [
+            [
+              "景深",
+              "depth of field",
+              0
+            ],
+            [
+              "散景",
+              "bokeh",
+              0
+            ],
+            [
+              "背景虚化",
+              "blurry background",
+              0
+            ],
+            [
+              "锐利对焦",
+              "sharp focus",
+              0
+            ],
+            [
+              "前景虚化",
+              "foreground blur",
+              0
+            ],
+            [
+              "动态模糊",
+              "motion blur",
+              0
+            ],
+            [
+              "浅景深",
+              "shallow depth of field",
+              0
+            ],
+            [
+              "全景深",
+              "deep focus",
+              0
+            ],
+            [
+              "移轴",
+              "tilt-shift",
+              0
+            ],
+            [
+              "变焦对焦",
+              "rack focus",
+              0
+            ],
+            [
+              "前景锐利",
+              "sharp foreground",
+              0
+            ],
+            [
+              "选择对焦",
+              "selective focus",
+              0
+            ],
+            [
+              "摇镜模糊",
+              "panning blur",
+              0
+            ],
+            [
+              "径向模糊",
+              "radial blur",
+              0
+            ],
+            [
+              "高斯模糊",
+              "gaussian blur",
+              0
+            ],
+            [
+              "面部合焦",
+              "focus on face",
+              0
+            ],
+            [
+              "模糊",
+              "blurry",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "camera.composition",
+          "lab": "构图",
+          "type": "multi",
+          "req": false,
+          "prob": 0.45,
+          "opts": [
+            [
+              "居中构图",
+              "centered composition",
+              0
+            ],
+            [
+              "三分法",
+              "rule of thirds",
+              0
+            ],
+            [
+              "对称构图",
+              "symmetrical composition",
+              0
+            ],
+            [
+              "动态角度",
+              "dynamic angle",
+              0
+            ],
+            [
+              "低角度",
+              "low angle",
+              0
+            ],
+            [
+              "高角度",
+              "high angle",
+              0
+            ],
+            [
+              "俯视",
+              "overhead shot",
+              0
+            ],
+            [
+              "贴地视角",
+              "ground level",
+              0
+            ],
+            [
+              "近景框取",
+              "close framing",
+              0
+            ],
+            [
+              "负空间",
+              "negative space",
+              0
+            ],
+            [
+              "引导线",
+              "leading lines",
+              0
+            ],
+            [
+              "窗框构图",
+              "framed by window",
+              0
+            ],
+            [
+              "窥视构图",
+              "looking through",
+              0
+            ],
+            [
+              "倒影",
+              "reflection",
+              0
+            ],
+            [
+              "剪影",
+              "silhouette",
+              0
+            ],
+            [
+              "侧脸构图",
+              "profile",
+              0
+            ],
+            [
+              "背影构图",
+              "back view",
+              0
+            ],
+            [
+              "四分之三侧脸",
+              "three-quarter view",
+              0
+            ],
+            [
+              "正面构图",
+              "front view",
+              0
+            ],
+            [
+              "仰视构图",
+              "worm's-eye view",
+              0
+            ],
+            [
+              "框架式构图",
+              "framing",
+              0
+            ],
+            [
+              "对角线构图",
+              "diagonal composition",
+              0
+            ],
+            [
+              "黄金比例",
+              "golden ratio",
+              0
+            ],
+            [
+              "三角构图",
+              "triangular composition",
+              0
+            ],
+            [
+              "圆形构图",
+              "circular composition",
+              0
+            ],
+            [
+              "竖向构图",
+              "vertical composition",
+              0
+            ],
+            [
+              "横向构图",
+              "horizontal composition",
+              0
+            ],
+            [
+              "极简构图",
+              "minimal composition",
+              0
+            ],
+            [
+              "极繁构图",
+              "maximal composition",
+              0
+            ],
+            [
+              "偏心构图",
+              "off-center composition",
+              0
+            ],
+            [
+              "框中框",
+              "frame within a frame",
+              0
+            ],
+            [
+              "重复构图",
+              "repetition",
+              0
+            ],
+            [
+              "图案构图",
+              "pattern",
+              0
+            ],
+            [
+              "留白文字区",
+              "text space",
+              0
+            ],
+            [
+              "不对称构图",
+              "asymmetrical composition",
+              0
+            ],
+            [
+              "层叠构图",
+              "layered composition",
+              0
+            ],
+            [
+              "消失点",
+              "vanishing point",
+              0
+            ],
+            [
+              "单点透视",
+              "one-point perspective",
+              0
+            ],
+            [
+              "两点透视",
+              "two-point perspective",
+              0
+            ],
+            [
+              "强迫透视",
+              "forced perspective",
+              0
+            ],
+            [
+              "高地平线",
+              "high horizon",
+              0
+            ],
+            [
+              "低地平线",
+              "low horizon",
+              0
+            ],
+            [
+              "地平线",
+              "horizon line",
+              0
+            ],
+            [
+              "明暗对照",
+              "chiaroscuro",
+              0
+            ],
+            [
+              "地平线",
+              "horizon",
+              0
+            ],
+            [
+              "用了透视画法",
+              "perspective",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "camera.lens",
+          "lab": "镜头器材",
+          "type": "select",
+          "req": false,
+          "prob": 0.25,
+          "opts": [
+            [
+              "35mm",
+              "35mm",
+              0
+            ],
+            [
+              "50mm",
+              "50mm",
+              0
+            ],
+            [
+              "85mm",
+              "85mm",
+              0
+            ],
+            [
+              "长焦",
+              "telephoto",
+              0
+            ],
+            [
+              "广角镜头",
+              "wide angle",
+              0
+            ],
+            [
+              "微距",
+              "macro",
+              0
+            ],
+            [
+              "胶片摄影",
+              "film photography",
+              0
+            ],
+            [
+              "拍立得",
+              "polaroid",
+              0
+            ],
+            [
+              "手机摄影",
+              "phone camera",
+              0
+            ],
+            [
+              "运动相机",
+              "action camera",
+              0
+            ],
+            [
+              "电影镜头",
+              "cinematic shot",
+              0
+            ],
+            [
+              "镜头光晕",
+              "lens flare",
+              0
+            ],
+            [
+              "24mm",
+              "24mm",
+              0
+            ],
+            [
+              "28mm",
+              "28mm",
+              0
+            ],
+            [
+              "105mm",
+              "105mm",
+              0
+            ],
+            [
+              "135mm",
+              "135mm",
+              0
+            ],
+            [
+              "200mm",
+              "200mm",
+              0
+            ],
+            [
+              "变形镜头",
+              "anamorphic lens",
+              0
+            ],
+            [
+              "移轴镜头",
+              "tilt-shift lens",
+              0
+            ],
+            [
+              "鱼眼镜头",
+              "fisheye lens",
+              0
+            ],
+            [
+              "18mm 广角",
+              "18mm",
+              0
+            ],
+            [
+              "20mm 广角",
+              "20mm",
+              0
+            ],
+            [
+              "100mm 中长焦",
+              "100mm",
+              0
+            ],
+            [
+              "300mm 长焦",
+              "300mm",
+              0
+            ],
+            [
+              "中画幅",
+              "medium format",
+              0
+            ],
+            [
+              "拍立得相机",
+              "instant camera",
+              0
+            ],
+            [
+              "一次性相机",
+              "disposable camera",
+              0
+            ],
+            [
+              "监控摄像头",
+              "security camera",
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "style",
+      "title": "⑭ 特殊风格主题",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "style.medium",
+          "lab": "画面风格",
+          "type": "select",
+          "req": false,
+          "prob": 0.4,
+          "opts": [
+            [
+              "动画",
+              "anime",
+              0
+            ],
+            [
+              "动画上色",
+              "anime coloring",
+              0
+            ],
+            [
+              "漫画",
+              "manga",
+              0
+            ],
+            [
+              "水彩",
+              "watercolor",
+              0
+            ],
+            [
+              "油画",
+              "oil painting",
+              0
+            ],
+            [
+              "水墨画",
+              "ink painting",
+              0
+            ],
+            [
+              "素描",
+              "sketch",
+              0
+            ],
+            [
+              "线稿",
+              "lineart",
+              0
+            ],
+            [
+              "平涂",
+              "flat color",
+              0
+            ],
+            [
+              "粉彩",
+              "pastel colors",
+              0
+            ],
+            [
+              "单色",
+              "monochrome",
+              0
+            ],
+            [
+              "灰阶",
+              "greyscale",
+              0
+            ],
+            [
+              "棕褐",
+              "sepia",
+              0
+            ],
+            [
+              "像素画",
+              "pixel art",
+              0
+            ],
+            [
+              "Q 版",
+              "chibi",
+              0
+            ],
+            [
+              "3D 渲染",
+              "3d",
+              0
+            ],
+            [
+              "粘土风",
+              "claymation",
+              0
+            ],
+            [
+              "绘本",
+              "picture book",
+              0
+            ],
+            [
+              "条漫",
+              "webtoon",
+              0
+            ],
+            [
+              "视觉小说画风",
+              "visual novel",
+              0
+            ],
+            [
+              "轻小说插画风",
+              "light novel illustration",
+              0
+            ],
+            [
+              "游戏立绘风",
+              "game cg",
+              0
+            ],
+            [
+              "同人志",
+              "doujin",
+              0
+            ],
+            [
+              "同人画集",
+              "doujinshi",
+              0
+            ],
+            [
+              "画集",
+              "artbook",
+              0
+            ],
+            [
+              "速写本",
+              "sketchbook",
+              0
+            ],
+            [
+              "海报艺术",
+              "poster art",
+              0
+            ],
+            [
+              "专辑封面艺术",
+              "album art",
+              0
+            ],
+            [
+              "美漫",
+              "comic",
+              0
+            ],
+            [
+              "矢量插画",
+              "vector art",
+              0
+            ],
+            [
+              "极简风",
+              "minimalism",
+              0
+            ],
+            [
+              "动画截帧",
+              "anime screencap",
+              0
+            ],
+            [
+              "数字绘景",
+              "matte painting",
+              0
+            ],
+            [
+              "炭笔素描",
+              "charcoal drawing",
+              0
+            ],
+            [
+              "铅笔素描",
+              "pencil drawing",
+              0
+            ],
+            [
+              "赛璐璐风",
+              "cel shading",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "style.theme",
+          "lab": "题材",
+          "type": "multi",
+          "req": false,
+          "prob": 0.35,
+          "opts": [
+            [
+              "奇幻",
+              "fantasy",
+              0
+            ],
+            [
+              "科幻",
+              "sci-fi",
+              0
+            ],
+            [
+              "赛博朋克",
+              "cyberpunk",
+              0
+            ],
+            [
+              "蒸汽朋克",
+              "steampunk",
+              0
+            ],
+            [
+              "哥特",
+              "gothic",
+              0
+            ],
+            [
+              "维多利亚",
+              "victorian",
+              0
+            ],
+            [
+              "现代",
+              "modern",
+              0
+            ],
+            [
+              "复古",
+              "retro",
+              0
+            ],
+            [
+              "未来",
+              "futuristic",
+              0
+            ],
+            [
+              "末日",
+              "post-apocalyptic",
+              0
+            ],
+            [
+              "魔法少女",
+              "magical girl",
+              0
+            ],
+            [
+              "机甲",
+              "mecha",
+              0
+            ],
+            [
+              "偶像",
+              "idol",
+              0
+            ],
+            [
+              "军装",
+              "military",
+              0
+            ],
+            [
+              "中式",
+              "chinese style",
+              0
+            ],
+            [
+              "和风",
+              "japanese style",
+              0
+            ],
+            [
+              "韩式",
+              "korean style",
+              0
+            ],
+            [
+              "民族风",
+              "ethnic",
+              0
+            ],
+            [
+              "童话",
+              "fairy tale",
+              0
+            ],
+            [
+              "神话",
+              "mythology",
+              0
+            ],
+            [
+              "校园",
+              "school life",
+              0
+            ],
+            [
+              "日常",
+              "slice of life",
+              0
+            ],
+            [
+              "现代奇幻",
+              "modern fantasy",
+              0
+            ],
+            [
+              "都市奇幻",
+              "urban fantasy",
+              0
+            ],
+            [
+              "黑暗奇幻",
+              "dark fantasy",
+              0
+            ],
+            [
+              "高奇幻",
+              "high fantasy",
+              0
+            ],
+            [
+              "太空歌剧",
+              "space opera",
+              0
+            ],
+            [
+              "反乌托邦",
+              "dystopian",
+              0
+            ],
+            [
+              "乌托邦",
+              "utopian",
+              0
+            ],
+            [
+              "超自然",
+              "supernatural",
+              0
+            ],
+            [
+              "神秘学",
+              "occult",
+              0
+            ],
+            [
+              "历史题材",
+              "historical",
+              0
+            ],
+            [
+              "江户时代",
+              "edo period",
+              0
+            ],
+            [
+              "唐朝",
+              "tang dynasty",
+              0
+            ],
+            [
+              "咆哮二十年代",
+              "roaring twenties",
+              0
+            ],
+            [
+              "千禧风",
+              "y2k",
+              0
+            ],
+            [
+              "蒸汽波",
+              "vaporwave",
+              0
+            ],
+            [
+              "合成器波",
+              "synthwave",
+              0
+            ],
+            [
+              "复古波",
+              "retrowave",
+              0
+            ],
+            [
+              "柴油朋克",
+              "dieselpunk",
+              0
+            ],
+            [
+              "生物朋克",
+              "biopunk",
+              0
+            ],
+            [
+              "太阳朋克",
+              "solarpunk",
+              0
+            ],
+            [
+              "原子朋克",
+              "atompunk",
+              0
+            ],
+            [
+              "田园牧歌",
+              "cottagecore",
+              0
+            ],
+            [
+              "暗黑学院",
+              "dark academia",
+              0
+            ],
+            [
+              "明亮学院",
+              "light academia",
+              0
+            ],
+            [
+              "妖精核",
+              "fairycore",
+              0
+            ],
+            [
+              "梦核",
+              "dreamcore",
+              0
+            ],
+            [
+              "怪核",
+              "weirdcore",
+              0
+            ],
+            [
+              "阈限空间",
+              "liminal space",
+              0
+            ],
+            [
+              "黑色电影",
+              "film noir",
+              0
+            ],
+            [
+              "西部",
+              "western",
+              0
+            ],
+            [
+              "武侠",
+              "wuxia",
+              0
+            ],
+            [
+              "仙侠",
+              "xianxia",
+              0
+            ],
+            [
+              "战国",
+              "sengoku period",
+              0
+            ],
+            [
+              "平安时代",
+              "heian period",
+              0
+            ],
+            [
+              "明治时代",
+              "meiji period",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "style.art",
+          "lab": "作品形态",
+          "type": "select",
+          "req": false,
+          "prob": 0.25,
+          "opts": [
+            [
+              "官方画风",
+              "official art",
+              0
+            ],
+            [
+              "概念设定",
+              "concept art",
+              0
+            ],
+            [
+              "插画",
+              "illustration",
+              0
+            ],
+            [
+              "主视觉图",
+              "key visual",
+              0
+            ],
+            [
+              "海报",
+              "poster",
+              0
+            ],
+            [
+              "唱片封面",
+              "album cover",
+              0
+            ],
+            [
+              "电影海报",
+              "movie poster",
+              0
+            ],
+            [
+              "轻小说插图",
+              "light novel illustration",
+              0
+            ],
+            [
+              "游戏立绘",
+              "game cg",
+              0
+            ],
+            [
+              "角色设计",
+              "character design",
+              0
+            ],
+            [
+              "时尚大片",
+              "fashion editorial",
+              0
+            ],
+            [
+              "杂志封面",
+              "magazine cover",
+              0
+            ],
+            [
+              "新艺术",
+              "art nouveau",
+              0
+            ],
+            [
+              "装饰艺术",
+              "art deco",
+              0
+            ],
+            [
+              "浮世绘",
+              "ukiyo-e",
+              0
+            ],
+            [
+              "印象派",
+              "impressionism",
+              0
+            ],
+            [
+              "超现实主义",
+              "surrealism",
+              0
+            ],
+            [
+              "立体主义",
+              "cubism",
+              0
+            ],
+            [
+              "波普艺术",
+              "pop art",
+              0
+            ],
+            [
+              "极简海报",
+              "minimalist poster",
+              0
+            ],
+            [
+              "书籍封面",
+              "book cover",
+              0
+            ],
+            [
+              "封面艺术",
+              "cover art",
+              0
+            ],
+            [
+              "宣传图",
+              "splash art",
+              0
+            ],
+            [
+              "角色设定图",
+              "character sheet",
+              0
+            ],
+            [
+              "参考设定图",
+              "reference sheet",
+              0
+            ],
+            [
+              "三视图",
+              "turnaround",
+              0
+            ],
+            [
+              "表情集",
+              "expression sheet",
+              0
+            ],
+            [
+              "分镜稿",
+              "storyboard",
+              0
+            ],
+            [
+              "漫画封面",
+              "manga cover",
+              0
+            ],
+            [
+              "美漫封面",
+              "comic cover",
+              0
+            ],
+            [
+              "艺术微喷",
+              "art print",
+              0
+            ],
+            [
+              "壁纸",
+              "wallpaper",
+              0
+            ],
+            [
+              "手机壁纸",
+              "phone wallpaper",
+              0
+            ],
+            [
+              "日历",
+              "calendar",
+              0
+            ],
+            [
+              "明信片",
+              "postcard",
+              0
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

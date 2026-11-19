@@ -11,6 +11,7 @@ import {
   Shirt,
   SlidersHorizontal,
   Sparkles,
+  Tags,
   Type,
   UserRound,
   Wand2,
@@ -79,6 +80,7 @@ export const toolTabs: TabConfig[] = [
   { id: "wardrobe", label: "Anima 造型台", icon: Shirt },
   // 独立公共工作台：词库与造型台的词在这里合流（不是嵌在两边页面里）
   { id: "workbench", label: "Anima 工作台", icon: Blocks },
+  { id: "noobai", label: "NoobAI 抽取", icon: Tags },
   // 数据集工作台：本质是生成页，但**不能**放进 generationTabs——
   // 数字键 1–9 的顺序绑定在那个数组上（tabs.test.ts 有硬断言），插进去会让既有快捷键整体顺移。
   { id: "dataset", label: "数据集工作台", icon: Images },
@@ -124,9 +126,9 @@ export const navGroups: NavGroup[] = [
     id: "anima",
     label: "Anima 工坊",
     foldable: true,
-    // 选词（词库）→ 造型（造型台）→ 合流（工作台），同族功能放一组
+    // 选词（词库）→ 造型（造型台）→ 合流（工作台）→ NoobAI，同族功能放一组
     accent: true,
-    tabs: pick(toolTabs, ["anima-library", "wardrobe", "workbench"]),
+    tabs: pick(toolTabs, ["anima-library", "wardrobe", "workbench", "noobai"]),
   },
   {
     id: "tools",

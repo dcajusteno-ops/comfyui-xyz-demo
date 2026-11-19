@@ -1,0 +1,4802 @@
+{
+  "_meta": {
+    "schema": "noobai-lib/pools@1",
+    "version": "1.3.0",
+    "part": "outfit",
+    "sections": 2
+  },
+  "sections": [
+    {
+      "id": "outfit",
+      "title": "⑦ 服装（安全）",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "outfit.dress",
+          "lab": "连衣裙 / 套装",
+          "type": "select",
+          "req": false,
+          "prob": 0.22,
+          "opts": [
+            [
+              "吊带裙",
+              "sundress",
+              0
+            ],
+            [
+              "夏日连衣裙",
+              "summer dress",
+              0
+            ],
+            [
+              "白裙",
+              "white dress",
+              0
+            ],
+            [
+              "黑裙",
+              "black dress",
+              0
+            ],
+            [
+              "红裙",
+              "red dress",
+              0
+            ],
+            [
+              "蓝裙",
+              "blue dress",
+              0
+            ],
+            [
+              "粉裙",
+              "pink dress",
+              0
+            ],
+            [
+              "鸡尾酒裙",
+              "cocktail dress",
+              0
+            ],
+            [
+              "晚礼服",
+              "evening gown",
+              0
+            ],
+            [
+              "婚纱",
+              "wedding dress",
+              0
+            ],
+            [
+              "洛丽塔裙",
+              "lolita dress",
+              0
+            ],
+            [
+              "哥特洛丽塔",
+              "gothic lolita dress",
+              0
+            ],
+            [
+              "女仆装",
+              "maid dress",
+              0
+            ],
+            [
+              "护士服",
+              "nurse dress",
+              1
+            ],
+            [
+              "旗袍",
+              "cheongsam",
+              0
+            ],
+            [
+              "旗袍",
+              "qipao",
+              0
+            ],
+            [
+              "汉服",
+              "hanfu",
+              0
+            ],
+            [
+              "和服",
+              "kimono",
+              0
+            ],
+            [
+              "浴衣",
+              "yukata",
+              0
+            ],
+            [
+              "纱丽",
+              "sari",
+              0
+            ],
+            [
+              "托加袍",
+              "toga",
+              0
+            ],
+            [
+              "背带裙",
+              "overall dress",
+              0
+            ],
+            [
+              "围裙裙",
+              "pinafore dress",
+              0
+            ],
+            [
+              "针织连衣裙",
+              "sweater dress",
+              0
+            ],
+            [
+              "衬衫裙",
+              "shirt dress",
+              0
+            ],
+            [
+              "吊带睡裙",
+              "slip dress",
+              0
+            ],
+            [
+              "娃娃裙",
+              "babydoll",
+              2
+            ],
+            [
+              "睡裙",
+              "nightgown",
+              0
+            ],
+            [
+              "薄纱睡裙",
+              "negligee",
+              2
+            ],
+            [
+              "舞会长裙",
+              "ball gown",
+              0
+            ],
+            [
+              "舞会裙",
+              "prom dress",
+              0
+            ],
+            [
+              "中式连衣裙",
+              "chinese dress",
+              0
+            ],
+            [
+              "魔女裙",
+              "witch dress",
+              0
+            ],
+            [
+              "魔法少女裙",
+              "magical girl dress",
+              0
+            ],
+            [
+              "偶像舞台裙",
+              "idol dress",
+              0
+            ],
+            [
+              "校服连衣裙",
+              "school uniform dress",
+              0
+            ],
+            [
+              "连衣长裙",
+              "one-piece dress",
+              0
+            ],
+            [
+              "吊带长裙",
+              "camisole dress",
+              0
+            ],
+            [
+              "蕾丝连衣裙",
+              "lace dress",
+              1
+            ],
+            [
+              "透明连衣裙",
+              "sheer dress",
+              1
+            ],
+            [
+              "高开叉礼服",
+              "high-slit dress",
+              1
+            ],
+            [
+              "露背裙",
+              "backless dress",
+              1
+            ],
+            [
+              "一字肩裙",
+              "off-shoulder dress",
+              1
+            ],
+            [
+              "紧身连衣裙",
+              "bodycon dress",
+              1
+            ],
+            [
+              "民族风长裙",
+              "ethnic dress",
+              0
+            ],
+            [
+              "复古连衣裙",
+              "retro dress",
+              0
+            ],
+            [
+              "A字连衣裙",
+              "a-line dress",
+              0
+            ],
+            [
+              "围裙裙",
+              "apron dress",
+              0
+            ],
+            [
+              "伴娘裙",
+              "bridesmaid dress",
+              0
+            ],
+            [
+              "雪纺裙",
+              "chiffon dress",
+              0
+            ],
+            [
+              "大衣式连衣裙",
+              "coat dress",
+              0
+            ],
+            [
+              "迪恩德尔裙",
+              "dirndl",
+              0
+            ],
+            [
+              "飞女郎裙",
+              "flapper dress",
+              0
+            ],
+            [
+              "挂脖连衣裙",
+              "halter dress",
+              0
+            ],
+            [
+              "小黑裙",
+              "little black dress",
+              0
+            ],
+            [
+              "长及脚踝裙",
+              "maxi dress",
+              0
+            ],
+            [
+              "中长裙",
+              "midi dress",
+              0
+            ],
+            [
+              "派对裙",
+              "party dress",
+              0
+            ],
+            [
+              "格纹连衣裙",
+              "plaid dress",
+              0
+            ],
+            [
+              "百褶连衣裙",
+              "pleated dress",
+              0
+            ],
+            [
+              "波点裙",
+              "polka dot dress",
+              0
+            ],
+            [
+              "水手连衣裙",
+              "sailor dress",
+              0
+            ],
+            [
+              "缎面裙",
+              "satin dress",
+              0
+            ],
+            [
+              "裹身裙",
+              "wrap dress",
+              0
+            ],
+            [
+              "针织连衣裙",
+              "knit dress",
+              0
+            ],
+            [
+              "层叠连衣裙",
+              "layered dress",
+              0
+            ],
+            [
+              "连帽连衣裙",
+              "hooded dress",
+              0
+            ],
+            [
+              "圣诞裙",
+              "santa dress",
+              0
+            ],
+            [
+              "连衣裙",
+              "dress",
+              0
+            ],
+            [
+              "紫色连衣裙",
+              "purple dress",
+              0
+            ],
+            [
+              "绿色连衣裙",
+              "green dress",
+              0
+            ],
+            [
+              "棕色连衣裙",
+              "brown dress",
+              0
+            ],
+            [
+              "灰色连衣裙",
+              "grey dress",
+              0
+            ],
+            [
+              "无袖连衣裙",
+              "sleeveless dress",
+              0
+            ],
+            [
+              "荷叶边连衣裙",
+              "frilled dress",
+              0
+            ],
+            [
+              "条纹连衣裙",
+              "striped dress",
+              0
+            ],
+            [
+              "长款礼服裙",
+              "gown",
+              0
+            ],
+            [
+              "白色礼服",
+              "white gown",
+              0
+            ],
+            [
+              "黑色汉服",
+              "black hanfu",
+              0
+            ],
+            [
+              "白色汉服",
+              "white hanfu",
+              0
+            ],
+            [
+              "红色汉服",
+              "red hanfu",
+              0
+            ],
+            [
+              "蓝色汉服",
+              "blue hanfu",
+              0
+            ],
+            [
+              "白色和服",
+              "white kimono",
+              0
+            ],
+            [
+              "蓝色和服",
+              "blue kimono",
+              0
+            ],
+            [
+              "黑色和服",
+              "black kimono",
+              0
+            ],
+            [
+              "红色和服",
+              "red kimono",
+              0
+            ],
+            [
+              "无袖和服",
+              "sleeveless kimono",
+              0
+            ],
+            [
+              "花边和服",
+              "frilled kimono",
+              0
+            ],
+            [
+              "条纹和服",
+              "striped kimono",
+              0
+            ],
+            [
+              "紫色紧身连衣裤",
+              "purple leotard",
+              0
+            ],
+            [
+              "粉色紧身连衣裤",
+              "pink leotard",
+              0
+            ],
+            [
+              "绿色紧身连衣裤",
+              "green leotard",
+              0
+            ],
+            [
+              "黄色紧身连衣裤",
+              "yellow leotard",
+              0
+            ],
+            [
+              "露肩紧身衣",
+              "off-shoulder leotard",
+              0
+            ],
+            [
+              "条纹紧身衣",
+              "striped leotard",
+              0
+            ],
+            [
+              "皮紧身衣",
+              "leather leotard",
+              0
+            ],
+            [
+              "连体衣",
+              "bodysuit",
+              0
+            ],
+            [
+              "黑色连体衣",
+              "black bodysuit",
+              0
+            ],
+            [
+              "白色连体衣",
+              "white bodysuit",
+              0
+            ],
+            [
+              "红色连体衣",
+              "red bodysuit",
+              0
+            ],
+            [
+              "蓝色连体衣",
+              "blue bodysuit",
+              0
+            ],
+            [
+              "乳胶紧身衣裤",
+              "latex bodysuit",
+              0
+            ],
+            [
+              "无袖紧身衣裤",
+              "sleeveless bodysuit",
+              0
+            ],
+            [
+              "露背连体紧身衣",
+              "backless bodysuit",
+              0
+            ],
+            [
+              "男式晚间小礼服",
+              "tuxedo",
+              0
+            ],
+            [
+              "连体裤（连身衣）",
+              "jumpsuit",
+              0
+            ],
+            [
+              "蓝色连身裤",
+              "blue jumpsuit",
+              0
+            ],
+            [
+              "橙色连体裤",
+              "orange jumpsuit",
+              0
+            ],
+            [
+              "白色连身裤",
+              "white jumpsuit",
+              0
+            ],
+            [
+              "黑色连身裤",
+              "black jumpsuit",
+              0
+            ],
+            [
+              "无袖连身裤",
+              "sleeveless jumpsuit",
+              0
+            ],
+            [
+              "条纹连体裤",
+              "striped jumpsuit",
+              0
+            ],
+            [
+              "灰色工作服",
+              "grey overalls",
+              0
+            ],
+            [
+              "黄色背带裤",
+              "yellow overalls",
+              0
+            ],
+            [
+              "粉色背带裤",
+              "pink overalls",
+              0
+            ],
+            [
+              "白色背带裤",
+              "white overalls",
+              0
+            ],
+            [
+              "巫女",
+              "miko",
+              0
+            ],
+            [
+              "修女",
+              "nun",
+              0
+            ]
+          ],
+          "slot": "dress"
+        },
+        {
+          "key": "outfit.top",
+          "lab": "上装",
+          "type": "select",
+          "req": false,
+          "prob": 0.8,
+          "opts": [
+            [
+              "白衬衫",
+              "white shirt",
+              0
+            ],
+            [
+              "蓝衬衫",
+              "blue shirt",
+              0
+            ],
+            [
+              "黑衬衫",
+              "black shirt",
+              0
+            ],
+            [
+              "牛津衬衫",
+              "oxford shirt",
+              0
+            ],
+            [
+              "女式衬衫",
+              "blouse",
+              0
+            ],
+            [
+              "白色女衬衫",
+              "white blouse",
+              0
+            ],
+            [
+              "荷叶边女衬衫",
+              "frilled blouse",
+              0
+            ],
+            [
+              "T 恤",
+              "t-shirt",
+              0
+            ],
+            [
+              "白 T 恤",
+              "white t-shirt",
+              0
+            ],
+            [
+              "印花 T 恤",
+              "graphic t-shirt",
+              0
+            ],
+            [
+              "条纹 T 恤",
+              "striped shirt",
+              0
+            ],
+            [
+              "长袖 T 恤",
+              "long-sleeve shirt",
+              0
+            ],
+            [
+              "短袖 T 恤",
+              "short-sleeve shirt",
+              0
+            ],
+            [
+              "无袖上衣",
+              "sleeveless shirt",
+              0
+            ],
+            [
+              "露脐上衣",
+              "crop top",
+              1
+            ],
+            [
+              "背心",
+              "tank top",
+              0
+            ],
+            [
+              "吊带背心",
+              "camisole",
+              1
+            ],
+            [
+              "抹胸",
+              "tube top",
+              1
+            ],
+            [
+              "露肩上衣",
+              "off-shoulder top",
+              1
+            ],
+            [
+              "挂脖上衣",
+              "halter top",
+              1
+            ],
+            [
+              "露肩毛衣",
+              "off-shoulder sweater",
+              1
+            ],
+            [
+              "针织毛衣",
+              "knit sweater",
+              0
+            ],
+            [
+              "粗针毛衣",
+              "sweater",
+              0
+            ],
+            [
+              "宽松毛衣",
+              "oversized sweater",
+              0
+            ],
+            [
+              "开衫",
+              "cardigan",
+              0
+            ],
+            [
+              "连帽卫衣",
+              "hoodie",
+              0
+            ],
+            [
+              "拉链卫衣",
+              "zip-up hoodie",
+              0
+            ],
+            [
+              "运动外套",
+              "track jacket",
+              0
+            ],
+            [
+              "球衣",
+              "jersey",
+              0
+            ],
+            [
+              "水手服上衣",
+              "sailor shirt",
+              0
+            ],
+            [
+              "水手服",
+              "serafuku",
+              0
+            ],
+            [
+              "校服",
+              "school uniform",
+              0
+            ],
+            [
+              "体操服",
+              "gym uniform",
+              0
+            ],
+            [
+              "西装外套",
+              "blazer",
+              0
+            ],
+            [
+              "校服西装",
+              "school blazer",
+              0
+            ],
+            [
+              "马甲",
+              "vest",
+              0
+            ],
+            [
+              "西装背心",
+              "waistcoat",
+              0
+            ],
+            [
+              "牛仔外套",
+              "denim jacket",
+              0
+            ],
+            [
+              "皮夹克",
+              "leather jacket",
+              0
+            ],
+            [
+              "飞行夹克",
+              "bomber jacket",
+              0
+            ],
+            [
+              "连帽衫",
+              "hooded jacket",
+              0
+            ],
+            [
+              "围裙",
+              "apron",
+              0
+            ],
+            [
+              "背带裤",
+              "overalls",
+              0
+            ],
+            [
+              "背带",
+              "suspenders",
+              0
+            ],
+            [
+              "睡衣上衣",
+              "pajama top",
+              0
+            ],
+            [
+              "和服",
+              "kimono",
+              0
+            ],
+            [
+              "浴衣",
+              "yukata",
+              0
+            ],
+            [
+              "羽织",
+              "haori",
+              0
+            ],
+            [
+              "高领毛衣",
+              "turtleneck",
+              0
+            ],
+            [
+              "半高领",
+              "mock neck",
+              0
+            ],
+            [
+              "Polo 衫",
+              "polo shirt",
+              0
+            ],
+            [
+              "法兰绒衬衫",
+              "flannel shirt",
+              0
+            ],
+            [
+              "格纹衬衫",
+              "plaid shirt",
+              0
+            ],
+            [
+              "裹身上衣",
+              "wrap top",
+              0
+            ],
+            [
+              "荷叶边上衣",
+              "peplum top",
+              0
+            ],
+            [
+              "束腰胸衣",
+              "corset",
+              1
+            ],
+            [
+              "紧身胸衣",
+              "bustier",
+              1
+            ],
+            [
+              "运动内衣",
+              "sports bra",
+              1
+            ],
+            [
+              "比基尼上衣",
+              "bikini top",
+              1
+            ],
+            [
+              "胸罩",
+              "bra",
+              1
+            ],
+            [
+              "吊带衫",
+              "camisole top",
+              0
+            ],
+            [
+              "针织背心",
+              "sweater vest",
+              0
+            ],
+            [
+              "衬衫背心",
+              "shirt vest",
+              0
+            ],
+            [
+              "牛仔衬衫",
+              "denim shirt",
+              0
+            ],
+            [
+              "亚麻衬衫",
+              "linen shirt",
+              0
+            ],
+            [
+              "短款开衫",
+              "cropped cardigan",
+              0
+            ],
+            [
+              "毛绒上衣",
+              "fluffy sweater",
+              0
+            ],
+            [
+              "蕾丝上衣",
+              "lace top",
+              1
+            ],
+            [
+              "透明上衣",
+              "sheer top",
+              1
+            ],
+            [
+              "网纱上衣",
+              "mesh top",
+              1
+            ],
+            [
+              "露背上衣",
+              "backless top",
+              0
+            ],
+            [
+              "棒球衫",
+              "baseball shirt",
+              0
+            ],
+            [
+              "短披肩",
+              "bolero",
+              0
+            ],
+            [
+              "有领衬衫",
+              "collared shirt",
+              0
+            ],
+            [
+              "正装衬衫",
+              "dress shirt",
+              0
+            ],
+            [
+              "荷叶边衬衫",
+              "frilled shirt",
+              0
+            ],
+            [
+              "夏威夷衫",
+              "hawaiian shirt",
+              0
+            ],
+            [
+              "网纱上衣",
+              "mesh shirt",
+              0
+            ],
+            [
+              "军装夹克",
+              "military jacket",
+              0
+            ],
+            [
+              "宽松衬衫",
+              "oversized shirt",
+              0
+            ],
+            [
+              "农夫衫",
+              "peasant top",
+              0
+            ],
+            [
+              "泡泡袖上衣",
+              "puff sleeve top",
+              0
+            ],
+            [
+              "罗纹毛衣",
+              "ribbed sweater",
+              0
+            ],
+            [
+              "褶边衬衫",
+              "ruffled shirt",
+              0
+            ],
+            [
+              "短坎肩",
+              "shrug",
+              0
+            ],
+            [
+              "无袖毛衣",
+              "sleeveless sweater",
+              0
+            ],
+            [
+              "打结衬衫",
+              "tied shirt",
+              0
+            ],
+            [
+              "束腰外衣",
+              "tunic",
+              0
+            ],
+            [
+              "燕尾服衬衫",
+              "tuxedo shirt",
+              0
+            ],
+            [
+              "湿衬衫",
+              "wet shirt",
+              0
+            ],
+            [
+              "防风夹克",
+              "windbreaker",
+              0
+            ],
+            [
+              "牛仔马甲",
+              "denim vest",
+              0
+            ],
+            [
+              "羽绒夹克",
+              "puffer jacket",
+              0
+            ],
+            [
+              "短款卫衣",
+              "cropped hoodie",
+              0
+            ],
+            [
+              "短款毛衣",
+              "cropped sweater",
+              0
+            ],
+            [
+              "圆领卫衣",
+              "sweatshirt",
+              0
+            ],
+            [
+              "高领毛衣",
+              "turtleneck sweater",
+              0
+            ],
+            [
+              "娃娃衫",
+              "babydoll top",
+              0
+            ],
+            [
+              "抹胸",
+              "bandeau",
+              0
+            ],
+            [
+              "无钢圈内衣",
+              "bralette",
+              0
+            ],
+            [
+              "针织背心",
+              "knit vest",
+              0
+            ],
+            [
+              "开襟羊毛衫",
+              "open cardigan",
+              0
+            ],
+            [
+              "运动背心",
+              "athletic tank top",
+              0
+            ],
+            [
+              "皮背心",
+              "leather vest",
+              0
+            ],
+            [
+              "衬衫",
+              "shirt",
+              0
+            ],
+            [
+              "红色衬衫",
+              "red shirt",
+              0
+            ],
+            [
+              "灰色衬衫",
+              "grey shirt",
+              0
+            ],
+            [
+              "粉色衬衫",
+              "pink shirt",
+              0
+            ],
+            [
+              "黄色衬衫",
+              "yellow shirt",
+              0
+            ],
+            [
+              "露肩衬衫",
+              "off-shoulder shirt",
+              0
+            ],
+            [
+              "分层衬衫",
+              "layered shirt",
+              0
+            ],
+            [
+              "圆点衬衫",
+              "polka dot shirt",
+              0
+            ],
+            [
+              "白色毛衣",
+              "white sweater",
+              0
+            ],
+            [
+              "黑色毛衣",
+              "black sweater",
+              0
+            ],
+            [
+              "棕色毛衣",
+              "brown sweater",
+              0
+            ],
+            [
+              "灰色毛衣",
+              "grey sweater",
+              0
+            ],
+            [
+              "条纹毛衣",
+              "striped sweater",
+              0
+            ],
+            [
+              "菱格毛衣",
+              "argyle sweater",
+              0
+            ],
+            [
+              "皮毛毛衣",
+              "fur sweater",
+              0
+            ],
+            [
+              "棕色开衫",
+              "brown cardigan",
+              0
+            ],
+            [
+              "粉色开衫",
+              "pink cardigan",
+              0
+            ],
+            [
+              "黄色开衫",
+              "yellow cardigan",
+              0
+            ],
+            [
+              "灰色开衫",
+              "grey cardigan",
+              0
+            ],
+            [
+              "露肩开衫",
+              "off-shoulder cardigan",
+              0
+            ],
+            [
+              "条纹开衫",
+              "striped cardigan",
+              0
+            ],
+            [
+              "荷叶边开衫",
+              "frilled cardigan",
+              0
+            ],
+            [
+              "黑色连帽衫",
+              "black hoodie",
+              0
+            ],
+            [
+              "白色连帽衫",
+              "white hoodie",
+              0
+            ],
+            [
+              "蓝色连帽衫",
+              "blue hoodie",
+              0
+            ],
+            [
+              "灰色连帽衫",
+              "grey hoodie",
+              0
+            ],
+            [
+              "无袖连帽衫",
+              "sleeveless hoodie",
+              0
+            ],
+            [
+              "条纹连帽衫",
+              "striped hoodie",
+              0
+            ],
+            [
+              "圆点连帽衫",
+              "polka dot hoodie",
+              0
+            ],
+            [
+              "黑色背心",
+              "black tank top",
+              0
+            ],
+            [
+              "白色背心",
+              "white tank top",
+              0
+            ],
+            [
+              "红色背心",
+              "red tank top",
+              0
+            ],
+            [
+              "蓝色背心",
+              "blue tank top",
+              0
+            ],
+            [
+              "条纹背心",
+              "striped tank top",
+              0
+            ],
+            [
+              "荷叶边背心",
+              "frilled tank top",
+              0
+            ],
+            [
+              "格纹背心",
+              "checkered tank top",
+              0
+            ],
+            [
+              "白色吊带背心",
+              "white camisole",
+              0
+            ],
+            [
+              "黑色吊带背心",
+              "black camisole",
+              0
+            ],
+            [
+              "粉色吊带衫",
+              "pink camisole",
+              0
+            ],
+            [
+              "蓝色的吊带",
+              "blue camisole",
+              0
+            ],
+            [
+              "荷叶边吊带背心",
+              "frilled camisole",
+              0
+            ],
+            [
+              "圆点吊带背心",
+              "polka dot camisole",
+              0
+            ],
+            [
+              "条纹吊带",
+              "striped camisole",
+              0
+            ],
+            [
+              "黑色抹胸上衣",
+              "black tube top",
+              0
+            ],
+            [
+              "白色抹胸",
+              "white tube top",
+              0
+            ],
+            [
+              "红色抹胸",
+              "red tube top",
+              0
+            ],
+            [
+              "蓝色抹胸",
+              "blue tube top",
+              0
+            ],
+            [
+              "荷叶边抹胸",
+              "frilled tube top",
+              0
+            ],
+            [
+              "黑色紧身胸衣",
+              "black corset",
+              0
+            ],
+            [
+              "棕色束腰",
+              "brown corset",
+              0
+            ],
+            [
+              "白色紧身胸衣",
+              "white corset",
+              0
+            ],
+            [
+              "红色紧身胸衣",
+              "red corset",
+              0
+            ],
+            [
+              "荷叶边紧身胸衣",
+              "frilled corset",
+              0
+            ],
+            [
+              "乳胶紧身胸衣",
+              "latex corset",
+              0
+            ],
+            [
+              "格纹束腰",
+              "plaid corset",
+              0
+            ],
+            [
+              "黑色胸衣",
+              "black bustier",
+              0
+            ],
+            [
+              "白色抹胸式紧身衣",
+              "white bustier",
+              0
+            ],
+            [
+              "红色束胸衣",
+              "red bustier",
+              0
+            ],
+            [
+              "棕色紧身胸衣",
+              "brown bustier",
+              0
+            ],
+            [
+              "荷叶边束胸衣",
+              "frilled bustier",
+              0
+            ],
+            [
+              "白色运动衫",
+              "white jersey",
+              0
+            ],
+            [
+              "白色围裙",
+              "white apron",
+              0
+            ],
+            [
+              "黑色围裙",
+              "black apron",
+              0
+            ],
+            [
+              "粉色围裙",
+              "pink apron",
+              0
+            ],
+            [
+              "蓝色围裙",
+              "blue apron",
+              0
+            ],
+            [
+              "荷叶边围裙",
+              "frilled apron",
+              0
+            ],
+            [
+              "格子围裙",
+              "plaid apron",
+              0
+            ],
+            [
+              "格纹围裙",
+              "gingham apron",
+              0
+            ],
+            [
+              "蓝色上衣",
+              "blue tunic",
+              0
+            ],
+            [
+              "绿色上衣",
+              "green tunic",
+              0
+            ],
+            [
+              "白色上衣",
+              "white tunic",
+              0
+            ],
+            [
+              "黑色上衣",
+              "black tunic",
+              0
+            ],
+            [
+              "无袖束腰外衣",
+              "sleeveless tunic",
+              0
+            ],
+            [
+              "黑色马甲",
+              "black vest",
+              0
+            ],
+            [
+              "红色马甲",
+              "red vest",
+              0
+            ],
+            [
+              "蓝色马甲",
+              "blue vest",
+              0
+            ],
+            [
+              "绿色马甲",
+              "green vest",
+              0
+            ],
+            [
+              "格子呢背心",
+              "plaid vest",
+              0
+            ],
+            [
+              "条纹马甲",
+              "striped vest",
+              0
+            ],
+            [
+              "荷叶边马甲",
+              "frilled vest",
+              0
+            ],
+            [
+              "无袖高领衫",
+              "sleeveless turtleneck",
+              0
+            ],
+            [
+              "法兰绒",
+              "flannel",
+              0
+            ],
+            [
+              "黑色运动胸罩",
+              "black sports bra",
+              1
+            ],
+            [
+              "白色运动胸罩",
+              "white sports bra",
+              1
+            ],
+            [
+              "灰色运动胸罩",
+              "grey sports bra",
+              1
+            ],
+            [
+              "蓝色运动胸罩",
+              "blue sports bra",
+              1
+            ],
+            [
+              "条纹运动内衣",
+              "striped sports bra",
+              1
+            ],
+            [
+              "黑色胸罩",
+              "black bra",
+              1
+            ],
+            [
+              "白色胸罩",
+              "white bra",
+              1
+            ],
+            [
+              "粉色胸罩",
+              "pink bra",
+              1
+            ]
+          ],
+          "slot": "top"
+        },
+        {
+          "key": "outfit.bottom",
+          "lab": "下装",
+          "type": "select",
+          "req": false,
+          "prob": 0.72,
+          "opts": [
+            [
+              "百褶裙",
+              "pleated skirt",
+              0
+            ],
+            [
+              "迷你裙",
+              "miniskirt",
+              1
+            ],
+            [
+              "铅笔裙",
+              "pencil skirt",
+              0
+            ],
+            [
+              "长裙",
+              "long skirt",
+              0
+            ],
+            [
+              "及踝长裙",
+              "maxi skirt",
+              0
+            ],
+            [
+              "A 字裙",
+              "a-line skirt",
+              0
+            ],
+            [
+              "蛋糕裙",
+              "tiered skirt",
+              0
+            ],
+            [
+              "牛仔裙",
+              "denim skirt",
+              0
+            ],
+            [
+              "纱笼裙",
+              "sarong",
+              0
+            ],
+            [
+              "裹身裙",
+              "wrap skirt",
+              0
+            ],
+            [
+              "网球裙",
+              "tennis skirt",
+              0
+            ],
+            [
+              "校服裙",
+              "school skirt",
+              0
+            ],
+            [
+              "水手裙",
+              "sailor skirt",
+              0
+            ],
+            [
+              "短裤",
+              "shorts",
+              0
+            ],
+            [
+              "牛仔短裤",
+              "denim shorts",
+              0
+            ],
+            [
+              "热裤",
+              "hot pants",
+              1
+            ],
+            [
+              "工装短裤",
+              "cargo shorts",
+              0
+            ],
+            [
+              "沙滩裤",
+              "board shorts",
+              0
+            ],
+            [
+              "牛仔裤",
+              "jeans",
+              0
+            ],
+            [
+              "紧身牛仔裤",
+              "skinny jeans",
+              0
+            ],
+            [
+              "阔腿裤",
+              "wide-leg pants",
+              0
+            ],
+            [
+              "西装长裤",
+              "slacks",
+              0
+            ],
+            [
+              "礼服长裤",
+              "dress pants",
+              0
+            ],
+            [
+              "工装裤",
+              "cargo pants",
+              0
+            ],
+            [
+              "打底裤",
+              "leggings",
+              0
+            ],
+            [
+              "瑜伽裤",
+              "yoga pants",
+              0
+            ],
+            [
+              "运动裤",
+              "sweatpants",
+              0
+            ],
+            [
+              "南瓜裤",
+              "bloomers",
+              1
+            ],
+            [
+              "袴",
+              "hakama",
+              0
+            ],
+            [
+              "衬裙",
+              "pettipants",
+              0
+            ],
+            [
+              "骑行短裤",
+              "bike shorts",
+              0
+            ],
+            [
+              "七分裤",
+              "capri pants",
+              0
+            ],
+            [
+              "高腰裙",
+              "high-waisted skirt",
+              0
+            ],
+            [
+              "背带裙",
+              "suspender skirt",
+              0
+            ],
+            [
+              "围裙裙",
+              "pinafore skirt",
+              0
+            ],
+            [
+              "不对称裙",
+              "asymmetrical skirt",
+              0
+            ],
+            [
+              "开叉裙",
+              "slit skirt",
+              1
+            ],
+            [
+              "鱼尾裙",
+              "mermaid skirt",
+              0
+            ],
+            [
+              "芭蕾舞裙",
+              "tutu",
+              0
+            ],
+            [
+              "衬裙",
+              "petticoat",
+              0
+            ],
+            [
+              "百褶短裙",
+              "pleated miniskirt",
+              1
+            ],
+            [
+              "包臀裙",
+              "tight skirt",
+              1
+            ],
+            [
+              "皮裤",
+              "leather pants",
+              0
+            ],
+            [
+              "皮裙",
+              "leather skirt",
+              1
+            ],
+            [
+              "阔腿短裤",
+              "wide-leg shorts",
+              0
+            ],
+            [
+              "褶裥长裤",
+              "pleated pants",
+              0
+            ],
+            [
+              "灯笼裤",
+              "harem pants",
+              0
+            ],
+            [
+              "裙裤",
+              "skort",
+              0
+            ],
+            [
+              "层叠裙",
+              "layered skirt",
+              0
+            ],
+            [
+              "印花裙",
+              "printed skirt",
+              0
+            ],
+            [
+              "格纹裙",
+              "plaid skirt",
+              0
+            ],
+            [
+              "牛仔背带短裤",
+              "denim overall shorts",
+              0
+            ],
+            [
+              "丁字裤",
+              "thong",
+              2
+            ],
+            [
+              "内裤",
+              "panties",
+              1
+            ],
+            [
+              "比基尼下装",
+              "bikini bottom",
+              1
+            ],
+            [
+              "泳裤",
+              "swimsuit bottom",
+              1
+            ],
+            [
+              "兜裆布",
+              "fundoshi",
+              2
+            ],
+            [
+              "缠腰布",
+              "loincloth",
+              2
+            ],
+            [
+              "侧开叉裙",
+              "side slit skirt",
+              1
+            ],
+            [
+              "超短裙",
+              "microskirt",
+              2
+            ],
+            [
+              "低腰裤",
+              "low-rise pants",
+              1
+            ],
+            [
+              "破洞牛仔裤",
+              "ripped jeans",
+              0
+            ],
+            [
+              "工装裙",
+              "cargo skirt",
+              0
+            ],
+            [
+              "百褶中裙",
+              "pleated midi skirt",
+              0
+            ],
+            [
+              "百慕大短裤",
+              "bermuda shorts",
+              0
+            ],
+            [
+              "喇叭牛仔裤",
+              "bootcut jeans",
+              0
+            ],
+            [
+              "男友牛仔裤",
+              "boyfriend jeans",
+              0
+            ],
+            [
+              "灯芯绒裤",
+              "corduroy pants",
+              0
+            ],
+            [
+              "七分阔腿裤",
+              "culottes",
+              0
+            ],
+            [
+              "喇叭裙",
+              "flared skirt",
+              0
+            ],
+            [
+              "喇叭裤",
+              "flare pants",
+              0
+            ],
+            [
+              "苏格兰裙",
+              "kilt",
+              0
+            ],
+            [
+              "皮短裤",
+              "leather shorts",
+              0
+            ],
+            [
+              "妈妈牛仔裤",
+              "mom jeans",
+              0
+            ],
+            [
+              "睡裤",
+              "pajama pants",
+              0
+            ],
+            [
+              "宫廷阔腿裤",
+              "palazzo pants",
+              0
+            ],
+            [
+              "运动长裤",
+              "track pants",
+              0
+            ],
+            [
+              "直筒牛仔裤",
+              "straight-leg jeans",
+              0
+            ],
+            [
+              "气球裙",
+              "balloon skirt",
+              0
+            ],
+            [
+              "高腰短裤",
+              "high-waisted shorts",
+              0
+            ],
+            [
+              "百褶短裤",
+              "pleated shorts",
+              0
+            ],
+            [
+              "跑步短裤",
+              "running shorts",
+              0
+            ],
+            [
+              "牛仔背带裤",
+              "denim overalls",
+              0
+            ],
+            [
+              "格纹长裤",
+              "plaid pants",
+              0
+            ],
+            [
+              "天鹅绒裙",
+              "velvet skirt",
+              0
+            ],
+            [
+              "针织长裙",
+              "knit skirt",
+              0
+            ],
+            [
+              "百褶长裙",
+              "pleated maxi skirt",
+              0
+            ],
+            [
+              "低腰牛仔裤",
+              "low-rise jeans",
+              0
+            ],
+            [
+              "破洞牛仔短裤",
+              "ripped denim shorts",
+              0
+            ],
+            [
+              "裙子",
+              "skirt",
+              0
+            ],
+            [
+              "黑裙",
+              "black skirt",
+              0
+            ],
+            [
+              "蓝裙",
+              "blue skirt",
+              0
+            ],
+            [
+              "红裙",
+              "red skirt",
+              0
+            ],
+            [
+              "白裙",
+              "white skirt",
+              0
+            ],
+            [
+              "荷叶边裙",
+              "frilled skirt",
+              0
+            ],
+            [
+              "条纹裙",
+              "striped skirt",
+              0
+            ],
+            [
+              "格子裙",
+              "checkered skirt",
+              0
+            ],
+            [
+              "裤子",
+              "pants",
+              0
+            ],
+            [
+              "黑裤",
+              "black pants",
+              0
+            ],
+            [
+              "白色裤子",
+              "white pants",
+              0
+            ],
+            [
+              "蓝色裤子",
+              "blue pants",
+              0
+            ],
+            [
+              "灰色裤子",
+              "grey pants",
+              0
+            ],
+            [
+              "条纹裤",
+              "striped pants",
+              0
+            ],
+            [
+              "乳胶裤",
+              "latex pants",
+              0
+            ],
+            [
+              "露背裤子",
+              "backless pants",
+              0
+            ],
+            [
+              "黑色短裤",
+              "black shorts",
+              0
+            ],
+            [
+              "蓝色短裤",
+              "blue shorts",
+              0
+            ],
+            [
+              "白色短裤",
+              "white shorts",
+              0
+            ],
+            [
+              "红色短裤",
+              "red shorts",
+              0
+            ],
+            [
+              "条纹短裤",
+              "striped shorts",
+              0
+            ],
+            [
+              "荷叶边短裤",
+              "frilled shorts",
+              0
+            ],
+            [
+              "格子短裤",
+              "plaid shorts",
+              0
+            ],
+            [
+              "黑色打底裤",
+              "black leggings",
+              0
+            ],
+            [
+              "白色紧身裤",
+              "white leggings",
+              0
+            ],
+            [
+              "蓝色紧身裤",
+              "blue leggings",
+              0
+            ],
+            [
+              "粉色打底裤",
+              "pink leggings",
+              0
+            ],
+            [
+              "条纹紧身裤",
+              "striped leggings",
+              0
+            ],
+            [
+              "白色灯笼裤",
+              "white bloomers",
+              0
+            ],
+            [
+              "黑色灯笼裤",
+              "black bloomers",
+              0
+            ],
+            [
+              "粉色灯笼裤",
+              "pink bloomers",
+              0
+            ],
+            [
+              "蓝色灯笼裤",
+              "blue bloomers",
+              0
+            ],
+            [
+              "荷叶边灯笼裤",
+              "frilled bloomers",
+              0
+            ],
+            [
+              "圆点灯笼裤",
+              "polka dot bloomers",
+              0
+            ],
+            [
+              "红色袴",
+              "red hakama",
+              0
+            ],
+            [
+              "黑色的袴",
+              "black hakama",
+              0
+            ],
+            [
+              "蓝色的袴",
+              "blue hakama",
+              0
+            ],
+            [
+              "绿色的袴",
+              "green hakama",
+              0
+            ],
+            [
+              "荷叶边袴",
+              "frilled hakama",
+              0
+            ],
+            [
+              "条纹袴",
+              "striped hakama",
+              0
+            ],
+            [
+              "白色纱笼",
+              "white sarong",
+              0
+            ],
+            [
+              "蓝色沙滩裙",
+              "blue sarong",
+              0
+            ],
+            [
+              "黑色纱笼",
+              "black sarong",
+              0
+            ],
+            [
+              "紫色纱笼",
+              "purple sarong",
+              0
+            ],
+            [
+              "条纹纱笼",
+              "striped sarong",
+              0
+            ],
+            [
+              "圆点纱笼",
+              "polka dot sarong",
+              0
+            ],
+            [
+              "荷叶边纱笼",
+              "frilled sarong",
+              0
+            ],
+            [
+              "白色内裤",
+              "white panties",
+              1
+            ],
+            [
+              "黑色内裤",
+              "black panties",
+              1
+            ],
+            [
+              "粉色内裤",
+              "pink panties",
+              1
+            ],
+            [
+              "蓝色内裤",
+              "blue panties",
+              1
+            ],
+            [
+              "条纹内裤",
+              "striped panties",
+              1
+            ],
+            [
+              "花边内裤",
+              "frilled panties",
+              1
+            ],
+            [
+              "圆斑内裤",
+              "polka dot panties",
+              1
+            ],
+            [
+              "无背比基尼下装",
+              "backless bikini bottom",
+              1
+            ],
+            [
+              "蓝色工作服",
+              "blue overalls",
+              0
+            ],
+            [
+              "黑色背带裤",
+              "black overalls",
+              0
+            ],
+            [
+              "绿色工作服",
+              "green overalls",
+              0
+            ],
+            [
+              "棕色工作服",
+              "brown overalls",
+              0
+            ],
+            [
+              "条纹背带裤",
+              "striped overalls",
+              0
+            ],
+            [
+              "黑色裙裤",
+              "black culottes",
+              0
+            ]
+          ],
+          "slot": "bottom"
+        },
+        {
+          "key": "outfit.legwear",
+          "lab": "腿部穿搭",
+          "type": "select",
+          "req": false,
+          "prob": 0.55,
+          "opts": [
+            [
+              "过膝袜",
+              "thighhighs",
+              0
+            ],
+            [
+              "黑过膝袜",
+              "black thighhighs",
+              0
+            ],
+            [
+              "白过膝袜",
+              "white thighhighs",
+              0
+            ],
+            [
+              "粉过膝袜",
+              "pink thighhighs",
+              0
+            ],
+            [
+              "过膝长袜",
+              "over-knee socks",
+              0
+            ],
+            [
+              "及膝袜",
+              "kneehighs",
+              0
+            ],
+            [
+              "短袜",
+              "ankle socks",
+              0
+            ],
+            [
+              "中筒袜",
+              "crew socks",
+              0
+            ],
+            [
+              "泡泡袜",
+              "loose socks",
+              0
+            ],
+            [
+              "网袜",
+              "fishnet tights",
+              1
+            ],
+            [
+              "黑色丝袜",
+              "black pantyhose",
+              0
+            ],
+            [
+              "丝袜",
+              "pantyhose",
+              0
+            ],
+            [
+              "白丝袜",
+              "white pantyhose",
+              0
+            ],
+            [
+              "连裤袜",
+              "tights",
+              0
+            ],
+            [
+              "黑连裤袜",
+              "black tights",
+              0
+            ],
+            [
+              "白连裤袜",
+              "white tights",
+              0
+            ],
+            [
+              "条纹过膝袜",
+              "striped thighhighs",
+              0
+            ],
+            [
+              "菱格丝袜",
+              "argyle pantyhose",
+              0
+            ],
+            [
+              "蕾丝过膝袜",
+              "lace thighhighs",
+              1
+            ],
+            [
+              "吊带袜",
+              "garter belt",
+              1
+            ],
+            [
+              "腿环",
+              "leg garter",
+              1
+            ],
+            [
+              "腿部绑带",
+              "leg rings",
+              0
+            ],
+            [
+              "光腿",
+              "bare legs",
+              0
+            ],
+            [
+              "短袜",
+              "socks",
+              0
+            ],
+            [
+              "足袋袜",
+              "tabi socks",
+              0
+            ],
+            [
+              "护腿",
+              "legwarmers",
+              0
+            ],
+            [
+              "单边过膝袜",
+              "single thighhigh",
+              1
+            ],
+            [
+              "不对称腿饰",
+              "asymmetrical legwear",
+              1
+            ],
+            [
+              "破洞丝袜",
+              "torn pantyhose",
+              1
+            ],
+            [
+              "渔网袜",
+              "fishnets",
+              1
+            ],
+            [
+              "大腿袜",
+              "thigh socks",
+              0
+            ],
+            [
+              "堆堆袜",
+              "slouch socks",
+              0
+            ],
+            [
+              "荷叶边袜",
+              "frilled socks",
+              0
+            ],
+            [
+              "蝴蝶结袜",
+              "bowtie legwear",
+              0
+            ],
+            [
+              "黑丝袜",
+              "black stockings",
+              0
+            ],
+            [
+              "白丝袜",
+              "white stockings",
+              0
+            ],
+            [
+              "透肤丝袜",
+              "sheer stockings",
+              0
+            ],
+            [
+              "渔网连裤袜",
+              "fishnet pantyhose",
+              0
+            ],
+            [
+              "破洞丝袜",
+              "ripped tights",
+              0
+            ],
+            [
+              "花纹丝袜",
+              "patterned tights",
+              0
+            ],
+            [
+              "不透明丝袜",
+              "opaque tights",
+              0
+            ],
+            [
+              "筒袜",
+              "tube socks",
+              0
+            ],
+            [
+              "菱格袜",
+              "argyle socks",
+              0
+            ],
+            [
+              "吊袜带",
+              "garter straps",
+              0
+            ],
+            [
+              "大腿绑带",
+              "thigh strap",
+              0
+            ],
+            [
+              "五趾袜",
+              "toe socks",
+              0
+            ],
+            [
+              "白色过膝袜",
+              "white kneehighs",
+              0
+            ],
+            [
+              "红色过膝袜",
+              "red thighhighs",
+              0
+            ],
+            [
+              "棕色过膝袜",
+              "brown thighhighs",
+              0
+            ],
+            [
+              "紫色过膝袜",
+              "purple thighhighs",
+              0
+            ],
+            [
+              "蓝色过膝袜",
+              "blue thighhighs",
+              0
+            ],
+            [
+              "灰色过膝袜",
+              "grey thighhighs",
+              0
+            ],
+            [
+              "荷叶边过膝袜",
+              "frilled thighhighs",
+              0
+            ],
+            [
+              "菱格过膝袜",
+              "argyle thighhighs",
+              0
+            ],
+            [
+              "乳胶过膝袜",
+              "latex thighhighs",
+              0
+            ],
+            [
+              "白袜",
+              "white socks",
+              0
+            ],
+            [
+              "黑袜",
+              "black socks",
+              0
+            ],
+            [
+              "蓝色袜子",
+              "blue socks",
+              0
+            ],
+            [
+              "灰色袜子",
+              "grey socks",
+              0
+            ],
+            [
+              "条纹袜子",
+              "striped socks",
+              0
+            ],
+            [
+              "格子袜",
+              "plaid socks",
+              0
+            ],
+            [
+              "圆点袜子",
+              "polka dot socks",
+              0
+            ],
+            [
+              "棕色连裤袜",
+              "brown pantyhose",
+              0
+            ],
+            [
+              "灰色连裤袜",
+              "grey pantyhose",
+              0
+            ],
+            [
+              "紫色连裤袜",
+              "purple pantyhose",
+              0
+            ],
+            [
+              "蓝色连裤袜",
+              "blue pantyhose",
+              0
+            ],
+            [
+              "条纹连裤袜",
+              "striped pantyhose",
+              0
+            ],
+            [
+              "蕾丝连裤袜",
+              "lace pantyhose",
+              0
+            ],
+            [
+              "圆点连裤袜",
+              "polka dot pantyhose",
+              0
+            ]
+          ],
+          "slot": "legwear"
+        },
+        {
+          "key": "outfit.footwear",
+          "lab": "鞋子",
+          "type": "select",
+          "req": false,
+          "prob": 0.55,
+          "opts": [
+            [
+              "运动鞋",
+              "sneakers",
+              0
+            ],
+            [
+              "高帮运动鞋",
+              "high-top sneakers",
+              0
+            ],
+            [
+              "跑鞋",
+              "running shoes",
+              0
+            ],
+            [
+              "乐福鞋",
+              "loafers",
+              0
+            ],
+            [
+              "玛丽珍鞋",
+              "mary janes",
+              0
+            ],
+            [
+              "靴子",
+              "boots",
+              0
+            ],
+            [
+              "短靴",
+              "ankle boots",
+              0
+            ],
+            [
+              "及膝靴",
+              "knee boots",
+              0
+            ],
+            [
+              "过膝靴",
+              "thigh boots",
+              1
+            ],
+            [
+              "高跟鞋",
+              "high heels",
+              0
+            ],
+            [
+              "单鞋",
+              "pumps",
+              0
+            ],
+            [
+              "细高跟鞋",
+              "stilettos",
+              0
+            ],
+            [
+              "厚底鞋",
+              "platform shoes",
+              0
+            ],
+            [
+              "凉鞋",
+              "sandals",
+              0
+            ],
+            [
+              "人字拖",
+              "flip-flops",
+              0
+            ],
+            [
+              "拖鞋",
+              "slippers",
+              0
+            ],
+            [
+              "赤脚",
+              "barefoot",
+              0
+            ],
+            [
+              "足袋",
+              "tabi",
+              0
+            ],
+            [
+              "木屐",
+              "geta",
+              0
+            ],
+            [
+              "草履",
+              "zori",
+              0
+            ],
+            [
+              "芭蕾鞋",
+              "ballet shoes",
+              0
+            ],
+            [
+              "轮滑鞋",
+              "roller skates",
+              0
+            ],
+            [
+              "雪地靴",
+              "uggs",
+              0
+            ],
+            [
+              "雨靴",
+              "rain boots",
+              0
+            ],
+            [
+              "皮鞋",
+              "leather shoes",
+              0
+            ],
+            [
+              "帆布鞋",
+              "canvas shoes",
+              0
+            ],
+            [
+              "老爹鞋",
+              "chunky sneakers",
+              0
+            ],
+            [
+              "长筒袜靴",
+              "sock boots",
+              0
+            ],
+            [
+              "绑带鞋",
+              "strappy heels",
+              0
+            ],
+            [
+              "木底鞋",
+              "clogs",
+              0
+            ],
+            [
+              "芭蕾平底鞋",
+              "ballet flats",
+              0
+            ],
+            [
+              "船鞋",
+              "boat shoes",
+              0
+            ],
+            [
+              "布洛克鞋",
+              "brogues",
+              0
+            ],
+            [
+              "切尔西靴",
+              "chelsea boots",
+              0
+            ],
+            [
+              "军靴",
+              "combat boots",
+              0
+            ],
+            [
+              "牛仔靴",
+              "cowboy boots",
+              0
+            ],
+            [
+              "草编鞋",
+              "espadrilles",
+              0
+            ],
+            [
+              "高跟靴",
+              "heeled boots",
+              0
+            ],
+            [
+              "果冻鞋",
+              "jelly shoes",
+              0
+            ],
+            [
+              "莫卡辛鞋",
+              "moccasins",
+              0
+            ],
+            [
+              "牛津鞋",
+              "oxfords",
+              0
+            ],
+            [
+              "厚底靴",
+              "platform boots",
+              0
+            ],
+            [
+              "马靴",
+              "riding boots",
+              0
+            ],
+            [
+              "坡跟鞋",
+              "wedges",
+              0
+            ],
+            [
+              "雪地靴",
+              "snow boots",
+              0
+            ],
+            [
+              "鞋子",
+              "shoes",
+              0
+            ],
+            [
+              "黑鞋",
+              "black shoes",
+              0
+            ],
+            [
+              "白鞋",
+              "white shoes",
+              0
+            ],
+            [
+              "棕色鞋子",
+              "brown shoes",
+              0
+            ],
+            [
+              "红色鞋子",
+              "red shoes",
+              0
+            ],
+            [
+              "格纹鞋",
+              "checkered shoes",
+              0
+            ],
+            [
+              "黑色靴子",
+              "black boots",
+              0
+            ],
+            [
+              "棕色靴子",
+              "brown boots",
+              0
+            ],
+            [
+              "白色靴子",
+              "white boots",
+              0
+            ],
+            [
+              "红色靴子",
+              "red boots",
+              0
+            ],
+            [
+              "皮靴",
+              "leather boots",
+              0
+            ],
+            [
+              "毛皮靴",
+              "fur boots",
+              0
+            ],
+            [
+              "乳胶靴子",
+              "latex boots",
+              0
+            ],
+            [
+              "黑色凉鞋",
+              "black sandals",
+              0
+            ],
+            [
+              "棕色凉鞋",
+              "brown sandals",
+              0
+            ],
+            [
+              "白色凉鞋",
+              "white sandals",
+              0
+            ],
+            [
+              "红色凉鞋",
+              "red sandals",
+              0
+            ]
+          ],
+          "slot": "footwear"
+        },
+        {
+          "key": "outfit.outer",
+          "lab": "外套",
+          "type": "select",
+          "req": false,
+          "prob": 0.18,
+          "opts": [
+            [
+              "大衣",
+              "coat",
+              0
+            ],
+            [
+              "风衣",
+              "trench coat",
+              0
+            ],
+            [
+              "双排扣大衣",
+              "pea coat",
+              0
+            ],
+            [
+              "毛皮大衣",
+              "fur coat",
+              0
+            ],
+            [
+              "披风",
+              "cape",
+              0
+            ],
+            [
+              "斗篷",
+              "cloak",
+              0
+            ],
+            [
+              "斗篷外套",
+              "poncho",
+              0
+            ],
+            [
+              "披肩",
+              "shawl",
+              0
+            ],
+            [
+              "派克大衣",
+              "parka",
+              0
+            ],
+            [
+              "雨衣",
+              "raincoat",
+              0
+            ],
+            [
+              "羽绒服",
+              "down jacket",
+              0
+            ],
+            [
+              "军装大衣",
+              "military coat",
+              0
+            ],
+            [
+              "开襟长外套",
+              "long cardigan",
+              0
+            ],
+            [
+              "披挂式外套",
+              "drape coat",
+              0
+            ],
+            [
+              "牛角扣大衣",
+              "duffle coat",
+              0
+            ],
+            [
+              "羽绒马甲",
+              "gilet",
+              0
+            ],
+            [
+              "长大衣",
+              "overcoat",
+              0
+            ],
+            [
+              "羊羔毛大衣",
+              "shearling coat",
+              0
+            ],
+            [
+              "横须贺夹克",
+              "souvenir jacket",
+              0
+            ],
+            [
+              "休闲西装",
+              "sport coat",
+              0
+            ],
+            [
+              "连帽斗篷",
+              "hooded cloak",
+              0
+            ],
+            [
+              "黑色大衣",
+              "black coat",
+              0
+            ],
+            [
+              "白色大衣",
+              "white coat",
+              0
+            ],
+            [
+              "棕色大衣",
+              "brown coat",
+              0
+            ],
+            [
+              "红色大衣",
+              "red coat",
+              0
+            ],
+            [
+              "无袖外套",
+              "sleeveless coat",
+              0
+            ],
+            [
+              "条纹大衣",
+              "striped coat",
+              0
+            ],
+            [
+              "露肩外套",
+              "off-shoulder coat",
+              0
+            ],
+            [
+              "夹克",
+              "jacket",
+              0
+            ],
+            [
+              "黑色夹克",
+              "black jacket",
+              0
+            ],
+            [
+              "白色夹克",
+              "white jacket",
+              0
+            ],
+            [
+              "蓝色夹克",
+              "blue jacket",
+              0
+            ],
+            [
+              "红色夹克",
+              "red jacket",
+              0
+            ],
+            [
+              "无袖夹克",
+              "sleeveless jacket",
+              0
+            ],
+            [
+              "条纹外套",
+              "striped jacket",
+              0
+            ],
+            [
+              "格子夹克",
+              "plaid jacket",
+              0
+            ],
+            [
+              "红色斗篷",
+              "red cape",
+              0
+            ],
+            [
+              "黑色斗篷",
+              "black cape",
+              0
+            ],
+            [
+              "白色斗篷",
+              "white cape",
+              0
+            ],
+            [
+              "蓝色斗篷",
+              "blue cape",
+              0
+            ],
+            [
+              "皮斗篷",
+              "fur cape",
+              0
+            ],
+            [
+              "荷叶边斗篷",
+              "frilled cape",
+              0
+            ],
+            [
+              "条纹斗篷",
+              "striped cape",
+              0
+            ],
+            [
+              "黑色披风",
+              "black cloak",
+              0
+            ],
+            [
+              "红色披风",
+              "red cloak",
+              0
+            ],
+            [
+              "白色斗篷",
+              "white cloak",
+              0
+            ],
+            [
+              "蓝色斗篷",
+              "blue cloak",
+              0
+            ],
+            [
+              "皮草斗篷",
+              "fur cloak",
+              0
+            ],
+            [
+              "荷叶边斗篷",
+              "frilled cloak",
+              0
+            ],
+            [
+              "菱格披风",
+              "argyle cloak",
+              0
+            ],
+            [
+              "红色套头斗篷",
+              "red poncho",
+              0
+            ]
+          ],
+          "slot": "outer"
+        },
+        {
+          "key": "outfit.accessory",
+          "lab": "配饰",
+          "type": "multi",
+          "req": false,
+          "prob": 0.45,
+          "opts": [
+            [
+              "项链",
+              "necklace",
+              0
+            ],
+            [
+              "颈圈",
+              "choker",
+              0
+            ],
+            [
+              "吊坠",
+              "pendant",
+              0
+            ],
+            [
+              "耳环",
+              "earrings",
+              0
+            ],
+            [
+              "手链",
+              "bracelet",
+              0
+            ],
+            [
+              "戒指",
+              "ring",
+              0
+            ],
+            [
+              "腰带",
+              "belt",
+              0
+            ],
+            [
+              "背带",
+              "suspenders",
+              0
+            ],
+            [
+              "围巾",
+              "scarf",
+              0
+            ],
+            [
+              "手套",
+              "gloves",
+              0
+            ],
+            [
+              "露指手套",
+              "fingerless gloves",
+              0
+            ],
+            [
+              "长手套",
+              "elbow gloves",
+              0
+            ],
+            [
+              "护腕",
+              "arm warmers",
+              0
+            ],
+            [
+              "眼镜",
+              "glasses",
+              0
+            ],
+            [
+              "太阳镜",
+              "sunglasses",
+              0
+            ],
+            [
+              "帽子",
+              "hat",
+              0
+            ],
+            [
+              "贝雷帽",
+              "beret",
+              0
+            ],
+            [
+              "鸭舌帽",
+              "cap",
+              0
+            ],
+            [
+              "遮阳帽",
+              "sun hat",
+              0
+            ],
+            [
+              "魔女帽",
+              "witch hat",
+              0
+            ],
+            [
+              "女仆头饰",
+              "maid headdress",
+              0
+            ],
+            [
+              "面纱",
+              "veil",
+              0
+            ],
+            [
+              "口罩",
+              "mask",
+              0
+            ],
+            [
+              "眼罩",
+              "eyepatch",
+              0
+            ],
+            [
+              "背包",
+              "backpack",
+              0
+            ],
+            [
+              "手提包",
+              "handbag",
+              0
+            ],
+            [
+              "单肩包",
+              "shoulder bag",
+              0
+            ],
+            [
+              "阳伞",
+              "parasol",
+              0
+            ],
+            [
+              "雨伞",
+              "umbrella",
+              0
+            ],
+            [
+              "耳机",
+              "headphones",
+              0
+            ],
+            [
+              "护目镜",
+              "goggles",
+              0
+            ],
+            [
+              "徽章",
+              "badge",
+              0
+            ],
+            [
+              "领带",
+              "necktie",
+              0
+            ],
+            [
+              "领结",
+              "bowtie",
+              0
+            ],
+            [
+              "缎带领结",
+              "ribbon tie",
+              0
+            ],
+            [
+              "胸针",
+              "brooch",
+              0
+            ],
+            [
+              "束腰",
+              "waist cincher",
+              1
+            ],
+            [
+              "臂环",
+              "armlet",
+              0
+            ],
+            [
+              "脚链",
+              "anklet",
+              0
+            ],
+            [
+              "鼻环",
+              "nose ring",
+              1
+            ],
+            [
+              "头巾",
+              "bandana",
+              0
+            ],
+            [
+              "腰链",
+              "belt chain",
+              0
+            ],
+            [
+              "波洛领带",
+              "bolo tie",
+              0
+            ],
+            [
+              "袖扣",
+              "cufflinks",
+              0
+            ],
+            [
+              "挂绳",
+              "lanyard",
+              0
+            ],
+            [
+              "怀表",
+              "pocket watch",
+              0
+            ],
+            [
+              "领带夹",
+              "tie clip",
+              0
+            ],
+            [
+              "腕表",
+              "wristwatch",
+              0
+            ],
+            [
+              "肩章",
+              "epaulettes",
+              0
+            ],
+            [
+              "臂章",
+              "armband",
+              0
+            ],
+            [
+              "邮差包",
+              "messenger bag",
+              0
+            ],
+            [
+              "托特包",
+              "tote bag",
+              0
+            ],
+            [
+              "手拿包",
+              "clutch bag",
+              0
+            ],
+            [
+              "斜挎包",
+              "satchel",
+              0
+            ],
+            [
+              "腰包",
+              "fanny pack",
+              0
+            ],
+            [
+              "折扇",
+              "hand fan",
+              0
+            ],
+            [
+              "黑帽子",
+              "black hat",
+              0
+            ],
+            [
+              "白帽子",
+              "white hat",
+              0
+            ],
+            [
+              "红色帽子",
+              "red hat",
+              0
+            ],
+            [
+              "蓝色帽子",
+              "blue hat",
+              0
+            ],
+            [
+              "荷叶边帽子",
+              "frilled hat",
+              0
+            ],
+            [
+              "毛皮帽子",
+              "fur hat",
+              0
+            ],
+            [
+              "格子帽",
+              "plaid hat",
+              0
+            ],
+            [
+              "黑色面具",
+              "black mask",
+              0
+            ],
+            [
+              "白色面具",
+              "white mask",
+              0
+            ],
+            [
+              "红色面具",
+              "red mask",
+              0
+            ],
+            [
+              "黄色面具",
+              "yellow mask",
+              0
+            ],
+            [
+              "红色围巾",
+              "red scarf",
+              0
+            ],
+            [
+              "白色围巾",
+              "white scarf",
+              0
+            ],
+            [
+              "蓝色围巾",
+              "blue scarf",
+              0
+            ],
+            [
+              "黑色围巾",
+              "black scarf",
+              0
+            ],
+            [
+              "格子呢围巾",
+              "plaid scarf",
+              0
+            ],
+            [
+              "条纹围巾",
+              "striped scarf",
+              0
+            ],
+            [
+              "格子围巾",
+              "checkered scarf",
+              0
+            ],
+            [
+              "金项链",
+              "gold necklace",
+              0
+            ],
+            [
+              "银项链",
+              "silver necklace",
+              0
+            ],
+            [
+              "黑色项圈",
+              "black choker",
+              0
+            ],
+            [
+              "白色项圈",
+              "white choker",
+              0
+            ],
+            [
+              "红色项圈",
+              "red choker",
+              0
+            ],
+            [
+              "蓝色项圈",
+              "blue choker",
+              0
+            ],
+            [
+              "荷叶边项圈",
+              "frilled choker",
+              0
+            ],
+            [
+              "蕾丝项圈",
+              "lace choker",
+              0
+            ],
+            [
+              "毛皮项圈",
+              "fur choker",
+              0
+            ],
+            [
+              "黄金耳环",
+              "gold earrings",
+              0
+            ],
+            [
+              "银耳环",
+              "silver earrings",
+              0
+            ],
+            [
+              "黑色腰带",
+              "black belt",
+              0
+            ],
+            [
+              "棕色腰带",
+              "brown belt",
+              0
+            ],
+            [
+              "白色腰带",
+              "white belt",
+              0
+            ],
+            [
+              "红色腰带",
+              "red belt",
+              0
+            ],
+            [
+              "皮带",
+              "leather belt",
+              0
+            ],
+            [
+              "条纹皮带",
+              "striped belt",
+              0
+            ],
+            [
+              "格纹腰带",
+              "plaid belt",
+              0
+            ],
+            [
+              "黑手套",
+              "black gloves",
+              0
+            ],
+            [
+              "白手套",
+              "white gloves",
+              0
+            ],
+            [
+              "红色手套",
+              "red gloves",
+              0
+            ],
+            [
+              "棕色手套",
+              "brown gloves",
+              0
+            ],
+            [
+              "荷叶边手套",
+              "frilled gloves",
+              0
+            ],
+            [
+              "乳胶手套",
+              "latex gloves",
+              0
+            ],
+            [
+              "条纹手套",
+              "striped gloves",
+              0
+            ],
+            [
+              "包",
+              "bag",
+              0
+            ],
+            [
+              "黑色包",
+              "black bag",
+              0
+            ],
+            [
+              "棕色袋子",
+              "brown bag",
+              0
+            ],
+            [
+              "粉色包",
+              "pink bag",
+              0
+            ],
+            [
+              "红色袋",
+              "red bag",
+              0
+            ],
+            [
+              "皮革包",
+              "leather bag",
+              0
+            ],
+            [
+              "格纹包",
+              "plaid bag",
+              0
+            ]
+          ],
+          "slot": "accessory",
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "id": "outfit_nsfw",
+      "title": "⑧ 暴露向服装",
+      "floor": 1,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "outfit_nsfw.state",
+          "lab": "服装状态",
+          "type": "select",
+          "req": false,
+          "prob": 0.55,
+          "opts": [
+            [
+              "比基尼",
+              "bikini",
+              1
+            ],
+            [
+              "连体泳衣",
+              "one-piece swimsuit",
+              1
+            ],
+            [
+              "弹弓泳衣",
+              "slingshot swimsuit",
+              1
+            ],
+            [
+              "微型比基尼",
+              "micro bikini",
+              2
+            ],
+            [
+              "内衣",
+              "lingerie",
+              1
+            ],
+            [
+              "蕾丝内衣",
+              "lace lingerie",
+              1
+            ],
+            [
+              "娃娃装内衣",
+              "babydoll",
+              2
+            ],
+            [
+              "薄纱内衣",
+              "chemise",
+              1
+            ],
+            [
+              "束腰内衣",
+              "corset",
+              1
+            ],
+            [
+              "吊带袜",
+              "garter belt",
+              1
+            ],
+            [
+              "无胸罩",
+              "no bra",
+              2
+            ],
+            [
+              "无内裤",
+              "no panties",
+              2
+            ],
+            [
+              "拉下内裤",
+              "panties pull",
+              2
+            ],
+            [
+              "掀起上衣",
+              "shirt lift",
+              2
+            ],
+            [
+              "脱衣中",
+              "undressing",
+              2
+            ],
+            [
+              "裸体",
+              "nude",
+              2
+            ],
+            [
+              "上裸",
+              "topless",
+              2
+            ],
+            [
+              "下裸",
+              "bottomless",
+              2
+            ],
+            [
+              "全裸",
+              "completely nude",
+              2
+            ],
+            [
+              "透视装",
+              "see-through",
+              1
+            ],
+            [
+              "湿衣",
+              "wet clothes",
+              1
+            ],
+            [
+              "浴巾",
+              "towel",
+              1
+            ],
+            [
+              "只穿围裙",
+              "apron only",
+              2
+            ],
+            [
+              "裸围裙",
+              "naked apron",
+              2
+            ],
+            [
+              "敞开衬衫",
+              "open shirt",
+              2
+            ],
+            [
+              "解扣衬衫",
+              "unbuttoned shirt",
+              2
+            ],
+            [
+              "拉扯衣服",
+              "clothes pull",
+              2
+            ],
+            [
+              "拨开内裤",
+              "panties aside",
+              2
+            ],
+            [
+              "拉下胸罩",
+              "bra pull",
+              2
+            ],
+            [
+              "肩带滑落",
+              "strap slip",
+              1
+            ],
+            [
+              "走光",
+              "wardrobe malfunction",
+              2
+            ],
+            [
+              "出浴",
+              "after bath",
+              1
+            ],
+            [
+              "学校泳装",
+              "school swimsuit",
+              1
+            ],
+            [
+              "竞泳泳衣",
+              "competition swimsuit",
+              1
+            ],
+            [
+              "运动内衣",
+              "sports bra",
+              1
+            ],
+            [
+              "仅吊带",
+              "camisole only",
+              1
+            ],
+            [
+              "仅衬衫",
+              "shirt only",
+              1
+            ],
+            [
+              "仅毛衣",
+              "sweater only",
+              1
+            ],
+            [
+              "宽大衬衫",
+              "oversized shirt",
+              1
+            ],
+            [
+              "浴巾围身",
+              "towel around waist",
+              1
+            ],
+            [
+              "裙子掀起",
+              "skirt lift",
+              2
+            ],
+            [
+              "掀起连衣裙",
+              "dress lift",
+              2
+            ],
+            [
+              "衣服半解",
+              "partially unbuttoned",
+              1
+            ],
+            [
+              "拨开胖次",
+              "panties pulled aside",
+              2
+            ],
+            [
+              "内裤褪到单腿",
+              "panties around one leg",
+              2
+            ],
+            [
+              "衣衫不整",
+              "disheveled clothes",
+              1
+            ],
+            [
+              "破损衣物",
+              "torn clothes",
+              2
+            ],
+            [
+              "撕裂上衣",
+              "torn shirt",
+              2
+            ],
+            [
+              "撕裂丝袜",
+              "torn pantyhose",
+              2
+            ],
+            [
+              "撕裂过膝袜",
+              "torn thighhighs",
+              2
+            ],
+            [
+              "裸体丝带",
+              "naked ribbon",
+              2
+            ],
+            [
+              "裸体毛巾",
+              "naked towel",
+              1
+            ],
+            [
+              "仅穿过膝袜",
+              "thighhighs only",
+              2
+            ],
+            [
+              "除鞋袜外全裸",
+              "otherwise nude",
+              2
+            ],
+            [
+              "透明薄纱",
+              "sheer fabric",
+              1
+            ],
+            [
+              "透视连衣裙",
+              "see-through dress",
+              2
+            ],
+            [
+              "湿水衬衫",
+              "wet shirt",
+              2
+            ],
+            [
+              "敞开外套",
+              "open jacket",
+              1
+            ],
+            [
+              "前开襟比基尼",
+              "front-tie bikini",
+              1
+            ],
+            [
+              "吊带比基尼",
+              "sling bikini",
+              1
+            ],
+            [
+              "挂脖比基尼",
+              "halter bikini",
+              1
+            ],
+            [
+              "极细比基尼",
+              "string bikini",
+              1
+            ],
+            [
+              "乳贴",
+              "pasties",
+              2
+            ],
+            [
+              "胸贴",
+              "nipple tape",
+              2
+            ],
+            [
+              "情趣胶衣",
+              "latex bodysuit",
+              2
+            ],
+            [
+              "皮质情趣内衣",
+              "leather lingerie",
+              2
+            ],
+            [
+              "露背毛衣",
+              "virgin killer sweater",
+              1
+            ],
+            [
+              "深V露胸毛衣",
+              "keyhole sweater",
+              1
+            ],
+            [
+              "开胸旗袍",
+              "open chest cheongsam",
+              2
+            ],
+            [
+              "开档裤",
+              "crotchless pants",
+              3
+            ],
+            [
+              "开档连裤袜",
+              "crotchless pantyhose",
+              3
+            ],
+            [
+              "开档胖次",
+              "crotchless panties",
+              3
+            ],
+            [
+              "丁字裤",
+              "thong",
+              1
+            ],
+            [
+              "G弦裤",
+              "g-string",
+              2
+            ],
+            [
+              "C字裤",
+              "c-string",
+              3
+            ],
+            [
+              "外套半脱露肩",
+              "off-shoulder jacket",
+              1
+            ],
+            [
+              "衬衫领口微敞",
+              "untied collar",
+              1
+            ],
+            [
+              "领带松垮歪斜",
+              "loosened necktie",
+              1
+            ],
+            [
+              "单侧肩带滑落",
+              "slipping straps",
+              1
+            ],
+            [
+              "随性披覆毯子",
+              "draped blanket",
+              1
+            ],
+            [
+              "半解缎带系绳",
+              "partially undone ribbon",
+              1
+            ],
+            [
+              "湿润微透织物",
+              "translucent wet fabric",
+              2
+            ],
+            [
+              "随性卷起袖口",
+              "rolled up sleeves",
+              0
+            ],
+            [
+              "衣衫松垮歪斜",
+              "loose clothes",
+              1
+            ],
+            [
+              "纤手拉扯裙摆",
+              "dress pull",
+              1
+            ],
+            [
+              "锁骨线条特写",
+              "collarbone focus",
+              0
+            ],
+            [
+              "全身湿透透光",
+              "soaked",
+              2
+            ],
+            [
+              "破损过膝袜撕痕",
+              "torn stockings",
+              1
+            ],
+            [
+              "拉链半开微敞",
+              "partially unzipped",
+              1
+            ],
+            [
+              "单侧肩带完全滑落",
+              "fallen strap",
+              1
+            ],
+            [
+              "比基尼绑带微松",
+              "untied bikini",
+              1
+            ],
+            [
+              "吊袜带边缘外露",
+              "garter straps visible",
+              1
+            ],
+            [
+              "手拉拉链动作",
+              "zipper pull",
+              1
+            ]
+          ]
+        },
+        {
+          "key": "outfit_nsfw.exposure",
+          "lab": "暴露细节",
+          "type": "multi",
+          "req": false,
+          "prob": 0.45,
+          "opts": [
+            [
+              "乳沟",
+              "cleavage",
+              1
+            ],
+            [
+              "下乳",
+              "underboob",
+              2
+            ],
+            [
+              "侧乳",
+              "sideboob",
+              2
+            ],
+            [
+              "露腰",
+              "midriff",
+              1
+            ],
+            [
+              "乳头",
+              "nipples",
+              2
+            ],
+            [
+              "乳晕",
+              "areolae",
+              2
+            ],
+            [
+              "臀部",
+              "bare buttocks",
+              2
+            ],
+            [
+              "骆驼趾",
+              "cameltoe",
+              2
+            ],
+            [
+              "露出胸部",
+              "exposed breasts",
+              2
+            ],
+            [
+              "肚脐",
+              "navel",
+              0
+            ],
+            [
+              "大腿",
+              "thighs",
+              0
+            ],
+            [
+              "臀部焦点",
+              "ass focus",
+              2
+            ],
+            [
+              "胸部焦点",
+              "breast focus",
+              1
+            ],
+            [
+              "汗水",
+              "sweat",
+              1
+            ],
+            [
+              "湿肤",
+              "wet skin",
+              1
+            ],
+            [
+              "露背",
+              "bare back",
+              1
+            ],
+            [
+              "深 V 领",
+              "plunging neckline",
+              1
+            ],
+            [
+              "高开叉",
+              "high slit",
+              1
+            ],
+            [
+              "透视",
+              "see-through",
+              2
+            ],
+            [
+              "立乳",
+              "erect nipples",
+              2
+            ],
+            [
+              "乳头突出",
+              "protruding nipples",
+              2
+            ],
+            [
+              "凹陷乳头",
+              "inverted nipples",
+              2
+            ],
+            [
+              "大乳晕",
+              "large areolae",
+              2
+            ],
+            [
+              "深邃乳沟",
+              "deep cleavage",
+              1
+            ],
+            [
+              "光洁下体",
+              "hairless pussy",
+              2
+            ],
+            [
+              "私处",
+              "pussy",
+              2
+            ],
+            [
+              "阴毛",
+              "pubic hair",
+              2
+            ],
+            [
+              "阴蒂",
+              "clitoris",
+              3
+            ],
+            [
+              "大阴唇",
+              "labia",
+              3
+            ],
+            [
+              "张开私处",
+              "spread pussy",
+              3
+            ],
+            [
+              "私处特写",
+              "pussy focus",
+              3
+            ],
+            [
+              "后穴",
+              "anus",
+              3
+            ],
+            [
+              "臀部特写",
+              "butt focus",
+              2
+            ],
+            [
+              "侧乳特写",
+              "sideboob focus",
+              2
+            ],
+            [
+              "胸部压迫",
+              "breasts pressed together",
+              1
+            ],
+            [
+              "露胸剪裁",
+              "cleavage cutout",
+              1
+            ],
+            [
+              "侧胸剪裁",
+              "sideboob cutout",
+              2
+            ],
+            [
+              "露腰剪裁",
+              "waist cutout",
+              1
+            ],
+            [
+              "股间",
+              "crotch",
+              2
+            ],
+            [
+              "股间特写",
+              "crotch focus",
+              2
+            ],
+            [
+              "腹股沟",
+              "groin",
+              2
+            ],
+            [
+              "淫纹",
+              "womb tattoo",
+              2
+            ],
+            [
+              "耻骨纹身",
+              "pubic tattoo",
+              2
+            ],
+            [
+              "乳首穿孔",
+              "nipple piercing",
+              2
+            ],
+            [
+              "私处穿孔",
+              "genital piercing",
+              3
+            ],
+            [
+              "比基尼晒痕",
+              "bikini tan",
+              1
+            ],
+            [
+              "侧腰优雅镂空",
+              "side cutout",
+              1
+            ],
+            [
+              "高开叉下摆",
+              "high side slit",
+              1
+            ],
+            [
+              "迷人直角露肩",
+              "bare shoulders",
+              0
+            ],
+            [
+              "肚脐镂空剪裁",
+              "navel cut",
+              0
+            ],
+            [
+              "大面积露腰腹",
+              "bare midriff",
+              0
+            ],
+            [
+              "深邃骨感锁骨",
+              "collarbone",
+              0
+            ],
+            [
+              "领口大开敞怀",
+              "open collar",
+              0
+            ],
+            [
+              "大腿诱人缝隙",
+              "thigh gap",
+              0
+            ],
+            [
+              "绝对领域过膝",
+              "absolute territory",
+              0
+            ],
+            [
+              "微露性感髋骨",
+              "bare hips",
+              1
+            ],
+            [
+              "无肩带抹胸展肩",
+              "strapless",
+              0
+            ],
+            [
+              "人鱼线轻纱遮掩",
+              "pelvic curtain",
+              1
+            ],
+            [
+              "平坦腹部尽露",
+              "exposed stomach",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "outfit_nsfw.bondage",
+          "lab": "束缚道具",
+          "type": "select",
+          "req": false,
+          "prob": 0.16,
+          "opts": [
+            [
+              "绳缚",
+              "shibari",
+              3
+            ],
+            [
+              "绳索束缚",
+              "rope bondage",
+              3
+            ],
+            [
+              "手铐",
+              "handcuffs",
+              3
+            ],
+            [
+              "项圈",
+              "collar",
+              2
+            ],
+            [
+              "牵绳",
+              "leash",
+              3
+            ],
+            [
+              "蒙眼",
+              "blindfold",
+              2
+            ],
+            [
+              "口球",
+              "ball gag",
+              3
+            ],
+            [
+              "绑腕",
+              "bound wrists",
+              3
+            ],
+            [
+              "绑臂",
+              "bound arms",
+              3
+            ],
+            [
+              "撑杆",
+              "spreader bar",
+              4
+            ],
+            [
+              "悬挂束缚",
+              "suspension",
+              4
+            ],
+            [
+              "缚绳",
+              "bondage",
+              3
+            ],
+            [
+              "皮质束缚带",
+              "leather harness",
+              2
+            ],
+            [
+              "胸部皮带束缚",
+              "chest harness",
+              2
+            ],
+            [
+              "腿部皮带束缚",
+              "thigh harness",
+              2
+            ],
+            [
+              "脚踝手铐",
+              "ankle cuffs",
+              3
+            ],
+            [
+              "束缚手套",
+              "bondage mittens",
+              3
+            ],
+            [
+              "环形口塞",
+              "ring gag",
+              3
+            ],
+            [
+              "胶带封口",
+              "tape gag",
+              3
+            ],
+            [
+              "蜘蛛网束缚",
+              "spiderweb bondage",
+              3
+            ],
+            [
+              "紧缚衣",
+              "straitjacket",
+              3
+            ],
+            [
+              "贞操带",
+              "chastity belt",
+              3
+            ],
+            [
+              "情趣项圈",
+              "choker, collar",
+              2
+            ],
+            [
+              "带铃项圈",
+              "bell collar",
+              2
+            ],
+            [
+              "情趣项圈牵引绳",
+              "collar, leash",
+              3
+            ],
+            [
+              "触手束缚",
+              "tentacle bondage",
+              4
+            ],
+            [
+              "触手缠绕",
+              "tentacles",
+              3
+            ],
+            [
+              "十字架束缚",
+              "tied to cross",
+              3
+            ],
+            [
+              "绑在椅子上",
+              "tied to chair",
+              3
+            ],
+            [
+              "悬空吊起",
+              "suspended",
+              3
+            ],
+            [
+              "双臂反剪",
+              "arms behind back, bound",
+              3
+            ],
+            [
+              "拘束面具",
+              "leather mask",
+              3
+            ],
+            [
+              "拘束眼罩",
+              "leather blindfold",
+              3
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

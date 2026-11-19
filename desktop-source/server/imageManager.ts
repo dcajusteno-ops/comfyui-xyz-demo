@@ -464,6 +464,15 @@ async function handleImageManagerRequest(
     return;
   }
 
+  if (route === "/xyz/noobai/service") {
+    if (method !== "GET") {
+      sendJson(res, 405, { success: false, error: "Method Not Allowed" });
+      return;
+    }
+    sendJson(res, 200, { success: true, url: "http://127.0.0.1:9135/" });
+    return;
+  }
+
   if (route === `${IMAGE_ROUTE_PREFIX}/config`) {
     if (method === "GET") {
       const config = await resolveConfig(repoRoot, comfyTarget);

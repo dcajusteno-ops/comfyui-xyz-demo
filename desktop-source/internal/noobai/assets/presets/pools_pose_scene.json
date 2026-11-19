@@ -1,0 +1,4508 @@
+{
+  "_meta": {
+    "schema": "noobai-lib/pools@1",
+    "version": "1.3.0",
+    "part": "pose_scene",
+    "sections": 3
+  },
+  "sections": [
+    {
+      "id": "pose",
+      "title": "⑨ 姿势与动作",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "pose.stance",
+          "lab": "身体姿态",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "站姿",
+              "standing",
+              0
+            ],
+            [
+              "坐姿",
+              "sitting",
+              0
+            ],
+            [
+              "正坐",
+              "seiza",
+              0
+            ],
+            [
+              "鸭子坐",
+              "wariza",
+              0
+            ],
+            [
+              "盘腿坐",
+              "indian style",
+              0
+            ],
+            [
+              "跷腿坐",
+              "crossed legs",
+              0
+            ],
+            [
+              "跪姿",
+              "kneeling",
+              0
+            ],
+            [
+              "蹲姿",
+              "squatting",
+              0
+            ],
+            [
+              "躺卧",
+              "lying",
+              0
+            ],
+            [
+              "仰卧",
+              "on back",
+              0
+            ],
+            [
+              "侧卧",
+              "on side",
+              0
+            ],
+            [
+              "俯卧",
+              "on stomach",
+              0
+            ],
+            [
+              "趴姿",
+              "all fours",
+              1
+            ],
+            [
+              "前倾",
+              "leaning forward",
+              0
+            ],
+            [
+              "后仰",
+              "leaning back",
+              0
+            ],
+            [
+              "靠墙",
+              "leaning on wall",
+              0
+            ],
+            [
+              "靠在窗边",
+              "leaning on window",
+              0
+            ],
+            [
+              "靠在桌边",
+              "leaning on table",
+              0
+            ],
+            [
+              "双手背后",
+              "arms behind back",
+              0
+            ],
+            [
+              "单手叉腰",
+              "hand on own hip",
+              0
+            ],
+            [
+              "双手插兜",
+              "hands in pockets",
+              0
+            ],
+            [
+              "双手举起",
+              "hands up",
+              0
+            ],
+            [
+              "手臂上举",
+              "arms up",
+              0
+            ],
+            [
+              "伸懒腰",
+              "stretching",
+              0
+            ],
+            [
+              "行走",
+              "walking",
+              0
+            ],
+            [
+              "奔跑",
+              "running",
+              0
+            ],
+            [
+              "跳跃",
+              "jumping",
+              0
+            ],
+            [
+              "跳舞",
+              "dancing",
+              0
+            ],
+            [
+              "漂浮",
+              "floating",
+              0
+            ],
+            [
+              "悬浮坐姿",
+              "floating sit",
+              0
+            ],
+            [
+              "单脚站立",
+              "standing on one leg",
+              0
+            ],
+            [
+              "半跪",
+              "half-kneel",
+              0
+            ],
+            [
+              "抱膝坐",
+              "knees up",
+              0
+            ],
+            [
+              "抱膝蹲",
+              "crouching",
+              0
+            ],
+            [
+              "倚坐",
+              "reclining",
+              0
+            ],
+            [
+              "仰躺伸展",
+              "stretching arms",
+              0
+            ],
+            [
+              "椅子坐姿",
+              "sitting on chair",
+              0
+            ],
+            [
+              "地板坐姿",
+              "sitting on floor",
+              0
+            ],
+            [
+              "床边坐姿",
+              "sitting on bed",
+              0
+            ],
+            [
+              "台阶坐姿",
+              "sitting on stairs",
+              0
+            ],
+            [
+              "窗台坐姿",
+              "sitting on windowsill",
+              0
+            ],
+            [
+              "弯腰",
+              "bending over",
+              1
+            ],
+            [
+              "单膝跪地",
+              "kneeling on one knee",
+              0
+            ],
+            [
+              "胎儿姿势",
+              "fetal position",
+              0
+            ],
+            [
+              "双腿交叉站立",
+              "standing with legs crossed",
+              0
+            ],
+            [
+              "后撑坐姿",
+              "leaning back on hands",
+              0
+            ],
+            [
+              "重心侧靠",
+              "contrapposto",
+              0
+            ],
+            [
+              "反坐椅子",
+              "sitting backwards",
+              0
+            ],
+            [
+              "躺床上",
+              "lying on bed",
+              0
+            ],
+            [
+              "躺草地",
+              "lying on grass",
+              0
+            ],
+            [
+              "躺地板",
+              "lying on floor",
+              0
+            ],
+            [
+              "抱膝坐",
+              "hugging knees",
+              0
+            ],
+            [
+              "倒立",
+              "handstand",
+              0
+            ],
+            [
+              "后仰下腰",
+              "backbend",
+              0
+            ],
+            [
+              "坐秋千",
+              "sitting on swing",
+              0
+            ],
+            [
+              "坐栏杆",
+              "sitting on railing",
+              0
+            ],
+            [
+              "靠栏杆",
+              "leaning on railing",
+              0
+            ],
+            [
+              "坐桌上",
+              "sitting on desk",
+              0
+            ],
+            [
+              "踮脚站",
+              "standing on tiptoes",
+              0
+            ],
+            [
+              "坐摩托",
+              "sitting on motorcycle",
+              0
+            ],
+            [
+              "侧坐",
+              "side saddle",
+              0
+            ],
+            [
+              "单膝微抬",
+              "one knee raised",
+              0
+            ],
+            [
+              "盘腿而坐",
+              "sitting cross-legged",
+              0
+            ],
+            [
+              "慵懒伸展",
+              "sprawled out",
+              0
+            ],
+            [
+              "侧身弓背收腰",
+              "arched back",
+              0
+            ],
+            [
+              "单膝微蹲",
+              "crouching on one knee",
+              0
+            ],
+            [
+              "模特大片站姿",
+              "model pose",
+              0
+            ],
+            [
+              "踮脚站立",
+              "tiptoe",
+              0
+            ],
+            [
+              "坐在桌面边缘",
+              "sitting on table",
+              0
+            ],
+            [
+              "倚靠栏杆眺望",
+              "leaning against railing",
+              0
+            ],
+            [
+              "背靠立柱沉思",
+              "leaning against pillar",
+              0
+            ],
+            [
+              "俯卧趴在床上",
+              "lying on stomach",
+              0
+            ],
+            [
+              "仰卧平躺放松",
+              "lying on back",
+              0
+            ],
+            [
+              "半蹲迎战姿态",
+              "half crouching",
+              0
+            ],
+            [
+              "凌空悠然漂浮",
+              "floating in air",
+              0
+            ],
+            [
+              "向后坠落悬空",
+              "falling backwards",
+              0
+            ],
+            [
+              "空中动感飞跃",
+              "dynamic mid-air pose",
+              0
+            ],
+            [
+              "英雄落地式",
+              "hero landing",
+              0
+            ],
+            [
+              "裙摆旋身回眸",
+              "spinning around",
+              0
+            ],
+            [
+              "背身漫步离去",
+              "walking away",
+              0
+            ],
+            [
+              "迎面款款走来",
+              "walking towards viewer",
+              0
+            ],
+            [
+              "活力向前奔跑",
+              "running pose",
+              0
+            ],
+            [
+              "欢呼跳跃离地",
+              "jumping with arms up",
+              0
+            ],
+            [
+              "芭蕾足尖点地",
+              "ballet pose",
+              0
+            ],
+            [
+              "交叉脚踝站立",
+              "crossed ankles standing",
+              0
+            ],
+            [
+              "小猫式跪趴",
+              "cat pose",
+              0
+            ],
+            [
+              "伏在桌沿前倾",
+              "leaning over table",
+              0
+            ]
+          ],
+          "slot": "pose"
+        },
+        {
+          "key": "pose.arms",
+          "lab": "手臂动作",
+          "type": "multi",
+          "req": false,
+          "prob": 0.45,
+          "opts": [
+            [
+              "手托脸颊",
+              "hand on own cheek",
+              0
+            ],
+            [
+              "手放胸口",
+              "hand on own chest",
+              0
+            ],
+            [
+              "手叉腰",
+              "hand on own hip",
+              0
+            ],
+            [
+              "手撩头发",
+              "hand in hair",
+              0
+            ],
+            [
+              "单手举起",
+              "hand up",
+              0
+            ],
+            [
+              "单臂上举",
+              "arm up",
+              0
+            ],
+            [
+              "双手抱头",
+              "arms behind head",
+              0
+            ],
+            [
+              "双臂交叉",
+              "arms crossed",
+              0
+            ],
+            [
+              "双臂垂放",
+              "arms at sides",
+              0
+            ],
+            [
+              "单臂伸展",
+              "outstretched arm",
+              0
+            ],
+            [
+              "指向",
+              "pointing",
+              0
+            ],
+            [
+              "比耶",
+              "peace sign",
+              0
+            ],
+            [
+              "竖大拇指",
+              "thumbs up",
+              0
+            ],
+            [
+              "敬礼",
+              "salute",
+              0
+            ],
+            [
+              "挥手",
+              "waving",
+              0
+            ],
+            [
+              "端着杯子",
+              "holding cup",
+              0
+            ],
+            [
+              "拿着书",
+              "holding book",
+              0
+            ],
+            [
+              "拿着手机",
+              "holding phone",
+              0
+            ],
+            [
+              "撑着伞",
+              "holding umbrella",
+              0
+            ],
+            [
+              "拿着武器",
+              "holding weapon",
+              0
+            ],
+            [
+              "整理头发",
+              "adjusting hair",
+              0
+            ],
+            [
+              "整理衣领",
+              "adjusting clothes",
+              0
+            ],
+            [
+              "双手合十",
+              "own hands together",
+              0
+            ],
+            [
+              "抱臂",
+              "hugging own arms",
+              0
+            ],
+            [
+              "握拳",
+              "clenched fist",
+              0
+            ],
+            [
+              "张开双臂",
+              "spread arms",
+              0
+            ],
+            [
+              "手臂搭肩",
+              "arm around shoulder",
+              0
+            ],
+            [
+              "手放腿上",
+              "hands on laps",
+              0
+            ],
+            [
+              "手放大腿",
+              "hand on own thigh",
+              0
+            ],
+            [
+              "手放腹部",
+              "hand on own stomach",
+              0
+            ],
+            [
+              "手放颈部",
+              "hand on own neck",
+              0
+            ],
+            [
+              "手放脸颊",
+              "hand on own face",
+              0
+            ],
+            [
+              "手遮嘴",
+              "hand covering mouth",
+              0
+            ],
+            [
+              "手遮眼",
+              "hand over eye",
+              0
+            ],
+            [
+              "双臂高举",
+              "arms raised",
+              0
+            ],
+            [
+              "双臂张开",
+              "arms outstretched",
+              0
+            ],
+            [
+              "双手交握",
+              "hands clasped",
+              0
+            ],
+            [
+              "十指相扣",
+              "fingers interlaced",
+              0
+            ],
+            [
+              "抱住手臂",
+              "holding own arm",
+              0
+            ],
+            [
+              "拨弄头发",
+              "touching own hair",
+              0
+            ],
+            [
+              "扶眼镜",
+              "adjusting glasses",
+              0
+            ],
+            [
+              "扶着帽子",
+              "holding hat",
+              0
+            ],
+            [
+              "拿着包",
+              "holding bag",
+              0
+            ],
+            [
+              "拿着花",
+              "holding flower",
+              0
+            ],
+            [
+              "拥抱",
+              "hugging",
+              0
+            ],
+            [
+              "托下巴",
+              "hand on own chin",
+              0
+            ],
+            [
+              "手搭肩",
+              "hand on own shoulder",
+              0
+            ],
+            [
+              "手背后",
+              "hand behind back",
+              0
+            ],
+            [
+              "双手背后",
+              "hands behind back",
+              0
+            ],
+            [
+              "双手叉腰",
+              "hands on hips",
+              0
+            ],
+            [
+              "手肘撑桌",
+              "elbows on table",
+              0
+            ],
+            [
+              "比手枪",
+              "finger guns",
+              0
+            ],
+            [
+              "嘘声手势",
+              "shushing",
+              0
+            ],
+            [
+              "手指抵唇",
+              "finger to mouth",
+              0
+            ],
+            [
+              "张开手掌",
+              "open hand",
+              0
+            ],
+            [
+              "掌心朝外",
+              "palm out",
+              0
+            ],
+            [
+              "伸手",
+              "reaching out",
+              0
+            ],
+            [
+              "伸手向镜头",
+              "reaching towards viewer",
+              0
+            ],
+            [
+              "抓取",
+              "grabbing",
+              0
+            ],
+            [
+              "把玩头发",
+              "playing with hair",
+              0
+            ],
+            [
+              "靠肘支撑",
+              "leaning on elbows",
+              0
+            ],
+            [
+              "手持物品",
+              "holding",
+              0
+            ],
+            [
+              "手持食物",
+              "holding food",
+              0
+            ],
+            [
+              "持剑",
+              "holding sword",
+              0
+            ],
+            [
+              "持枪",
+              "holding gun",
+              0
+            ],
+            [
+              "手插口袋",
+              "hand in pocket",
+              0
+            ],
+            [
+              "手臂支撑",
+              "arm support",
+              0
+            ],
+            [
+              "手臂垂在身侧",
+              "arm at side",
+              0
+            ],
+            [
+              "手臂背在身后",
+              "arm behind back",
+              0
+            ],
+            [
+              "手放在他人头上",
+              "hand on another's head",
+              0
+            ],
+            [
+              "手持长杖",
+              "holding staff",
+              0
+            ],
+            [
+              "持刀",
+              "holding knife",
+              0
+            ],
+            [
+              "拎着未穿的衣服",
+              "holding unworn clothes",
+              0
+            ],
+            [
+              "持长柄武器",
+              "holding polearm",
+              0
+            ],
+            [
+              "持瓶（手持瓶子）",
+              "holding bottle",
+              0
+            ],
+            [
+              "持扇（手持扇子）",
+              "holding fan",
+              0
+            ],
+            [
+              "持麦克风",
+              "holding microphone",
+              0
+            ],
+            [
+              "持托盘",
+              "holding tray",
+              0
+            ],
+            [
+              "持乐器",
+              "holding instrument",
+              0
+            ],
+            [
+              "持花束",
+              "holding bouquet",
+              0
+            ],
+            [
+              "抱着动物（抱着宠物）",
+              "holding animal",
+              0
+            ],
+            [
+              "手持精灵球",
+              "holding poke ball",
+              0
+            ],
+            [
+              "持盘子",
+              "holding plate",
+              0
+            ],
+            [
+              "提着连衣裙下摆",
+              "holding own dress",
+              0
+            ],
+            [
+              "手持水果",
+              "holding fruit",
+              0
+            ],
+            [
+              "手持自己的头发",
+              "holding own hair",
+              0
+            ],
+            [
+              "握住他人的手腕",
+              "holding another's wrist",
+              0
+            ],
+            [
+              "手持叉子",
+              "holding fork",
+              0
+            ],
+            [
+              "手持礼物",
+              "holding gift",
+              0
+            ],
+            [
+              "手持香烟",
+              "holding cigarette",
+              0
+            ],
+            [
+              "手持罐子",
+              "holding can",
+              0
+            ],
+            [
+              "手持勺子",
+              "holding spoon",
+              0
+            ],
+            [
+              "手持筷子",
+              "holding chopsticks",
+              0
+            ],
+            [
+              "手持糖果",
+              "holding candy",
+              0
+            ],
+            [
+              "持弓（武器）",
+              "holding bow (weapon)",
+              0
+            ],
+            [
+              "握住他人的头发",
+              "holding another's hair",
+              0
+            ],
+            [
+              "手持魔杖",
+              "holding wand",
+              0
+            ],
+            [
+              "手持纸张",
+              "holding paper",
+              0
+            ],
+            [
+              "手持卡片",
+              "holding card",
+              0
+            ],
+            [
+              "手持相机",
+              "holding camera",
+              0
+            ],
+            [
+              "持笔",
+              "holding pen",
+              0
+            ],
+            [
+              "手持棒棒糖",
+              "holding lollipop",
+              0
+            ],
+            [
+              "手持球",
+              "holding ball",
+              0
+            ],
+            [
+              "手持未戴的帽子",
+              "holding unworn hat",
+              0
+            ],
+            [
+              "手持盾牌",
+              "holding shield",
+              0
+            ],
+            [
+              "手持扫帚",
+              "holding broom",
+              0
+            ],
+            [
+              "端着碗",
+              "holding bowl",
+              0
+            ],
+            [
+              "手持摘下的眼镜",
+              "holding removed eyewear",
+              0
+            ],
+            [
+              "端着箱子",
+              "holding box",
+              0
+            ],
+            [
+              "提起裙子下摆",
+              "holding own skirt",
+              0
+            ],
+            [
+              "握着斧头",
+              "holding axe",
+              0
+            ],
+            [
+              "持有控制器",
+              "holding controller",
+              0
+            ],
+            [
+              "手持冰棍",
+              "holding popsicle",
+              0
+            ],
+            [
+              "手持镰刀",
+              "holding scythe",
+              0
+            ],
+            [
+              "持有绒球",
+              "holding pom poms",
+              0
+            ],
+            [
+              "手持饮料",
+              "holding drink",
+              0
+            ],
+            [
+              "拿着面具",
+              "holding mask",
+              0
+            ],
+            [
+              "拿着毛巾",
+              "holding towel",
+              0
+            ],
+            [
+              "手持包带",
+              "holding strap",
+              0
+            ],
+            [
+              "手持牵绳",
+              "holding leash",
+              0
+            ],
+            [
+              "握住他人的手臂",
+              "holding another's arm",
+              0
+            ],
+            [
+              "手持匕首",
+              "holding dagger",
+              0
+            ],
+            [
+              "抱着玩偶",
+              "holding doll",
+              0
+            ],
+            [
+              "手握画笔",
+              "holding paintbrush",
+              0
+            ],
+            [
+              "拿着棒球棒",
+              "holding baseball bat",
+              0
+            ],
+            [
+              "提着篮子",
+              "holding basket",
+              0
+            ],
+            [
+              "手持旗帜",
+              "holding flag",
+              0
+            ],
+            [
+              "握住锤子",
+              "holding hammer",
+              0
+            ],
+            [
+              "背后持物",
+              "holding behind back",
+              0
+            ],
+            [
+              "抱着猫",
+              "holding cat",
+              0
+            ],
+            [
+              "抱着宝可梦",
+              "holding pokemon",
+              0
+            ],
+            [
+              "持有游戏控制器",
+              "holding game controller",
+              0
+            ],
+            [
+              "手持御币",
+              "holding gohei",
+              0
+            ],
+            [
+              "手持夹纸板",
+              "holding clipboard",
+              0
+            ],
+            [
+              "手持烟斗",
+              "holding smoking pipe",
+              0
+            ],
+            [
+              "手持吉他",
+              "holding guitar",
+              0
+            ],
+            [
+              "抱着灯笼",
+              "holding lantern",
+              0
+            ],
+            [
+              "手持注射器",
+              "holding syringe",
+              0
+            ],
+            [
+              "手持箭",
+              "holding arrow",
+              0
+            ],
+            [
+              "持有手持游戏机",
+              "holding handheld game console",
+              0
+            ],
+            [
+              "握着刀鞘",
+              "holding sheath",
+              0
+            ],
+            [
+              "手持内衣",
+              "holding underwear",
+              0
+            ],
+            [
+              "拎着包袱",
+              "holding sack",
+              0
+            ],
+            [
+              "手持招牌",
+              "holding sign",
+              0
+            ],
+            [
+              "手持拨片",
+              "holding plectrum",
+              0
+            ],
+            [
+              "手持游泳圈",
+              "holding swim ring",
+              0
+            ],
+            [
+              "握住他人的腿",
+              "holding another's leg",
+              0
+            ],
+            [
+              "拿着避孕套",
+              "holding condom",
+              0
+            ],
+            [
+              "拿着冰淇淋",
+              "holding ice cream",
+              0
+            ],
+            [
+              "手持铅笔",
+              "holding pencil",
+              0
+            ],
+            [
+              "拿着拐杖",
+              "holding cane",
+              0
+            ],
+            [
+              "握住棍子",
+              "holding stick",
+              0
+            ],
+            [
+              "握住剪刀",
+              "holding scissors",
+              0
+            ],
+            [
+              "拿着内裤",
+              "holding panties",
+              0
+            ],
+            [
+              "在背后手持武器",
+              "holding weapon behind back",
+              0
+            ],
+            [
+              "手持枕头",
+              "holding pillow",
+              0
+            ],
+            [
+              "拿着性玩具",
+              "holding sex toy",
+              0
+            ],
+            [
+              "握住水枪",
+              "holding water gun",
+              0
+            ],
+            [
+              "手持未戴的头盔",
+              "holding unworn helmet",
+              0
+            ],
+            [
+              "握住气球",
+              "holding balloon",
+              0
+            ],
+            [
+              "握着鞭子",
+              "holding whip",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "pose.legs",
+          "lab": "腿部动作",
+          "type": "multi",
+          "req": false,
+          "prob": 0.4,
+          "opts": [
+            [
+              "双腿交叉",
+              "crossed legs",
+              0
+            ],
+            [
+              "脚踝交叉",
+              "crossed ankles",
+              0
+            ],
+            [
+              "双腿并拢",
+              "legs together",
+              0
+            ],
+            [
+              "双腿分开",
+              "legs apart",
+              0
+            ],
+            [
+              "单腿抬起",
+              "one leg up",
+              0
+            ],
+            [
+              "膝盖抬起",
+              "knee up",
+              0
+            ],
+            [
+              "踮脚",
+              "tiptoes",
+              0
+            ],
+            [
+              "单脚站立",
+              "standing on one leg",
+              0
+            ],
+            [
+              "抬脚",
+              "foot up",
+              0
+            ],
+            [
+              "赤脚",
+              "barefoot",
+              0
+            ],
+            [
+              "脚底",
+              "soles",
+              0
+            ],
+            [
+              "脚出画",
+              "feet out of frame",
+              0
+            ],
+            [
+              "盘腿",
+              "legs crossed",
+              0
+            ],
+            [
+              "屈膝",
+              "bent knees",
+              0
+            ],
+            [
+              "腿并拢",
+              "feet together",
+              0
+            ],
+            [
+              "脚尖点地",
+              "on tiptoes",
+              0
+            ],
+            [
+              "膝枕姿势",
+              "lap pillow",
+              0
+            ],
+            [
+              "侧坐腿",
+              "side-sitting",
+              0
+            ],
+            [
+              "单脚站立",
+              "standing on one foot",
+              0
+            ],
+            [
+              "抬腿",
+              "legs raised",
+              0
+            ],
+            [
+              "双膝并拢",
+              "knees together",
+              0
+            ],
+            [
+              "双膝分开",
+              "knees apart",
+              0
+            ],
+            [
+              "脚踝交叉",
+              "legs crossed at ankles",
+              0
+            ],
+            [
+              "单膝抬起",
+              "one knee raised",
+              0
+            ],
+            [
+              "双脚分开",
+              "feet apart",
+              0
+            ],
+            [
+              "双膝内扣",
+              "knock-knees",
+              0
+            ],
+            [
+              "膝盖交叠",
+              "legs crossed at knees",
+              0
+            ],
+            [
+              "单腿前伸",
+              "one leg forward",
+              0
+            ],
+            [
+              "抬腿",
+              "leg lift",
+              0
+            ],
+            [
+              "抱膝",
+              "knees to chest",
+              0
+            ],
+            [
+              "绷脚尖",
+              "toe point",
+              0
+            ],
+            [
+              "双腿悬空",
+              "legs dangling",
+              0
+            ],
+            [
+              "腿浸水中",
+              "legs in water",
+              0
+            ],
+            [
+              "脚踩椅子",
+              "foot on chair",
+              0
+            ],
+            [
+              "双腿微屈",
+              "legs bent",
+              0
+            ],
+            [
+              "双踝交叉",
+              "ankles crossed",
+              0
+            ],
+            [
+              "双膝跪姿",
+              "kneeling on all fours",
+              1
+            ],
+            [
+              "少女内八站姿",
+              "pigeon-toed",
+              0
+            ],
+            [
+              "双膝并拢小腿微张",
+              "knees together feet apart",
+              0
+            ],
+            [
+              "单腿俏皮微曲",
+              "one leg bent",
+              0
+            ],
+            [
+              "双腿略微张开",
+              "legs spread slightly",
+              0
+            ],
+            [
+              "双腿搭在扶手上",
+              "legs draped over armrest",
+              0
+            ],
+            [
+              "双足离地悠闲晃动",
+              "feet off ground",
+              0
+            ],
+            [
+              "鸭子坐W坐姿",
+              "w-sitting",
+              0
+            ],
+            [
+              "端庄正襟跪坐",
+              "seiza",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        },
+        {
+          "key": "pose.head",
+          "lab": "头部朝向",
+          "type": "select",
+          "req": false,
+          "prob": 0.55,
+          "opts": [
+            [
+              "看着镜头",
+              "looking at viewer",
+              0
+            ],
+            [
+              "移开视线",
+              "looking away",
+              0
+            ],
+            [
+              "回眸",
+              "looking back",
+              0
+            ],
+            [
+              "抬头",
+              "looking up",
+              0
+            ],
+            [
+              "低头",
+              "looking down",
+              0
+            ],
+            [
+              "看向侧面",
+              "looking to the side",
+              0
+            ],
+            [
+              "歪头",
+              "head tilt",
+              0
+            ],
+            [
+              "头部靠放",
+              "head rest",
+              0
+            ],
+            [
+              "侧脸",
+              "profile",
+              0
+            ],
+            [
+              "侧面",
+              "from side",
+              0
+            ],
+            [
+              "背面",
+              "from behind",
+              0
+            ],
+            [
+              "背对镜头",
+              "facing away",
+              0
+            ],
+            [
+              "仰头",
+              "head back",
+              0
+            ],
+            [
+              "低头看",
+              "looking down at viewer",
+              0
+            ],
+            [
+              "回头看",
+              "looking over shoulder",
+              0
+            ],
+            [
+              "低头",
+              "head down",
+              0
+            ],
+            [
+              "仰头",
+              "head up",
+              0
+            ],
+            [
+              "遮脸",
+              "face hidden",
+              0
+            ],
+            [
+              "望向窗外",
+              "looking through window",
+              0
+            ],
+            [
+              "看向他人",
+              "looking at another",
+              0
+            ],
+            [
+              "抬下巴",
+              "chin up",
+              0
+            ],
+            [
+              "收下巴",
+              "chin down",
+              0
+            ],
+            [
+              "手托下巴",
+              "resting chin on hand",
+              0
+            ],
+            [
+              "头靠肩",
+              "head on shoulder",
+              0
+            ],
+            [
+              "目视前方",
+              "looking ahead",
+              0
+            ],
+            [
+              "远望",
+              "looking afar",
+              0
+            ],
+            [
+              "仰头微闭",
+              "head tilted back",
+              0
+            ],
+            [
+              "视线越过视点",
+              "looking past viewer",
+              0
+            ],
+            [
+              "单手托腮",
+              "chin resting on hand",
+              0
+            ],
+            [
+              "侧目斜视",
+              "glancing sideways",
+              0
+            ],
+            [
+              "侧头枕在桌沿",
+              "head rested on table",
+              0
+            ],
+            [
+              "把头埋在膝间",
+              "head rested on knees",
+              0
+            ],
+            [
+              "蓦然侧首回望",
+              "head turn",
+              0
+            ],
+            [
+              "刘海间抬眸窥视",
+              "looking through bangs",
+              0
+            ],
+            [
+              "傲娇昂首抬下巴",
+              "chin up proudly",
+              0
+            ],
+            [
+              "歪头眨眼卖萌",
+              "tilted head cute",
+              0
+            ],
+            [
+              "侧视流转视线",
+              "looking sideways",
+              0
+            ],
+            [
+              "探头好奇张望",
+              "peeking around corner",
+              0
+            ]
+          ]
+        },
+        {
+          "key": "pose.action",
+          "lab": "正在做的事",
+          "type": "select",
+          "req": false,
+          "prob": 0.35,
+          "opts": [
+            [
+              "行走",
+              "walking",
+              0
+            ],
+            [
+              "奔跑",
+              "running",
+              0
+            ],
+            [
+              "跳跃",
+              "jumping",
+              0
+            ],
+            [
+              "跳舞",
+              "dancing",
+              0
+            ],
+            [
+              "旋转",
+              "spinning",
+              0
+            ],
+            [
+              "伸懒腰",
+              "stretching",
+              0
+            ],
+            [
+              "打哈欠",
+              "yawning",
+              0
+            ],
+            [
+              "睡觉",
+              "sleeping",
+              0
+            ],
+            [
+              "吃东西",
+              "eating",
+              0
+            ],
+            [
+              "喝饮料",
+              "drinking",
+              0
+            ],
+            [
+              "读书",
+              "reading",
+              0
+            ],
+            [
+              "写字",
+              "writing",
+              0
+            ],
+            [
+              "做饭",
+              "cooking",
+              0
+            ],
+            [
+              "打扫",
+              "cleaning",
+              0
+            ],
+            [
+              "购物",
+              "shopping",
+              0
+            ],
+            [
+              "观光",
+              "sightseeing",
+              0
+            ],
+            [
+              "拍照",
+              "taking photo",
+              0
+            ],
+            [
+              "听音乐",
+              "listening to music",
+              0
+            ],
+            [
+              "弹吉他",
+              "playing guitar",
+              0
+            ],
+            [
+              "撑伞散步",
+              "walking with umbrella",
+              0
+            ],
+            [
+              "抱着玩偶",
+              "holding stuffed toy",
+              0
+            ],
+            [
+              "抱着花",
+              "holding flowers",
+              0
+            ],
+            [
+              "学习",
+              "studying",
+              0
+            ],
+            [
+              "工作",
+              "working",
+              0
+            ],
+            [
+              "打字",
+              "typing",
+              0
+            ],
+            [
+              "画画",
+              "drawing",
+              0
+            ],
+            [
+              "绘画",
+              "painting",
+              0
+            ],
+            [
+              "弹钢琴",
+              "playing piano",
+              0
+            ],
+            [
+              "拉小提琴",
+              "playing violin",
+              0
+            ],
+            [
+              "唱歌",
+              "singing",
+              0
+            ],
+            [
+              "战斗",
+              "fighting",
+              0
+            ],
+            [
+              "冥想",
+              "meditating",
+              0
+            ],
+            [
+              "刚睡醒",
+              "waking up",
+              0
+            ],
+            [
+              "刷牙",
+              "brushing teeth",
+              0
+            ],
+            [
+              "洗脸",
+              "washing face",
+              0
+            ],
+            [
+              "泡澡",
+              "bathing",
+              0
+            ],
+            [
+              "游泳",
+              "swimming",
+              0
+            ],
+            [
+              "骑车",
+              "cycling",
+              0
+            ],
+            [
+              "滑冰",
+              "skating",
+              0
+            ],
+            [
+              "滑雪",
+              "skiing",
+              0
+            ],
+            [
+              "冲浪",
+              "surfing",
+              0
+            ],
+            [
+              "骑马",
+              "horseback riding",
+              0
+            ],
+            [
+              "开车",
+              "driving",
+              0
+            ],
+            [
+              "飞翔",
+              "flying",
+              0
+            ],
+            [
+              "坠落",
+              "falling",
+              0
+            ],
+            [
+              "漂浮",
+              "levitating",
+              0
+            ],
+            [
+              "施法",
+              "casting spell",
+              0
+            ],
+            [
+              "打游戏",
+              "playing video game",
+              0
+            ],
+            [
+              "发消息",
+              "texting",
+              0
+            ],
+            [
+              "打牌",
+              "playing cards",
+              0
+            ],
+            [
+              "烘焙",
+              "baking",
+              0
+            ],
+            [
+              "园艺",
+              "gardening",
+              0
+            ],
+            [
+              "整理秀发",
+              "adjusting hair",
+              0
+            ],
+            [
+              "指尖绕发",
+              "twirling hair",
+              0
+            ],
+            [
+              "双手背后",
+              "hands behind back",
+              0
+            ],
+            [
+              "双臂托胸抱抱",
+              "arms crossed under bust",
+              0
+            ],
+            [
+              "伸手触碰",
+              "reaching out",
+              0
+            ],
+            [
+              "眨眼比耶",
+              "peace sign near eye",
+              0
+            ],
+            [
+              "食指点腮",
+              "finger to cheek",
+              0
+            ],
+            [
+              "推眼镜",
+              "fixing glasses",
+              0
+            ],
+            [
+              "整理衣领",
+              "adjusting collar",
+              0
+            ],
+            [
+              "指向前方",
+              "pointing forward",
+              0
+            ],
+            [
+              "抬手遮阳",
+              "shading eyes",
+              0
+            ],
+            [
+              "提裙摆",
+              "holding hem of skirt",
+              0
+            ],
+            [
+              "单手飞吻",
+              "blowing a kiss",
+              0
+            ],
+            [
+              "掩口轻笑",
+              "hand to mouth",
+              0
+            ],
+            [
+              "指尖点颔沉思",
+              "finger on chin",
+              0
+            ],
+            [
+              "双手轻捧热茶",
+              "holding cup",
+              0
+            ],
+            [
+              "手撑雨伞微倾",
+              "holding umbrella",
+              0
+            ],
+            [
+              "单手执剑而立",
+              "holding sword",
+              0
+            ],
+            [
+              "双手紧握配枪",
+              "holding gun",
+              0
+            ],
+            [
+              "拔剑出鞘瞬间",
+              "drawing sword",
+              0
+            ],
+            [
+              "指尖轻正领带",
+              "adjusting tie",
+              0
+            ],
+            [
+              "单手轻按帽檐",
+              "adjusting hat",
+              0
+            ],
+            [
+              "挽起衣袖准备",
+              "adjusting sleeve",
+              0
+            ],
+            [
+              "侧头佩戴耳饰",
+              "adjusting earring",
+              0
+            ],
+            [
+              "纤指撩发至耳后",
+              "hair tuck behind ear",
+              0
+            ],
+            [
+              "双手束起单马尾",
+              "tying hair",
+              0
+            ],
+            [
+              "双手交握祈祷",
+              "holding hands together",
+              0
+            ],
+            [
+              "握紧加油小拳头",
+              "clenched fist",
+              0
+            ],
+            [
+              "指尖比出手枪",
+              "finger gun",
+              0
+            ],
+            [
+              "双指比耶遮眼",
+              "v sign over eye",
+              0
+            ],
+            [
+              "开朗双手比耶",
+              "double peace sign",
+              0
+            ],
+            [
+              "招财猫爪手势",
+              "cat paws gesture",
+              0
+            ],
+            [
+              "举起手机自拍",
+              "taking selfie",
+              0
+            ],
+            [
+              "举起相机取景",
+              "looking through camera",
+              0
+            ],
+            [
+              "仰手触碰苍穹",
+              "reaching for the sky",
+              0
+            ],
+            [
+              "微勾指尖招手",
+              "beckoning gesture",
+              0
+            ],
+            [
+              "竖起赞许大拇指",
+              "thumbs up",
+              0
+            ],
+            [
+              "挺拔军礼致敬",
+              "salute",
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pose_nsfw",
+      "title": "⑩ 亲密姿势",
+      "floor": 1,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "pose_nsfw.intimate",
+          "lab": "亲密互动",
+          "type": "select",
+          "req": false,
+          "prob": 0.6,
+          "opts": [
+            [
+              "躺在床上",
+              "lying on bed",
+              2
+            ],
+            [
+              "坐在床上",
+              "on bed",
+              2
+            ],
+            [
+              "张开双腿",
+              "spread legs",
+              2
+            ],
+            [
+              "抬腿",
+              "legs up",
+              2
+            ],
+            [
+              "弓起背",
+              "arched back",
+              2
+            ],
+            [
+              "跨坐",
+              "straddling",
+              2
+            ],
+            [
+              "坐在腿上",
+              "sitting on lap",
+              2
+            ],
+            [
+              "拥抱",
+              "hugging",
+              2
+            ],
+            [
+              "接吻",
+              "kissing",
+              2
+            ],
+            [
+              "法式接吻",
+              "french kiss",
+              2
+            ],
+            [
+              "手放腰间",
+              "hand on another's waist",
+              2
+            ],
+            [
+              "牵手",
+              "holding hands",
+              1
+            ],
+            [
+              "依偎",
+              "leaning on shoulder",
+              1
+            ],
+            [
+              "膝枕",
+              "lap pillow",
+              1
+            ],
+            [
+              "头靠肩",
+              "head on shoulder",
+              1
+            ],
+            [
+              "背后拥抱",
+              "hug from behind",
+              1
+            ],
+            [
+              "贴身",
+              "close to another",
+              2
+            ],
+            [
+              "压在身上",
+              "on top",
+              3
+            ],
+            [
+              "被压制",
+              "pinned",
+              3
+            ],
+            [
+              "床单",
+              "bedsheet",
+              2
+            ],
+            [
+              "搂腰",
+              "arm around waist",
+              2
+            ],
+            [
+              "捧脸",
+              "hand on cheek",
+              2
+            ],
+            [
+              "额头吻",
+              "forehead kiss",
+              2
+            ],
+            [
+              "脸颊吻",
+              "cheek kiss",
+              2
+            ],
+            [
+              "颈部吻",
+              "neck kiss",
+              2
+            ],
+            [
+              "依偎",
+              "cuddling",
+              2
+            ],
+            [
+              "后背位",
+              "doggystyle",
+              3
+            ],
+            [
+              "后入式",
+              "sex from behind",
+              3
+            ],
+            [
+              "反向骑乘位",
+              "reverse cowgirl position",
+              3
+            ],
+            [
+              "传教士体位",
+              "missionary position",
+              3
+            ],
+            [
+              "侧位性交",
+              "side-entry sex",
+              3
+            ],
+            [
+              "立位性交",
+              "standing sex",
+              3
+            ],
+            [
+              "靠墙进入",
+              "against wall, sex",
+              3
+            ],
+            [
+              "抱起悬空进入",
+              "suspended congress",
+              3
+            ],
+            [
+              "四肢着地",
+              "all fours",
+              2
+            ],
+            [
+              "撅起臀部展示",
+              "presenting hindquarters",
+              2
+            ],
+            [
+              "自我展示",
+              "presenting",
+              2
+            ],
+            [
+              "双腿高举",
+              "legs in the air",
+              2
+            ],
+            [
+              "M字开腿",
+              "m-shaped legs",
+              2
+            ],
+            [
+              "弯腰前倾",
+              "bent over",
+              2
+            ],
+            [
+              "被按在床上",
+              "pinned down, on bed",
+              2
+            ],
+            [
+              "被按在墙上",
+              "pinned against wall",
+              2
+            ],
+            [
+              "女上位主导",
+              "female dominant",
+              2
+            ],
+            [
+              "男上位主导",
+              "male dominant",
+              2
+            ],
+            [
+              "跨坐在身上",
+              "sitting on person",
+              2
+            ],
+            [
+              "深情热吻",
+              "deep kiss",
+              2
+            ],
+            [
+              "舌吻",
+              "kissing, open mouth, tongue",
+              2
+            ],
+            [
+              "亲吻锁骨",
+              "kiss on collarbone",
+              2
+            ],
+            [
+              "咬颈痕",
+              "neck bite",
+              2
+            ],
+            [
+              "双人拥吻",
+              "passionate embrace",
+              2
+            ],
+            [
+              "后背贴近",
+              "from behind, embrace",
+              2
+            ],
+            [
+              "怀中安抚",
+              "cuddling in bed",
+              2
+            ],
+            [
+              "膝枕",
+              "lap pillow, intimate",
+              2
+            ],
+            [
+              "躺在身侧",
+              "lying beside",
+              2
+            ],
+            [
+              "揉捏胸部",
+              "breast grab",
+              2
+            ],
+            [
+              "自揉胸部",
+              "groping own breasts",
+              2
+            ],
+            [
+              "抓揉臀部",
+              "ass grab",
+              2
+            ],
+            [
+              "抓扯头发",
+              "hair pull",
+              3
+            ],
+            [
+              "床沿慵懒侧卧",
+              "lying on side relaxed",
+              1
+            ],
+            [
+              "回眸妩媚凝视",
+              "alluring gaze over shoulder",
+              1
+            ],
+            [
+              "纤手轻扯领口",
+              "hands pulling collar",
+              1
+            ],
+            [
+              "双臂环抱自身",
+              "embracing self",
+              1
+            ],
+            [
+              "晨起伸展躯干",
+              "stretching body",
+              1
+            ],
+            [
+              "双膝跪床凝视",
+              "kneeling on bed",
+              1
+            ],
+            [
+              "薄被遮身半露",
+              "curled under blanket",
+              1
+            ],
+            [
+              "沙发抱膝依偎",
+              "curled up on sofa",
+              1
+            ],
+            [
+              "深陷松软枕间",
+              "lying between pillows",
+              1
+            ],
+            [
+              "背影侧首回眸",
+              "back view looking back",
+              1
+            ],
+            [
+              "轻抚心口呢喃",
+              "hands on chest",
+              1
+            ],
+            [
+              "解开发带长发散落",
+              "loosening hair",
+              1
+            ],
+            [
+              "纤手微撩裙角",
+              "pulling skirt slightly",
+              1
+            ],
+            [
+              "晨光中慵懒伸腰",
+              "stretching in bed",
+              1
+            ],
+            [
+              "俯身贴近眼前细语",
+              "leaning close to viewer",
+              1
+            ],
+            [
+              "背身回眸诱惑",
+              "presenting from behind",
+              1
+            ],
+            [
+              "跪在沙发边缘",
+              "kneeling on couch",
+              1
+            ],
+            [
+              "地毯慵懒展体",
+              "sprawled on floor",
+              1
+            ],
+            [
+              "居高临下倾身凝视",
+              "looking down at viewer seduced",
+              1
+            ],
+            [
+              "轻扯衣襟下摆",
+              "tugging clothes",
+              1
+            ],
+            [
+              "展臂仰靠沙发",
+              "spread arms",
+              1
+            ],
+            [
+              "翘腿前倾凝视",
+              "crossed legs leaning forward",
+              1
+            ],
+            [
+              "双手抱头展腰",
+              "hands behind head arched",
+              1
+            ],
+            [
+              "跪坐微仰轻叹",
+              "sitting on heels seductively",
+              1
+            ]
+          ]
+        },
+        {
+          "key": "pose_nsfw.explicit",
+          "lab": "露骨行为",
+          "type": "select",
+          "req": false,
+          "prob": 0.35,
+          "opts": [
+            [
+              "性行为",
+              "sex",
+              3
+            ],
+            [
+              "正常位",
+              "missionary",
+              3
+            ],
+            [
+              "骑乘位",
+              "cowgirl position",
+              3
+            ],
+            [
+              "后背位",
+              "doggy style",
+              3
+            ],
+            [
+              "口交",
+              "fellatio",
+              3
+            ],
+            [
+              "乳交",
+              "paizuri",
+              3
+            ],
+            [
+              "手交",
+              "handjob",
+              3
+            ],
+            [
+              "自慰",
+              "masturbation",
+              3
+            ],
+            [
+              "群体性行为",
+              "group sex",
+              4
+            ],
+            [
+              "双管齐下",
+              "double penetration",
+              4
+            ],
+            [
+              "极限扩张",
+              "extreme penetration",
+              4
+            ],
+            [
+              "口舔",
+              "cunnilingus",
+              3
+            ],
+            [
+              "舔肛",
+              "anilingus",
+              3
+            ],
+            [
+              "69",
+              "69",
+              3
+            ],
+            [
+              "悬空性交",
+              "suspended congress",
+              3
+            ],
+            [
+              "站立性交",
+              "standing sex",
+              3
+            ],
+            [
+              "靠墙性交",
+              "against wall",
+              3
+            ],
+            [
+              "床上",
+              "on bed",
+              2
+            ],
+            [
+              "事后",
+              "after sex",
+              2
+            ],
+            [
+              "内射",
+              "creampie",
+              3
+            ],
+            [
+              "颜射",
+              "facial",
+              3
+            ],
+            [
+              "群射",
+              "bukkake",
+              4
+            ],
+            [
+              "深喉口交",
+              "deepthroat",
+              3
+            ],
+            [
+              "含入口中",
+              "fellatio, penis in mouth",
+              3
+            ],
+            [
+              "口交仰望",
+              "fellatio, looking at viewer",
+              3
+            ],
+            [
+              "口交结束后舔舐",
+              "licking penis",
+              3
+            ],
+            [
+              "手指插入",
+              "fingering",
+              3
+            ],
+            [
+              "自慰高潮",
+              "masturbation, orgasm",
+              3
+            ],
+            [
+              "自慰使用情趣用品",
+              "masturbation, vibrator",
+              3
+            ],
+            [
+              "乳交夹击",
+              "paizuri, breast hold",
+              3
+            ],
+            [
+              "手交套弄",
+              "handjob, stroking",
+              3
+            ],
+            [
+              "足交踩弄",
+              "footjob",
+              3
+            ],
+            [
+              "后穴插入",
+              "anal sex",
+              4
+            ],
+            [
+              "三人行",
+              "threesome, 1girl 2boys",
+              4
+            ],
+            [
+              "精液溢出",
+              "cum overflow",
+              3
+            ],
+            [
+              "精液流出股间",
+              "cum drip from pussy",
+              3
+            ],
+            [
+              "精液留在体内",
+              "cum inside",
+              3
+            ],
+            [
+              "颜射(脸部精液)",
+              "cum on face",
+              3
+            ],
+            [
+              "胸口精液",
+              "cum on breasts",
+              3
+            ],
+            [
+              "腹部精液",
+              "cum on stomach",
+              3
+            ],
+            [
+              "口中精液",
+              "cum in mouth",
+              3
+            ],
+            [
+              "吞咽精液",
+              "swallowing cum",
+              3
+            ],
+            [
+              "身上淋漓精液",
+              "cum on body",
+              3
+            ],
+            [
+              "大量精液",
+              "excessive cum",
+              3
+            ],
+            [
+              "精液滴落",
+              "dripping cum",
+              3
+            ],
+            [
+              "精液池",
+              "cum pool",
+              3
+            ],
+            [
+              "爱液拉丝",
+              "love juice",
+              2
+            ],
+            [
+              "爱液溢出",
+              "dripping pussy juice",
+              2
+            ],
+            [
+              "唾液拉丝",
+              "saliva trail",
+              2
+            ],
+            [
+              "事后凌乱",
+              "exhausted after sex",
+              2
+            ],
+            [
+              "情欲高潮",
+              "orgasm",
+              2
+            ],
+            [
+              "身体抽搐颤抖",
+              "trembling body",
+              2
+            ],
+            [
+              "情欲流泪",
+              "tears of pleasure",
+              2
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene",
+      "title": "⑪ 场景地点与天气",
+      "floor": 0,
+      "weight": 1.0,
+      "fields": [
+        {
+          "key": "scene.place",
+          "lab": "地点",
+          "type": "select",
+          "req": true,
+          "prob": 1.0,
+          "opts": [
+            [
+              "教室",
+              "classroom",
+              0
+            ],
+            [
+              "学校走廊",
+              "school hallway",
+              0
+            ],
+            [
+              "学校天台",
+              "school rooftop",
+              0
+            ],
+            [
+              "学校体育馆",
+              "school gym",
+              0
+            ],
+            [
+              "图书馆",
+              "library",
+              0
+            ],
+            [
+              "食堂",
+              "cafeteria",
+              0
+            ],
+            [
+              "学校庭院",
+              "courtyard",
+              0
+            ],
+            [
+              "卧室",
+              "bedroom",
+              0
+            ],
+            [
+              "客厅",
+              "living room",
+              0
+            ],
+            [
+              "厨房",
+              "kitchen",
+              0
+            ],
+            [
+              "浴室",
+              "bathroom",
+              0
+            ],
+            [
+              "淋浴间",
+              "shower",
+              0
+            ],
+            [
+              "浴缸",
+              "bathtub",
+              0
+            ],
+            [
+              "办公室",
+              "office",
+              0
+            ],
+            [
+              "会议室",
+              "meeting room",
+              0
+            ],
+            [
+              "咖啡店",
+              "cafe",
+              0
+            ],
+            [
+              "餐厅",
+              "restaurant",
+              0
+            ],
+            [
+              "酒吧",
+              "bar",
+              0
+            ],
+            [
+              "书店",
+              "bookstore",
+              0
+            ],
+            [
+              "便利店",
+              "convenience store",
+              0
+            ],
+            [
+              "超市",
+              "supermarket",
+              0
+            ],
+            [
+              "商场",
+              "mall",
+              0
+            ],
+            [
+              "游戏厅",
+              "arcade",
+              0
+            ],
+            [
+              "车站",
+              "train station",
+              0
+            ],
+            [
+              "车厢内",
+              "train interior",
+              0
+            ],
+            [
+              "巴士内",
+              "bus interior",
+              0
+            ],
+            [
+              "车内",
+              "car interior",
+              0
+            ],
+            [
+              "街道",
+              "street",
+              0
+            ],
+            [
+              "小巷",
+              "alley",
+              0
+            ],
+            [
+              "人行横道",
+              "crosswalk",
+              0
+            ],
+            [
+              "公园",
+              "park",
+              0
+            ],
+            [
+              "游乐场",
+              "playground",
+              0
+            ],
+            [
+              "海滩",
+              "beach",
+              0
+            ],
+            [
+              "海边",
+              "ocean",
+              0
+            ],
+            [
+              "泳池",
+              "pool",
+              0
+            ],
+            [
+              "泳池边",
+              "poolside",
+              0
+            ],
+            [
+              "温泉",
+              "onsen",
+              0
+            ],
+            [
+              "森林",
+              "forest",
+              0
+            ],
+            [
+              "山上",
+              "mountain",
+              0
+            ],
+            [
+              "原野",
+              "field",
+              0
+            ],
+            [
+              "花田",
+              "flower field",
+              0
+            ],
+            [
+              "花园",
+              "garden",
+              0
+            ],
+            [
+              "神社",
+              "shrine",
+              0
+            ],
+            [
+              "寺庙",
+              "temple",
+              0
+            ],
+            [
+              "城堡",
+              "castle",
+              0
+            ],
+            [
+              "废墟",
+              "ruins",
+              0
+            ],
+            [
+              "洞穴",
+              "cave",
+              0
+            ],
+            [
+              "沙漠",
+              "desert",
+              0
+            ],
+            [
+              "雪原",
+              "snowfield",
+              0
+            ],
+            [
+              "城市",
+              "city",
+              0
+            ],
+            [
+              "天台",
+              "rooftop",
+              0
+            ],
+            [
+              "阳台",
+              "balcony",
+              0
+            ],
+            [
+              "酒店房间",
+              "hotel room",
+              0
+            ],
+            [
+              "和室",
+              "washitsu",
+              0
+            ],
+            [
+              "走廊",
+              "hallway",
+              0
+            ],
+            [
+              "楼梯",
+              "stairs",
+              0
+            ],
+            [
+              "天台泳池",
+              "rooftop pool",
+              0
+            ],
+            [
+              "水族馆",
+              "aquarium",
+              0
+            ],
+            [
+              "美术馆",
+              "museum",
+              0
+            ],
+            [
+              "电影院",
+              "movie theater",
+              0
+            ],
+            [
+              "演唱会现场",
+              "concert hall",
+              0
+            ],
+            [
+              "舞台",
+              "stage",
+              0
+            ],
+            [
+              "图书馆书架间",
+              "library aisle",
+              0
+            ],
+            [
+              "教室窗边",
+              "classroom window",
+              0
+            ],
+            [
+              "樱花树下",
+              "under cherry blossoms",
+              0
+            ],
+            [
+              "湖边",
+              "lake",
+              0
+            ],
+            [
+              "河边",
+              "river",
+              0
+            ],
+            [
+              "桥上",
+              "bridge",
+              0
+            ],
+            [
+              "摩天轮",
+              "ferris wheel",
+              0
+            ],
+            [
+              "咖啡店窗边",
+              "cafe window",
+              0
+            ],
+            [
+              "地下通道",
+              "underpass",
+              0
+            ],
+            [
+              "停车场",
+              "parking lot",
+              0
+            ],
+            [
+              "屋顶花园",
+              "roof garden",
+              0
+            ],
+            [
+              "老式街道",
+              "old town",
+              0
+            ],
+            [
+              "市集",
+              "market",
+              0
+            ],
+            [
+              "神社参道",
+              "shrine path",
+              0
+            ],
+            [
+              "校门口",
+              "school entrance",
+              0
+            ],
+            [
+              "校门",
+              "school gate",
+              0
+            ],
+            [
+              "鞋柜",
+              "shoe locker",
+              0
+            ],
+            [
+              "社团活动室",
+              "club room",
+              0
+            ],
+            [
+              "科学实验室",
+              "science lab",
+              0
+            ],
+            [
+              "电脑室",
+              "computer room",
+              0
+            ],
+            [
+              "体育场",
+              "stadium",
+              0
+            ],
+            [
+              "田径场",
+              "track field",
+              0
+            ],
+            [
+              "棒球场",
+              "baseball field",
+              0
+            ],
+            [
+              "更衣室",
+              "locker room",
+              0
+            ],
+            [
+              "桑拿房",
+              "sauna",
+              0
+            ],
+            [
+              "公共浴场",
+              "public bath",
+              0
+            ],
+            [
+              "温泉旅馆",
+              "hot spring inn",
+              0
+            ],
+            [
+              "旅馆",
+              "ryokan",
+              0
+            ],
+            [
+              "茶屋",
+              "tea house",
+              0
+            ],
+            [
+              "居酒屋",
+              "izakaya",
+              0
+            ],
+            [
+              "拉面店",
+              "ramen shop",
+              0
+            ],
+            [
+              "寿司店",
+              "sushi restaurant",
+              0
+            ],
+            [
+              "面包店",
+              "bakery",
+              0
+            ],
+            [
+              "花店",
+              "flower shop",
+              0
+            ],
+            [
+              "唱片店",
+              "record store",
+              0
+            ],
+            [
+              "服装店",
+              "clothing store",
+              0
+            ],
+            [
+              "珠宝店",
+              "jewelry store",
+              0
+            ],
+            [
+              "摄影棚",
+              "photo studio",
+              0
+            ],
+            [
+              "录音棚",
+              "recording studio",
+              0
+            ],
+            [
+              "电视演播室",
+              "tv studio",
+              0
+            ],
+            [
+              "剧院",
+              "theater",
+              0
+            ],
+            [
+              "歌剧院",
+              "opera house",
+              0
+            ],
+            [
+              "演唱会场地",
+              "concert venue",
+              0
+            ],
+            [
+              "夜店",
+              "nightclub",
+              0
+            ],
+            [
+              "赌场",
+              "casino",
+              0
+            ],
+            [
+              "酒店大堂",
+              "hotel lobby",
+              0
+            ],
+            [
+              "酒店走廊",
+              "hotel corridor",
+              0
+            ],
+            [
+              "电梯",
+              "elevator",
+              0
+            ],
+            [
+              "地下停车场",
+              "parking garage",
+              0
+            ],
+            [
+              "加油站",
+              "gas station",
+              0
+            ],
+            [
+              "邮局",
+              "post office",
+              0
+            ],
+            [
+              "教堂",
+              "church",
+              0
+            ],
+            [
+              "墓地",
+              "graveyard",
+              0
+            ],
+            [
+              "灯塔",
+              "lighthouse",
+              0
+            ],
+            [
+              "礼堂",
+              "auditorium",
+              0
+            ],
+            [
+              "美术室",
+              "art room",
+              0
+            ],
+            [
+              "音乐室",
+              "music room",
+              0
+            ],
+            [
+              "保健室",
+              "nurse's office",
+              0
+            ],
+            [
+              "校长室",
+              "principal's office",
+              0
+            ],
+            [
+              "宿舍",
+              "dormitory",
+              0
+            ],
+            [
+              "阁楼",
+              "attic",
+              0
+            ],
+            [
+              "地下室",
+              "basement",
+              0
+            ],
+            [
+              "车库",
+              "garage",
+              0
+            ],
+            [
+              "洗衣房",
+              "laundry room",
+              0
+            ],
+            [
+              "餐厅",
+              "dining room",
+              0
+            ],
+            [
+              "小木屋",
+              "cabin",
+              0
+            ],
+            [
+              "乡间小屋",
+              "cottage",
+              0
+            ],
+            [
+              "别墅",
+              "villa",
+              0
+            ],
+            [
+              "树屋",
+              "treehouse",
+              0
+            ],
+            [
+              "温室",
+              "greenhouse",
+              0
+            ],
+            [
+              "天文馆",
+              "planetarium",
+              0
+            ],
+            [
+              "天文台",
+              "observatory",
+              0
+            ],
+            [
+              "港口",
+              "harbor",
+              0
+            ],
+            [
+              "码头",
+              "dock",
+              0
+            ],
+            [
+              "栈桥",
+              "pier",
+              0
+            ],
+            [
+              "海滨步道",
+              "boardwalk",
+              0
+            ],
+            [
+              "广场",
+              "plaza",
+              0
+            ],
+            [
+              "十字路口",
+              "crossroads",
+              0
+            ],
+            [
+              "高速公路",
+              "highway",
+              0
+            ],
+            [
+              "高架桥",
+              "overpass",
+              0
+            ],
+            [
+              "隧道",
+              "tunnel",
+              0
+            ],
+            [
+              "机场",
+              "airport",
+              0
+            ],
+            [
+              "机舱",
+              "airplane interior",
+              0
+            ],
+            [
+              "公交站",
+              "bus stop",
+              0
+            ],
+            [
+              "游轮",
+              "cruise ship",
+              0
+            ],
+            [
+              "小船",
+              "boat",
+              0
+            ],
+            [
+              "美容院",
+              "beauty salon",
+              0
+            ],
+            [
+              "卡拉 OK",
+              "karaoke box",
+              0
+            ],
+            [
+              "网吧",
+              "internet cafe",
+              0
+            ],
+            [
+              "保龄球馆",
+              "bowling alley",
+              0
+            ],
+            [
+              "游乐园",
+              "amusement park",
+              0
+            ],
+            [
+              "动物园",
+              "zoo",
+              0
+            ],
+            [
+              "植物园",
+              "botanical garden",
+              0
+            ],
+            [
+              "果园",
+              "orchard",
+              0
+            ],
+            [
+              "农场",
+              "farm",
+              0
+            ],
+            [
+              "谷仓",
+              "barn",
+              0
+            ],
+            [
+              "马厩",
+              "stable",
+              0
+            ],
+            [
+              "风车",
+              "windmill",
+              0
+            ],
+            [
+              "稻田",
+              "rice field",
+              0
+            ],
+            [
+              "沼泽",
+              "swamp",
+              0
+            ],
+            [
+              "悬崖",
+              "cliff",
+              0
+            ],
+            [
+              "峡谷",
+              "canyon",
+              0
+            ],
+            [
+              "山谷",
+              "valley",
+              0
+            ],
+            [
+              "冰川",
+              "glacier",
+              0
+            ],
+            [
+              "丛林",
+              "jungle",
+              0
+            ],
+            [
+              "绿洲",
+              "oasis",
+              0
+            ],
+            [
+              "岛屿",
+              "island",
+              0
+            ],
+            [
+              "工厂",
+              "factory",
+              0
+            ],
+            [
+              "仓库",
+              "warehouse",
+              0
+            ],
+            [
+              "工地",
+              "construction site",
+              0
+            ],
+            [
+              "天空",
+              "sky",
+              0
+            ],
+            [
+              "小镇",
+              "town",
+              0
+            ],
+            [
+              "村庄",
+              "village",
+              0
+            ],
+            [
+              "学校",
+              "school",
+              0
+            ],
+            [
+              "医院",
+              "hospital",
+              0
+            ],
+            [
+              "公寓",
+              "apartment",
+              0
+            ],
+            [
+              "房子",
+              "house",
+              0
+            ],
+            [
+              "太空（宇宙）",
+              "space",
+              0
+            ],
+            [
+              "水下（水中）",
+              "underwater",
+              0
+            ]
+          ],
+          "slot": "place"
+        },
+        {
+          "key": "scene.weather",
+          "lab": "天气与时间",
+          "type": "select",
+          "req": false,
+          "prob": 0.5,
+          "opts": [
+            [
+              "晴天",
+              "sunny",
+              0
+            ],
+            [
+              "阴天",
+              "cloudy",
+              0
+            ],
+            [
+              "雨天",
+              "rain",
+              0
+            ],
+            [
+              "大雨",
+              "heavy rain",
+              0
+            ],
+            [
+              "小雨",
+              "light rain",
+              0
+            ],
+            [
+              "下雪",
+              "snowing",
+              0
+            ],
+            [
+              "大雪",
+              "heavy snow",
+              0
+            ],
+            [
+              "雾",
+              "fog",
+              0
+            ],
+            [
+              "薄雾",
+              "mist",
+              0
+            ],
+            [
+              "暴风雨",
+              "storm",
+              0
+            ],
+            [
+              "雷雨",
+              "thunderstorm",
+              0
+            ],
+            [
+              "风",
+              "wind",
+              0
+            ],
+            [
+              "樱花飘落",
+              "cherry blossoms falling",
+              0
+            ],
+            [
+              "落叶",
+              "falling leaves",
+              0
+            ],
+            [
+              "夜晚",
+              "night",
+              0
+            ],
+            [
+              "白天",
+              "day",
+              0
+            ],
+            [
+              "日落",
+              "sunset",
+              0
+            ],
+            [
+              "日出",
+              "sunrise",
+              0
+            ],
+            [
+              "黄昏",
+              "twilight",
+              0
+            ],
+            [
+              "星空",
+              "starry sky",
+              0
+            ],
+            [
+              "满月",
+              "full moon",
+              0
+            ],
+            [
+              "雨后",
+              "after rain",
+              0
+            ],
+            [
+              "雪后",
+              "after snow",
+              0
+            ],
+            [
+              "彩虹",
+              "rainbow",
+              0
+            ],
+            [
+              "极光",
+              "aurora",
+              0
+            ],
+            [
+              "云隙光",
+              "sunbeam",
+              0
+            ],
+            [
+              "晴空",
+              "clear sky",
+              0
+            ],
+            [
+              "阴云",
+              "overcast",
+              0
+            ],
+            [
+              "毛毛雨",
+              "drizzle",
+              0
+            ],
+            [
+              "雨夹雪",
+              "sleet",
+              0
+            ],
+            [
+              "冰雹",
+              "hail",
+              0
+            ],
+            [
+              "沙尘暴",
+              "sandstorm",
+              0
+            ],
+            [
+              "暴风雪",
+              "blizzard",
+              0
+            ],
+            [
+              "热浪",
+              "heat haze",
+              0
+            ],
+            [
+              "流星雨",
+              "meteor shower",
+              0
+            ],
+            [
+              "月食",
+              "lunar eclipse",
+              0
+            ],
+            [
+              "潮湿",
+              "humid",
+              0
+            ],
+            [
+              "炎热",
+              "hot",
+              0
+            ],
+            [
+              "寒冷",
+              "cold",
+              0
+            ],
+            [
+              "闪电",
+              "lightning",
+              0
+            ],
+            [
+              "日食",
+              "solar eclipse",
+              0
+            ],
+            [
+              "血月",
+              "blood moon",
+              0
+            ],
+            [
+              "浮尘",
+              "dust",
+              0
+            ],
+            [
+              "大风",
+              "windy",
+              0
+            ],
+            [
+              "春",
+              "spring",
+              0
+            ],
+            [
+              "夏",
+              "summer",
+              0
+            ],
+            [
+              "秋",
+              "autumn",
+              0
+            ],
+            [
+              "冬",
+              "winter",
+              0
+            ]
+          ],
+          "slot": "weather"
+        },
+        {
+          "key": "scene.detail",
+          "lab": "环境细节",
+          "type": "multi",
+          "req": false,
+          "prob": 0.45,
+          "opts": [
+            [
+              "室内",
+              "indoors",
+              0
+            ],
+            [
+              "室外",
+              "outdoors",
+              0
+            ],
+            [
+              "窗户",
+              "window",
+              0
+            ],
+            [
+              "窗帘",
+              "curtains",
+              0
+            ],
+            [
+              "床",
+              "bed",
+              0
+            ],
+            [
+              "沙发",
+              "sofa",
+              0
+            ],
+            [
+              "书桌",
+              "desk",
+              0
+            ],
+            [
+              "椅子",
+              "chair",
+              0
+            ],
+            [
+              "桌子",
+              "table",
+              0
+            ],
+            [
+              "镜子",
+              "mirror",
+              0
+            ],
+            [
+              "书架",
+              "bookshelf",
+              0
+            ],
+            [
+              "盆栽",
+              "potted plant",
+              0
+            ],
+            [
+              "花",
+              "flowers",
+              0
+            ],
+            [
+              "城市灯光",
+              "city lights",
+              0
+            ],
+            [
+              "霓虹灯",
+              "neon signs",
+              0
+            ],
+            [
+              "樱花树",
+              "cherry blossom trees",
+              0
+            ],
+            [
+              "红叶",
+              "autumn leaves",
+              0
+            ],
+            [
+              "水面倒影",
+              "water reflection",
+              0
+            ],
+            [
+              "漂浮粒子",
+              "floating particles",
+              0
+            ],
+            [
+              "彩灯",
+              "string lights",
+              0
+            ],
+            [
+              "蜡烛",
+              "candles",
+              0
+            ],
+            [
+              "气球",
+              "balloons",
+              0
+            ],
+            [
+              "纸鹤",
+              "paper crane",
+              0
+            ],
+            [
+              "雨滴",
+              "raindrops",
+              0
+            ],
+            [
+              "雪花",
+              "snowflakes",
+              0
+            ],
+            [
+              "玻璃窗",
+              "glass window",
+              0
+            ],
+            [
+              "栏杆",
+              "railing",
+              0
+            ],
+            [
+              "台阶",
+              "steps",
+              0
+            ],
+            [
+              "地毯",
+              "carpet",
+              0
+            ],
+            [
+              "壁炉",
+              "fireplace",
+              0
+            ],
+            [
+              "坐垫",
+              "cushion",
+              0
+            ],
+            [
+              "垂吊植物",
+              "hanging plants",
+              0
+            ],
+            [
+              "灯笼",
+              "lanterns",
+              0
+            ],
+            [
+              "风铃",
+              "wind chimes",
+              0
+            ],
+            [
+              "香炉",
+              "incense",
+              0
+            ],
+            [
+              "书堆",
+              "books",
+              0
+            ],
+            [
+              "咖啡杯",
+              "coffee cup",
+              0
+            ],
+            [
+              "茶杯",
+              "teacup",
+              0
+            ],
+            [
+              "酒杯",
+              "wine glass",
+              0
+            ],
+            [
+              "瓶子",
+              "bottle",
+              0
+            ],
+            [
+              "蛋糕",
+              "cake",
+              0
+            ],
+            [
+              "花瓣",
+              "petals",
+              0
+            ],
+            [
+              "水洼",
+              "puddles",
+              0
+            ],
+            [
+              "蒸汽",
+              "steam",
+              0
+            ],
+            [
+              "烟雾",
+              "smoke",
+              0
+            ],
+            [
+              "百叶窗",
+              "blinds",
+              0
+            ],
+            [
+              "台灯",
+              "lamp",
+              0
+            ],
+            [
+              "吊灯",
+              "chandelier",
+              0
+            ],
+            [
+              "时钟",
+              "clock",
+              0
+            ],
+            [
+              "相框",
+              "picture frame",
+              0
+            ],
+            [
+              "毛毯",
+              "blanket",
+              0
+            ],
+            [
+              "木地板",
+              "wooden floor",
+              0
+            ],
+            [
+              "榻榻米",
+              "tatami",
+              0
+            ],
+            [
+              "涂鸦",
+              "graffiti",
+              0
+            ],
+            [
+              "海报",
+              "posters",
+              0
+            ],
+            [
+              "自动售货机",
+              "vending machine",
+              0
+            ],
+            [
+              "红绿灯",
+              "traffic light",
+              0
+            ],
+            [
+              "路灯",
+              "street lights",
+              0
+            ],
+            [
+              "电线",
+              "power lines",
+              0
+            ],
+            [
+              "纸张",
+              "papers",
+              0
+            ],
+            [
+              "青苔",
+              "moss",
+              0
+            ],
+            [
+              "常春藤",
+              "ivy",
+              0
+            ],
+            [
+              "藤蔓",
+              "vines",
+              0
+            ],
+            [
+              "竹子",
+              "bamboo",
+              0
+            ],
+            [
+              "向日葵",
+              "sunflower",
+              0
+            ],
+            [
+              "绣球花",
+              "hydrangea",
+              0
+            ],
+            [
+              "荷花",
+              "lotus",
+              0
+            ],
+            [
+              "睡莲",
+              "water lilies",
+              0
+            ],
+            [
+              "珊瑚",
+              "coral",
+              0
+            ],
+            [
+              "鱼群",
+              "fish",
+              0
+            ],
+            [
+              "飞鸟",
+              "birds",
+              0
+            ],
+            [
+              "蝴蝶",
+              "butterflies",
+              0
+            ],
+            [
+              "萤火虫",
+              "fireflies",
+              0
+            ],
+            [
+              "猫",
+              "cats",
+              0
+            ],
+            [
+              "自行车",
+              "bicycle",
+              0
+            ],
+            [
+              "摩托车",
+              "motorcycle",
+              0
+            ],
+            [
+              "汽车",
+              "car",
+              0
+            ],
+            [
+              "列车",
+              "train",
+              0
+            ],
+            [
+              "晾晒衣物",
+              "laundry",
+              0
+            ],
+            [
+              "简单背景",
+              "simple background",
+              0
+            ],
+            [
+              "白色背景",
+              "white background",
+              0
+            ],
+            [
+              "灰色背景",
+              "grey background",
+              0
+            ],
+            [
+              "渐变背景",
+              "gradient background",
+              0
+            ],
+            [
+              "透明背景",
+              "transparent background",
+              0
+            ],
+            [
+              "棋盘格背景",
+              "checkered background",
+              0
+            ],
+            [
+              "云",
+              "cloud",
+              0
+            ],
+            [
+              "水",
+              "water",
+              0
+            ],
+            [
+              "动作线",
+              "motion lines",
+              0
+            ],
+            [
+              "速度线",
+              "speed lines",
+              0
+            ],
+            [
+              "阴影",
+              "shadow",
+              0
+            ]
+          ],
+          "min": 1,
+          "max": 2
+        }
+      ]
+    }
+  ]
+}
